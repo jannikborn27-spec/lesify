@@ -592,13 +592,28 @@ Phase 0: **keine eigene E-Mail-Infrastruktur.** Zahlungs-/Abo-/Beleg-Mails
 `woechentlicheZusammenfassung` bleiben in den Einstellungen, aber ohne Wirkung,
 bis das Thema wieder aufgemacht wird.
 
+> _2026-09-04: Job-Funktionen + CLI-Runner gebaut (`api/src/lib/jobs.ts`,
+> `api/src/jobs/run.ts`, `pnpm --filter @lesify/api job <name>`). Alle
+> idempotent, geben eine JSON-Zusammenfassung fürs Monitoring aus. Tests
+> `api/src/lib/jobs.test.ts` (3). Das **Einhängen in einen echten Scheduler**
+> (Hosting-Cron / Supabase `pg_cron` / Worker) bleibt ein Ops-Schritt für
+> Phase 16._
+
 - [ ] **Stripe-Mails konfigurieren** (Beleg-/Zahlungs-/Kündigungs-Mails im
-      Stripe-Dashboard aktivieren, Wording prüfen).
+      Stripe-Dashboard aktivieren, Wording prüfen). _Ops, Phase 16._
 - [ ] **Double-Opt-in-/Reset-Versand:** Entscheidung aus Phase 0 abwarten; bis
       dahin existiert nur der Token-Flow (Phase 3) ohne Versandweg.
-- [ ] **Cron-Infrastruktur** aufsetzen — zunächst nur für den **Usage-Reset zum
-      Monatsersten** und die **1-Jahres-Datenlöschung** (Phase 13), mit Monitoring,
-      dass die Jobs laufen.
+- [x] **Job-Funktionen + Runner** — _`inhalte-aufbewahrung` (löscht Lernpläne,
+      Testklausuren, Klausuren, Chats, Lernzettel, Dateien > 365 Tage, Cascade
+      räumt Kind-Tabellen), `usage-historie` (Usage-Zeilen > 12 Monate),
+      `token-hygiene` (abgelaufene Sessions/Verification-Token). Aufruf:
+      `pnpm --filter @lesify/api job inhalte-aufbewahrung|usage-historie|token-hygiene|all`._
+- [x] **Usage-Reset** — _kein eigener Job nötig: der Monatszähler resettet
+      implizit über den `Usage.monat`-Schlüssel (Phase 8). `usage-historie`
+      räumt nur die Altlasten weg._
+- [ ] **Scheduler + Monitoring** — _die drei Kommandos in Hosting-Cron/`pg_cron`
+      eintragen (Vorschlag: `inhalte-aufbewahrung`/`usage-historie` täglich,
+      `token-hygiene` stündlich), Exit-Code != 0 alarmiert. → Phase 16._
 - [ ] _(zurückgestellt)_ `erinnerungVorKlausuren`, `woechentlicheZusammenfassung`,
       Trial-Reminder.
 

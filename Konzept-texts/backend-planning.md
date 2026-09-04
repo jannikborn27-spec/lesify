@@ -972,6 +972,17 @@ nach ihrer Erstellung gelöscht** (Cron-Job). Die Frist steht in der
 Datenschutzerklärung **und** sichtbar in den Einstellungen. Ersetzt die frühere
 offene „Archivierungs"-Frage.
 
+**Umsetzung (Phase 10, 2026-09-04):** Job `inhalte-aufbewahrung` in
+`api/src/lib/jobs.ts` (`inhalteAelterAlsEinJahrLoeschen`) löscht in einer
+Transaktion Lernpläne → Testklausuren → Klausuren → Chats → Lernzettel →
+Dateien mit `erstelltAm < jetzt − 365 Tage`; Kind-Tabellen (Nachricht,
+Revision, Aufgabe, Ergebnis, Vorbereitungsstand) gehen per Cascade mit. Der
+Objektspeicher-Teil (`Datei.speicherPfad`-Keys vorher einsammeln und im
+Bucket löschen) hängt an Phase 5. Aufruf über `pnpm --filter @lesify/api job
+inhalte-aufbewahrung`; Einhängen in einen echten Scheduler = Phase 16.
+Weitere Jobs: `usage-historie` (Usage-Zeilen > 12 Monate),
+`token-hygiene` (abgelaufene Sessions/Verification-Token).
+
 ## 7. Usage-Tracking & Limits
 
 - Monatlicher Reset **fix zum Monatsersten** (Entscheidung 2026-09-03; Cron oder

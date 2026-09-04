@@ -151,6 +151,14 @@ Blockiert alles Weitere. Erst die offenen Produktfragen klären, dann bauen.
     - _Default, änderbar:_ Auth-Fehlversuche → IP-Drosselung + Backoff, **kein**
       harter Account-Lockout. `/kontakt` → IP-Limit + Honeypot, **kein Captcha**.
     → Phase 6 (Vorab-Filter), Phase 15 (Rate-Limiting produktiv).
+- [x] **DB-Anbieter → Supabase (EU-Region)** für PostgreSQL **und** Objektspeicher.
+      Nur als Postgres + Storage genutzt, **nicht** Supabase Auth. → Phase 2 / §0.
+- [x] **Row-Level-Security → nein (App-Ebene + FK-Constraints).** Datentrennung
+      rein über die `userId`-gescopte Query-Schicht (Auth-Middleware, Phase 3).
+      Supabase-RLS scheidet aus, weil es Supabase-Auth voraussetzt. RLS als
+      spätere Härtung offen. → Phase 2, `backend-planning.md` §1/§8.
+- [x] **ORM/Migrationen → Prisma.** `api/prisma/schema.prisma`, `prisma migrate`.
+      → Phase 2 / §0.
 
 ---
 
@@ -212,29 +220,42 @@ Blockiert alles Weitere. Erst die offenen Produktfragen klären, dann bauen.
 
 Grundlage: `backend-planning.md` §1. Reihenfolge so, dass FKs immer schon existieren.
 
-- [ ] **Migrations-Werkzeug einrichten** (versionierte Up-/Down-Migrationen, in CI geprüft).
-- [ ] **Enums anlegen:** `rolle`, `abo.paket`, `abo.art`, `abo.intervall`,
-      `abo.status`, `datei.typ`, `datei.status`, `nachricht.rolle`,
-      `chat.modus` (nullable), `testklausur.status`, `ampel`, `kiTonfall`.
-- [ ] **Kern-Tabellen (in dieser Reihenfolge):** `User` → `Abo` →
-      `Einstellungen` → `Fach` → `Thema` → `Chat` → `Nachricht` → `Lernzettel` →
-      `LernzettelRevision` → `Datei` → `Klausur` → `Lernplan` → `Testklausur` →
-      `Aufgabe` → `TestklausurErgebnis` → `Vorbereitungsstand` → `Usage`.
-      Feldtypen/-namen exakt nach §1, inklusive `nullable`-Angaben.
-      **Kein** `Thema.mastery`, **kein** `Klausur.note` (Phase-0-Entscheidungen).
-      `User.trialEndetAm = createdAt + 14 Tage`. `Lernplan.chatMap` ist eine
-      **JSON-Spalte** (Entscheidung 2026-09-04), nicht aus Nachrichten abgeleitet.
-- [ ] **`parentUserId`-Scoping:** jede nutzergebundene Tabelle hat `userId`;
-      Kind-Profile im Familien-Abo sind eigene `User`-Zeilen mit `parentUserId`.
-      DB-Constraints + (falls Stack es bietet) Row-Level-Security so, dass
-      **niemals** fremde `userId`-Daten sichtbar sind.
-- [ ] **Indizes:** FKs, `Chat.aktualisiertAm` (Sortierung), `Usage(userId, monat)`
-      (unique), `Datei.status`, `Klausur.datum`.
-- [ ] **Seed-Skript:** die Dummy-Daten aus `data.js` (`SEED`) als Backend-Seed für
-      `staging` nachbauen — dieselben Fächer/Themen/Klausuren/Lernpläne, damit die
-      angebundene App identisch aussieht wie der Prototyp.
-- [ ] **backend-planning.md aktualisieren,** falls beim Umsetzen Feld-Details
-      präzisiert wurden.
+- [x] **Migrations-Werkzeug einrichten** — _2026-09-04: Prisma (`api/prisma/`),
+      Scripts `db:migrate`/`db:deploy`/`db:seed`/`db:studio`/`db:reset` in
+      `api/package.json`. Migrations-Ordner wird beim ersten `db:migrate`
+      angelegt und committet; `db:deploy` läuft später in CI/Deploy (Phase 16).
+      Prisma-Migrationen sind vorwärtsgerichtet („down" bei Bedarf als eigene
+      Migration)._
+- [x] **Enums anlegen** — _2026-09-04: alle 12 als Prisma-Enums in
+      `schema.prisma` (`Rolle`, `AboPaket`, `AboArt`, `AboIntervall`,
+      `AboStatus`, `DateiTyp`, `DateiStatus`, `NachrichtRolle` (= auch
+      `LernzettelRevision.rolle`), `ChatModus` (nullable), `TestklausurStatus`,
+      `Ampel`, `KiTonfall`)._
+- [x] **Kern-Tabellen** — _2026-09-04: alle 17 Modelle in `schema.prisma`,
+      Feldnamen/-typen/`nullable` nach §1. Kein `Thema.mastery`, kein
+      `Klausur.note`. `Lernplan.chatMap`/`checklist` als `Json`-Spalten.
+      `prisma validate` + `prisma generate` grün. **Noch offen:** `db:migrate`
+      gegen die Supabase-DB ausführen (braucht `api/.env`)._
+- [x] **`parentUserId`-Scoping** — _2026-09-04: `userId` auf **allen**
+      nutzergebundenen Tabellen denormalisiert (nicht nur Fach/Einstellungen/
+      Usage), plus `User.parentUserId` (self-FK) für Kind-Profile. Datentrennung
+      über die `userId`-gescopte Query-Schicht (Auth-Middleware, Phase 3) +
+      FK-Constraints. **Kein DB-RLS** (Entscheidung 2026-09-04: Supabase-RLS
+      braucht Supabase-Auth, die wir nicht nutzen) — als spätere Härtung offen._
+- [x] **Indizes** — _2026-09-04: `@@index` auf allen FK-Spalten,
+      `Chat.aktualisiertAm`, `Datei.status`, `Klausur.datum`;
+      `@@unique([userId, monat])` auf `Usage`._
+- [ ] **Seed-Skript** — _2026-09-04 (teilweise): `api/prisma/seed.ts` deckt
+      Demo-User + Einstellungen + Abo + Usage, alle Fächer/Themen, Chats
+      (+Nachrichten), Lernzettel (+Revisionen), Dateien und Klausuren ab.
+      **Fehlt noch:** Testklausuren + Aufgaben + TestklausurErgebnis +
+      Vorbereitungsstand + Lernpläne — werden zusammen mit Phase 7 (Noten-/
+      Ampel-/lernplanStatus-Logik) portiert. Ausführbar erst nach `db:migrate`._
+- [x] **backend-planning.md aktualisieren** — _2026-09-04: §1 um „Umsetzung:
+      Prisma-Schema" ergänzt (userId-Denormalisierung, `email` nullable+unique,
+      1:1-`unique` auf Lernplan-Testklausur-FKs, Enum-Namen, Löschverhalten,
+      RLS-Entscheidung). §0 „Umsetzungs-Ebene" auf „Prisma in Benutzung"
+      aktualisiert._
 
 ---
 

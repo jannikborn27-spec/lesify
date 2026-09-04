@@ -60,12 +60,13 @@ späteren API-Clients.
 | Zahlungen | **Stripe** (Test- + Live-Modus) | Phase-0-Entscheidung: Trial → Subscription, Proration, Familien-Sitze. |
 | E-Mail | **zurückgestellt** | Zahlungs-/Abo-/Beleg-Mails über Stripe. Token-Flow für Double-Opt-in/Reset wird gebaut, Versandweg später (§8). |
 
-### Vorschlag Umsetzungs-Ebene (revidierbar, sobald `/api` real startet)
+### Umsetzungs-Ebene
 
 - **API-Framework:** Fastify (schlank, natives JSON-Schema-Validieren — passt zu
-  den festen JSON-Schemas der KI-Calls in §3).
-- **DB-Zugriff & Migrationen:** Prisma (versionierte Up-/Down-Migrationen, in CI
-  prüfbar — deckt die erste Aufgabe von Phase 2 ab).
+  den festen JSON-Schemas der KI-Calls in §3). _Stub `api/src/index.ts` steht (Phase 1)._
+- **DB-Zugriff & Migrationen:** **Prisma** — seit Phase 2 in Benutzung
+  (`api/prisma/schema.prisma`), Migrationen über `prisma migrate`. Prisma-
+  Migrationen sind vorwärtsgerichtet; „down" bei Bedarf als separate Migration.
 - **Tests:** Vitest (Unit für `shared/`-Formeln + Paritäts-Tests gegen `data.js`,
   Phase 7/14).
 - **Lint/Format:** ESLint + Prettier, Commit-Hook via `simple-git-hooks` +
@@ -523,6 +524,39 @@ Quoten; ein `null`-Limit (unbegrenzte Nachrichten bei `infinite`) zählt als 0.
 - Testklausur-Lösungs-Uploads (Testklausur 1 und 2) zählen **aktuell nicht** gegen das
   Datei-Limit im Prototyp (sind Teil des Kern-Workflows) — offene Entscheidung,
   siehe §8.
+
+### Umsetzung: Prisma-Schema (Phase 2, 2026-09-04)
+
+Das Datenmodell liegt jetzt als `api/prisma/schema.prisma` vor (Prisma +
+PostgreSQL, Migrationen über `prisma migrate`). Präzisierungen ggü. der Tabelle
+oben — nichts inhaltlich Neues, nur beim Umsetzen festgelegt:
+
+- **`userId` auf allen nutzergebundenen Tabellen** denormalisiert (nicht nur
+  `Fach`/`Einstellungen`/`Usage`, sondern auch `Thema`, `Chat`, `Nachricht`,
+  `Lernzettel`, `LernzettelRevision`, `Datei`, `Klausur`, `Lernplan`,
+  `Testklausur`, `Aufgabe`, `TestklausurErgebnis`, `Vorbereitungsstand`).
+  Grund: das Scoping in der Auth-Middleware (§5, Phase 3) und die Usage-Zählung
+  (§7, Phase 8) brauchen `userId` sonst über 2–3 Joins. FK-Kette (`fachId` →
+  `themaId` → …) bleibt zusätzlich bestehen.
+- **`User.email` ist `nullable` + `unique`** (mehrere `NULL` erlaubt) — Kind-
+  Profile im Familien-Abo haben keine eigene Login-Mail.
+- **`Lernplan.testklausur1Id` / `testklausur2Id`**: je `unique` (echte 1:1-
+  Bindung Lernplan ↔ Testklausur, zusätzlich zur `klausurId`-1:1).
+- **Enum-Namen in Prisma** (PascalCase, Werte unverändert): `Rolle`, `AboPaket`,
+  `AboArt`, `AboIntervall`, `AboStatus`, `KiTonfall`, `ChatModus` (nullable),
+  `NachrichtRolle` (gilt auch für `LernzettelRevision.rolle`), `DateiTyp`,
+  `DateiStatus`, `TestklausurStatus`, `Ampel`.
+- **Löschverhalten**: `onDelete: Cascade` von `User` und entlang der
+  `Fach`→`Thema`→… -Kette (entspricht „Fach löschen" / „Sitz entfernen löscht
+  Inhalte", Phase 0). Nullable Datei-Referenzen (`Nachricht.anhangDateiId`,
+  `Testklausur.geloesteDateiId`) → `SetNull`.
+- **Row-Level-Security**: kommt **nicht** als DB-Feature (Entscheidung
+  2026-09-04) — Datentrennung rein über die `userId`-gescopte Query-Schicht +
+  FK-Constraints. Supabase-RLS setzt Supabase-Auth voraus, die hier nicht
+  genutzt wird. RLS als spätere Härtung offen (§8).
+- **JSON-Spalten**: `Lernplan.checklist` / `chatMap` (`@default("{}")`),
+  `Lernplan.lernzettel` (nullable), `Lernplan.tageErledigt` (`Int[]`).
+- **Arrays ohne FK**: `Klausur.themaIds`, `Testklausur.themaIds` (`String[] @db.Uuid`).
 
 ---
 

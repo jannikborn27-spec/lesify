@@ -2,7 +2,9 @@
   "extends": "../tsconfig.base.json",
   "compilerOptions": {
     "types": ["node"],
-    "noEmit": true
+    "rootDir": "src",
+    "outDir": "dist",
+    "noEmit": false
   },
-  "include": ["src", "prisma"]
+  "include": ["src"]
 }

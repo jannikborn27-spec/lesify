@@ -1,0 +1,456 @@
+// Lesify — Datenmodell.
+// Quelle der Wahrheit: Konzept-texts/backend-planning.md §1. Feldnamen/-typen
+// bilden 1:1 das Prototyp-Verhalten aus app/assets/js/data.js ab.
+//
+// Naming: Prisma-Defaults — Modellname = Tabellenname, camelCase-Spalten.
+//
+// Präzisierung ggü. §1 (Phase 2, 2026-09-04): Laut UMSETZUNGSPLAN Phase 2 hat
+// "jede nutzergebundene Tabelle" ein eigenes `userId` — deshalb ist `userId`
+// hier auch auf Thema/Chat/Nachricht/LernzettelRevision/Lernplan/Aufgabe/
+// TestklausurErgebnis/Vorbereitungsstand denormalisiert (in §1 nur implizit
+// über die fachId-/themaId-Kette). Vereinfacht das userId-Scoping der
+// Auth-Middleware (Phase 3) und die Usage-Zählung (Phase 8).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL") // gepoolte Verbindung (Supabase, Port 6543) — Laufzeit
+  directUrl = env("DIRECT_URL") // Direktverbindung (Supabase, Port 5432) — Migrationen
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum Rolle {
+  schueler
+  elternteil
+}
+
+enum AboPaket {
+  starter
+  premium
+  infinite
+}
+
+enum AboArt {
+  einzel
+  familie
+}
+
+enum AboIntervall {
+  monatlich
+  jaehrlich
+}
+
+enum AboStatus {
+  test
+  aktiv
+  gekuendigt
+  pausiert
+  zahlung_offen
+}
+
+enum KiTonfall {
+  freundlich
+  direkt
+  motivierend
+}
+
+/// Chat.modus ist nullable — fehlt der Modus, gilt der neutrale "freie Frage"-Kontext.
+enum ChatModus {
+  erklaeren
+  hausaufgaben
+  ueben
+  zusammenfassen
+}
+
+/// gilt für Nachricht.rolle UND LernzettelRevision.rolle
+enum NachrichtRolle {
+  user
+  ai
+}
+
+enum DateiTyp {
+  pdf
+  doc
+  img
+}
+
+enum DateiStatus {
+  verarbeitung
+  bereit
+  fehler
+}
+
+enum TestklausurStatus {
+  erstellt
+  geloest
+  analysiert
+}
+
+/// Vorbereitungsstand-Ampel: gruen ≤2.5 · gelb ≤4.0 · sonst rot (noteAmpel, §2)
+enum Ampel {
+  gruen
+  gelb
+  rot
+}
+
+// ---------------------------------------------------------------------------
+// Kern-Tabellen (Reihenfolge nach UMSETZUNGSPLAN Phase 2)
+// ---------------------------------------------------------------------------
+
+model User {
+  id              String    @id @default(uuid()) @db.Uuid
+  name            String
+  klassenstufe    String
+  email           String?   @unique // bei Kind-Profilen im Familien-Abo leer
+  rolle           Rolle
+  parentUserId    String?   @db.Uuid
+  aboId           String?   @db.Uuid
+  trialEndetAm    DateTime? // createdAt + 14 Tage
+  passwordHash    String
+  emailVerifiedAt DateTime?
+  createdAt       DateTime  @default(now())
+
+  parent   User?  @relation("ElternKind", fields: [parentUserId], references: [id], onDelete: SetNull)
+  children User[] @relation("ElternKind")
+
+  abo       Abo?  @relation("UserAktivesAbo", fields: [aboId], references: [id], onDelete: SetNull)
+  ownedAbos Abo[] @relation("AboOwner")
+
+  einstellungen       Einstellungen?
+  faecher             Fach[]
+  themen              Thema[]
+  chats               Chat[]
+  nachrichten         Nachricht[]
+  lernzettel          Lernzettel[]
+  lernzettelRevisions LernzettelRevision[]
+  dateien             Datei[]
+  klausuren           Klausur[]
+  lernplaene          Lernplan[]
+  testklausuren       Testklausur[]
+  aufgaben            Aufgabe[]
+  testklausurErgeb    TestklausurErgebnis[]
+  vorbereitungsstand  Vorbereitungsstand[]
+  usages              Usage[]
+
+  @@index([parentUserId])
+  @@index([aboId])
+}
+
+model Abo {
+  id                    String       @id @default(uuid()) @db.Uuid
+  ownerUserId           String       @db.Uuid
+  paket                 AboPaket
+  art                   AboArt
+  sitze                 Int // 1 bei einzel; 2–4 bei familie
+  intervall             AboIntervall
+  angebot               String? // z. B. "schuljahresstart_-20"
+  status                AboStatus
+  trialEndetAm          DateTime? // nur bei status = test; createdAt + 14 Tage
+  aktuellerZeitraumEnde DateTime     @db.Date
+  zahlungsanbieterRef   String? // Stripe Customer/Subscription
+  erstelltAm            DateTime     @default(now())
+
+  owner          User   @relation("AboOwner", fields: [ownerUserId], references: [id], onDelete: Cascade)
+  aktivFuerUsers User[] @relation("UserAktivesAbo")
+
+  @@index([ownerUserId])
+}
+
+model Einstellungen {
+  userId                       String    @id @db.Uuid
+  erinnerungVorKlausuren       Boolean   @default(false)
+  woechentlicheZusammenfassung Boolean   @default(false)
+  kiTonfall                    KiTonfall @default(freundlich)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Fach {
+  id      String  @id @default(uuid()) @db.Uuid
+  userId  String  @db.Uuid
+  name    String
+  klasse  String? // z. B. "8. Klasse"
+  initial String // 1 Zeichen, Avatar-Fallback
+  farbe   String // Schlüssel aus FACH_COLORS (app/assets/js/data.js)
+  icon    String? // Schlüssel aus FACH_ICONS/FACH_PRESETS, null = eigenes Fach
+
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  themen        Thema[]
+  chats         Chat[]
+  lernzettel    Lernzettel[]
+  dateien       Datei[]
+  klausuren     Klausur[]
+  testklausuren Testklausur[]
+
+  @@index([userId])
+}
+
+model Thema {
+  id           String @id @default(uuid()) @db.Uuid
+  userId       String @db.Uuid
+  fachId       String @db.Uuid
+  name         String
+  beschreibung String
+  // Kein `mastery` — Entscheidung 2026-09-03, ersatzlos entfernt.
+
+  user               User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fach               Fach                  @relation(fields: [fachId], references: [id], onDelete: Cascade)
+  chats              Chat[]
+  lernzettel         Lernzettel[]
+  dateien            Datei[]
+  aufgaben           Aufgabe[]
+  testklausurErgeb   TestklausurErgebnis[]
+  vorbereitungsstand Vorbereitungsstand[]
+
+  @@index([userId])
+  @@index([fachId])
+}
+
+model Chat {
+  id             String     @id @default(uuid()) @db.Uuid
+  userId         String     @db.Uuid
+  fachId         String     @db.Uuid // denormalisiert, ergibt sich aus themaId
+  themaId        String     @db.Uuid
+  titel          String // aus erster Nutzer-Nachricht generiert (KI, §3)
+  modus          ChatModus? // null = neutraler "freie Frage"-Modus
+  erstelltAm     DateTime   @default(now())
+  aktualisiertAm DateTime   @updatedAt
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fach        Fach        @relation(fields: [fachId], references: [id], onDelete: Cascade)
+  thema       Thema       @relation(fields: [themaId], references: [id], onDelete: Cascade)
+  nachrichten Nachricht[]
+
+  @@index([userId])
+  @@index([fachId])
+  @@index([themaId])
+  @@index([aktualisiertAm]) // "zuletzt aktiv"-Sortierung
+}
+
+model Nachricht {
+  id               String         @id @default(uuid()) @db.Uuid
+  userId           String         @db.Uuid
+  chatId           String         @db.Uuid
+  rolle            NachrichtRolle
+  text             String
+  anhangDateiId    String?        @db.Uuid
+  erstelltAm       DateTime       @default(now())
+  zaehltGegenLimit Boolean        @default(true)
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chat   Chat   @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  anhang Datei? @relation(fields: [anhangDateiId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([chatId])
+  @@index([anhangDateiId])
+}
+
+model Lernzettel {
+  id               String   @id @default(uuid()) @db.Uuid
+  userId           String   @db.Uuid
+  fachId           String   @db.Uuid
+  themaId          String   @db.Uuid
+  titel            String
+  content          String // Markdown, vollautomatisch generiert
+  freeMessagesUsed Int      @default(0) // 0–10, §5
+  erstelltAm       DateTime @default(now())
+  aktualisiertAm   DateTime @updatedAt
+
+  user       User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fach       Fach                 @relation(fields: [fachId], references: [id], onDelete: Cascade)
+  thema      Thema                @relation(fields: [themaId], references: [id], onDelete: Cascade)
+  revisionen LernzettelRevision[]
+
+  @@index([userId])
+  @@index([fachId])
+  @@index([themaId])
+}
+
+model LernzettelRevision {
+  id           String         @id @default(uuid()) @db.Uuid
+  userId       String         @db.Uuid
+  lernzettelId String         @db.Uuid
+  rolle        NachrichtRolle
+  text         String
+  erstelltAm   DateTime       @default(now())
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lernzettel Lernzettel @relation(fields: [lernzettelId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([lernzettelId])
+}
+
+model Datei {
+  id              String      @id @default(uuid()) @db.Uuid
+  userId          String      @db.Uuid
+  fachId          String      @db.Uuid
+  themaId         String      @db.Uuid
+  name            String // Originaldateiname
+  typ             DateiTyp
+  groesseBytes    Int // Limit 5 MB, hart validiert
+  speicherPfad    String // Objektspeicher-Key, §6
+  status          DateiStatus @default(verarbeitung)
+  zusammenfassung String? // KI-generiert beim Upload, §3
+  erstelltAm      DateTime    @default(now())
+
+  user               User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fach               Fach          @relation(fields: [fachId], references: [id], onDelete: Cascade)
+  thema              Thema         @relation(fields: [themaId], references: [id], onDelete: Cascade)
+  nachrichtenAnhang  Nachricht[]
+  testklausurLoesung Testklausur[]
+
+  @@index([userId])
+  @@index([fachId])
+  @@index([themaId])
+  @@index([status])
+}
+
+model Klausur {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @db.Uuid
+  fachId     String   @db.Uuid
+  themaIds   String[] @db.Uuid // ein Termin kann mehrere Themen abdecken (keine FK)
+  titel      String
+  datum      DateTime @db.Date
+  erstelltAm DateTime @default(now())
+  // Kein `note` — Entscheidung 2026-09-03. "Geschrieben" wird aus datum < heute abgeleitet.
+
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fach          Fach          @relation(fields: [fachId], references: [id], onDelete: Cascade)
+  lernplan      Lernplan?
+  testklausuren Testklausur[]
+
+  @@index([userId])
+  @@index([fachId])
+  @@index([datum])
+}
+
+model Lernplan {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String   @db.Uuid
+  klausurId      String   @unique @db.Uuid // 1:1
+  testklausur1Id String   @unique @db.Uuid // Tag 1, alle Themen
+  testklausur2Id String?  @unique @db.Uuid // Tag 5, nur schwache/wackelige; null bis gestartet
+  checklist      Json     @default("{}") // { "<tag>": { "<aufgabenKey>": bool } }
+  tageErledigt   Int[]    @default([]) // Legacy-Fallback (Teilmenge {2,3,4,6,7})
+  lernzettel     Json? // { content, aktualisiertAm } | null
+  chatMap        Json     @default("{}") // { "<tag>|<modus>|<themaId>": chatId }
+  erstelltAm     DateTime @default(now())
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  klausur      Klausur      @relation(fields: [klausurId], references: [id], onDelete: Cascade)
+  testklausur1 Testklausur  @relation("LernplanTest1", fields: [testklausur1Id], references: [id], onDelete: NoAction)
+  testklausur2 Testklausur? @relation("LernplanTest2", fields: [testklausur2Id], references: [id], onDelete: NoAction)
+
+  @@index([userId])
+}
+
+model Testklausur {
+  id              String            @id @default(uuid()) @db.Uuid
+  userId          String            @db.Uuid
+  klausurId       String?           @db.Uuid // bei Lernplan-Testklausuren immer gesetzt
+  fachId          String            @db.Uuid
+  themaIds        String[]          @db.Uuid // ein Thema → eine Aufgabe (keine FK)
+  titel           String
+  status          TestklausurStatus @default(erstellt)
+  geloesteDateiId String?           @db.Uuid
+  erstelltAm      DateTime          @default(now())
+
+  user          User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  klausur       Klausur?              @relation(fields: [klausurId], references: [id], onDelete: Cascade)
+  fach          Fach                  @relation(fields: [fachId], references: [id], onDelete: Cascade)
+  geloesteDatei Datei?                @relation(fields: [geloesteDateiId], references: [id], onDelete: SetNull)
+  aufgaben      Aufgabe[]
+  ergebnisse    TestklausurErgebnis[]
+  vorbereitung  Vorbereitungsstand[]
+  lernplanAlsT1 Lernplan?             @relation("LernplanTest1")
+  lernplanAlsT2 Lernplan?             @relation("LernplanTest2")
+
+  @@index([userId])
+  @@index([klausurId])
+  @@index([fachId])
+  @@index([geloesteDateiId])
+}
+
+model Aufgabe {
+  id            String @id @default(uuid()) @db.Uuid
+  userId        String @db.Uuid
+  testklausurId String @db.Uuid
+  themaId       String @db.Uuid
+  frage         String
+  reihenfolge   Int
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  testklausur Testklausur @relation(fields: [testklausurId], references: [id], onDelete: Cascade)
+  thema       Thema       @relation(fields: [themaId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([testklausurId])
+  @@index([themaId])
+}
+
+/// Eingefroren — entsteht bei der Analyse, wird danach nie mehr verändert.
+model TestklausurErgebnis {
+  id            String  @id @default(uuid()) @db.Uuid
+  userId        String  @db.Uuid
+  testklausurId String  @db.Uuid
+  themaId       String  @db.Uuid
+  prozent       Int
+  note          Decimal @db.Decimal(2, 1) // deutsche Skala 1.0–6.0, Formel §2
+  erklaerung    String
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  testklausur Testklausur @relation(fields: [testklausurId], references: [id], onDelete: Cascade)
+  thema       Thema       @relation(fields: [themaId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([testklausurId])
+  @@index([themaId])
+}
+
+/// Dreistufige Ampel pro Thema (stark/wackelig/schwach). Klon von
+/// TestklausurErgebnis bei der Analyse, danach unveränderlich.
+model Vorbereitungsstand {
+  id            String  @id @default(uuid()) @db.Uuid
+  userId        String  @db.Uuid
+  testklausurId String  @db.Uuid
+  themaId       String  @db.Uuid
+  prozent       Int
+  note          Decimal @db.Decimal(2, 1)
+  ampel         Ampel
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  testklausur Testklausur @relation(fields: [testklausurId], references: [id], onDelete: Cascade)
+  thema       Thema       @relation(fields: [themaId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([testklausurId])
+  @@index([themaId])
+}
+
+model Usage {
+  id                 String @id @default(uuid()) @db.Uuid
+  userId             String @db.Uuid
+  monat              String // YYYY-MM
+  nachrichtenUsed    Int    @default(0)
+  nachrichtenLimit   Int? // null = unbegrenzt (nur infinite)
+  dateienUsed        Int    @default(0)
+  dateienLimit       Int
+  lernzettelUsed     Int    @default(0)
+  lernzettelLimit    Int
+  testklausurenUsed  Int    @default(0)
+  testklausurenLimit Int
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, monat])
+  @@index([userId])
+}

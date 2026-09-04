@@ -20,7 +20,14 @@ describe.runIf(hatDb)('Usage-Limits — harte Durchsetzung (Supabase)', () => {
     await app.inject({
       method: 'POST',
       url: '/auth/registrieren',
-      payload: { rolle: 'schueler', name: 'Usage', klassenstufe: '8. Klasse', email, passwort },
+      payload: {
+        rolle: 'schueler',
+        name: 'Usage',
+        klassenstufe: '8. Klasse',
+        email,
+        passwort,
+        einwilligung: true,
+      },
     });
     token = (
       await app.inject({ method: 'POST', url: '/auth/login', payload: { email, passwort } })

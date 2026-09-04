@@ -23,7 +23,14 @@ describe.runIf(hatDb)('Wartungs-Jobs (Supabase)', () => {
     await app.inject({
       method: 'POST',
       url: '/auth/registrieren',
-      payload: { rolle: 'schueler', name: 'Jobs', klassenstufe: '8. Klasse', email, passwort },
+      payload: {
+        rolle: 'schueler',
+        name: 'Jobs',
+        klassenstufe: '8. Klasse',
+        email,
+        passwort,
+        einwilligung: true,
+      },
     });
     const token = (
       await app.inject({ method: 'POST', url: '/auth/login', payload: { email, passwort } })

@@ -27,7 +27,14 @@ async function registriereUndLogin(app: ReturnType<typeof buildApp>, email: stri
   await app.inject({
     method: 'POST',
     url: '/auth/registrieren',
-    payload: { rolle: 'elternteil', name: 'Abo Test', klassenstufe: '—', email, passwort },
+    payload: {
+      rolle: 'elternteil',
+      name: 'Abo Test',
+      klassenstufe: '—',
+      email,
+      passwort,
+      einwilligung: true,
+    },
   });
   return (
     await app.inject({ method: 'POST', url: '/auth/login', payload: { email, passwort } })

@@ -114,6 +114,7 @@ model User {
   trialEndetAm    DateTime? // createdAt + 14 Tage
   passwordHash    String
   emailVerifiedAt DateTime?
+  einwilligungAm  DateTime? // Zeitpunkt der Eltern-/Minderjährigen-Einwilligung bei Registrierung (Phase 13)
   createdAt       DateTime  @default(now())
 
   parent   User?  @relation("ElternKind", fields: [parentUserId], references: [id], onDelete: SetNull)

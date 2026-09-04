@@ -48,6 +48,7 @@ describe.runIf(hatDb)('chats + klausuren/lernplan/testklausur — Flow (Supabase
         klassenstufe: '8. Klasse',
         email,
         passwort: 'flow2-pass-1234',
+        einwilligung: true,
       },
     });
     token = (

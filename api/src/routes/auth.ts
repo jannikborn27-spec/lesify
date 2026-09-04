@@ -20,6 +20,9 @@ const registrierenBody = z.object({
   klassenstufe: z.string().trim().min(1).max(40),
   email,
   passwort,
+  // Eltern-/Minderjährigen-Einwilligung (Jugendschutz, Phase 13) — Pflicht,
+  // Zeitpunkt wird für den Nachweis gespeichert.
+  einwilligung: z.literal(true),
 });
 const emailBestaetigenBody = z.object({ token: z.string().min(1).max(500) });
 const loginBody = z.object({
@@ -77,6 +80,7 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
         email: body.email,
         passwordHash,
         trialEndetAm: inTagen(TRIAL_TAGE),
+        einwilligungAm: new Date(),
         einstellungen: { create: {} },
         verificationTokens: {
           create: {

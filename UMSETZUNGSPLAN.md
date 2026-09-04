@@ -687,25 +687,33 @@ sonst unverändert.
 
 Kritisch, weil Zielgruppe minderjährig ist.
 
+> _2026-09-04: die **technischen** Bausteine stehen. Was echte Menschen tun
+> müssen (Texte schreiben, Verträge abschließen, juristische Prüfung), bleibt
+> offen und ist in der Schlussliste gesammelt._
+
 - [ ] **Impressum / Datenschutzerklärung / AGB** mit echten Angaben füllen
       (`marketing/impressum.html`, `datenschutz.html`, `agb.html`) — rechtlich
-      prüfen lassen.
-- [ ] **Auftragsverarbeitung mit Anthropic** (und allen Sub-Prozessoren:
-      Hosting, DB, Objektspeicher, E-Mail, Zahlungsanbieter) abschließen und im
-      Verzeichnis der Verarbeitungstätigkeiten führen.
-- [ ] **Eltern-/Minderjährigen-Einwilligung** im Registrierungsflow umsetzen
-      (Ablauf aus Phase 0), inkl. nachweisbarer Doku.
-- [ ] **Datenexport & Konto-Löschung** (DSGVO Art. 15/17): Endpunkt + UI, harte
-      Löschung inkl. Objektspeicher-Dateien und KI-Logs.
-- [ ] **Cookie-/Consent-Banner** nur wenn nötig (kein Tracking = kein Banner);
-      alles Nicht-Essentielle standardmäßig aus.
-- [ ] **1-Jahres-Löschung umsetzen (Phase 0):** Cron-Job löscht **alle Inhalte**
-      (Dateien inkl. Objektspeicher, Klausuren, Chats + Nachrichten, Lernzettel,
-      Testklausuren, Lernpläne) automatisch ein Jahr nach Erstellung. Diese Frist
-      in der Datenschutzerklärung nennen **und** in den Einstellungen sichtbar
-      machen ([einstellungen.html](einstellungen.html) bzw. beste Stelle).
+      prüfen lassen. _Textarbeit + Anwalt, kein Code._
+- [ ] **Auftragsverarbeitung mit Anthropic** + Sub-Prozessoren (Supabase, Stripe,
+      Hoster) abschließen und ins Verarbeitungsverzeichnis. _Vertragsarbeit._
+- [x] **Eltern-/Minderjährigen-Einwilligung im Registrierungsflow** —
+      _`POST /auth/registrieren` verlangt `einwilligung: true` (sonst `400`),
+      speichert `User.einwilligungAm` als Nachweis. Migration `user_einwilligung`.
+      Test in `auth.test.ts`. Die Checkbox + der erklärende Text kommen mit dem
+      Formular-Cut-over (Phase 11)._
+- [x] **Datenexport & Konto-Löschung (DSGVO Art. 15/17)** — _`GET /user/export`
+      (voller JSON-Dump ohne `passwordHash`, Download-Header),
+      `POST /user/loeschen` (`{passwort}` bestätigt → harte Cascade-Löschung,
+      bei `elternteil` inkl. Kind-Profile). Objektspeicher-Dateien hängen an
+      Phase 5. Tests in `dsgvo.test.ts`. UI-Buttons: Phase 11._
+- [x] **Cookie-/Consent-Banner** — _entfällt: kein Tracking, keine
+      nicht-essenziellen Cookies → kein Banner nötig. Bei späterem Tracking neu
+      bewerten._
+- [x] **1-Jahres-Löschung** — _Job `inhalte-aufbewahrung` (Phase 10). Die Frist
+      steht bereits sichtbar in `app/einstellungen.html` („Daten & Aufbewahrung",
+      Phase 0) und muss in der Datenschutzerklärung genannt werden (siehe oben)._
 - [ ] **KI-Nutzungshinweis** für Schüler:innen/Eltern (Antworten können falsch
-      sein, keine Leistungsbewertung durch die Schule etc.).
+      sein, keine Leistungsbewertung durch die Schule). _Kurzer UI-Text, Phase 11._
 
 ---
 

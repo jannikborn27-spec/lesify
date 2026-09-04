@@ -35,6 +35,7 @@ describe.runIf(hatDb)('kern-API — Flow (Supabase)', () => {
         klassenstufe: '8. Klasse',
         email,
         passwort: 'kern-test-1234',
+        einwilligung: true,
       },
     });
     const login = await app.inject({

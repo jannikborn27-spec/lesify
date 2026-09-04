@@ -47,6 +47,21 @@ describe('auth — Eingabevalidierung (ohne DB)', () => {
     expect(res.statusCode).toBe(400);
   });
 
+  it('registrieren: ohne Einwilligung → 400 (Jugendschutz, Phase 13)', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: '/auth/registrieren',
+      payload: {
+        rolle: 'schueler',
+        name: 'A',
+        klassenstufe: '8',
+        email: 'a@b.de',
+        passwort: 'langgenug1',
+      },
+    });
+    expect(res.statusCode).toBe(400);
+  });
+
   it('login: fehlende Felder → 400', async () => {
     const res = await app.inject({
       method: 'POST',
@@ -89,7 +104,14 @@ describe.runIf(hatDb)('auth — kompletter Flow (Supabase)', () => {
     await prisma.$disconnect();
   });
 
-  const reg = { rolle: 'schueler', name: 'Test Kind', klassenstufe: '8. Klasse', email, passwort };
+  const reg = {
+    rolle: 'schueler',
+    name: 'Test Kind',
+    klassenstufe: '8. Klasse',
+    email,
+    passwort,
+    einwilligung: true,
+  };
 
   it('registrieren legt User + Trial an, gibt Bestätigungs-Token zurück', async () => {
     const res = await app.inject({ method: 'POST', url: '/auth/registrieren', payload: reg });

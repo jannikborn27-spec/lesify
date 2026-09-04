@@ -810,6 +810,8 @@ Kein `PATCH /klausuren/:id` — eine `Klausur` hat keine editierbaren Felder (En
 | PATCH | `/user` | `{name, klassenstufe}` → Profil aktualisieren |
 | GET | `/user/einstellungen` | Aktuelle Einstellungen (Benachrichtigungen, KI-Tonfall) |
 | PATCH | `/user/einstellungen` | Teilupdate einzelner Einstellungen (jeder Toggle/jede Auswahl speichert für sich, kein Sammel-Formular) |
+| GET | `/user/export` | **DSGVO Art. 15** — kompletter JSON-Export aller zum Konto gespeicherten Daten (ohne `passwordHash`), `Content-Disposition: attachment` (Phase 13) |
+| POST | `/user/loeschen` | **DSGVO Art. 17** — `{passwort}` bestätigt, dann harte Löschung des Kontos **und aller Inhalte** (Cascade); bei `elternteil` inkl. aller Kind-Profile. Objektspeicher-Dateien: mit Phase 5 (Phase 13) |
 
 ### Suche
 | Methode | Pfad | Zweck |
@@ -832,7 +834,7 @@ Dev-Switch, `localStorage['lesify:search:v']` — nur Prototyp).
 ### Auth (neu — beliefert `marketing/login.html`, `registrieren.html`, `passwort-vergessen.html`)
 | Methode | Pfad | Zweck |
 |---|---|---|
-| POST | `/auth/registrieren` | `{rolle, name, klassenstufe, email, passwort}` → Konto anlegen, Double-Opt-in-Token erzeugen (Mail-Versand zurückgestellt), **14-Tage-Testphase** starten (`User.trialEndetAm = createdAt + 14 Tage`); Tarif-Wahl + Zahlungsart laufen über den Checkout (`POST /abo`) |
+| POST | `/auth/registrieren` | `{rolle, name, klassenstufe, email, passwort, einwilligung: true}` → Konto anlegen, Double-Opt-in-Token erzeugen (Mail-Versand zurückgestellt), **14-Tage-Testphase** starten (`User.trialEndetAm = createdAt + 14 Tage`). `einwilligung` (Eltern-/Minderjährigen-Einwilligung, Jugendschutz) ist **Pflicht** — fehlt sie → `400`; der Zeitpunkt landet als `User.einwilligungAm` (Nachweis, Phase 13). Tarif-Wahl + Zahlungsart laufen über den Checkout (`POST /abo`) |
 | POST | `/auth/login` | `{email, passwort, angemeldetBleiben?}` → Session/JWT |
 | POST | `/auth/logout` | Session invalidieren |
 | POST | `/auth/passwort-vergessen` | `{email}` → Reset-Token (immer 200, keine Konto-Enumeration; Versandweg zurückgestellt) |

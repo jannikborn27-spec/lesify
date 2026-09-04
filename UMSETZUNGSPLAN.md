@@ -747,22 +747,30 @@ Kritisch, weil Zielgruppe minderjährig ist.
 
 ## Phase 15 — Betrieb & Observability
 
-- [ ] **Strukturiertes Logging** (ohne personenbezogene Inhalte / Chat-Texte im Log).
-- [ ] **Error-Tracking** (Backend + Frontend) mit Alerting.
-- [ ] **Uptime-/Healthcheck-Monitoring** für API, DB, KI-Erreichbarkeit, Cron-Jobs.
-- [ ] **DB-Backups** (automatisch, regelmäßig, Restore einmal echt getestet).
-- [ ] **KI-Kosten-Dashboard:** `response.usage` je Call-Typ aggregieren, gegen
-      `PLAN_ECONOMICS` (API-Kosten/Monat je Sitz) halten, Alarm bei Ausreißern.
-- [ ] **Rate-Limiting produktiv scharf schalten** nach den Regeln in
-      `backend-planning.md` §7 („Rate-Limiting & Missbrauchsschutz"): Limits pro
-      Endpunkt-Klasse (Schlüssel User + IP), `429` + `Retry-After`, Startwerte nach
-      echtem Traffic kalibrieren.
-- [ ] **Vorab-Filter + Missbrauchssignale überwachen** (Phase 6): Trefferquoten von
-      Themen-/Größen-/Spam-Guard und Fehlalarm-Rate im Blick behalten, Schwellen /
-      Prompt nachziehen. Temporäre Sperren bei wiederholten Guard-Treffern /
-      Login-Fehlversuchen / Upload-Flooding.
-- [ ] **Runbook:** was tun bei KI-Ausfall, Zahlungsanbieter-Ausfall,
-      DB-Überlastung, Datenschutz-Anfrage.
+> _2026-09-04: die App-seitigen Bausteine sind drin (`api/src/lib/ratelimit.ts`,
+> pino-Redaction, `/health/*`, `docs/RUNBOOK.md`). Was einen externen Dienst
+> braucht (Log-Sink, Error-Tracker, Uptime-Monitor, Backup-Restore-Test,
+> KI-Kosten-Dashboard) ist in Phase 16 / der Schlussliste._
+
+- [x] **Strukturiertes Logging** — _pino-JSON; `redact` entfernt
+      `authorization`/`cookie`/`stripe-signature`; Bodys werden nicht geloggt
+      (keine Chat-Texte/Passwörter). Log-Sink = Phase 16._
+- [ ] **Error-Tracking** (Backend + Frontend) mit Alerting — _zentraler
+      `setErrorHandler` loggt strukturiert; DSN/Provider anschließen in Phase 16._
+- [x] **Healthchecks** — _`GET /health/live` (ohne DB), `GET /health` +
+      `/health/ready` (inkl. `SELECT 1`, `uptimeSek`). Externer Monitor = Phase 16._
+- [ ] **DB-Backups** — _Supabase-Feature aktivieren + Restore einmal echt testen
+      (Phase 16 / Schlussliste)._
+- [ ] **KI-Kosten-Dashboard** — _Phase 6: `response.usage` je Call-Typ loggen,
+      gegen `PLAN_ECONOMICS` aggregieren, Alarm bei Ausreißern._
+- [x] **Rate-Limiting** — _`RateLimiter` als `onRequest`-Hook nach §7:
+      auth 10/min·IP, ki 20/min, io 120/min, kontakt 3/min·IP; `/health*` +
+      `/abo/webhook` frei. `429` + `Retry-After`. Ad-hoc-Limit in `/kontakt`
+      entfernt. Tests `api/src/lib/ratelimit.test.ts` (7). Schlüssel derzeit IP;
+      User-Keying/Redis + Kalibrierung nach echtem Traffic offen._
+- [ ] **Vorab-Filter + Missbrauchssignale** — _Phase 6._
+- [x] **Runbook** — _`docs/RUNBOOK.md`: KI-Ausfall, Stripe-Ausfall,
+      DB-Überlastung, Datenschutz-Anfrage, Rate-Limit-Fehlalarm + Go-Live-Haken._
 
 ---
 

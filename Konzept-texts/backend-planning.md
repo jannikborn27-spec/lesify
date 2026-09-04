@@ -1091,6 +1091,26 @@ jeweils Popup-Meldung):
 **3. Missbrauchs-Signale (Logging + temporäre Sperre):** wiederholte
 Themen-Guard-Treffer, viele fehlgeschlagene Logins, Upload-Flooding.
 
+### Umsetzung (Phase 15, 2026-09-04)
+
+- **Request-Rate:** `api/src/lib/ratelimit.ts` — `RateLimiter` (In-Memory
+  Fixed-Window) als globaler `onRequest`-Hook (`buildApp({ rateLimit })`, im Test
+  aus). `regelFuer(method, pfad)` klassifiziert: **auth** 10/min·IP
+  (`/auth/login|registrieren|passwort-*`), **ki** 20/min
+  (`POST /chats/:id/nachrichten`, `/testklausuren*`, `/lernzettel/:id/revisionen`,
+  `/themen/:id/{lernzettel,dateien}`, `/lernplaene/:id/{testklausur2,lernzettel}`),
+  **kontakt** 3/min·IP, **io** 120/min alles andere; `/health*` + `/abo/webhook`
+  ausgenommen. Überschreitung → `429 rate_limit` + `Retry-After`. Schlüssel
+  aktuell IP (Hook läuft vor `requireAuth`) — User-Keying/Redis später. Das
+  frühere Ad-hoc-IP-Limit in `POST /kontakt` ist entfernt.
+- **Logging:** pino-JSON mit `redact` (`authorization`/`cookie`/
+  `stripe-signature` entfernt); Bodys werden nicht geloggt.
+- **Healthchecks:** `GET /health/live` (ohne DB), `GET /health` + `/health/ready`
+  (inkl. `SELECT 1`, `uptimeSek`, `zeit`).
+- **Offen (Phase 6 / Phase 16):** KI-Vorab-Filter (Themen-/Größen-/Spam-Guard),
+  Missbrauchs-Signale + temporäre Sperren, Error-Tracker-DSN, Log-Sink,
+  KI-Kosten-Dashboard, Backup-Restore-Test. Runbook: `docs/RUNBOOK.md`.
+
 ---
 
 ## 8. Offene Entscheidungen / TODOs

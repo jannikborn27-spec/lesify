@@ -1,7 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { parse } from '../lib/validate.js';
-import { HttpError } from '../lib/http.js';
 
 const body = z.object({
   name: z.string().trim().min(1).max(120),
@@ -13,24 +12,10 @@ const body = z.object({
   website: z.string().max(200).optional(),
 });
 
-// einfaches In-Memory-IP-Limit; das „echte" Rate-Limiting kommt in Phase 15.
-const fenster = 60_000;
-const maxProFenster = 5;
-const treffer = new Map<string, number[]>();
-
-function ipLimitUeberschritten(ip: string): boolean {
-  const jetzt = Date.now();
-  const liste = (treffer.get(ip) ?? []).filter((t) => jetzt - t < fenster);
-  liste.push(jetzt);
-  treffer.set(ip, liste);
-  return liste.length > maxProFenster;
-}
-
 export async function kontaktRoutes(app: FastifyInstance): Promise<void> {
-  // POST /kontakt — kein Login nötig. Zielsystem (Support-Postfach/Ticket) ist
-  // noch offen (Phase 0 / §8) — vorerst nur strukturiertes Logging.
+  // POST /kontakt — kein Login nötig. IP-Rate-Limit läuft global (§7, Phase 15,
+  // Klasse „kontakt"). Zielsystem (Support-Postfach/Ticket) offen (Phase 0/§8).
   app.post('/kontakt', async (req, reply) => {
-    if (ipLimitUeberschritten(req.ip)) throw new HttpError(429, 'zu_viele_anfragen');
     const data = parse(body, req.body);
 
     if (data.website) {

@@ -5,6 +5,7 @@ import { env } from './env.js';
 import { hashToken } from './lib/tokens.js';
 import { HttpError } from './lib/http.js';
 import { getZahlungsGateway, type ZahlungsGateway } from './lib/zahlung.js';
+import { RateLimiter } from './lib/ratelimit.js';
 import { healthRoutes } from './routes/health.js';
 import { authRoutes } from './routes/auth.js';
 import { faecherRoutes } from './routes/faecher.js';
@@ -26,18 +27,53 @@ export interface BuildOpts {
   prisma?: PrismaClient;
   zahlung?: ZahlungsGateway;
   logger?: boolean;
+  /** Request-Rate-Limiting (§7). Default: aus im Test, sonst an. */
+  rateLimit?: boolean;
 }
 
 export function buildApp(opts: BuildOpts = {}): FastifyInstance {
   const prisma = opts.prisma ?? getPrisma();
+  const loggerAn = opts.logger ?? env.NODE_ENV !== 'test';
   const app = Fastify({
-    logger: opts.logger ?? env.NODE_ENV !== 'test',
     trustProxy: true,
+    // Sensible Header nie ins Log — Token, Cookies, Stripe-Signatur raus.
+    // (Bodys loggt Fastify ohnehin nicht → Chat-Texte/Passwörter bleiben draußen.)
+    logger: loggerAn
+      ? {
+          redact: {
+            paths: [
+              'req.headers.authorization',
+              'req.headers.cookie',
+              'req.headers["stripe-signature"]',
+            ],
+            remove: true,
+          },
+        }
+      : false,
   });
 
   app.decorate('prisma', prisma);
   app.decorate('zahlung', opts.zahlung ?? getZahlungsGateway());
   app.decorateRequest('userId', '');
+
+  // ---- Rate-Limiting (§7, Phase 15) ----
+  if (opts.rateLimit ?? env.NODE_ENV !== 'test') {
+    const limiter = new RateLimiter();
+    const putzer = setInterval(() => limiter.aufraeumen(), 60_000);
+    putzer.unref?.();
+    app.addHook('onRequest', async (req, reply) => {
+      try {
+        limiter.treffer(req);
+      } catch (err) {
+        if (err instanceof HttpError && err.statusCode === 429) {
+          const ra = (err.details as { retryAfterSek?: number })?.retryAfterSek ?? 60;
+          reply.header('Retry-After', String(ra));
+        }
+        throw err;
+      }
+    });
+    app.addHook('onClose', async () => clearInterval(putzer));
+  }
 
   app.decorate('requireAuth', async function requireAuth(request, reply) {
     const header = request.headers.authorization;

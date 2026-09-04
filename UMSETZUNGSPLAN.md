@@ -234,8 +234,8 @@ Grundlage: `backend-planning.md` §1. Reihenfolge so, dass FKs immer schon exist
 - [x] **Kern-Tabellen** — _2026-09-04: alle 17 Modelle in `schema.prisma`,
       Feldnamen/-typen/`nullable` nach §1. Kein `Thema.mastery`, kein
       `Klausur.note`. `Lernplan.chatMap`/`checklist` als `Json`-Spalten.
-      `prisma validate` + `prisma generate` grün. **Noch offen:** `db:migrate`
-      gegen die Supabase-DB ausführen (braucht `api/.env`)._
+      Migration `20260904083856_init` gegen Supabase (eu-west-1) angewandt,
+      `api/prisma/migrations/` committet._
 - [x] **`parentUserId`-Scoping** — _2026-09-04: `userId` auf **allen**
       nutzergebundenen Tabellen denormalisiert (nicht nur Fach/Einstellungen/
       Usage), plus `User.parentUserId` (self-FK) für Kind-Profile. Datentrennung
@@ -245,12 +245,13 @@ Grundlage: `backend-planning.md` §1. Reihenfolge so, dass FKs immer schon exist
 - [x] **Indizes** — _2026-09-04: `@@index` auf allen FK-Spalten,
       `Chat.aktualisiertAm`, `Datei.status`, `Klausur.datum`;
       `@@unique([userId, monat])` auf `Usage`._
-- [ ] **Seed-Skript** — _2026-09-04 (teilweise): `api/prisma/seed.ts` deckt
-      Demo-User + Einstellungen + Abo + Usage, alle Fächer/Themen, Chats
-      (+Nachrichten), Lernzettel (+Revisionen), Dateien und Klausuren ab.
+- [ ] **Seed-Skript** — _2026-09-04 (teilweise, ausgeführt): `api/prisma/seed.ts`
+      gegen Supabase gelaufen — Demo-User + Einstellungen + Abo + Usage, alle
+      5 Fächer / 15 Themen, 6 Chats (+14 Nachrichten), 5 Lernzettel
+      (+4 Revisionen), 6 Dateien, 11 Klausuren.
       **Fehlt noch:** Testklausuren + Aufgaben + TestklausurErgebnis +
       Vorbereitungsstand + Lernpläne — werden zusammen mit Phase 7 (Noten-/
-      Ampel-/lernplanStatus-Logik) portiert. Ausführbar erst nach `db:migrate`._
+      Ampel-/lernplanStatus-Logik) portiert._
 - [x] **backend-planning.md aktualisieren** — _2026-09-04: §1 um „Umsetzung:
       Prisma-Schema" ergänzt (userId-Denormalisierung, `email` nullable+unique,
       1:1-`unique` auf Lernplan-Testklausur-FKs, Enum-Namen, Löschverhalten,

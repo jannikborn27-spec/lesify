@@ -17,8 +17,8 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  url       = env("DATABASE_URL") // gepoolte Verbindung (Supabase, Port 6543) — Laufzeit
-  directUrl = env("DIRECT_URL") // Direktverbindung (Supabase, Port 5432) — Migrationen
+  url       = env("DATABASE_URL") // Supabase Transaction-Pooler (Port 6543) — Laufzeit
+  directUrl = env("DIRECT_URL") // Supabase Session-Pooler (Port 5432) — Migrationen
 }
 
 // ---------------------------------------------------------------------------

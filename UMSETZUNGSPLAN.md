@@ -536,33 +536,51 @@ Der gesamte abgeleitete Zustand muss **bit-genau** zu `data.js` passen.
 
 `backend-planning.md` §4 „Abo & Abrechnung", §1 `Abo`/`KindProfil`. Anbieter: **Stripe** (Phase 0).
 
+> _2026-09-04: Endpunkt-Schicht + Datenmodell-Logik komplett gegen einen
+> **deterministischen `FakeZahlungsGateway`** (`api/src/lib/zahlung.ts`,
+> `app.zahlung`, in Tests ersetzbar) — wie die Platzhalter-KI in Phase 4. Er
+> bildet Trial → Abbuchung, Wechsel, Kündigung, Pause und Webhooks vollständig
+> ab, legt aber keine echten Stripe-Objekte an. Preise/Regeln als Code in
+> `shared/src/abo.ts` (Spiegel `stripe-config.js`). Tests: `shared/src/abo.test.ts`
+> (6) + `api/src/routes/abo.test.ts` (18, DB-gated), gesamt shared 52 / api 76.
+> Echtes Stripe-Adapter + Konto/Produkte + Rechnungslogik → Phase 16._
+
 - [ ] **Stripe-Konto** (Test- + Live-Modus), Produkte/Preise dort anlegen passend
-      zu `stripe-config.js` (`plans`, `family`, Intervalle, Angebot).
-- [ ] **Trial-Modell (Phase 0):** Bei der Registrierung wählt die/der Nutzer:in
-      Tarif + Intervall und hinterlegt eine Zahlungsart (`frontend/checkout.html`).
-      Es wird **sofort** eine Stripe-Subscription mit **`trial_period_days: 14`**
-      angelegt (`Abo.status = test`, `Abo.trialEndetAm`). **Nach 14 Tagen bucht
-      Stripe automatisch ab**, sofern nicht vorher gekündigt — kein manueller
-      „jetzt bezahlen"-Schritt.
-- [ ] **`GET /abo`:** `paket`, `art`, `sitze`, `intervall`, `status`, `angebot`,
-      `trialEndetAm`, `aktuellerZeitraumEnde` + abgeleitete Kontingente je Sitz.
-- [ ] **`POST /abo`:** Subscription anlegen (Tarif/Intervall/Sitze + 14-Tage-Trial),
-      aktives `angebot` fixieren. **MwSt. nicht ausweisen** (Kleinunternehmer —
-      nicht auf der Website erwähnen).
-- [ ] **`PATCH /abo`:** Tarif-/Intervall-/Sitzwechsel mit Proration;
-      Sitzverringerung erst zum `aktuellerZeitraumEnde`.
-- [ ] **`POST /abo/kuendigen`** (zum Zeitraumende, kein Sofort-Verlust),
-      **`POST /abo/pausieren`** (Sommerpause, Inhalte bleiben).
-- [ ] **`POST /abo/webhook`:** Zahlungsergebnisse → `status`
-      (`aktiv`/`zahlung_offen`/…), idempotent, Signatur prüfen.
-- [ ] **`GET/POST/DELETE /abo/kinder`:** Kind-Profile im Familien-Abo (max.
-      `Abo.sitze`, 2–4). Detaillierte Sitz-/Einladungsmechanik ist zurückgestellt
-      (Phase 0) — fest: **beim Entfernen eines Sitzes werden dessen Inhalte
-      gelöscht.**
+      zu `stripe-config.js` (`plans`, `family`, Intervalle, Angebot). _Ops-Schritt,
+      erst mit echtem Stripe-Adapter (Phase 16) sinnvoll._
+- [x] **Trial-Modell (Phase 0):** _`POST /abo` legt über `zahlung.subscriptionAnlegen`
+      sofort ein Trial-Abo an (`status = test`, `trialEndetAm = +14 Tage`,
+      `aktuellerZeitraumEnde` nach Trial). Webhook `trial_beendet` → `status =
+      aktiv`. Auto-Abbuchung selbst macht später echtes Stripe._
+- [x] **`GET /abo`** — _`aboDTO`: `paket, planName, art, sitze, intervall,
+      angebot, status, trialEndetAm, aktuellerZeitraumEnde, kontingente`;
+      `404`, wenn kein Abo._
+- [x] **`POST /abo`** — _`{paket, intervall, sitze?}` → `art` aus `sitze`,
+      `aboPreis` aufgelöst, Abo-Zeile + `User.aboId`, `angebot` fixiert,
+      `zahlungsanbieterRef = fake_sub_…`. Zweiter Aufruf → `409 abo_vorhanden`.
+      Antwort 201. MwSt. wird nirgends ausgewiesen._
+- [x] **`PATCH /abo`** — _Paket-/Intervall-/Sitz**erhöhung** sofort (Proration
+      beim Anbieter). Sitz**verringerung** → `409
+      sitzverringerung_zum_zeitraumende` (`details.wirksamAm`); volle Mechanik
+      Phase 12._
+- [x] **`POST /abo/kuendigen`** (`status = gekuendigt`, Zugang bis
+      `aktuellerZeitraumEnde`) **+ `POST /abo/pausieren`** (`status = pausiert`).
+- [x] **`POST /abo/webhook`** — _kein Login, Body `{typ, aboRef}`,
+      `stripe-signature` bei gesetztem `STRIPE_WEBHOOK_SECRET` geprüft (echte
+      HMAC-Prüfung Phase 16). `typ` → `status`, idempotent, unbekannte `aboRef`
+      → `200 {ok, ignoriert}`._
+- [x] **`GET/POST/DELETE /abo/kinder`** — _Kind-Profile = `User` mit
+      `parentUserId` + `aboId`, `rolle = schueler`,
+      `passwordHash = "kind:kein-login"`. `POST` nur bei `art = familie`,
+      gedeckelt auf `Abo.sitze` → `409 sitze_ausgeschoepft`. `DELETE` → `User`-Zeile
+      weg → **Cascade löscht alle Inhalte des Sitzes.** Einladungs-/Passwort-Flow
+      Phase 12._
 - [ ] **Rechnungsstellung** + Umgang mit fehlgeschlagenen Zahlungen (Retry,
-      Mahnlogik, Zugriff bei `zahlung_offen`).
-- [ ] **backend-planning.md §1/§7/§8** (Preise, Limits, offene Punkte) auf den
-      final beschlossenen Stand bringen.
+      Mahnlogik, Zugriff bei `zahlung_offen`). _Braucht echtes Stripe-Adapter →
+      Phase 16._
+- [x] **backend-planning.md §1/§4/§8** — _§4 „Umsetzungsstand Phase 9", §1 `Abo`/
+      `KindProfil`-Notizen, §8 Preis-Feinheiten + „Abrechnung produktiv"
+      nachgezogen. Limits (§7) unverändert._
 
 ---
 

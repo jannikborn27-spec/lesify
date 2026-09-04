@@ -8,6 +8,9 @@
 export * from './noten.js';
 export * from './lernplan.js';
 
+// Abo-Preise & -Regeln (Phase 9, Spiegel stripe-config.js)
+export * from './abo.js';
+
 // --- Fach-Farben (data.js FACH_COLORS) ---
 export const FACH_COLOR_KEYS = [
   'blue',

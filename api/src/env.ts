@@ -10,6 +10,9 @@ const schema = z.object({
   // Session-Lebensdauer in Tagen
   SESSION_TAGE: z.coerce.number().int().positive().default(7),
   SESSION_TAGE_ANGEMELDET_BLEIBEN: z.coerce.number().int().positive().default(90),
+  // Stripe (Phase 9) — optional: fehlt der Key, läuft der Fake-Zahlungsanbieter.
+  STRIPE_SECRET_KEY: z.string().optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().optional(),
 });
 
 /** Validierte Umgebungsvariablen. Wirft beim Start, wenn Pflichtwerte fehlen. */

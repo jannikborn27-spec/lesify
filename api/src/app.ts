@@ -4,6 +4,7 @@ import { getPrisma } from './db.js';
 import { env } from './env.js';
 import { hashToken } from './lib/tokens.js';
 import { HttpError } from './lib/http.js';
+import { getZahlungsGateway, type ZahlungsGateway } from './lib/zahlung.js';
 import { healthRoutes } from './routes/health.js';
 import { authRoutes } from './routes/auth.js';
 import { faecherRoutes } from './routes/faecher.js';
@@ -18,10 +19,12 @@ import { chatsRoutes } from './routes/chats.js';
 import { klausurenRoutes } from './routes/klausuren.js';
 import { lernplaeneRoutes } from './routes/lernplaene.js';
 import { testklausurenRoutes } from './routes/testklausuren.js';
+import { aboRoutes } from './routes/abo.js';
 
 export interface BuildOpts {
   /** in Tests durch ein Fake ersetzbar */
   prisma?: PrismaClient;
+  zahlung?: ZahlungsGateway;
   logger?: boolean;
 }
 
@@ -33,6 +36,7 @@ export function buildApp(opts: BuildOpts = {}): FastifyInstance {
   });
 
   app.decorate('prisma', prisma);
+  app.decorate('zahlung', opts.zahlung ?? getZahlungsGateway());
   app.decorateRequest('userId', '');
 
   app.decorate('requireAuth', async function requireAuth(request, reply) {
@@ -75,6 +79,7 @@ export function buildApp(opts: BuildOpts = {}): FastifyInstance {
   app.register(klausurenRoutes);
   app.register(lernplaeneRoutes);
   app.register(testklausurenRoutes);
+  app.register(aboRoutes);
 
   return app;
 }

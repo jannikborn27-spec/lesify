@@ -152,14 +152,22 @@ automatischer Abbuchung danach** (Stripe), jederzeit kündbar.
 | status | enum | `test` (14-Tage-Trial) \| `aktiv` \| `gekuendigt` \| `pausiert` (Sommerpause) \| `zahlung_offen` |
 | trialEndetAm | timestamp (nullable) | nur bei `status = test`; `createdAt + 14 Tage`. Bei Ablauf ohne Kündigung → Stripe bucht ab, `status → aktiv` |
 | aktuellerZeitraumEnde | date | Kündigung wird zu diesem Datum wirksam |
-| zahlungsanbieterRef | string (nullable) | Stripe-Referenz (Customer/Subscription), siehe §8 |
+| zahlungsanbieterRef | string (nullable) | Stripe-Referenz (Customer/Subscription). Phase 9: gesetzt als `fake_sub_…` durch den Platzhalter-Anbieter, echte Stripe-Referenz ab Phase 16 |
 | erstelltAm | timestamp | |
+
+Phase 9 (2026-09-04): Endpunkte `GET/POST/PATCH /abo`, `/abo/kuendigen`,
+`/abo/pausieren`, `/abo/webhook`, `/abo/kinder` umgesetzt (§4 „Umsetzungsstand
+Phase 9"). Preise/Regeln als Code in `shared/src/abo.ts`.
 
 ### KindProfil (nur Familien-Abo)
 `Abo.sitze` Stück pro Familien-Abo (2–4). Reine Verknüpfungssicht auf `User`-Datensätze mit
 gesetztem `parentUserId`; getrennte Fächer/Themen/Fortschritte je Kind, das
 Elternkonto sieht pro Kind nur die aggregierte Wochen-Zusammenfassung
 (`Einstellungen.woechentlicheZusammenfassung`), nicht den Chat-Wortlaut.
+Phase 9: angelegt/gelistet/gelöscht über `GET/POST/DELETE /abo/kinder`
+(`rolle = schueler`, `parentUserId` + `aboId` = Elternkonto,
+`passwordHash = "kind:kein-login"` bis zur echten Einladung in Phase 12).
+`DELETE` → `User`-Zeile weg → Cascade löscht alle Inhalte des Sitzes.
 
 ### Einstellungen
 Ein Datensatz pro User. Aktuell im Prototyp: Benachrichtigungs-Toggles und
@@ -842,6 +850,50 @@ Dev-Switch, `localStorage['lesify:search:v']` — nur Prototyp).
 | POST | `/abo/webhook` | Callback des Zahlungsanbieters (Zahlung erfolgreich/fehlgeschlagen → `status`) |
 | GET | `/abo/kinder` · POST · DELETE | Kind-Profile im Familien-Abo verwalten (max. `Abo.sitze`, 2–4) |
 
+#### Umsetzungsstand (Phase 9, 2026-09-04)
+
+Endpunkt-Schicht + Datenmodell-Logik komplett; der Zahlungsanbieter ist
+vorerst ein **deterministischer Fake** (`api/src/lib/zahlung.ts`,
+`FakeZahlungsGateway`, dekoriert als `app.zahlung`) — wie die Platzhalter-KI in
+Phase 4. Er legt keine echten Stripe-Objekte an, bildet Trial → Abbuchung,
+Wechsel, Kündigung, Pause und Webhooks aber vollständig ab. Echtes
+Stripe-Adapter + Dashboard-Produkte/-Preise: **Phase 16**.
+
+- **Preise/Regeln als Code:** `shared/src/abo.ts` spiegelt `stripe-config.js`
+  (`EINZEL_PREISE`, `FAMILIE_PREISE` in Cent, `ABO_ANGEBOT`, `ABO_TRIAL_TAGE = 14`,
+  `FAMILIE_SITZ_OPTIONEN = [2,3,4]`, `aboPreis()`, `aboArtFuerSitze()`).
+- **`GET /abo`** → `aboDTO` (`id, paket, planName, art, sitze, intervall,
+  angebot, status, trialEndetAm, aktuellerZeitraumEnde, kontingente`); `404
+  nicht_gefunden`, wenn der User (noch) kein Abo besitzt.
+- **`POST /abo`** `{paket, intervall, sitze?}` (sitze default 1) → `art` aus
+  `sitze` abgeleitet, `aboPreis` aufgelöst, `zahlung.subscriptionAnlegen`
+  (Trial 14 Tage), `Abo`-Zeile (`status = test`, `trialEndetAm`,
+  `aktuellerZeitraumEnde`, `angebot`, `zahlungsanbieterRef = fake_sub_…`),
+  `User.aboId` gesetzt + `User.trialEndetAm` genullt. Zweiter Aufruf → `409
+  abo_vorhanden`. Antwort **201**.
+- **`PATCH /abo`** `{paket?, intervall?, sitze?}` → Paket-/Intervall-/
+  Sitz**erhöhung** sofort (Proration beim Anbieter). Sitz**verringerung** →
+  `409 sitzverringerung_zum_zeitraumende` (`details.wirksamAm`); volle Mechanik
+  (welcher Sitz, Inhalts-Löschung) in **Phase 12**.
+- **`POST /abo/kuendigen`** → `status = gekuendigt` (Zugang bis
+  `aktuellerZeitraumEnde`), **`POST /abo/pausieren`** → `status = pausiert`.
+- **`POST /abo/webhook`** (kein Login): Body `{typ, aboRef}`, Header
+  `stripe-signature` (bei gesetztem `STRIPE_WEBHOOK_SECRET` geprüft, sonst
+  akzeptiert — echte HMAC-Prüfung Phase 16). `typ` → `status`
+  (`zahlung_erfolgreich`/`trial_beendet`/`abo_reaktiviert` → `aktiv`,
+  `zahlung_fehlgeschlagen` → `zahlung_offen`, `abo_gekuendigt` → `gekuendigt`,
+  `abo_pausiert` → `pausiert`). Idempotent; unbekannte `aboRef` → `200
+  {ok, ignoriert}`, unbekannter `typ` → `400 ereignis_unbekannt`.
+- **`GET/POST/DELETE /abo/kinder`**: Kind-Profile = `User`-Zeilen mit
+  `parentUserId` + `aboId` des Elternkontos, `rolle = schueler`,
+  `passwordHash = "kind:kein-login"` (echte Einladung/Passwort-Setzung Phase 12).
+  `POST` nur bei `art = familie`, gedeckelt auf `Abo.sitze` (→ `409
+  sitze_ausgeschoepft`). `DELETE` löscht die `User`-Zeile → **Cascade entfernt
+  alle Inhalte des Sitzes** (Phase-0-Entscheidung).
+- **Offen (Phase 9-Rest):** echtes Stripe-Adapter, Rechnungsstellung / Umgang
+  mit fehlgeschlagenen Zahlungen (Retry, Mahnlogik, Zugriff bei
+  `zahlung_offen`), Stripe-Konto/-Produkte.
+
 ### Kontakt (neu — beliefert `marketing/kontakt.html`)
 | Methode | Pfad | Zweck |
 |---|---|---|
@@ -1058,7 +1110,8 @@ Themen-Guard-Treffer, viele fehlgeschlagene Logins, Upload-Flooding.
 
 ### Weiterhin offen
 
-- [ ] **Preis-Feinheiten**: Angebotsdauer/-verlängerung, Jahrespreis-Rundung, Bindung des Angebotspreises an den Vertrag.
+- [ ] **Preis-Feinheiten**: Angebotsdauer/-verlängerung, Jahrespreis-Rundung, Bindung des Angebotspreises an den Vertrag. Die Beträge selbst liegen jetzt code-seitig in `shared/src/abo.ts` (Spiegel `stripe-config.js`), bleiben aber Design-Platzhalter.
+- [ ] **Abrechnung produktiv (Phase 9-Rest / Phase 16)**: echtes Stripe-Adapter statt `FakeZahlungsGateway`, Stripe-Konto + Produkte/Preise, HMAC-Webhook-Signatur, Rechnungsstellung, Retry-/Mahnlogik bei `zahlung_offen`.
 - [ ] **Eltern-Kind-Modell**: ein Account mit Kind-Profilen vs. getrennte verknüpfte Accounts; Ablauf der Eltern-/Minderjährigen-Einwilligung bei der Schüler:in-Rolle.
 - [ ] **Familien-Paket-Mechanik**: Sitz nachträglich hinzufügen/entfernen (Proration, Downgrade zum Zeitraumende), Einladungsfluss pro Kind.
 - [ ] **Familien-Abo-Sichtbarkeit**: Umfang der Eltern-Zusammenfassung (Kennzahlen, Frequenz, Opt-out fürs Kind).

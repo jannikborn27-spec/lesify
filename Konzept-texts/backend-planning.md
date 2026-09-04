@@ -663,6 +663,39 @@ Block-Quote und Fehlalarm-Rate werden geloggt und kalibriert. Siehe auch
 
 Alle Endpunkte `Authorization: Bearer <token>`, Antworten JSON.
 
+### Umsetzungsstand (Phase 4, 2026-09-04)
+
+Gebaut ist **alles außer den KI-Workflows** (Phase 6), der Datei-Speicherung
+(Phase 5) und der berechneten Lernplan-/Notenlogik (Phase 7). Anmerkungen /
+Abweichungen von den Tabellen unten:
+
+- **`GET /auth/me`** ist neu (Sitzungs-Check fürs Frontend-Auth-Gate) — siehe §5.
+- **`POST /chats`** legt sofort eine Chat-Zeile mit leerem `titel` an; das
+  „entsteht erst beim ersten Senden" ist Client-Verhalten (kein Aufruf vor dem
+  ersten Send). Titel wird bei der ersten `POST /chats/:id/nachrichten` per
+  Client-Kürzung gesetzt (KI-Titel = Prompt 07, Phase 6).
+- **`POST /chats/:id/nachrichten`** speichert die User-Nachricht + eine
+  deterministische Platzhalter-KI-Antwort (`rolle=ai`, `zaehltGegenLimit=false`),
+  erhöht `Usage.nachrichtenUsed` (Upsert; harte Grenzen Phase 8) und setzt bei
+  `lernplanKontext` den `chatMap`-Eintrag `"<tag>|<modus>|<themaId>"`.
+- **`POST /klausuren`** legt in **einer** Transaktion `Klausur` + `Testklausur 1`
+  (mit Platzhalter-`Aufgabe` je Thema) + `Lernplan` an und gibt alle drei zurück.
+- **`GET /lernplaene/:id`** (und `GET /klausuren/:id/lernplan`) liefern vorerst
+  den **Rohzustand** (`checklist`, `tageErledigt`, `chatMap`, `lernzettel`,
+  Testklausur-IDs). Der berechnete Zustand (`lernplanStatus`) kommt in Phase 7.
+- **`PATCH /lernplaene/:id/checklist`**: `{tag,key,checked}` pflegt das
+  `checklist`-JSON; `{tag,checked}` („Tag abschließen") toggelt bis Phase 7 den
+  Legacy-Marker `tageErledigt` (die Key-Liste je Tag braucht `lernplanStatus`).
+- **`POST /testklausuren/:id/loesung`** nimmt im Skelett JSON
+  `{geloesteDateiId}` (bereits vorhandene Datei) statt multipart — der echte
+  Upload läuft ab Phase 5 über den Objektspeicher.
+- **`POST /kontakt`**: Honeypot-Feld `website` (gefüllt → 200, still verworfen) +
+  In-Memory-IP-Limit; Zielsystem (Support-Postfach/Ticket) weiter offen (§8),
+  bis dahin nur strukturiertes Logging.
+- Alle Ressourcen strikt `userId`-gescoped (Auth-Middleware, §5); fremde/
+  unbekannte IDs → `404 nicht_gefunden`. Validierungsfehler → `400 validierung`
+  mit `details`.
+
 ### Fächer & Themen
 | Methode | Pfad | Zweck |
 |---|---|---|

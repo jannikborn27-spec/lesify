@@ -305,53 +305,55 @@ Endpunkte: `backend-planning.md` §4 „Auth", Regeln §5.
 Alles aus `backend-planning.md` §4 außer den KI-Workflows. Ziel: die App läuft
 echt mit Multi-User, KI-Antworten noch als deterministischer Platzhalter.
 
-- [ ] **Fächer:** `GET/POST /faecher`, `PATCH /faecher/:id` (nur `farbe`),
-      `GET /faecher/:id/themen`. `farbe` optional (Server vergibt reihum aus
-      `FACH_COLORS`), `icon` nur bei Erstellung, Schlüssel aus `FACH_PRESETS`.
-- [ ] **Themen:** `GET /themen` (fächerübergreifendes Aggregat), `POST /themen`,
-      `GET /themen/:id` inkl. Zählwerten (Chats/Lernzettel/Dateien/Klausuren/
-      Testklausuren) und — für die Themen-Seite — gekürzten Listen.
-- [ ] **Chats:** `GET /chats` (neueste zuerst, optional `?fachId=`),
-      `POST /chats` (`modus` optional, Chat entsteht **erst beim ersten Senden**),
-      `GET /chats/:id` inkl. Nachrichten, `POST /chats/:id/nachrichten`
-      (User-Nachricht speichern, Platzhalter-Antwort, Usage inkrementieren,
-      `lernplanKontext` → `chatMap`-Eintrag idempotent setzen).
-- [ ] **Lernzettel (CRUD-Teil):** `GET /lernzettel/:id` (Inhalt + Revisionen +
-      `freeMessagesUsed`). Erstell-/Revisions-KI kommt in Phase 6.
-- [ ] **Dateien (Metadaten-Teil):** `GET /dateien` (optional `?themaId=`),
-      `GET /dateien/:id`. Upload + Verarbeitung in Phase 5.
-- [ ] **Klausuren + Lernplan:** `POST /klausuren` legt in **einer** Operation
-      `Klausur` + `Lernplan` + Testklausur 1 an und gibt alle zurück.
-      `GET /klausuren`, `GET /klausuren/:id`. **Kein** `PATCH /klausuren/:id` —
-      `Klausur.note` gibt es nicht (Phase 0). „Bereits geschrieben" wird
-      client-seitig aus `datum` abgeleitet — kein Server-Filter, kein Statusfeld,
-      keine erreichte Note.
-- [ ] **Lernplan-Endpunkte:** `GET /lernplaene/:id` (voller berechneter Zustand,
-      siehe Phase 7), `PATCH /lernplaene/:id/checklist` (`{tag, key, checked}` bzw.
-      `{tag, checked}`), `PATCH /lernplaene/:id` (`chatMap`-Eintrag),
-      `GET /lernplaene/:id/lernzettel/dokument`.
-      `POST /lernplaene/:id/testklausur2` und `.../lernzettel` in Phase 6.
-      **Kein** Neustart-Endpunkt — pro Klausur genau ein 7-Tage-Zyklus (Phase 0).
-- [ ] **Testklausuren (Skelett):** `GET /testklausuren/:id`,
-      `POST /testklausuren/:id/loesung` (Upload → Status `geloest`),
-      `GET /testklausuren/:id/dokument`. `POST /testklausuren` und `.../analyse`
-      in Phase 6. `POST /testklausuren` lehnt einen **dritten** Aufruf zur selben
-      `klausurId` hart ab (Phase 0 — genau zwei pro Klausurvorbereitung).
-- [ ] **Usage:** `GET /usage` → vier Zähler + Limit + `resetDatum` + `planName`
-      (Berechnung in Phase 8).
-- [ ] **Profil & Einstellungen:** `GET/PATCH /user`, `GET/PATCH /user/einstellungen`
-      (jeder Toggle speichert einzeln, kein Sammelformular).
-- [ ] **Suche:** `GET /suche?q=` über Fächer/Themen/Chats/Lernzettel/Dateien/
-      Klausuren/Testklausuren, Antwortform
-      `[{type, label, icon, items:[{title, sub, href, fachId, fachName}]}]`
-      (`fachId`/`fachName` pro Treffer **Pflicht** für die Fach-Einfärbung).
-      **DB-Substring** (`ILIKE '%q%'`) über Titel-/Namensfelder — kein Volltext-Index,
-      keine Inhaltssuche (Entscheidung 2026-09-04).
-- [ ] **Kontakt:** `POST /kontakt` → Zielsystem aus Phase 0. Spam-Schutz =
-      **IP-Rate-Limit + Honeypot-Feld, kein Captcha** (Entscheidung 2026-09-04),
-      kein Login nötig.
-- [ ] **Alle Endpunkte gegen `backend-planning.md` §4 abgleichen** (Pfade, Methoden,
-      Payloads). Abweichungen dort nachziehen.
+> _2026-09-04: umgesetzt in 3 Commits — 4a `d676fb0` (CRUD), 4b/4c `6540aa7`
+> (Chats + Klausuren/Lernplan/Testklausur-Skelett). Alle Endpunkte
+> `userId`-gescoped, `requireAuth` als Plugin-preHandler. Tests: 401-ohne-Token
+> + volle Flows gegen Supabase (`runIf DATABASE_URL`), 55 grün._
+
+- [x] **Fächer** — _`GET/POST /faecher`, `PATCH /faecher/:id` (nur `farbe`,
+      Default reihum aus `FACH_COLOR_KEYS`), `GET /faecher/:id/themen`. `icon`
+      nur bei Erstellung, geprüft gegen `FACH_PRESETS`._
+- [x] **Themen** — _`GET /themen` (Aggregat mit Fachname/Farbe), `POST /themen`,
+      `GET /themen/:id` inkl. echter Zählwerte + Kurzlisten (5 je Typ)._
+- [x] **Chats** — _`GET /chats(?fachId=)`, `POST /chats` (leere Zeile; Client
+      ruft erst beim ersten Senden), `GET /chats/:id` inkl. Nachrichten,
+      `POST /chats/:id/nachrichten` (User-Nachricht + deterministische
+      Platzhalter-KI-Antwort, Titel-Kürzung beim 1. Mal, `nachrichtenUsed++`,
+      `chatMap` bei `lernplanKontext` idempotent)._
+- [x] **Lernzettel (CRUD-Teil)** — _`GET /lernzettel/:id` (Content + Revisionen
+      + `freeMessagesUsed`). Erstell-/Revisions-KI: Phase 6._
+- [x] **Dateien (Metadaten-Teil)** — _`GET /dateien(?themaId=)`,
+      `GET /dateien/:id`. Upload/`/inhalt`: Phase 5._
+- [x] **Klausuren + Lernplan** — _`POST /klausuren` legt in **einer** Transaktion
+      `Klausur` + Testklausur 1 (+ Platzhalter-Aufgaben) + `Lernplan` an.
+      `GET /klausuren(/:id)`. Kein `PATCH /klausuren/:id`. „Geschrieben" bleibt
+      client-seitig aus `datum`._
+- [x] **Lernplan-Endpunkte** — _`GET /lernplaene/:id` + `/klausuren/:id/lernplan`
+      liefern den **Rohzustand** (berechneter Zustand = Phase 7),
+      `PATCH /lernplaene/:id/checklist` (`{tag,key,checked}` → `checklist`-JSON;
+      `{tag,checked}` → `tageErledigt`-Legacy bis Phase 7),
+      `PATCH /lernplaene/:id` (`chatMap`-Eintrag),
+      `GET /lernplaene/:id/lernzettel/dokument` (Markdown).
+      `testklausur2` / `.../lernzettel`: Phase 6._
+- [x] **Testklausuren (Skelett)** — _`GET /testklausuren/:id` (+`/dokument`),
+      `POST /testklausuren/:id/loesung` (JSON-Skelett `{geloesteDateiId}` →
+      Status `geloest`; multipart = Phase 5). `POST /testklausuren` + `/analyse`
+      + 3.-Aufruf-Riegel: Phase 6._
+- [x] **Usage** — _`GET /usage` → vier `{used,limit}` + `resetDatum` + `planName`
+      + `paket`. Zähl-/Reset-/Durchsetzungs-Logik: Phase 8. Zähler wird bereits
+      hochgezählt (`lib/usage.ts`, Upsert)._
+- [x] **Profil & Einstellungen** — _`GET/PATCH /user`, `GET/PATCH
+      /user/einstellungen` (Teilupdate, `upsert`, jeder Toggle einzeln)._
+- [x] **Suche** — _`GET /suche?q=` über Fach-/Themen-Name + Chat-/Lernzettel-/
+      Klausur-/Testklausur-Titel + Datei-Name via `contains`+`mode:'insensitive'`,
+      Antwortform `[{type,label,icon,items:[{title,sub,href,fachId,fachName}]}]`._
+- [x] **Kontakt** — _`POST /kontakt` (kein Login), Honeypot-Feld `website` +
+      In-Memory-IP-Limit; Ziel (Support-Postfach/Ticket) noch offen → nur
+      strukturiertes Logging (`TODO` im Code + §8)._
+- [x] **Alle Endpunkte gegen `backend-planning.md` §4 abgleichen** — _§4
+      angemerkt: `GET /auth/me` neu; `POST /chats` legt eine leere Zeile an
+      (Lazy-Verhalten Client-seitig); Lösung-Upload-Skelett nimmt JSON statt
+      multipart bis Phase 5; berechneter Lernplan-Zustand explizit Phase 7._
 
 ---
 

@@ -13,6 +13,15 @@ const schema = z.object({
   // Stripe (Phase 9) — optional: fehlt der Key, läuft der Fake-Zahlungsanbieter.
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
+  // Claude API (Phase 6) — optional: fehlt der Key, läuft der Fake-KI-Client
+  // (deterministische Platzhalter-Antworten, kein echter Call/Kosten).
+  ANTHROPIC_API_KEY: z.string().optional(),
+  // Modellwahl je Call-Klasse (Config, nicht fest verdrahtet — §3).
+  KI_MODELL_GUENSTIG: z.string().default('claude-haiku-4-5-20251001'),
+  KI_MODELL_STANDARD: z.string().default('claude-haiku-4-5-20251001'),
+  // Vorab-Filter (§3/§7): harte Zeichen-Obergrenze für eine einzelne
+  // Nutzer-Eingabe (Chat-Nachricht, Revisionsanweisung).
+  KI_ANFRAGE_MAX_ZEICHEN: z.coerce.number().int().positive().default(6000),
 });
 
 /** Validierte Umgebungsvariablen. Wirft beim Start, wenn Pflichtwerte fehlen. */

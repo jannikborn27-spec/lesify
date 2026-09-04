@@ -394,6 +394,7 @@ einer Note. `Lesify.klausurNote(klausurId)` kapselt diese Auswahl und gibt
 | titel | string | |
 | status | enum | `erstellt` → `geloest` → `analysiert` (siehe Statusmaschine unten) |
 | geloesteDateiId | uuid (FK, nullable) | Upload der Lösung durch den Schüler |
+| loesungsText | string (nullable) | Phase 6: Klartext der Lösung, Grundlage für Call 11. Bridge bis Phase 5 (echte Datei-Extraktion) — `POST /testklausuren/:id/loesung` nimmt ihn direkt entgegen |
 | erstelltAm | timestamp | |
 
 ### Aufgabe
@@ -695,6 +696,65 @@ und das Frontend zeigt eine **Popup-/Toast-Meldung**:
 Block-Quote und Fehlalarm-Rate werden geloggt und kalibriert. Siehe auch
 §7 „Rate-Limiting & Missbrauchsschutz".
 
+### Umsetzung (Phase 6, 2026-09-04)
+
+Alle zwölf Calls aus `Konzept-texts/prompts/01`–`12` sind als Code-Vorlagen
+gebaut (`api/src/lib/ki/calls.ts`), gegen einen deterministischen
+`FakeKiClient` (`api/src/lib/ki/client.ts`) end-to-end verdrahtet und
+getestet — wie `FakeZahlungsGateway` in Phase 9: ohne `ANTHROPIC_API_KEY`
+läuft nirgends ein echter Call, mit Key nutzt `AnthropicKiClient` das
+`@anthropic-ai/sdk` (Retry/Timeout aus den SDK-Client-Optionen,
+`response.usage` strukturiert geloggt).
+
+- **Verdrahtet (Endpunkte laufen echt, keine Platzhalter mehr):**
+  `POST /chats/:id/nachrichten` (Calls 03–06/frei + 07 Titel),
+  `POST /themen/:id/lernzettel` (08), `POST /lernzettel/:id/revisionen` (09,
+  inkl. `wendePatchesAn()` fürs Such-/Ersetzen-Format),
+  `POST /klausuren` **und** `POST /testklausuren` (10, gemeinsame Funktion
+  `testklausurErstellen()` in `api/src/lib/testklausur.ts`, dort auch der
+  3.-Aufruf-Riegel), `POST /testklausuren/:id/analyse` (11),
+  `POST /lernplaene/:id/testklausur2` (10, schwache/wackelige Themen aus
+  `lernplanStatus`) und `POST /lernplaene/:id/lernzettel` (12, angehängt).
+- **Nicht verdrahtet (Phase 5 fehlt):** Call 01 (Datei-Zusammenfassung,
+  `dateiZusammenfassungErzeugen()` steht bereit) — es gibt noch keinen
+  echten Datei-Upload/Objektspeicher, der den Rohinhalt liefert.
+- **Bridge bis Phase 5:** `Testklausur.loesungsText` (neue Spalte) hält den
+  Klartext der Lösung; `POST /testklausuren/:id/loesung` nimmt ihn direkt
+  entgegen (neben `geloesteDateiId`), `POST /testklausuren/:id/analyse`
+  braucht ihn (`422 keine_loesung_extrahiert`, wenn keiner vorliegt). Sobald
+  Phase 5 echte Datei-Extraktion liefert, füllt sie `loesungsText`
+  automatisch — der Analyse-Call selbst bleibt unverändert.
+- **Themen-Guard/Größen-Guard/Spam-Guard:** `api/src/lib/ki/guard.ts`.
+  Themen-Guard als **Regelwerk** (konservative Muster-Liste, bewusst kein
+  eigener Klassifikations-Call — beide Varianten sind laut §3 erlaubt);
+  Größen-Guard über `KI_ANFRAGE_MAX_ZEICHEN` (Default 6000 Zeichen) auf die
+  rohe Nutzer-Eingabe; Spam-Guard über ein In-Memory-Fenster pro User
+  (gleiche Nachricht >2× in 30 s). Laufen vor `POST /chats/:id/nachrichten`
+  und `POST /lernzettel/:id/revisionen`; kein Usage-Verbrauch bei Treffer.
+  Fehlercodes (`nicht_schulrelevant`/`anfrage_zu_gross`/`spam_erkannt`) kennt
+  `app/assets/js/api.js` (`fehlerText`) bereits aus Phase 11.
+- **Themen Memory / Material:** `api/src/lib/ki/kontext.ts` —
+  `themenMemoryBlock()` (Grundfall, reines Assembly, keine Verdichtung: „erst
+  optimieren, wenn nötig"), `themaMaterial()` (Lernzettel bevorzugt, sonst
+  Rohchats — Calls 10–12), `themaChatsUndDateien()` (immer Rohchats — Call
+  08), `klassenstufeFuer()` (`Fach.klasse`, sonst `User.klassenstufe`).
+- **Modellwahl als Config:** `env.KI_MODELL_GUENSTIG` / `KI_MODELL_STANDARD`,
+  beide Default `claude-haiku-4-5-20251001` (Kostenschätzung `00-overview.md`
+  §7 rechnet durchgängig mit Haiku 4.5) — pro Call-Klasse in `calls.ts`
+  zugeordnet, ohne Call-Sites anzufassen.
+- **Kein DB-`$transaction` über einen KI-Call hinweg:** `POST /klausuren`
+  legt die `Klausur` an, ruft `testklausurErstellen()` (inkl. KI-Call)
+  außerhalb einer Transaktion auf und räumt die `Klausur` bei einem
+  Fehlschlag manuell wieder ab — eine offene DB-Transaktion darf nie auf
+  einen Netzwerk-Call warten (Verbindungspool).
+- **Prompt Caching:** `cache: true` auf den vier Chat-Modi/frei (Calls
+  03–06) — `cache_control` ans Ende des kompletten System-Prompts (Modus +
+  Themen Memory + Tonfall), wie in `00-overview.md` §7 vorgegeben.
+- **Offen:** echter Anthropic-Key + Budget-Cap fürs erste Live-Testen (siehe
+  `docs/RUNBOOK.md`); Themen-Memory-Verdichtung, wenn ein Thema über die
+  ~4.000-Token-Schwelle wächst (Erweiterung, noch nicht gebraucht);
+  KI-Kosten-Dashboard aus dem Usage-Log (Phase 15/17).
+
 ---
 
 ## 4. API-Endpunkte
@@ -753,14 +813,14 @@ Abweichungen von den Tabellen unten:
 | GET | `/chats` | Fächerübergreifende Liste aller Chats des Users, neueste zuerst — beliefert den Chat-Verlauf in der linken Spalte von `chat.html` (Claude-artiges Layout: Verlauf links mit „Neuer Chat"-Button, aktiver Chat/leerer Zustand rechts). Optionaler Query-Param `?fachId=` für den Fach-Filter im Verlauf (Prototyp filtert clientseitig; UI: Einfachauswahl „ein Fach oder Alle", Fach-Liste nur aus Fächern mit ≥1 Chat) |
 | POST | `/chats` | `{fachId, themaId, modus?}` → neuer Chat, liefert System-Prompt-Kontext-Block. `modus` ist **optional** (Composer-Pills sind nicht mehr pflicht); fehlt er, wird der Chat ohne Modus angelegt (`modus = null`) und der neutrale „freie Frage"-System-Prompt genutzt. Wird im Prototyp erst beim Senden der ersten Nachricht angelegt (nicht schon beim reinen Öffnen von `chat.html`) — gilt jetzt **auch für Lernplan-Deep-Links** (`?fach=…&thema=…&mode=…`): auch die werden erst beim ersten Absenden zum echten Chat, nicht mehr flüchtig gehalten |
 | GET | `/chats/:id` | Chat inkl. Nachrichten. Lernplan-Chips können hierher deep-linken (`chat.html?chat=<id>`), wenn `Lernplan.chatMap` den Schritt schon kennt (Fortsetzung statt Neuanlage) |
-| POST | `/chats/:id/nachrichten` | `{text, anhangDateiId?, lernplanKontext?: {lernplanId, tag}}` → User-Nachricht speichern, KI-Antwort triggern (streamt zurück), Usage inkrementieren. **Beim ersten Aufruf eines Chats** zusätzlich ein kurzer KI-Call für `Chat.titel` (Prompt `07-chat-titel.md`, günstigste Modellklasse) — kein eigener Endpunkt. Bei gesetztem `lernplanKontext` zusätzlich `Lernplan.chatMap["<tag>\|<chat.modus>\|<chat.themaId>"] = chat.id` setzen (idempotent) — so führt ein zweiter Chip zu Tag+Modus+Thema in denselben Chat |
+| POST | `/chats/:id/nachrichten` | `{text, anhangDateiId?, lernplanKontext?: {lernplanId, tag}}` → Vorab-Filter (Themen-/Größen-/Spam-Guard), Usage-Limit-Check, User-Nachricht speichern, echte KI-Antwort (Calls 03–06/frei, **Phase 6 verdrahtet**) + `Chat.titel` (Call 07) generieren, Usage inkrementieren. **Streaming steht noch aus** — die Antwort kommt aktuell komplett fertig zurück, nicht token-weise (§3/Prompt-Dateien empfehlen Streaming fürs Chat-Tempo; Nachholbedarf, kein Blocker). Bei gesetztem `lernplanKontext` zusätzlich `Lernplan.chatMap["<tag>\|<chat.modus>\|<chat.themaId>"] = chat.id` setzen (idempotent) |
 
 ### Lernzettel
 | Methode | Pfad | Zweck |
 |---|---|---|
-| POST | `/themen/:id/lernzettel` | Vollautomatische Erstellung (KI-Call), liefert fertigen Lernzettel |
+| POST | `/themen/:id/lernzettel` | Vollautomatische Erstellung (Call 08, **Phase 6 verdrahtet**), liefert fertigen Lernzettel |
 | GET | `/lernzettel/:id` | Inhalt + Revisionsverlauf + `freeMessagesUsed` |
-| POST | `/lernzettel/:id/revisionen` | `{text}` → KI passt `content` an, gibt aktualisierten Lernzettel + Freikontingent-Stand zurück |
+| POST | `/lernzettel/:id/revisionen` | `{text}` → KI passt `content` an (Call 09, **Phase 6 verdrahtet**: Vorab-Filter + Such-/Ersetzen-Patches), gibt aktualisierten Lernzettel + Revisionsverlauf zurück |
 
 ### Dateien
 | Methode | Pfad | Zweck |
@@ -773,7 +833,7 @@ Abweichungen von den Tabellen unten:
 ### Klausuren (echter Termin)
 | Methode | Pfad | Zweck |
 |---|---|---|
-| POST | `/klausuren` | `{fachId, themaIds, titel, datum}`. **Legt in derselben Operation den `Lernplan` inkl. Testklausur 1 an** (siehe Lernplan-Endpunkte unten) und gibt beide mit zurück. `themaIds` ist ein Array (≥1); die Erstell-Modals wählen mehrere Themen aus (**kein** „×"-Entfernen — Ab-/Anwählen per Klick, Abbruch über den Abbrechen-Button; die Modals haben auch kein „×"-Schließen mehr) und legen neue inline an. `klausuren.html` (`#nk-form`) nutzt ein Pill-Raster mit Dev-Switcher für 5 fach-gefärbte Pill-Styles (`localStorage['lesify:themepick:pill']`: Solid/Soft/Outline/Dot/Bar), `thema.html` (`#mk-form`) eine einfache Dropdown-Variante. Der Client macht vorab N× `POST /themen` und schickt dann alle IDs; ein Batch-`{neueThemen: [{name}]}` im selben Call wäre denkbar, ist aber nicht nötig |
+| POST | `/klausuren` | `{fachId, themaIds, titel, datum}`. **Legt Klausur + Testklausur 1 (Call 10, Phase 6 verdrahtet) + Lernplan an** (kein DB-`$transaction` über den KI-Call hinweg, siehe §3 „Umsetzung Phase 6") (siehe Lernplan-Endpunkte unten) und gibt beide mit zurück. `themaIds` ist ein Array (≥1); die Erstell-Modals wählen mehrere Themen aus (**kein** „×"-Entfernen — Ab-/Anwählen per Klick, Abbruch über den Abbrechen-Button; die Modals haben auch kein „×"-Schließen mehr) und legen neue inline an. `klausuren.html` (`#nk-form`) nutzt ein Pill-Raster mit Dev-Switcher für 5 fach-gefärbte Pill-Styles (`localStorage['lesify:themepick:pill']`: Solid/Soft/Outline/Dot/Bar), `thema.html` (`#mk-form`) eine einfache Dropdown-Variante. Der Client macht vorab N× `POST /themen` und schickt dann alle IDs; ein Batch-`{neueThemen: [{name}]}` im selben Call wäre denkbar, ist aber nicht nötig |
 | GET | `/klausuren` / `/klausuren/:id` | Liste / Detail. „Bereits geschrieben" wird client-seitig aus `datum` abgeleitet — kein Server-Filter, kein Statusfeld |
 
 Kein `PATCH /klausuren/:id` — eine `Klausur` hat keine editierbaren Felder (Entscheidung 2026-09-03: die erreichte Note wird nicht erfasst).
@@ -783,8 +843,8 @@ Kein `PATCH /klausuren/:id` — eine `Klausur` hat keine editierbaren Felder (En
 |---|---|---|
 | — | (`POST /klausuren`) | Der Lernplan entsteht **automatisch mit der Klausur** — kein separater Erstell-Aufruf durch den Client. Alternativ als eigener Schritt denkbar: `POST /klausuren/:id/lernplan` |
 | GET | `/lernplaene/:id` bzw. `/klausuren/:id/lernplan` | Voller berechneter Zustand (entspricht `Lesify.lernplanStatus`): aktueller Tag, schwache Themen, Tag-1↔Tag-5-Vergleich, ob Testklausur 2 nötig ist, Lernzettel |
-| POST | `/lernplaene/:id/testklausur2` | Startet Testklausur 2 (Tag 5), begrenzt auf die an Tag 1 schwachen/wackeligen Themen — intern der normale `POST /testklausuren`-Call, danach `Lernplan.testklausur2Id` gesetzt |
-| POST | `/lernplaene/:id/lernzettel` | `{themaIds}` → erzeugt/ergänzt den Lernzettel (KI-Call, hängt Markdown-Abschnitte an), gibt `{content, aktualisiertAm}` zurück |
+| POST | `/lernplaene/:id/testklausur2` | Startet Testklausur 2 (Tag 5), begrenzt auf die an Tag 1 schwachen/wackeligen Themen — intern derselbe `testklausurErstellen()` wie `POST /testklausuren` (**Phase 6 verdrahtet**), danach `Lernplan.testklausur2Id` gesetzt. `409`, wenn Tag 5 noch nicht verfügbar/nötig oder schon gestartet |
+| POST | `/lernplaene/:id/lernzettel` | `{themaIds}` → erzeugt/ergänzt den Lernzettel (Call 12, **Phase 6 verdrahtet**, hängt Markdown-Abschnitte an), gibt `Lernplan.lernzettel` zurück |
 | GET | `/lernplaene/:id/lernzettel/dokument` | Lernzettel als Markdown-Download |
 | PATCH | `/lernplaene/:id/checklist` | `{tag, key, checked}` (ein Punkt) bzw. `{tag, checked}` (alle Punkte des Tages = „Tag abschließen") — pflegt `Lernplan.checklist`; Tag-Erledigt-Status ergibt sich daraus. Override-Muster wie `PATCH /faecher/:id` |
 | PATCH | `/lernplaene/:id` (bzw. gebündelt in `POST /chats/:id/nachrichten`) | Setzt einen `chatMap`-Eintrag `"<tag>\|<modus>\|<themaId>" → chatId` (Override-Muster). Im Prototyp: `Lesify.setLernplanChatId`. Client liest die Zuordnung aus `GET /lernplaene/:id` und deep-linkt Lernplan-Chips entsprechend frisch oder als Chat-Fortsetzung |
@@ -792,11 +852,11 @@ Kein `PATCH /klausuren/:id` — eine `Klausur` hat keine editierbaren Felder (En
 ### Testklausuren (KI-Workflow, 2× pro Lernplan)
 | Methode | Pfad | Zweck |
 |---|---|---|
-| POST | `/testklausuren` | `{fachId, themaIds, titel, klausurId?}` → generiert Aufgaben (KI-Call), Status `erstellt`. Genutzt für Testklausur 1 (alle Themen) **und** Testklausur 2 (nur schwache/wackelige Themen). Ein **dritter** Aufruf zur selben `klausurId` wird hart abgelehnt (max. 2 pro Klausurvorbereitung) |
+| POST | `/testklausuren` | `{fachId, themaIds, titel, klausurId?}` → generiert Aufgaben (Call 10, **Phase 6 verdrahtet**, `testklausurErstellen()`), Status `erstellt`. Genutzt für Testklausur 1 (auch via `POST /klausuren`, alle Themen) **und** Testklausur 2 (nur schwache/wackelige Themen). Ein **dritter** Aufruf zur selben `klausurId` → `409 testklausur_limit_erreicht` (max. 2 pro Klausurvorbereitung) |
 | GET | `/testklausuren/:id` | Voller Zustand: Aufgaben, Ergebnis (falls vorhanden), Vorbereitungsstand |
 | GET | `/testklausuren/:id/dokument` | Aufgaben als Download (Text/PDF) |
-| POST | `/testklausuren/:id/loesung` | multipart Upload der Lösung → Status `geloest` |
-| POST | `/testklausuren/:id/analyse` | Triggert Auswertung (KI-Call) → `TestklausurErgebnis` + `Vorbereitungsstand` (dreistufige Ampel) → Status `analysiert` |
+| POST | `/testklausuren/:id/loesung` | Ziel: multipart Upload → Status `geloest`. **Phase 6:** nimmt zusätzlich `{loesungsText}` direkt entgegen (Bridge bis Phase 5 — echte Datei-Extraktion füllt `loesungsText` später automatisch) |
+| POST | `/testklausuren/:id/analyse` | Triggert Auswertung (Call 11, **Phase 6 verdrahtet**) → `TestklausurErgebnis` + `Vorbereitungsstand` (dreistufige Ampel) → Status `analysiert`. Braucht `status=geloest` **und** `loesungsText` (sonst `409`/`422`) |
 
 ### Usage
 | Methode | Pfad | Zweck |

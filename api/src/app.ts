@@ -5,6 +5,7 @@ import { env } from './env.js';
 import { hashToken } from './lib/tokens.js';
 import { HttpError } from './lib/http.js';
 import { getZahlungsGateway, type ZahlungsGateway } from './lib/zahlung.js';
+import { getKiClient, type KiClient } from './lib/ki/client.js';
 import { RateLimiter } from './lib/ratelimit.js';
 import { healthRoutes } from './routes/health.js';
 import { authRoutes } from './routes/auth.js';
@@ -26,6 +27,7 @@ export interface BuildOpts {
   /** in Tests durch ein Fake ersetzbar */
   prisma?: PrismaClient;
   zahlung?: ZahlungsGateway;
+  ki?: KiClient;
   logger?: boolean;
   /** Request-Rate-Limiting (§7). Default: aus im Test, sonst an. */
   rateLimit?: boolean;
@@ -54,6 +56,7 @@ export function buildApp(opts: BuildOpts = {}): FastifyInstance {
 
   app.decorate('prisma', prisma);
   app.decorate('zahlung', opts.zahlung ?? getZahlungsGateway());
+  app.decorate('ki', opts.ki ?? getKiClient());
   app.decorateRequest('userId', '');
 
   // ---- Rate-Limiting (§7, Phase 15) ----

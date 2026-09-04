@@ -6,6 +6,11 @@ import { nichtGefunden } from '../lib/http.js';
 import { oder404 } from '../lib/scope.js';
 import { inkrementiereUsage, pruefeUsageLimit } from '../lib/usage.js';
 import { chatMapKey, setChatMapEintrag } from '../lib/lernplan.js';
+import { pruefeKiEingabe } from '../lib/ki/guard.js';
+import { klassenstufeFuer, themenMemoryBlock } from '../lib/ki/kontext.js';
+import { tonfallBaustein, type KiTonfall } from '../lib/ki/tonfall.js';
+import { chatAntwortErzeugen, chatTitelErzeugen } from '../lib/ki/calls.js';
+import type { KiNachricht } from '../lib/ki/client.js';
 
 const erstellen = z.object({
   fachId: z.string().uuid(),
@@ -35,14 +40,14 @@ function chatDTO(c: Chat & { fach?: Fach | null; thema?: Thema | null }) {
   };
 }
 
-/** Prototyp-Ersatz für den KI-Titel-Call (Prompt 07 kommt in Phase 6). */
-function platzhalterTitel(text: string): string {
+/** Fallback, falls der Titel-Call fehlschlägt — nie den ganzen Chat blockieren. */
+function fallbackTitel(text: string): string {
   const s = text.trim().replace(/\s+/g, ' ');
   return s.length <= 48 ? s : `${s.slice(0, 47)}…`;
 }
 
 export async function chatsRoutes(app: FastifyInstance): Promise<void> {
-  const { prisma } = app;
+  const { prisma, ki } = app;
   app.addHook('preHandler', app.requireAuth);
 
   // GET /chats?fachId=
@@ -104,20 +109,56 @@ export async function chatsRoutes(app: FastifyInstance): Promise<void> {
   app.post<{ Params: { id: string } }>('/chats/:id/nachrichten', async (req) => {
     const body = parse(nachricht, req.body);
     const chat = oder404(
-      await prisma.chat.findFirst({ where: { id: req.params.id, userId: req.userId } }),
+      await prisma.chat.findFirst({
+        where: { id: req.params.id, userId: req.userId },
+        include: { fach: true, thema: true },
+      }),
     );
 
-    // Harte Limit-Durchsetzung vor dem (Platzhalter-)KI-Call — Hard-Stop nur
-    // dieses Features: 403 limit_erreicht, Klausuren/Uploads laufen weiter (§7).
+    // Vorab-Filter (§3/§7): kein KI-Call, kein Usage-Verbrauch bei Treffer.
+    pruefeKiEingabe(req.userId, body.text);
+
+    // Harte Limit-Durchsetzung vor dem KI-Call — Hard-Stop nur dieses
+    // Features: 403 limit_erreicht, Klausuren/Uploads laufen weiter (§7).
     await pruefeUsageLimit(prisma, req.userId, 'nachrichten');
 
+    let anhang: { name: string; zusammenfassung: string } | undefined;
     if (body.anhangDateiId) {
-      oder404(
+      const datei = oder404(
         await prisma.datei.findFirst({ where: { id: body.anhangDateiId, userId: req.userId } }),
       );
+      if (datei.zusammenfassung)
+        anhang = { name: datei.name, zusammenfassung: datei.zusammenfassung };
     }
 
-    const erste = (await prisma.nachricht.count({ where: { chatId: chat.id } })) === 0;
+    const bisherigeNachrichten = await prisma.nachricht.findMany({
+      where: { chatId: chat.id },
+      orderBy: { erstelltAm: 'asc' },
+      select: { rolle: true, text: true },
+    });
+    const erste = bisherigeNachrichten.length === 0;
+    const verlauf: KiNachricht[] = bisherigeNachrichten.map((n) => ({
+      rolle: n.rolle === 'user' ? 'user' : 'assistant',
+      text: n.text,
+    }));
+
+    const einstellungen = await prisma.einstellungen.findUnique({ where: { userId: req.userId } });
+    const [klassenstufe, themenMemory] = await Promise.all([
+      klassenstufeFuer(prisma, req.userId, chat.fachId),
+      themenMemoryBlock(prisma, chat.themaId),
+    ]);
+
+    const { text: antwortText } = await chatAntwortErzeugen(ki, {
+      modus: chat.modus,
+      klassenstufe,
+      fachName: chat.fach.name,
+      themaName: chat.thema.name,
+      themenMemory,
+      tonfallBaustein: tonfallBaustein((einstellungen?.kiTonfall as KiTonfall) ?? 'freundlich'),
+      verlauf,
+      neueNachricht: body.text,
+      anhang,
+    });
 
     const userNachricht = await prisma.nachricht.create({
       data: {
@@ -130,23 +171,28 @@ export async function chatsRoutes(app: FastifyInstance): Promise<void> {
       },
     });
 
-    // Platzhalter-Antwort (echter KI-Call: Phase 6). Zählt nicht gegen das Limit.
     const aiNachricht = await prisma.nachricht.create({
       data: {
         userId: req.userId,
         chatId: chat.id,
         rolle: 'ai',
-        text: '_(Platzhalter-Antwort — die echte KI-Integration folgt in Phase 6.)_',
+        text: antwortText,
         zaehltGegenLimit: false,
       },
     });
 
-    // Titel beim ersten Mal setzen (Prototyp-Kürzung; KI-Titel = Phase 6),
-    // sonst nur „zuletzt aktiv" anstoßen.
-    await prisma.chat.update({
-      where: { id: chat.id },
-      data: { titel: erste ? platzhalterTitel(body.text) : chat.titel },
-    });
+    // Titel per KI beim ersten Mal (Call 07, günstigste Modellklasse); schlägt
+    // der Call fehl, Fallback auf eine einfache Kürzung statt den Chat zu
+    // blockieren. Bei Folgenachrichten nur „zuletzt aktiv" anstoßen.
+    let titel = chat.titel;
+    if (erste) {
+      titel = await chatTitelErzeugen(ki, {
+        fachName: chat.fach.name,
+        themaName: chat.thema.name,
+        ersteNachricht: body.text,
+      }).catch(() => fallbackTitel(body.text));
+    }
+    await prisma.chat.update({ where: { id: chat.id }, data: { titel } });
 
     await inkrementiereUsage(prisma, req.userId, 'nachrichten');
 

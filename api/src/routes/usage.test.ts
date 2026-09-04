@@ -73,6 +73,8 @@ describe.runIf(hatDb)('Usage-Limits — harte Durchsetzung (Supabase)', () => {
   });
 
   it('bei erreichtem Nachrichten-Limit → 403 limit_erreicht, andere Features frei', async () => {
+    // Höheres Timeout: POST /klausuren löst jetzt echt Call 10 (Fake-KI) +
+    // mehrere Material-Queries pro Thema aus (Phase 6).
     // Zähler künstlich auf das Premium-Limit (Trial) heben.
     await prisma.usage.upsert({
       where: { userId_monat: { userId, monat: monatsSchluessel() } },
@@ -128,5 +130,5 @@ describe.runIf(hatDb)('Usage-Limits — harte Durchsetzung (Supabase)', () => {
       },
     });
     expect(klausur.statusCode).toBe(201);
-  });
+  }, 15000);
 });

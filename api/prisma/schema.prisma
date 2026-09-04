@@ -402,6 +402,9 @@ model Testklausur {
   titel           String
   status          TestklausurStatus @default(erstellt)
   geloesteDateiId String?           @db.Uuid
+  // Bridge bis Phase 5 (echte Datei-Text-/OCR-Extraktion): Klartext der
+  // hochgeladenen Lösung, Grundlage für Call 11 (Testklausur-Analyse).
+  loesungsText    String?
   erstelltAm      DateTime          @default(now())
 
   user          User                  @relation(fields: [userId], references: [id], onDelete: Cascade)

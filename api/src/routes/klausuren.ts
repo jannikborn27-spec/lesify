@@ -4,8 +4,7 @@ import { parse } from '../lib/validate.js';
 import { nichtGefunden } from '../lib/http.js';
 import { oder404 } from '../lib/scope.js';
 import { klausurNoteFuer } from '../lib/lernplan.js';
-
-const AUFGABE_PLATZHALTER = '(Aufgabe wird bei der Testklausur-Erstellung generiert — Phase 6.)';
+import { testklausurErstellen } from '../lib/testklausur.js';
 
 const erstellen = z.object({
   fachId: z.string().uuid(),
@@ -15,10 +14,11 @@ const erstellen = z.object({
 });
 
 export async function klausurenRoutes(app: FastifyInstance): Promise<void> {
-  const { prisma } = app;
+  const { prisma, ki } = app;
   app.addHook('preHandler', app.requireAuth);
 
-  // POST /klausuren — legt Klausur + Lernplan + Testklausur 1 in EINER Operation an.
+  // POST /klausuren — legt Klausur + Testklausur 1 (Call 10, KI) + Lernplan an.
+  // Kein DB-`$transaction`: der KI-Call darf keine Transaktion offen halten.
   app.post('/klausuren', async (req, reply) => {
     const body = parse(erstellen, req.body);
     const userId = req.userId;
@@ -30,49 +30,34 @@ export async function klausurenRoutes(app: FastifyInstance): Promise<void> {
     });
     if (themen.length !== new Set(body.themaIds).size) nichtGefunden();
 
-    const ergebnis = await prisma.$transaction(async (tx) => {
-      const klausur = await tx.klausur.create({
-        data: {
-          userId,
-          fachId: body.fachId,
-          themaIds: body.themaIds,
-          titel: body.titel,
-          datum: body.datum,
-        },
-      });
-
-      const testklausur1 = await tx.testklausur.create({
-        data: {
-          userId,
-          klausurId: klausur.id,
-          fachId: body.fachId,
-          themaIds: body.themaIds,
-          titel: `Testklausur 1 — ${body.titel}`,
-          status: 'erstellt',
-          aufgaben: {
-            create: body.themaIds.map((themaId, i) => ({
-              userId,
-              themaId,
-              frage: AUFGABE_PLATZHALTER,
-              reihenfolge: i,
-            })),
-          },
-        },
-        include: { aufgaben: { orderBy: { reihenfolge: 'asc' } } },
-      });
-
-      const lernplan = await tx.lernplan.create({
-        data: {
-          userId,
-          klausurId: klausur.id,
-          testklausur1Id: testklausur1.id,
-        },
-      });
-
-      return { klausur, lernplan, testklausur1 };
+    const klausur = await prisma.klausur.create({
+      data: {
+        userId,
+        fachId: body.fachId,
+        themaIds: body.themaIds,
+        titel: body.titel,
+        datum: body.datum,
+      },
     });
 
-    return reply.code(201).send(ergebnis);
+    try {
+      const testklausur1 = await testklausurErstellen(prisma, ki, {
+        userId,
+        fachId: body.fachId,
+        themaIds: body.themaIds,
+        titel: `Testklausur 1 — ${body.titel}`,
+        klausurId: klausur.id,
+      });
+      const lernplan = await prisma.lernplan.create({
+        data: { userId, klausurId: klausur.id, testklausur1Id: testklausur1.id },
+      });
+      return reply.code(201).send({ klausur, lernplan, testklausur1 });
+    } catch (err) {
+      // Aufräumen, falls Testklausur/Lernplan nach der Klausur fehlschlagen
+      // (kein DB-Transaktions-Schutz über den KI-Call hinweg möglich).
+      await prisma.klausur.delete({ where: { id: klausur.id } }).catch(() => {});
+      throw err;
+    }
   });
 
   // GET /klausuren — „bereits geschrieben" leitet der Client aus `datum` ab.

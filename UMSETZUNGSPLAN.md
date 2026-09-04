@@ -386,66 +386,73 @@ echt mit Multi-User, KI-Antworten noch als deterministischer Platzhalter.
 Prompt-Entwürfe: `Konzept-texts/prompts/01`–`12` + `00-overview.md`.
 Preise/Modellwahl-Prinzipien: `00-overview.md` §7.
 
-- [ ] **Anthropic-Client kapseln:** ein Modul mit Retry, Timeout, `response.usage`-
-      Logging pro Call (für die Kostenkalibrierung), Modellwahl als Config je
-      Call-Typ (nicht fest verdrahtet).
-- [ ] **KI-Vorab-Filter** (Phase 0, Details `backend-planning.md` §3): vor jedem
-      Chat-/Generierungs-Call drei Prüfungen, bei Treffer **kein KI-Call, kein
-      Usage-Verbrauch, Popup-/Toast-Meldung**:
-  - **Themen-Guard:** Anfrage schulrelevant? Sonst abgewiesen. Umsetzung: günstige
-    Klassifikation (kleiner Call oder Regelwerk) + fester Riegel im System-Prompt
-    aller Modi.
-  - **Größen-Guard:** Anfrage / zusammengebauter Kontext über einer Token-/
-    Zeichen-Grenze → abgewiesen, wird gar nicht an die KI geschickt.
-  - **Spam-Guard:** identische/near-identische Nachricht in Folge, Flooding →
-    abgewiesen/gedrosselt.
-  - Trefferquoten + Fehlalarme loggen (Kalibrierung).
-- [ ] **Prompt-Templates 01–12 als Code-Vorlagen** anlegen, jeweils mit
-      Platzhaltern (`{{tonfallBaustein}}` etc.), festen JSON-Schemas für alle
-      Calls, die in DB-Felder schreiben (Tool-Use / structured output), Freitext
-      nur für die vier Chat-Antworten (03–06) und `antwortText` der
-      Lernzettel-Revision (09).
-- [ ] **Notenableitung strikt deterministisch:** das Modell gibt **nur Prozent**
-      zurück; `note`, `ampel`, Bestanden-Status rechnet das Backend
-      (Formel §2 / Phase 7). Kein Rundungs-Drift zwischen KI und Notenlogik.
-- [ ] **Prompt Caching:** `cache_control`-Breakpoint ans **Ende des kompletten
-      System-Prompts** der Chat-Modi (Themen Memory + Tonfall + Modus sind stabil,
-      nur `messages` wächst).
-- [ ] **Call 01 — Datei-Zusammenfassung** (`POST /themen/:id/dateien`, async aus
-      Phase 5): Rohdatei **einmalig** an die KI, danach nur noch die gespeicherte
-      `zusammenfassung` verwenden.
-- [ ] **Call 02 — Themen Memory:** Kontext-Block aus allen Lernzetteln (voll) +
-      Datei-Zusammenfassungen + bisherigen Chat-Titeln. Grundfall = einfache
-      Konkatenation; Verdichtungs-Pipeline nur als markierte Erweiterung bei
-      Kontext-Überlauf.
-- [ ] **Calls 03–06 — Chat-Antworten** (`POST /chats/:id/nachrichten`):
-      modusabhängiger System-Prompt (erklären / hausaufgaben / üben / zusammenfassen)
-      + neutraler „freie Frage"-Prompt, wenn `modus = null`. Sokratik-Grad je Modus
-      wie in `00-overview.md` §2. Antwort streamt zurück.
-- [ ] **Call 07 — Chat-Titel:** günstigste/schnellste Modellklasse, ~20 Output-
-      Tokens, an den ersten `POST /chats/:id/nachrichten` angehängt (Phase-0-
-      Entscheidung — kein eigener Endpunkt).
-- [ ] **Call 08 — Lernzettel-Erstellung** (`POST /themen/:id/lernzettel`):
-      vollautomatisch aus allen Chats + Dateien des Themas. Usage: `lernzettelUsed`.
-- [ ] **Call 09 — Lernzettel-Revision** (`POST /lernzettel/:id/revisionen`):
-      Such-/Ersetzen-Patches statt Vollersatz, gibt nur den geänderten Ausschnitt
-      zurück. Erste 10 Revisionen je Lernzettel gratis (`freeMessagesUsed`).
-- [ ] **Call 10 — Testklausur-Erstellung** (`POST /testklausuren`): **ein** Call
-      für alle Aufgaben (1 pro Thema, keine Multiple-Choice). Gleicher Call für
-      Testklausur 1 (alle Themen) und Testklausur 2 (nur schwache/wackelige).
-      `POST /lernplaene/:id/testklausur2` ruft ihn mit kleinerem `themaIds`-Umfang.
-- [ ] **Call 11 — Testklausur-Analyse** (`POST /testklausuren/:id/analyse`):
-      **ein** Call wertet das komplette Lösungsdokument aus → `TestklausurErgebnis`
-      (eingefroren) + `Vorbereitungsstand` (dreistufige Ampel je Thema, direkt bei
-      der Analyse via `noteAmpel`). Status → `analysiert`.
-- [ ] **Call 12 — Lernplan-Lernzettel** (`POST /lernplaene/:id/lernzettel`,
-      Tag 3/4/6): kurzes „wichtigste Dinge zum Merken"-Markdown je Thema,
-      **angehängt** statt neu geschrieben.
-- [ ] **Niveau-Hinweis:** jeder generierende Prompt endet mit der Klassenstufe
-      (`Fach.klasse`, ersatzweise `User.klasse`).
-- [ ] **Kosten-Log auswerten:** nach ein paar Testläufen `response.usage` gegen die
-      Schätzungen in `00-overview.md` §7 / `PLAN_ECONOMICS` halten.
-- [ ] **backend-planning.md §3** (Call-Tabelle) auf den umgesetzten Stand bringen.
+> _2026-09-04: Elf der zwölf Calls (alle außer 01) end-to-end verdrahtet und
+> gegen einen deterministischen `FakeKiClient` getestet (ohne
+> `ANTHROPIC_API_KEY` läuft kein echter Call — wie `FakeZahlungsGateway`,
+> Phase 9). Tests: `api/src/lib/ki/*.test.ts` (26) + `api/src/routes/ki.test.ts`
+> (13, DB-gated). Details siehe `backend-planning.md` §3 „Umsetzung Phase 6"._
+
+- [x] **Anthropic-Client kapseln** — _`api/src/lib/ki/client.ts`:
+      `AnthropicKiClient` (`@anthropic-ai/sdk`, Retry+Timeout aus den
+      SDK-Client-Optionen) + `FakeKiClient` (Fallback ohne Key). Beide
+      loggen `response.usage` strukturiert. Modellwahl als Config
+      (`env.KI_MODELL_GUENSTIG`/`KI_MODELL_STANDARD`, je Call-Klasse
+      zugeordnet in `calls.ts`, nicht fest verdrahtet)._
+- [x] **KI-Vorab-Filter** — _`api/src/lib/ki/guard.ts`: Themen-Guard
+      (Regelwerk-Variante), Größen-Guard (`KI_ANFRAGE_MAX_ZEICHEN`,
+      Default 6000 Zeichen), Spam-Guard (In-Memory-Fenster pro User). Laufen
+      vor `POST /chats/:id/nachrichten` + `POST /lernzettel/:id/revisionen`,
+      kein Usage-Verbrauch bei Treffer. Trefferquoten-Logging/-Kalibrierung
+      noch offen (Phase 15/17)._
+- [x] **Prompt-Templates 01–12 als Code-Vorlagen** — _`api/src/lib/ki/calls.ts`,
+      feste JSON-Schemas für alle DB-schreibenden Calls, Freitext nur für die
+      Chat-Antworten (03–06/frei) und `antwortText` der Revision (09)._
+- [x] **Notenableitung strikt deterministisch** — _unverändert aus Phase 7:
+      Call 11 gibt nur `prozent`, `note`/`ampel` rechnet `prozentZuNote`/
+      `noteAmpel` im Backend._
+- [x] **Prompt Caching** — _`cache: true` auf den Chat-Calls (03–06/frei),
+      `cache_control` ans Ende des kompletten System-Prompts._
+- [ ] **Call 01 — Datei-Zusammenfassung** — _`dateiZusammenfassungErzeugen()`
+      steht bereit, aber **nicht verdrahtet**: `POST /themen/:id/dateien`
+      (Upload/Objektspeicher) existiert erst in Phase 5._
+- [x] **Call 02 — Themen Memory** — _`themenMemoryBlock()` in
+      `api/src/lib/ki/kontext.ts`, Grundfall = Konkatenation, keine
+      Verdichtung (kommt erst bei echtem Bedarf, Phase 17)._
+- [x] **Calls 03–06 + frei — Chat-Antworten** — _`chatAntwortErzeugen()` in
+      `POST /chats/:id/nachrichten`, modusabhängiger System-Prompt inkl.
+      neutralem „freie Frage"-Fall. **Streaming steht noch aus** — Antwort
+      kommt komplett zurück, nicht token-weise (Nachholbedarf, kein Blocker)._
+- [x] **Call 07 — Chat-Titel** — _`chatTitelErzeugen()`, an den ersten
+      `POST /chats/:id/nachrichten` angehängt; schlägt der Call fehl, Fallback
+      auf eine einfache Kürzung statt den Chat zu blockieren._
+- [x] **Call 08 — Lernzettel-Erstellung** — _`POST /themen/:id/lernzettel`,
+      Usage `lernzettel` (Limit-Check vor, Zählung nach dem Call)._
+- [x] **Call 09 — Lernzettel-Revision** — _`POST /lernzettel/:id/revisionen`
+      (neuer Endpunkt), `wendePatchesAn()` wendet Such-/Ersetzen-Paare an
+      (Fehler → Fallback-Antwort statt Absturz), erste 10 gratis
+      (`revisionZaehltGegenLimit`, Phase 8), danach `nachrichten`-Limit._
+- [x] **Call 10 — Testklausur-Erstellung** — _`testklausurErstellen()` in
+      `api/src/lib/testklausur.ts`, gemeinsam genutzt von `POST /klausuren`
+      (Testklausur 1) und `POST /testklausuren` (direkt bzw. Testklausur 2
+      über `POST /lernplaene/:id/testklausur2`). 3.-Aufruf-Riegel je
+      `klausurId` dort umgesetzt (`409 testklausur_limit_erreicht`)._
+- [x] **Call 11 — Testklausur-Analyse** — _`POST /testklausuren/:id/analyse`,
+      braucht `status=geloest` + `Testklausur.loesungsText` (neue Spalte,
+      Bridge bis Phase 5 — s. u.). Schreibt `TestklausurErgebnis` +
+      `Vorbereitungsstand` in einer DB-Transaktion, Status → `analysiert`._
+- [x] **Call 12 — Lernplan-Lernzettel** — _`POST /lernplaene/:id/lernzettel`
+      (neuer Endpunkt), hängt an (`Lernplan.lernzettel`), nutzt
+      `TestklausurErgebnis.erklaerung` als Fehler-Hinweis, wenn vorhanden._
+- [x] **Niveau-Hinweis** — _`klassenstufeFuer()` (`Fach.klasse`, sonst
+      `User.klassenstufe`) fließt in jeden generierenden Call._
+- [ ] **Kosten-Log auswerten** — _erst sinnvoll mit echtem `ANTHROPIC_API_KEY`
+      und realer Nutzung._
+- [x] **backend-planning.md §1/§3/§4** auf den umgesetzten Stand gebracht.
+
+**Bridge bis Phase 5:** `Testklausur.loesungsText` (Migration) hält den
+Klartext der hochgeladenen Lösung; `POST /testklausuren/:id/loesung` nimmt
+ihn direkt entgegen. Sobald Phase 5 echte Datei-Extraktion liefert, füllt
+sie dieses Feld automatisch — Call 11 selbst ändert sich nicht.
 
 ---
 

@@ -22,6 +22,7 @@
     "db:reset": "prisma migrate reset"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.123.0",
     "@lesify/shared": "workspace:*",
     "@node-rs/argon2": "^2.2.0",
     "@prisma/client": "^5.22.0",

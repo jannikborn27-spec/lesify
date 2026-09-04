@@ -1,9 +1,13 @@
 import type { FastifyInstance } from 'fastify';
-import type { Lernplan } from '@prisma/client';
+import type { Lernplan, PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { parse } from '../lib/validate.js';
 import { oder404 } from '../lib/scope.js';
+import { HttpError } from '../lib/http.js';
 import { berechneLernplanStatus, chatMapKey, setChatMapEintrag } from '../lib/lernplan.js';
+import { testklausurErstellen } from '../lib/testklausur.js';
+import { klassenstufeFuer, themaMaterial } from '../lib/ki/kontext.js';
+import { lernplanLernzettelErzeugen } from '../lib/ki/calls.js';
 
 const checklistPatch = z.union([
   z.object({
@@ -20,6 +24,24 @@ const chatMapPatch = z.object({
   themaId: z.string().uuid(),
   chatId: z.string().uuid(),
 });
+
+const lernzettelBody = z.object({ themaIds: z.array(z.string().uuid()).min(1).max(20) });
+
+/** Bevorzugt das Feedback aus Testklausur 2 (aktueller), sonst Testklausur 1. */
+async function fehlerHinweisFuer(
+  prisma: PrismaClient,
+  lp: Lernplan,
+  themaId: string,
+): Promise<string | undefined> {
+  for (const tkId of [lp.testklausur2Id, lp.testklausur1Id]) {
+    if (!tkId) continue;
+    const e = await prisma.testklausurErgebnis.findFirst({
+      where: { testklausurId: tkId, themaId },
+    });
+    if (e) return e.erklaerung;
+  }
+  return undefined;
+}
 
 /** Rohzustand (persistierte Felder). Der berechnete Zustand kommt als
  *  `status` dazu (siehe `mitStatus`). */
@@ -38,7 +60,7 @@ function lernplanDTO(lp: Lernplan) {
 }
 
 export async function lernplaeneRoutes(app: FastifyInstance): Promise<void> {
-  const { prisma } = app;
+  const { prisma, ki } = app;
   app.addHook('preHandler', app.requireAuth);
 
   const laden = async (userId: string, id: string) =>
@@ -111,5 +133,73 @@ export async function lernplaeneRoutes(app: FastifyInstance): Promise<void> {
       .send(doc?.content ?? '# Lernzettel\n\n_(noch leer)_\n');
   });
 
-  // POST /lernplaene/:id/testklausur2  und  .../lernzettel  → Phase 6 (KI).
+  // POST /lernplaene/:id/testklausur2 — Call 10, begrenzt auf die an Tag 1
+  // schwachen/wackeligen Themen (§4: „intern der normale POST /testklausuren-Call").
+  app.post<{ Params: { id: string } }>('/lernplaene/:id/testklausur2', async (req) => {
+    const lp = await laden(req.userId, req.params.id);
+    if (lp.testklausur2Id) throw new HttpError(409, 'testklausur2_bereits_gestartet');
+
+    const status = await berechneLernplanStatus(prisma, lp);
+    if (!status.tag5.verfuegbar) throw new HttpError(409, 'testklausur2_nicht_verfuegbar');
+    if (!status.tag5.noetig) throw new HttpError(409, 'testklausur2_nicht_noetig');
+
+    const klausur = await prisma.klausur.findUniqueOrThrow({ where: { id: lp.klausurId } });
+    const testklausur2 = await testklausurErstellen(prisma, ki, {
+      userId: req.userId,
+      fachId: klausur.fachId,
+      themaIds: status.tag1.schwacheThemen,
+      titel: `Testklausur 2 — ${klausur.titel}`,
+      klausurId: lp.klausurId,
+    });
+    const updated = await prisma.lernplan.update({
+      where: { id: lp.id },
+      data: { testklausur2Id: testklausur2.id },
+    });
+    return { ...(await mitStatus(updated)), testklausur2 };
+  });
+
+  // POST /lernplaene/:id/lernzettel — Call 12 (Tag 3/4/6), angehängt statt
+  // Vollersatz.
+  app.post<{ Params: { id: string } }>('/lernplaene/:id/lernzettel', async (req) => {
+    const body = parse(lernzettelBody, req.body);
+    const lp = await laden(req.userId, req.params.id);
+    const klausur = await prisma.klausur.findUniqueOrThrow({ where: { id: lp.klausurId } });
+    const fach = oder404(
+      await prisma.fach.findFirst({ where: { id: klausur.fachId, userId: req.userId } }),
+    );
+    const themen = await prisma.thema.findMany({ where: { id: { in: body.themaIds } } });
+    if (themen.length !== new Set(body.themaIds).size) throw new HttpError(404, 'nicht_gefunden');
+
+    const klassenstufe = await klassenstufeFuer(prisma, req.userId, klausur.fachId);
+    const bisher = (lp.lernzettel as { content?: string } | null)?.content ?? null;
+
+    const themenInput = await Promise.all(
+      body.themaIds.map(async (themaId) => {
+        const material = await themaMaterial(prisma, themaId);
+        return {
+          themaId,
+          themaName: themen.find((t) => t.id === themaId)?.name ?? themaId,
+          material: `${material.lernzettelOderChats}\n${material.dateiZusammenfassungen}`,
+          fehlerHinweis: await fehlerHinweisFuer(prisma, lp, themaId),
+        };
+      }),
+    );
+
+    const eintraege = await lernplanLernzettelErzeugen(ki, {
+      klassenstufe,
+      fachName: fach.name,
+      bisherigerLernzettel: bisher,
+      themen: themenInput,
+    });
+
+    const neu = eintraege.map((e) => e.abschnitt).join('\n\n');
+    const content = bisher ? `${bisher}\n\n${neu}` : `# Lernzettel\n\n${neu}`;
+    const aktualisiertAm = new Date().toISOString();
+
+    const updated = await prisma.lernplan.update({
+      where: { id: lp.id },
+      data: { lernzettel: { content, aktualisiertAm } },
+    });
+    return updated.lernzettel;
+  });
 }

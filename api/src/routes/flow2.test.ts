@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { PrismaClient } from '@prisma/client';
+import { prozentZuNote } from '@lesify/shared';
 import { buildApp } from '../app.js';
 import { getPrisma } from '../db.js';
 
@@ -182,7 +183,7 @@ describe.runIf(hatDb)('chats + klausuren/lernplan/testklausur — Flow (Supabase
     expect(res.statusCode).toBe(404);
   });
 
-  it('GET /lernplaene/:id gibt den Rohzustand', async () => {
+  it('GET /lernplaene/:id gibt Rohzustand + berechneten status (Phase 7)', async () => {
     const res = await app.inject({
       method: 'GET',
       url: `/lernplaene/${lernplanId}`,
@@ -192,6 +193,9 @@ describe.runIf(hatDb)('chats + klausuren/lernplan/testklausur — Flow (Supabase
     expect(res.json().checklist).toEqual({});
     expect(res.json().tageErledigt).toEqual([]);
     expect(res.json().testklausur1Id).toBe(testklausur1Id);
+    // Testklausur 1 noch nicht analysiert → aktueller Tag 1
+    expect(res.json().status.aktuellerTag).toBe(1);
+    expect(res.json().status.tag1.erledigt).toBe(false);
   });
 
   it('PATCH /lernplaene/:id/checklist — einzelner Punkt und ganzer Tag', async () => {
@@ -258,6 +262,62 @@ describe.runIf(hatDb)('chats + klausuren/lernplan/testklausur — Flow (Supabase
     });
     expect(doc.headers['content-type']).toContain('text/plain');
     expect(doc.body).toContain('Testklausur 1');
+  });
+
+  it('nach Analyse von Testklausur 1 rechnet status.aktuellerTag korrekt (Phase 7)', async () => {
+    // Analyse direkt in der DB simulieren (der KI-Endpunkt kommt in Phase 6):
+    // themaA schwach (rot), themaB stark (grün).
+    const uId = (await prisma.testklausur.findUniqueOrThrow({ where: { id: testklausur1Id } }))
+      .userId;
+    const zeilen = [
+      { themaId: themaA, prozent: 20, note: 5.0, ampel: 'rot' as const },
+      { themaId: themaB, prozent: 95, note: 1.3, ampel: 'gruen' as const },
+    ];
+    await prisma.testklausurErgebnis.createMany({
+      data: zeilen.map((z) => ({
+        userId: uId,
+        testklausurId: testklausur1Id,
+        themaId: z.themaId,
+        prozent: z.prozent,
+        note: z.note,
+        erklaerung: 'seed-analyse',
+      })),
+    });
+    await prisma.vorbereitungsstand.createMany({
+      data: zeilen.map((z) => ({
+        userId: uId,
+        testklausurId: testklausur1Id,
+        themaId: z.themaId,
+        prozent: z.prozent,
+        note: z.note,
+        ampel: z.ampel,
+      })),
+    });
+    await prisma.testklausur.update({
+      where: { id: testklausur1Id },
+      data: { status: 'analysiert' },
+    });
+
+    const res = await app.inject({
+      method: 'GET',
+      url: `/lernplaene/${lernplanId}`,
+      headers: auth(),
+    });
+    const s = res.json().status;
+    const erwarteteNote = prozentZuNote(Math.round((20 + 95) / 2));
+    expect(s.tag1.erledigt).toBe(true);
+    expect(s.tag1.schwacheThemen).toEqual([themaA]);
+    expect(s.tag1.intensitaet).toBe('tief');
+    expect(s.aktuellerTag).toBe(2);
+    expect(s.letzteTestNr).toBe(1);
+    expect(s.letzteTestNote).toBe(erwarteteNote);
+
+    const klausurDetail = await app.inject({
+      method: 'GET',
+      url: `/klausuren/${res.json().klausurId}`,
+      headers: auth(),
+    });
+    expect(klausurDetail.json().note).toEqual({ note: erwarteteNote, testNr: 1 });
   });
 
   it('GET /lernplaene/<unbekannt> → 404', async () => {

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { parse } from '../lib/validate.js';
 import { nichtGefunden } from '../lib/http.js';
 import { oder404 } from '../lib/scope.js';
+import { klausurNoteFuer } from '../lib/lernplan.js';
 
 const AUFGABE_PLATZHALTER = '(Aufgabe wird bei der Testklausur-Erstellung generiert — Phase 6.)';
 
@@ -81,16 +82,19 @@ export async function klausurenRoutes(app: FastifyInstance): Promise<void> {
       orderBy: { datum: 'asc' },
       include: { fach: { select: { name: true, farbe: true } } },
     });
-    return klausuren.map((k) => ({
-      id: k.id,
-      fachId: k.fachId,
-      fachName: k.fach.name,
-      farbe: k.fach.farbe,
-      themaIds: k.themaIds,
-      titel: k.titel,
-      datum: k.datum.toISOString().slice(0, 10),
-      erstelltAm: k.erstelltAm,
-    }));
+    return Promise.all(
+      klausuren.map(async (k) => ({
+        id: k.id,
+        fachId: k.fachId,
+        fachName: k.fach.name,
+        farbe: k.fach.farbe,
+        themaIds: k.themaIds,
+        titel: k.titel,
+        datum: k.datum.toISOString().slice(0, 10),
+        erstelltAm: k.erstelltAm,
+        note: await klausurNoteFuer(prisma, k.id),
+      })),
+    );
   });
 
   // GET /klausuren/:id — Detail inkl. Lernplan + Testklausuren
@@ -117,6 +121,7 @@ export async function klausurenRoutes(app: FastifyInstance): Promise<void> {
       titel: k.titel,
       datum: k.datum.toISOString().slice(0, 10),
       erstelltAm: k.erstelltAm,
+      note: await klausurNoteFuer(prisma, k.id),
       lernplan: k.lernplan,
       testklausuren: k.testklausuren,
     };

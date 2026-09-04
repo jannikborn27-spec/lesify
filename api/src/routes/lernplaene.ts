@@ -3,7 +3,7 @@ import type { Lernplan } from '@prisma/client';
 import { z } from 'zod';
 import { parse } from '../lib/validate.js';
 import { oder404 } from '../lib/scope.js';
-import { chatMapKey, setChatMapEintrag } from '../lib/lernplan.js';
+import { berechneLernplanStatus, chatMapKey, setChatMapEintrag } from '../lib/lernplan.js';
 
 const checklistPatch = z.union([
   z.object({
@@ -21,8 +21,8 @@ const chatMapPatch = z.object({
   chatId: z.string().uuid(),
 });
 
-/** Rohzustand — der voll BERECHNETE Zustand (aktueller Tag, schwache Themen …)
- *  kommt in Phase 7 (`lernplanStatus`). */
+/** Rohzustand (persistierte Felder). Der berechnete Zustand kommt als
+ *  `status` dazu (siehe `mitStatus`). */
 function lernplanDTO(lp: Lernplan) {
   return {
     id: lp.id,
@@ -44,9 +44,14 @@ export async function lernplaeneRoutes(app: FastifyInstance): Promise<void> {
   const laden = async (userId: string, id: string) =>
     oder404(await prisma.lernplan.findFirst({ where: { id, userId } }));
 
-  // GET /lernplaene/:id  (Rohzustand; berechneter Zustand = Phase 7)
+  const mitStatus = async (lp: Lernplan) => ({
+    ...lernplanDTO(lp),
+    status: await berechneLernplanStatus(prisma, lp),
+  });
+
+  // GET /lernplaene/:id — persistierte Felder + berechneter `status`
   app.get<{ Params: { id: string } }>('/lernplaene/:id', async (req) => {
-    return lernplanDTO(await laden(req.userId, req.params.id));
+    return mitStatus(await laden(req.userId, req.params.id));
   });
 
   // GET /klausuren/:id/lernplan
@@ -57,7 +62,7 @@ export async function lernplaeneRoutes(app: FastifyInstance): Promise<void> {
         include: { lernplan: true },
       }),
     );
-    return lernplanDTO(oder404(k.lernplan));
+    return mitStatus(oder404(k.lernplan));
   });
 
   // PATCH /lernplaene/:id/checklist

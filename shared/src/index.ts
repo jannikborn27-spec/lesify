@@ -1,10 +1,12 @@
 /**
- * @lesify/shared — framework-freie Konstanten & (später) Formeln, die Frontend
+ * @lesify/shared — framework-freie Konstanten & Formeln, die Frontend
  * (app/assets/js/data.js) und Backend (api/) teilen.
- *
- * Die Notenformel / noteAmpel / lernplanStatus kommen in Phase 7 hinzu
- * (mit Paritäts-Tests gegen data.js). Referenz: backend-planning.md §0/§2.
+ * Referenz: backend-planning.md §0/§2.
  */
+
+// Notenlogik + Lernplan-Statusberechnung (Phase 7, bit-genauer data.js-Port)
+export * from './noten.js';
+export * from './lernplan.js';
 
 // --- Fach-Farben (data.js FACH_COLORS) ---
 export const FACH_COLOR_KEYS = [

@@ -453,26 +453,36 @@ Preise/Modellwahl-Prinzipien: `00-overview.md` §7.
 
 Der gesamte abgeleitete Zustand muss **bit-genau** zu `data.js` passen.
 
-- [ ] **`shared/`-Modul für die reinen Formeln:** `note = round(6 − prozent/100 × 5, 1)`,
-      `noteAmpel(note)` (≤2.5 grün · ≤4.0 gelb · sonst rot), Notenlabels,
-      `AMPEL_GRUEN_MAX_NOTE = 2.5`. Wird von Frontend und Backend genutzt.
-- [ ] **`lernplanStatus` serverseitig nachbauen:** aktueller Tag, schwache Themen,
-      Fokus-/Kurz-Aufteilung ab `LERNPLAN_FOKUS_LIMIT = 3`, `intensitaet`
-      (`null`/`tief`/`normal`/`triagiert`), Tag-1↔Tag-5-Vergleich, „nichts zu tun"-
-      Kurzschluss bei komplett starker Testklausur 1, `letzteTestNote`/`letzteTestNr`.
-- [ ] **`klausurNote(klausurId)`** → `{note, testNr, testklausur} | null`: Note der
-      zuletzt **analysierten** Testklausur (2, sonst 1), sonst Status-Chip.
-- [ ] **Checklist-Keys je Lerntag** deterministisch aus `fokusThemen`/`kurzThemen`/
-      `intensitaet` bzw. (Tag 6) `stubborn`/`aufgefrischt` berechnen — dieselben
-      Keys wie in `data.js` **und** `app.js` (die Key-Liste wird an beiden Stellen
-      gepflegt).
-- [ ] **`GET /lernplaene/:id`** liefert exakt diesen berechneten Zustand.
-- [ ] **Paritäts-Tests:** Testfälle mit denselben Eingaben durch die `data.js`-
-      Funktionen **und** das Backend schicken, Ergebnisse müssen identisch sein
-      (Note, Ampel, aktueller Tag, schwache Themen, Testklausur-2-Bedarf).
-- [ ] **Weiche Tagesübergänge:** kein Zugriffs-Gate — Tage in beliebiger
-      Reihenfolge abschließbar, Testklausur 2 jederzeit nach Analyse von
-      Testklausur 1 startbar.
+> _2026-09-04: umgesetzt in `2ba8c35`. Bit-genauer data.js-Port in
+> `@lesify/shared`; 39 Paritäts-Tests + Route-Test grün._
+
+- [x] **`shared/`-Modul für die reinen Formeln** — _`shared/src/noten.ts`:
+      `prozentZuNote`, `noteAmpel` (≤2.5/≤4.0), `noteLabel`,
+      `AMPEL_GRUEN_MAX_NOTE`/`AMPEL_GELB_MAX_NOTE`, `TIER_LABEL`. Wird von
+      Frontend (später) und Backend genutzt._
+- [x] **`lernplanStatus` serverseitig nachbauen** — _`shared/src/lernplan.ts` als
+      reine Funktion `lernplanStatus(eingabe)`: aktueller Tag, `schwacheThemen`
+      (sortiert rot→gelb, dann schlechtere Note), `fokusThemen`/`kurzThemen` ab
+      `LERNPLAN_FOKUS_LIMIT = 3`, `intensitaet`, Tag-5-Verfügbarkeit,
+      „nichts zu tun"-Kurzschluss, `stubborn`/`aufgefrischt`,
+      `letzteTestNote`/`letzteTestNr`._
+- [x] **`klausurNote(klausurId)`** — _`klausurNote(tks)` in shared +
+      `klausurNoteFuer(prisma, klausurId)` in `api/src/lib/lernplan.ts` →
+      `{note, testNr} | null`; `GET /klausuren(/:id)` liefern `note`._
+- [x] **Checklist-Keys je Lerntag** — _`aufgabenKeys(n)` in
+      `shared/src/lernplan.ts` — identische Keys wie `lpTagAufgaben()` in
+      `app.js` (Prefix `fehler:`/`beispiel:`/`check:`/`abfragen:`/`gemischt`/
+      `loesungen`/`kurzabfragen`/`feynman:`/`wiederholung`/`transfer`/`luecke:`/
+      `frisch:`/`selbsttest`, plus `kurz`)._
+- [x] **`GET /lernplaene/:id`** — _liefert jetzt `{…persistiert, status}` mit dem
+      voll berechneten Zustand (auch `GET /klausuren/:id/lernplan`)._
+- [x] **Paritäts-Tests** — _`shared/src/noten.test.ts` (30) + `lernplan.test.ts`
+      (9) mit den SEED-Szenarien lp1…lp6 als Fixtures; berechnete
+      `aktuellerTag`-Werte == SEED-Kommentare (3/1/1/6/7/fertig). Dazu ein
+      Route-Test in `flow2.test.ts` (Analyse → `status.aktuellerTag`)._
+- [x] **Weiche Tagesübergänge** — _kein Zugriffs-Gate in `lernplanStatus`;
+      `tag5.verfuegbar = tk1Analysiert`, Tage in beliebiger Reihenfolge
+      abhakbar (`checklist` je Tag)._
 
 ---
 

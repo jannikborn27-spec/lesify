@@ -612,6 +612,35 @@ Testklausur-Nummer. Da jede Klausur seit ihrer Erstellung einen Lernplan mit
 Testklausur 1 hat, ist der „keine Testklausur"-Zustand normalerweise nicht erreichbar;
 solange noch keine Analyse vorliegt, zeigt die Karte den Status-Chip (`erstellt`/`geloest`).
 
+### Umsetzung (Phase 7, 2026-09-04)
+
+Bit-genauer Port aus `data.js` liegt in **`@lesify/shared`** (von Frontend und
+Backend gleich nutzbar):
+
+- **`shared/src/noten.ts`** — `prozentZuNote` (`round((6 − p/100·5)·10)/10`),
+  `noteAmpel`, `noteLabel`, `AMPEL_GRUEN_MAX_NOTE` (2.5), `AMPEL_GELB_MAX_NOTE`
+  (4.0), `TIER_LABEL`.
+- **`shared/src/lernplan.ts`** — `lernplanStatus(eingabe)` (reine Funktion:
+  aktueller Tag, `schwacheThemen` sortiert rot→gelb dann schlechtere Note,
+  `fokusThemen`/`kurzThemen` ab `LERNPLAN_FOKUS_LIMIT` = 3, `intensitaet`
+  null/tief/normal/triagiert, „nichts zu tun"-Kurzschluss, `stubborn`/
+  `aufgefrischt` aus Testklausur 2, `aufgabenKeys` je Lerntag — **identische
+  Keys wie `lpTagAufgaben()` in `app.js`**, `letzteTestNote`/`letzteTestNr`),
+  `klausurNote(tks)`, `testklausurGesamtNote(prozente)` (=
+  `prozentZuNote(round(avg(prozent je Thema)))`).
+- **Backend-Anbindung** (`api/src/lib/lernplan.ts`): `berechneLernplanStatus`
+  lädt Klausur + beide Testklausuren (Ergebnisse→Gesamtnote,
+  Vorbereitungsstand→proThema) und ruft `lernplanStatus`. `GET /lernplaene/:id`
+  und `GET /klausuren/:id/lernplan` liefern `{…persistiert, status}`.
+  `GET /klausuren(/:id)` liefern zusätzlich `note` (= `klausurNote`).
+- **Paritäts-Tests** (`shared/src/*.test.ts`, 39 Stück): die SEED-Szenarien
+  lp1…lp6 aus `data.js` als Fixtures; verifiziert, dass die berechneten
+  `aktuellerTag`-Werte (3 · 1 · 1 · 6 · 7 · fertig) den SEED-Kommentaren
+  entsprechen.
+- **Weiche Tagesübergänge**: `lernplanStatus` hat kein Zugriffs-Gate — Tage in
+  beliebiger Reihenfolge abschließbar, Testklausur 2 jederzeit nach Analyse von
+  Testklausur 1 (`tag5.verfuegbar = tk1Analysiert`).
+
 ---
 
 ## 3. Wo/wann KI-Calls passieren (usage-sparsam)

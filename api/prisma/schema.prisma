@@ -186,6 +186,7 @@ model Abo {
   paket                 AboPaket
   art                   AboArt
   sitze                 Int // 1 bei einzel; 2–4 bei familie
+  geplanteSitze         Int? // Sitzverringerung, wirksam zum aktuellerZeitraumEnde (Phase 12)
   intervall             AboIntervall
   angebot               String? // z. B. "schuljahresstart_-20"
   status                AboStatus

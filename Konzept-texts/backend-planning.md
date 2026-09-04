@@ -147,6 +147,7 @@ automatischer Abbuchung danach** (Stripe), jederzeit kündbar.
 | paket | enum | `starter` \| `premium` \| `infinite` (kein `kostenlos` mehr) |
 | art | enum | `einzel` \| `familie` |
 | sitze | int | 1 bei `einzel`; 2–4 bei `familie`. Jeder Sitz = ein `KindProfil` mit dem vollen Monatskontingent des `paket` |
+| geplanteSitze | int (nullable) | Phase 12: gemerkte **Sitzverringerung**, wirksam zum `aktuellerZeitraumEnde`, sobald genug Kind-Profile entfernt sind (Job `abo-geplante-aenderungen`). `null` = keine geplante Änderung |
 | intervall | enum | `monatlich` \| `jaehrlich` (jährlich = niedrigerer Monatswert, siehe `stripe-config.js`) |
 | angebot | string (nullable) | aktive Rabatt-Kampagne, z. B. `schuljahresstart_-20` — fixiert den Angebotspreis für die Vertragslaufzeit |
 | status | enum | `test` (14-Tage-Trial) \| `aktiv` \| `gekuendigt` \| `pausiert` (Sommerpause) \| `zahlung_offen` |
@@ -849,6 +850,9 @@ Dev-Switch, `localStorage['lesify:search:v']` — nur Prototyp).
 | POST | `/abo/pausieren` | Sommerpause (Status `pausiert`), Inhalte bleiben erhalten |
 | POST | `/abo/webhook` | Callback des Zahlungsanbieters (Zahlung erfolgreich/fehlgeschlagen → `status`) |
 | GET | `/abo/kinder` · POST · DELETE | Kind-Profile im Familien-Abo verwalten (max. `Abo.sitze`, 2–4) |
+| POST | `/abo/kinder/:id/einladung` | `{email}` → E-Mail am Kind-Profil setzen + `emailVerifiedAt` (Elternkonto bürgt), Passwort-Token ausgeben; das Kind setzt sein Passwort über `POST /auth/passwort-zuruecksetzen` (Phase 12) |
+| POST | `/abo/kinder/:id/sitzung` | Kontext-Wechsel: gibt eine echte `Session` fürs Kind-Profil zurück (`{token, kindId}`); das Elternkonto handelt damit vollständig als Kind, Zurückwechseln = eigenes Token (Phase 12) |
+| GET | `/abo/kinder/:id/zusammenfassung` | Aggregierte Wochenkennzahlen (Fächer/Themen/Chats+Nachrichten der Woche/Lernzettel/Testklausuren/anstehende Klausuren) — **kein Chat-Wortlaut** (Phase 12) |
 
 #### Umsetzungsstand (Phase 9, 2026-09-04)
 
@@ -872,9 +876,10 @@ Stripe-Adapter + Dashboard-Produkte/-Preise: **Phase 16**.
   `User.aboId` gesetzt + `User.trialEndetAm` genullt. Zweiter Aufruf → `409
   abo_vorhanden`. Antwort **201**.
 - **`PATCH /abo`** `{paket?, intervall?, sitze?}` → Paket-/Intervall-/
-  Sitz**erhöhung** sofort (Proration beim Anbieter). Sitz**verringerung** →
-  `409 sitzverringerung_zum_zeitraumende` (`details.wirksamAm`); volle Mechanik
-  (welcher Sitz, Inhalts-Löschung) in **Phase 12**.
+  Sitz**erhöhung** sofort (Proration beim Anbieter). Sitz**verringerung**
+  (Phase 12) wird als `Abo.geplanteSitze` gemerkt (`sitze` bleibt); der Job
+  `abo-geplante-aenderungen` senkt `sitze` zum `aktuellerZeitraumEnde`, sobald
+  `belegt <= geplanteSitze` (er löscht **keine** Kind-Profile selbst).
 - **`POST /abo/kuendigen`** → `status = gekuendigt` (Zugang bis
   `aktuellerZeitraumEnde`), **`POST /abo/pausieren`** → `status = pausiert`.
 - **`POST /abo/webhook`** (kein Login): Body `{typ, aboRef}`, Header

@@ -92,10 +92,41 @@ export async function abgelaufeneTokenLoeschen(
   return { sessions, verificationTokens };
 }
 
+/**
+ * Wendet geplante Sitzverringerungen an (Phase 12): sobald der laufende
+ * Zeitraum vorbei ist **und** genug Kind-Profile entfernt wurden
+ * (`belegt <= geplanteSitze`), wird `Abo.sitze` gesenkt. Solange noch zu viele
+ * Kinder da sind, bleibt die Änderung stehen (der Job löscht **keine** Profile).
+ */
+export async function geplanteAboAenderungenAnwenden(
+  prisma: PrismaClient,
+  jetzt: Date = new Date(),
+): Promise<{ angewendet: number; wartetAufKindLoeschung: number }> {
+  const faellig = await prisma.abo.findMany({
+    where: { geplanteSitze: { not: null }, aktuellerZeitraumEnde: { lte: jetzt } },
+  });
+  let angewendet = 0;
+  let wartet = 0;
+  for (const abo of faellig) {
+    const belegt = await prisma.user.count({ where: { parentUserId: abo.ownerUserId } });
+    if (belegt <= (abo.geplanteSitze ?? 0)) {
+      await prisma.abo.update({
+        where: { id: abo.id },
+        data: { sitze: abo.geplanteSitze ?? abo.sitze, geplanteSitze: null },
+      });
+      angewendet += 1;
+    } else {
+      wartet += 1;
+    }
+  }
+  return { angewendet, wartetAufKindLoeschung: wartet };
+}
+
 export const JOBS = {
   'inhalte-aufbewahrung': inhalteAelterAlsEinJahrLoeschen,
   'usage-historie': alteUsageZeilenLoeschen,
   'token-hygiene': abgelaufeneTokenLoeschen,
+  'abo-geplante-aenderungen': geplanteAboAenderungenAnwenden,
 } as const;
 
 export type JobName = keyof typeof JOBS;

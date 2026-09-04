@@ -186,15 +186,15 @@ describe.runIf(hatDb)('abo — Familien-Flow + Kind-Profile (Supabase)', () => {
     expect(liste.json()).toHaveLength(3);
   });
 
-  it('PATCH /abo Sitzverringerung → 409, Sitzerhöhung ok', async () => {
+  it('PATCH /abo Sitzverringerung wird geplant, Sitzerhöhung greift sofort', async () => {
     const runter = await app.inject({
       method: 'PATCH',
       url: '/abo',
       headers: auth(),
       payload: { sitze: 2 },
     });
-    expect(runter.statusCode).toBe(409);
-    expect(runter.json().fehler).toBe('sitzverringerung_zum_zeitraumende');
+    expect(runter.statusCode).toBe(200);
+    expect(runter.json()).toMatchObject({ sitze: 3, geplanteSitze: 2 });
 
     const rauf = await app.inject({
       method: 'PATCH',
@@ -203,7 +203,7 @@ describe.runIf(hatDb)('abo — Familien-Flow + Kind-Profile (Supabase)', () => {
       payload: { sitze: 4 },
     });
     expect(rauf.statusCode).toBe(200);
-    expect(rauf.json().sitze).toBe(4);
+    expect(rauf.json()).toMatchObject({ sitze: 4, geplanteSitze: null });
   });
 
   it('DELETE /abo/kinder/:id entfernt den Sitz', async () => {
@@ -228,5 +228,123 @@ describe.runIf(hatDb)('abo — Familien-Flow + Kind-Profile (Supabase)', () => {
       headers: auth(),
     });
     expect(res.statusCode).toBe(404);
+  });
+});
+
+describe.runIf(hatDb)('abo — Eltern-Features Phase 12 (Supabase)', () => {
+  const app = buildApp({ logger: false });
+  const prisma = getPrisma();
+  let token = '';
+  const auth = () => ({ authorization: `Bearer ${token}` });
+  let kindAId = '';
+  let kindCId = '';
+  const kindAEmail = `kindA+${crypto.randomUUID()}@abo.lesify.test`;
+
+  beforeAll(async () => {
+    await app.ready();
+    token = await registriereUndLogin(app, `p12+${crypto.randomUUID()}@abo.lesify.test`);
+    await app.inject({
+      method: 'POST',
+      url: '/abo',
+      headers: auth(),
+      payload: { paket: 'starter', intervall: 'monatlich', sitze: 3 },
+    });
+    for (const n of ['A', 'B', 'C']) {
+      const r = await app.inject({
+        method: 'POST',
+        url: '/abo/kinder',
+        headers: auth(),
+        payload: { name: `Kind ${n}`, klassenstufe: '7. Klasse' },
+      });
+      if (n === 'A') kindAId = r.json().id;
+      if (n === 'C') kindCId = r.json().id;
+    }
+  });
+
+  it('Einladung setzt E-Mail + gibt Reset-Token, Kind kann Passwort setzen und sich einloggen', async () => {
+    const einl = await app.inject({
+      method: 'POST',
+      url: `/abo/kinder/${kindAId}/einladung`,
+      headers: auth(),
+      payload: { email: kindAEmail },
+    });
+    expect(einl.statusCode).toBe(200);
+    const resetToken = einl.json().resetToken;
+    expect(typeof resetToken).toBe('string');
+
+    const setz = await app.inject({
+      method: 'POST',
+      url: '/auth/passwort-zuruecksetzen',
+      payload: { token: resetToken, neuesPasswort: 'kind-a-pass-1234' },
+    });
+    expect(setz.statusCode).toBe(200);
+
+    const login = await app.inject({
+      method: 'POST',
+      url: '/auth/login',
+      payload: { email: kindAEmail, passwort: 'kind-a-pass-1234' },
+    });
+    expect(typeof login.json().token).toBe('string');
+  });
+
+  it('Kontext-Wechsel: /abo/kinder/:id/sitzung liefert eine Kind-Session', async () => {
+    const s = await app.inject({
+      method: 'POST',
+      url: `/abo/kinder/${kindAId}/sitzung`,
+      headers: auth(),
+    });
+    expect(s.statusCode).toBe(200);
+    const kindToken = s.json().token;
+    const wer = await app.inject({
+      method: 'GET',
+      url: '/user',
+      headers: { authorization: `Bearer ${kindToken}` },
+    });
+    expect(wer.json().name).toBe('Kind A');
+  });
+
+  it('Zusammenfassung: aggregierte Kennzahlen, kein Chat-Wortlaut', async () => {
+    const z = await app.inject({
+      method: 'GET',
+      url: `/abo/kinder/${kindAId}/zusammenfassung`,
+      headers: auth(),
+    });
+    expect(z.statusCode).toBe(200);
+    const b = z.json();
+    expect(b.name).toBe('Kind A');
+    expect(b).toMatchObject({ faecher: 0, themen: 0, anstehendeKlausuren: 0 });
+    expect(JSON.stringify(b).toLowerCase()).not.toContain('wortlaut');
+    expect(b).not.toHaveProperty('chats');
+  });
+
+  it('Sitzverringerung wird geplant und erst per Job (nach Kind-Löschung) wirksam', async () => {
+    const patch = await app.inject({
+      method: 'PATCH',
+      url: '/abo',
+      headers: auth(),
+      payload: { sitze: 2 },
+    });
+    expect(patch.statusCode).toBe(200);
+    expect(patch.json()).toMatchObject({ sitze: 3, geplanteSitze: 2 });
+
+    // Zeitraum künstlich beenden.
+    await prisma.abo.updateMany({
+      where: {
+        ownerUserId: (await app.inject({ method: 'GET', url: '/auth/me', headers: auth() })).json()
+          .user.id,
+      },
+      data: { aktuellerZeitraumEnde: new Date('2020-01-01') },
+    });
+
+    const { geplanteAboAenderungenAnwenden } = await import('../lib/jobs.js');
+    const warte = await geplanteAboAenderungenAnwenden(prisma);
+    expect(warte.wartetAufKindLoeschung).toBeGreaterThanOrEqual(1);
+
+    await app.inject({ method: 'DELETE', url: `/abo/kinder/${kindCId}`, headers: auth() });
+    const jetzt = await geplanteAboAenderungenAnwenden(prisma);
+    expect(jetzt.angewendet).toBeGreaterThanOrEqual(1);
+
+    const abo = await app.inject({ method: 'GET', url: '/abo', headers: auth() });
+    expect(abo.json()).toMatchObject({ sitze: 2, geplanteSitze: null });
   });
 });

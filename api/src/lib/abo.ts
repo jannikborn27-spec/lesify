@@ -10,6 +10,7 @@ export function aboDTO(abo: Abo) {
     planName: PLAN_NAMES[paket],
     art: abo.art,
     sitze: abo.sitze,
+    geplanteSitze: abo.geplanteSitze,
     intervall: abo.intervall,
     angebot: abo.angebot,
     status: abo.status,

@@ -5,6 +5,12 @@ import { parse } from '../lib/validate.js';
 import { oder404 } from '../lib/scope.js';
 import { HttpError } from '../lib/http.js';
 import { aboDTO } from '../lib/abo.js';
+import { inTagen, neuesToken } from '../lib/tokens.js';
+import { istProd } from '../env.js';
+
+const KIND_EINLADUNG_TAGE = 14;
+
+const einladungBody = z.object({ email: z.string().trim().toLowerCase().email().max(320) });
 
 const paketEnum = z.enum(['starter', 'premium', 'infinite']);
 const intervallEnum = z.enum(['monatlich', 'jaehrlich']);
@@ -107,21 +113,21 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
 
       const paket = body.paket ?? (abo.paket as 'starter' | 'premium' | 'infinite');
       const intervall = body.intervall ?? (abo.intervall as 'monatlich' | 'jaehrlich');
-      const sitze = body.sitze ?? abo.sitze;
-      const art = aboArtFuerSitze(sitze);
+      const zielSitze = body.sitze ?? abo.sitze;
 
-      if (!istGueltigeSitzzahl(art, sitze)) {
+      // Sitzverringerung: nicht sofort. `geplanteSitze` merken; wirksam zum
+      // `aktuellerZeitraumEnde`, sobald genug Kind-Profile entfernt sind
+      // (Job `abo-geplante-aenderungen`). Restliche Änderungen greifen sofort.
+      const sitzeJetzt = zielSitze < abo.sitze ? abo.sitze : zielSitze;
+      const geplanteSitze =
+        zielSitze < abo.sitze ? zielSitze : zielSitze > abo.sitze ? null : abo.geplanteSitze;
+      const art = aboArtFuerSitze(sitzeJetzt);
+
+      if (!istGueltigeSitzzahl(art, sitzeJetzt) || (geplanteSitze != null && geplanteSitze < 1)) {
         throw new HttpError(400, 'validierung', { sitze: 'ungültige Sitzzahl' });
       }
-      // Sitzverringerung wird erst zum Zeitraumende wirksam — volle Mechanik
-      // (Auswahl welcher Sitz, Inhalts-Löschung) folgt in Phase 12.
-      if (sitze < abo.sitze) {
-        throw new HttpError(409, 'sitzverringerung_zum_zeitraumende', {
-          wirksamAm: abo.aktuellerZeitraumEnde,
-        });
-      }
 
-      const preis = aboPreis({ paket, art, sitze, intervall });
+      const preis = aboPreis({ paket, art, sitze: sitzeJetzt, intervall });
       const { aktuellerZeitraumEnde } = await zahlung.subscriptionAendern(
         abo.zahlungsanbieterRef ?? abo.id,
         { intervall, betragCent: preis.betragCent },
@@ -129,7 +135,15 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
 
       const neu = await prisma.abo.update({
         where: { id: abo.id },
-        data: { paket, intervall, sitze, art, angebot: preis.angebotKey, aktuellerZeitraumEnde },
+        data: {
+          paket,
+          intervall,
+          sitze: sitzeJetzt,
+          geplanteSitze,
+          art,
+          angebot: preis.angebotKey,
+          aktuellerZeitraumEnde,
+        },
       });
       return aboDTO(neu);
     });
@@ -198,6 +212,95 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
       // Cascade löscht alle Inhalte des Sitzes (Phase-0-Entscheidung).
       await prisma.user.delete({ where: { id: kind.id } });
       return { ok: true };
+    });
+
+    const eigenesKind = (parentId: string, kindId: string) =>
+      prisma.user.findFirst({ where: { id: kindId, parentUserId: parentId } });
+
+    // POST /abo/kinder/:id/einladung — E-Mail setzen + Passwort-Token ausgeben.
+    // Das Elternkonto bürgt für die E-Mail → direkt `emailVerifiedAt`. Das Kind
+    // setzt sein Passwort über den bestehenden `POST /auth/passwort-zuruecksetzen`.
+    authed.post<{ Params: { id: string } }>('/abo/kinder/:id/einladung', async (req) => {
+      const body = parse(einladungBody, req.body);
+      const kind = oder404(await eigenesKind(req.userId, req.params.id));
+
+      const belegt = await prisma.user.findFirst({ where: { email: body.email } });
+      if (belegt && belegt.id !== kind.id) throw new HttpError(409, 'email_vergeben');
+
+      const token = neuesToken();
+      await prisma.$transaction([
+        prisma.user.update({
+          where: { id: kind.id },
+          data: { email: body.email, emailVerifiedAt: new Date() },
+        }),
+        prisma.verificationToken.updateMany({
+          where: { userId: kind.id, typ: 'passwort_reset', eingeloestAm: null },
+          data: { eingeloestAm: new Date() },
+        }),
+        prisma.verificationToken.create({
+          data: {
+            userId: kind.id,
+            typ: 'passwort_reset',
+            tokenHash: token.hash,
+            ablaeuftAm: inTagen(KIND_EINLADUNG_TAGE),
+          },
+        }),
+      ]);
+      return { ok: true, ...(istProd ? {} : { resetToken: token.roh }) };
+    });
+
+    // POST /abo/kinder/:id/sitzung — Kontext-Wechsel: eine echte Session für das
+    // Kind-Profil ausgeben. Das Elternkonto handelt damit vollständig als Kind;
+    // zum Zurückwechseln nutzt es wieder sein eigenes Token.
+    authed.post<{ Params: { id: string } }>('/abo/kinder/:id/sitzung', async (req) => {
+      const kind = oder404(await eigenesKind(req.userId, req.params.id));
+      const token = neuesToken();
+      await prisma.session.create({
+        data: { userId: kind.id, tokenHash: token.hash, ablaeuftAm: inTagen(7) },
+      });
+      return { token: token.roh, kindId: kind.id };
+    });
+
+    // GET /abo/kinder/:id/zusammenfassung — aggregierte Wochenkennzahlen,
+    // **kein** Chat-Wortlaut. Für das Elternkonto immer verfügbar (Familien-Abo);
+    // ein dediziertes Kind-Opt-out ist Nach-Launch-Thema (Phase 17).
+    authed.get<{ Params: { id: string } }>('/abo/kinder/:id/zusammenfassung', async (req) => {
+      const kind = oder404(await eigenesKind(req.userId, req.params.id));
+
+      const seit = inTagen(-7);
+      const [
+        faecher,
+        themen,
+        chatsWoche,
+        nachrichtenWoche,
+        lernzettel,
+        testklausurenWoche,
+        klausuren,
+      ] = await prisma.$transaction([
+        prisma.fach.count({ where: { userId: kind.id } }),
+        prisma.thema.count({ where: { userId: kind.id } }),
+        prisma.chat.count({ where: { userId: kind.id, erstelltAm: { gte: seit } } }),
+        prisma.nachricht.count({
+          where: { userId: kind.id, rolle: 'user', erstelltAm: { gte: seit } },
+        }),
+        prisma.lernzettel.count({ where: { userId: kind.id } }),
+        prisma.testklausur.count({ where: { userId: kind.id, erstelltAm: { gte: seit } } }),
+        prisma.klausur.count({ where: { userId: kind.id, datum: { gte: new Date() } } }),
+      ]);
+
+      return {
+        kindId: kind.id,
+        name: kind.name,
+        klassenstufe: kind.klassenstufe,
+        zeitraum: { von: seit, bis: new Date() },
+        faecher,
+        themen,
+        chatsDieWoche: chatsWoche,
+        nachrichtenDieWoche: nachrichtenWoche,
+        lernzettelGesamt: lernzettel,
+        testklausurenDieWoche: testklausurenWoche,
+        anstehendeKlausuren: klausuren,
+      };
     });
   });
 }

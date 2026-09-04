@@ -657,14 +657,29 @@ sonst unverändert.
 
 ## Phase 12 — Familien-/Eltern-Features
 
-- [ ] **Kind-Profil-Anlage & -Einladung** (E-Mail-Einladung oder Direktanlage
-      durchs Elternkonto), max. `Abo.sitze`.
-- [ ] **Kontext-Wechsel im UI:** Elternkonto wählt aktives Kind-Profil; jedes
-      Profil hat eigenen `userId`-Scope (eigene Fächer/Themen/Fortschritte).
-- [ ] **Eltern-Zusammenfassung:** aggregierte Wochenkennzahlen je Kind, **kein**
-      Chat-Wortlaut; Opt-out fürs Kind nach Phase 0.
-- [ ] **Sitz-Änderungen:** hinzufügen (Proration sofort), entfernen (zum
-      Zeitraumende), Umgang mit Inhalten eines entfernten Sitzes wie beschlossen.
+> _2026-09-04: Backend umgesetzt (`api/src/routes/abo.ts` + Job
+> `abo-geplante-aenderungen`). Migration `abo_geplante_sitze`. Tests in
+> `api/src/routes/abo.test.ts` (Describe „Eltern-Features Phase 12", 5).
+> Die UI dafür (Kontext-Umschalter, Einladungs-Formular, Kennzahl-Kacheln)
+> entsteht mit dem Frontend-Cut-over Phase 11._
+
+- [x] **Kind-Profil-Anlage & -Einladung** — _Direktanlage: `POST /abo/kinder`
+      (Phase 9). Einladung: `POST /abo/kinder/:id/einladung {email}` setzt E-Mail
+      + `emailVerifiedAt` und gibt einen Passwort-Token aus; das Kind aktiviert
+      sich über `POST /auth/passwort-zuruecksetzen`. Deckel weiter `Abo.sitze`._
+- [x] **Kontext-Wechsel:** _`POST /abo/kinder/:id/sitzung` → echte `Session`
+      fürs Kind-Profil (`{token}`). Das Elternkonto nutzt dieses Token und
+      arbeitet voll im `userId`-Scope des Kindes; Zurückwechseln = eigenes
+      Token. UI-Umschalter: Phase 11._
+- [x] **Eltern-Zusammenfassung:** _`GET /abo/kinder/:id/zusammenfassung` —
+      Fächer, Themen, Chats/Nachrichten der Woche, Lernzettel, Testklausuren der
+      Woche, anstehende Klausuren. **Kein Chat-Wortlaut.** Dediziertes
+      Kind-Opt-out → Phase 17._
+- [x] **Sitz-Änderungen:** _Hinzufügen sofort (`PATCH /abo` Erhöhung, Proration).
+      Entfernen: `PATCH /abo` merkt `geplanteSitze`; Elternkonto entfernt dann
+      Kind-Profile (`DELETE /abo/kinder/:id` → Cascade-Löschung der Inhalte);
+      Job `abo-geplante-aenderungen` senkt `Abo.sitze` zum `aktuellerZeitraumEnde`,
+      sobald `belegt <= geplanteSitze`._
 
 ---
 

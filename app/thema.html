@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thema · Lesify</title>
+<link rel="icon" href="assets/img/logo.png">
+<link rel="stylesheet" href="assets/css/style.css">
+<style>
+  /* Thema-Tabs — Unterstrich-Stil mit Fach-Farbe als aktivem Indikator. */
+  .thema-tabs {
+    display: flex; gap: 26px; border-bottom: 1px solid var(--line);
+    margin-bottom: var(--sp-8); overflow-x: auto;
+  }
+  .thema-tab-btn {
+    background: none; border: none; border-radius: 0;
+    padding: 11px 2px 12px; margin-bottom: -1px;
+    font-size: 0.87rem; font-weight: 600; color: var(--ink-500);
+    border-bottom: 2px solid transparent; white-space: nowrap;
+    display: flex; align-items: center; gap: 7px; flex-shrink: 0;
+    transition: color 160ms var(--ease-out), border-color 160ms var(--ease-out);
+  }
+  .thema-tab-btn .tcount {
+    font-size: 0.71rem; background: var(--ink-100); color: var(--ink-600);
+    border-radius: var(--radius-full); padding: 1px 7px; font-weight: 700;
+  }
+  .thema-tab-btn.is-active { color: var(--ink-950); border-color: var(--fach-color, var(--ink-950)); }
+  .thema-tab-btn.is-active .tcount { background: var(--fach-color, var(--ink-950)); color: var(--paper); }
+  .thema-tab-btn:hover:not(.is-active) { color: var(--ink-800); }
+</style>
+</head>
+<body data-page="themen">
+<div class="app-shell">
+  <div id="sidebar-root"></div>
+  <div class="main">
+    <div id="topbar-root"></div>
+    <main class="main-inner" id="t-mainwrap">
+
+      <div class="page-eyebrow" id="t-crumb" style="margin-bottom:16px"></div>
+      <div id="t-head"></div>
+
+      <div data-tabs>
+        <div class="thema-tabs" id="t-tabs"></div>
+
+        <div data-tab-panel="uebersicht" class="tab-panel is-active" id="t-uebersicht"></div>
+
+        <div data-tab-panel="chats" class="tab-panel">
+          <div class="section-head">
+            <span class="section-title">Chats zu diesem Thema</span>
+            <a href="#" class="btn btn-primary btn-sm" id="new-chat-btn">+ Neuer Chat</a>
+          </div>
+          <div class="card divide-list" id="t-chats"></div>
+        </div>
+
+        <div data-tab-panel="lernzettel" class="tab-panel">
+          <div class="section-head">
+            <span class="section-title">Lernzettel</span>
+            <button class="btn btn-primary btn-sm" id="new-lernzettel-btn">
+              <span class="spark" style="width:14px;height:14px" id="lz-btn-icon"></span> Lernzettel erstellen
+            </button>
+          </div>
+          <p class="text-sm text-muted" style="margin:-14px 0 20px">Wird vollautomatisch aus allen Chats und Dateien dieses Themas erstellt.</p>
+          <div class="card divide-list" id="t-lernzettel"></div>
+        </div>
+
+        <div data-tab-panel="dateien" class="tab-panel">
+          <div class="section-head">
+            <span class="section-title">Dateien</span>
+            <label class="btn btn-secondary btn-sm" style="position:relative;overflow:hidden">
+              Datei hochladen (max. 5 MB)
+              <input type="file" id="t-file-input" style="position:absolute;inset:0;opacity:0;cursor:pointer">
+            </label>
+          </div>
+          <div class="grid grid-auto" id="t-dateien"></div>
+        </div>
+
+        <div data-tab-panel="klausuren" class="tab-panel">
+          <div class="section-head">
+            <span class="section-title">Klausuren</span>
+            <button class="btn btn-primary btn-sm" data-modal-open="modal-klausur">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Klausur eintragen
+            </button>
+          </div>
+          <p class="text-sm text-muted" style="margin:-14px 0 20px">Der reale Klausurtermin — Testklausuren erreichst du über die jeweilige Klausur.</p>
+          <div class="klausur-list" id="t-klausuren"></div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- Klausur eintragen — Fach + Thema bereits bekannt -->
+<div class="modal-scrim" id="modal-klausur">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <h3 class="modal-title">Klausur eintragen</h3>
+        <p class="modal-sub" id="mk-sub"></p>
+      </div>
+    </div>
+    <form id="mk-form">
+      <div class="field">
+        <label for="mk-titel">Titel der Klausur</label>
+        <input class="input" id="mk-titel" type="text" required>
+      </div>
+      <div class="field mt-0">
+        <label for="mk-datum">Klausurdatum</label>
+        <input class="input" id="mk-datum" type="date" required>
+      </div>
+      <div class="field mt-0">
+        <label for="mk-thema-dd">Weitere Themen <span class="tp-label-hint">— optional, das aktuelle Thema ist immer dabei</span></label>
+        <select class="select" id="mk-thema-dd"></select>
+        <div class="thema-picker" id="mk-themen"></div>
+        <div class="thema-add">
+          <input class="input" id="mk-thema-neu" type="text" placeholder="Neues Thema hinzufügen">
+          <button type="button" class="btn btn-secondary btn-sm" id="mk-thema-add">Hinzufügen</button>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button type="button" class="btn btn-secondary" data-modal-close>Abbrechen</button>
+        <button type="submit" class="btn btn-primary">Eintragen</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var R = LesifyUI.Render, I = LesifyUI.Icons;
+  document.getElementById('lz-btn-icon').innerHTML = I.spark;
+
+  var params = new URLSearchParams(window.location.search);
+  var themaId = params.get('id') || Lesify.themen()[0].id;
+  var thema = Lesify.getThema(themaId) || Lesify.themen()[0];
+  themaId = thema.id;
+  var fach = Lesify.getFach(thema.fachId);
+  var fachVars = R.fachColorVars(fach.id);
+  LesifyUI.setPageWatermark(Lesify.getFachIcon(thema.fachId) || '', fach ? Lesify.getFachColor(fach.farbe).base : null);
+
+  // Fach-Farbe seitenweit verfügbar machen (Tabs, Karten, Icons erben sie).
+  document.getElementById('t-mainwrap').setAttribute('style', fachVars);
+
+  document.title = thema.name + ' · Lesify';
+  document.getElementById('t-crumb').innerHTML =
+    '<a href="fach.html?id=' + fach.id + '" style="color:var(--ink-500)">' + fach.name + '</a>' +
+    '<span style="color:var(--ink-300);margin:0 6px">/</span><span>' + thema.name + '</span>';
+
+  var MODE_LABEL = { erklaeren: 'Thema erklären', hausaufgaben: 'Hausaufgabenhilfe', ueben: 'Üben / Abfragen', zusammenfassen: 'Zusammenfassen' };
+
+  /* ---------------------------------------------------------
+     Kopf — schlicht; die Zählwerte stehen in den Tabs.
+     --------------------------------------------------------- */
+  function drawHead() {
+    document.getElementById('t-head').innerHTML =
+      '<div class="page-head">' +
+        '<div>' + R.fachBadge(fach.id) +
+          '<h1 class="page-title" style="margin-top:14px">' + thema.name + '</h1>' +
+          '<p class="page-sub">' + thema.beschreibung + '</p>' +
+        '</div>' +
+      '</div>';
+  }
+
+  function drawTabs() {
+    var c = Lesify.countsForThema(themaId);
+    var tabs = [
+      { key: 'uebersicht', label: 'Übersicht' },
+      { key: 'chats', label: 'Chats', count: c.chats },
+      { key: 'lernzettel', label: 'Lernzettel', count: c.lernzettel },
+      { key: 'dateien', label: 'Dateien', count: c.dateien },
+      { key: 'klausuren', label: 'Klausuren', count: c.klausuren }
+    ];
+    var validKeys = tabs.map(function (t) { return t.key; });
+    var requested = params.get('tab');
+    if (validKeys.indexOf(requested) === -1) requested = null;
+
+    document.getElementById('t-tabs').innerHTML = tabs.map(function (t, i) {
+      var active = requested ? requested === t.key : i === 0;
+      var countHtml = t.count !== undefined ? '<span class="tcount">' + t.count + '</span>' : '';
+      return '<button class="thema-tab-btn' + (active ? ' is-active' : '') + '" data-tab-btn="' + t.key + '">' + t.label + countHtml + '</button>';
+    }).join('');
+    document.querySelectorAll('.tab-panel').forEach(function (p) {
+      var key = p.getAttribute('data-tab-panel');
+      p.classList.toggle('is-active', requested ? requested === key : key === 'uebersicht');
+    });
+  }
+
+  /* ---------------------------------------------------------
+     Inhalts-Items
+     --------------------------------------------------------- */
+  function chatItems() {
+    return Lesify.chats(themaId).map(function (c) {
+      return { icon: 'chat', title: c.titel, sub: (MODE_LABEL[c.modus] || 'Chat') + ' · ' + c.updated,
+        href: 'chat.html?fach=' + fach.id + '&thema=' + themaId + '&chat=' + c.id };
+    });
+  }
+  function lzItems() {
+    return Lesify.lernzettel(themaId).map(function (l) {
+      return { icon: 'book', title: l.titel, sub: 'Lernzettel · ' + l.updated, href: 'lernzettel.html?id=' + l.id };
+    });
+  }
+  function dateiItems() {
+    return Lesify.dateien(themaId).map(function (d) {
+      return { icon: 'file', title: d.name, sub: 'Datei · ' + d.groesse + ' · ' + d.updated, dateiId: d.id };
+    });
+  }
+  function klausurItems() {
+    return Lesify.klausuren(themaId).filter(function (k) { return k.themaIds.indexOf(themaId) !== -1; }).map(function (k) {
+      return { icon: 'docCheck', title: k.titel, sub: R.formatDatum(k.datum) + ' · ' + R.countdown(k.datum), href: 'klausur.html?id=' + k.id };
+    });
+  }
+  function row(it) {
+    var target = it.dateiId ? 'data-datei-id="' + it.dateiId + '"' : 'data-href="' + it.href + '"';
+    return '<div class="row-item" ' + target + ' tabindex="0" role="link">' +
+      '<span class="row-ico">' + I[it.icon] + '</span>' +
+      '<span class="row-body"><span class="row-title">' + it.title + '</span><span class="row-sub">' + it.sub + '</span></span>' +
+    '</div>';
+  }
+  function listOrEmpty(items, limit) {
+    var list = limit ? items.slice(0, limit) : items;
+    if (!list.length) return '<div class="mini-panel-empty">Noch nichts vorhanden.</div>';
+    return list.map(row).join('');
+  }
+
+  /* ---------------------------------------------------------
+     Panel — Fach-farbige Karte mit Kopf + Inhalts-Zeilen.
+     Kein "Alle ansehen" mehr; die Zeilen selbst sind klickbar
+     (Chat/Lernzettel/… direkt öffnen, Hover-Feedback via CSS).
+     --------------------------------------------------------- */
+  function panel(title, icon, items, limit) {
+    return '<div class="card mini-panel is-fach" style="' + fachVars + '">' +
+      '<div class="mini-panel-head"><span class="mph-title"><span class="spark">' + I[icon] + '</span>' + title +
+        '<span class="tcount">' + items.length + '</span></span></div>' +
+      '<div class="mini-panel-body">' + listOrEmpty(items, limit) + '</div>' +
+    '</div>';
+  }
+
+  /* ---------------------------------------------------------
+     Übersicht — Zweispalten-Panels, alles sichtbar.
+     --------------------------------------------------------- */
+  function drawUebersicht() {
+    var chatsI = chatItems(), lzI = lzItems(), datI = dateiItems(), klI = klausurItems();
+    document.getElementById('t-uebersicht').innerHTML =
+      '<div class="col-even">' +
+        '<div style="display:flex;flex-direction:column;gap:var(--sp-6)">' +
+          panel('Chats', 'chat', chatsI, 6) +
+          panel('Lernzettel', 'book', lzI, 6) +
+        '</div>' +
+        '<div style="display:flex;flex-direction:column;gap:var(--sp-6)">' +
+          panel('Dateien', 'folder', datI, 6) +
+          panel('Klausuren', 'docCheck', klI, 6) +
+        '</div>' +
+      '</div>';
+  }
+
+  /* ---------------------------------------------------------
+     Einzel-Tabs — filtern auf genau einen Typ.
+     Chats & Lernzettel nutzen dieselbe Panel-/Zeilen-Optik
+     wie die Übersicht (Fach-Farbe, klickbare .row-item-Zeilen).
+     --------------------------------------------------------- */
+  function fillPanel(id, items, emptyIcon, emptyTitle, emptyText) {
+    var el = document.getElementById(id);
+    el.className = 'card mini-panel is-fach';
+    el.setAttribute('style', fachVars);
+    el.innerHTML = items.length
+      ? items.map(row).join('')
+      : '<div class="empty-state"><div class="es-icon">' + I[emptyIcon] + '</div><h4>' + emptyTitle + '</h4><p>' + emptyText + '</p></div>';
+  }
+
+  function drawChats() {
+    fillPanel('t-chats', chatItems(), 'chat', 'Noch kein Chat', 'Starte einen Chat zu ' + thema.name + '.');
+  }
+
+  function drawLernzettel() {
+    fillPanel('t-lernzettel', lzItems(), 'book', 'Noch kein Lernzettel', 'Erstelle den ersten Lernzettel zu ' + thema.name + '.');
+  }
+
+  function drawDateien() {
+    var items = Lesify.dateien(themaId);
+    var html = items.map(R.dateiCard).join('');
+    document.getElementById('t-dateien').innerHTML = html || ('<div class="empty-state" style="grid-column:1/-1"><div class="es-icon">' + I.folder + '</div><h4>Noch keine Dateien</h4><p>Lade ein Dokument zu ' + thema.name + ' hoch.</p></div>');
+  }
+
+  function drawKlausuren() {
+    var items = Lesify.klausuren(themaId).filter(function (k) { return k.themaIds.indexOf(themaId) !== -1; });
+    var html = R.klausurListe(items);
+    document.getElementById('t-klausuren').innerHTML = html || ('<div class="empty-state"><div class="es-icon">' + I.docCheck + '</div><h4>Noch keine Klausur eingetragen</h4><p>Trage den nächsten Klausurtermin zu ' + thema.name + ' ein.</p></div>');
+  }
+
+  function drawAll() { drawTabs(); drawUebersicht(); drawChats(); drawLernzettel(); drawDateien(); drawKlausuren(); }
+  drawHead(); drawAll();
+
+  document.getElementById('new-chat-btn').addEventListener('click', function (e) {
+    e.preventDefault();
+    window.location.href = 'chat.html?fach=' + fach.id + '&thema=' + themaId;
+  });
+
+  document.getElementById('new-lernzettel-btn').addEventListener('click', function () {
+    var btn = this;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="skeleton" style="width:14px;height:14px;border-radius:50%;display:inline-block"></span> Wird erstellt…';
+    setTimeout(function () {
+      var l = Lesify.addLernzettel({ fachId: fach.id, themaId: themaId });
+      window.location.href = 'lernzettel.html?id=' + l.id;
+    }, 1100);
+  });
+
+  document.getElementById('mk-sub').textContent = 'Wird ' + fach.name + ' · ' + thema.name + ' zugeordnet.';
+
+  // Weitere Themen der Klausur — das aktuelle Thema ist immer gesetzt.
+  var mkThemaDd = document.getElementById('mk-thema-dd');
+  var mkThemenBox = document.getElementById('mk-themen');
+  var mkThemaNeu = document.getElementById('mk-thema-neu');
+  var mkSelectedIds = [];
+  var mkPending = [];
+  function renderMkThemen() {
+    var offen = Lesify.themen(fach.id).filter(function (t) {
+      return t.id !== themaId && mkSelectedIds.indexOf(t.id) === -1;
+    });
+    mkThemaDd.innerHTML = '<option value="">' +
+      (offen.length ? 'Thema hinzufügen …' : 'Keine weiteren Themen — unten neu anlegen') + '</option>' +
+      offen.map(function (t) { return '<option value="' + t.id + '">' + t.name + '</option>'; }).join('');
+    mkThemaDd.disabled = !offen.length;
+
+    var chips = '<span class="tp-item">' + thema.name + '</span>' +
+      mkSelectedIds.map(function (id) { var t = Lesify.getThema(id); return '<span class="tp-item">' + (t ? t.name : id) + '</span>'; }).join('') +
+      mkPending.map(function (name) { return '<span class="tp-item tp-new">' + name + '</span>'; }).join('');
+    mkThemenBox.innerHTML = chips;
+  }
+  function addMkPending() {
+    var name = mkThemaNeu.value.trim();
+    if (!name) { mkThemaNeu.focus(); return; }
+    if (!mkPending.some(function (n) { return n.toLowerCase() === name.toLowerCase(); })) mkPending.push(name);
+    mkThemaNeu.value = '';
+    renderMkThemen();
+    mkThemaNeu.focus();
+  }
+  mkThemaDd.addEventListener('change', function () {
+    if (!mkThemaDd.value) return;
+    if (mkSelectedIds.indexOf(mkThemaDd.value) === -1) mkSelectedIds.push(mkThemaDd.value);
+    renderMkThemen();
+  });
+  document.getElementById('mk-thema-add').addEventListener('click', addMkPending);
+  mkThemaNeu.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); addMkPending(); } });
+  renderMkThemen();
+
+  document.getElementById('mk-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var titel = document.getElementById('mk-titel').value.trim();
+    var datum = document.getElementById('mk-datum').value;
+    if (!titel || !datum) return;
+    var themaIds = [themaId].concat(mkSelectedIds);
+    mkPending.forEach(function (name) { themaIds.push(Lesify.addThema({ fachId: fach.id, name: name }).id); });
+    var k = Lesify.addKlausur({ fachId: fach.id, themaIds: themaIds, titel: titel, datum: datum });
+    // Jede neue Klausur startet sofort ihren 7-Tage-Lernplan (inkl. Testklausur 1).
+    var lp = Lesify.starteLernplan(k.id);
+    window.location.href = 'lernplan.html?id=' + lp.id;
+  });
+
+  document.getElementById('t-file-input').addEventListener('change', function (e) {
+    if (!e.target.files.length) return;
+    var file = e.target.files[0];
+    if (file.size > 5 * 1024 * 1024) { LesifyUI.toast('„' + file.name + '" ist größer als 5 MB.'); e.target.value = ''; return; }
+    var ext = (file.name.split('.').pop() || '').toLowerCase();
+    var typ = ext === 'pdf' ? 'pdf' : (['png', 'jpg', 'jpeg', 'gif'].indexOf(ext) !== -1 ? 'img' : 'doc');
+    var sizeKb = file.size ? Math.max(1, Math.round(file.size / 1024)) : 240;
+    var groesse = sizeKb > 1024 ? (sizeKb / 1024).toFixed(1) + ' MB' : sizeKb + ' KB';
+    var d = Lesify.addDatei({ fachId: fach.id, themaId: themaId, name: file.name, typ: typ, groesse: groesse });
+    Lesify.incrementUsage('dateien', 1);
+    drawDateien(); drawTabs(); drawUebersicht(); drawHead();
+    LesifyUI.toast('„' + d.name + '" wird gelesen und zusammengefasst…');
+    setTimeout(function () {
+      Lesify.markDateiBereit(d.id, 'Automatisch erzeugte Zusammenfassung von ' + d.name + '.');
+      drawDateien(); drawUebersicht();
+      LesifyUI.toast('„' + d.name + '" ist bereit.');
+    }, 1600);
+    e.target.value = '';
+  });
+});
+</script>
+</body>
+</html>

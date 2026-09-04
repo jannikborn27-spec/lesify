@@ -1,0 +1,18 @@
+node_modules/
+dist/
+pnpm-lock.yaml
+*.min.*
+*.bak
+
+# Tooling-Caches
+.impeccable/
+
+# Statische Prototypen — eigener Stil, nicht von Prettier anfassen lassen
+app/
+marketing/
+
+# Konzept-/Planungs-Dokumente
+Konzept-texts/
+UMSETZUNGSPLAN.md
+CLAUDE.md
+README.md

@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fächer · Lesify</title>
+<link rel="icon" href="assets/img/logo.png">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="faecher">
+<div class="app-shell">
+  <div id="sidebar-root"></div>
+  <div class="main">
+    <div id="topbar-root"></div>
+    <main class="main-inner">
+
+      <div class="page-head">
+        <div>
+          <div class="page-eyebrow">Fächer</div>
+          <h1 class="page-title">Deine Fächer</h1>
+          <p class="page-sub">Jedes Fach bündelt seine Themen und Klausuren. Alles, was du lernst, gehört zu genau einem Fach.</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary" data-modal-open="modal-new-fach">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Neues Fach erstellen
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-3" id="faecher-grid"></div>
+
+    </main>
+  </div>
+</div>
+
+<div class="modal-scrim" id="modal-new-fach">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <h3 class="modal-title">Neues Fach erstellen</h3>
+        <p class="modal-sub">Ein Fach ist die oberste Ebene — darunter legst du später Themen an.</p>
+      </div>
+      <button class="modal-close" data-modal-close aria-label="Schließen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <form id="new-fach-form">
+      <div class="field">
+        <label for="nf-name">Fachname</label>
+        <input class="input" id="nf-name" type="text" placeholder="z. B. Chemie" required>
+      </div>
+      <div class="field mt-0">
+        <label for="nf-klasse">Klassenstufe</label>
+        <input class="input" id="nf-klasse" type="text" placeholder="z. B. 8. Klasse">
+        <span class="hint">Optional — hilft dir, Klausuren richtig einzuordnen.</span>
+      </div>
+      <div class="field mt-0">
+        <label>Vorlage</label>
+        <span class="hint" style="margin:-3px 0 8px">Wähle ein bekanntes Fach für Symbol &amp; Namen, oder lege unten ein eigenes an.</span>
+        <div class="fach-preset-grid" id="nf-preset-grid"></div>
+      </div>
+      <div class="field mt-0">
+        <label>Farbe</label>
+        <div class="swatch-picker" id="nf-color-picker"></div>
+      </div>
+      <div class="modal-foot">
+        <button type="button" class="btn btn-secondary" data-modal-close>Abbrechen</button>
+        <button type="submit" class="btn btn-primary">Fach erstellen</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var I = LesifyUI.Icons, R = LesifyUI.Render;
+
+  function draw() {
+    var faecher = Lesify.faecher();
+    document.getElementById('faecher-grid').innerHTML = faecher.map(function (f) {
+      var counts = Lesify.countsForFach(f.id);
+      var col = Lesify.getFachColor(f.farbe);
+      var upcoming = Lesify.klausuren(f.id).filter(function (k) { return k.fachId === f.id; })
+        .slice().sort(function (a, b) { return a.datum.localeCompare(b.datum); })[0];
+      return '<div class="card is-hoverable has-watermark" data-href="fach.html?id=' + f.id + '" tabindex="0" role="link" style="padding:24px;' + R.fachColorVars(f.id) + '">' +
+        R.cardWatermark(f.id) +
+        '<div class="flex items-center justify-between" style="margin-bottom:20px">' +
+          R.fachAvatar(f, 44) +
+          '<button type="button" class="fach-color-btn" data-fach-color="' + f.id + '" title="Farbe ändern" aria-label="Farbe ändern"><span class="swatch-dot" style="background:' + col.base + '"></span></button>' +
+        '</div>' +
+        '<h3 style="font-size:1.15rem;margin-bottom:4px">' + f.name + '</h3>' +
+        '<p class="text-sm text-muted" style="margin-bottom:18px">' + (f.klasse || 'Keine Klassenstufe hinterlegt') + '</p>' +
+        '<div class="flex gap-4 text-xs text-muted" style="padding-top:16px;border-top:1px solid var(--line)">' +
+          '<span>' + counts.themen + ' Themen</span>' +
+          '<span>' + counts.klausuren + ' Klausuren</span>' +
+        '</div>' +
+        (upcoming ? '<div class="fach-next-klausur"><span class="spark" style="width:13px;height:13px;flex-shrink:0">' + I.calendar + '</span>' + upcoming.titel + ' · ' + R.countdown(upcoming.datum) + '</div>' : '') +
+      '</div>';
+    }).join('') + (faecher.length === 0 ? emptyState() : '');
+  }
+
+  function emptyState() {
+    return '<div class="empty-state" style="grid-column:1/-1">' +
+      '<div class="es-icon">' + I.layers + '</div>' +
+      '<h4>Noch keine Fächer</h4><p>Lege dein erstes Fach an, um Themen und Klausuren zu organisieren.</p>' +
+    '</div>';
+  }
+
+  var newFachColor = Lesify.FACH_COLORS[0].key;
+  function renderNewFachPicker() {
+    document.getElementById('nf-color-picker').innerHTML = Lesify.FACH_COLORS.map(function (c) {
+      var sel = c.key === newFachColor ? ' is-selected' : '';
+      return '<button type="button" class="swatch-btn' + sel + '" data-color-key="' + c.key + '" style="background:' + c.base + '" aria-label="' + c.name + '" title="' + c.name + '"></button>';
+    }).join('');
+  }
+  renderNewFachPicker();
+  document.getElementById('nf-color-picker').addEventListener('click', function (e) {
+    var btn = e.target.closest('.swatch-btn');
+    if (!btn) return;
+    newFachColor = btn.getAttribute('data-color-key');
+    renderNewFachPicker();
+  });
+
+  var newFachIcon = null;
+  var nfNameInput = document.getElementById('nf-name');
+  function renderPresetGrid() {
+    var html = Lesify.FACH_PRESETS.map(function (p) {
+      var sel = p.icon === newFachIcon ? ' is-selected' : '';
+      return '<button type="button" class="fach-preset-btn' + sel + '" data-preset-icon="' + p.icon + '" data-preset-name="' + p.name + '">' +
+        '<span class="spark">' + Lesify.getFachIconSvg(p.icon) + '</span><span>' + p.name + '</span></button>';
+    }).join('');
+    html += '<button type="button" class="fach-preset-btn' + (newFachIcon ? '' : ' is-selected') + '" data-preset-icon="">' +
+      '<span class="spark">' + I.plus + '</span><span>Eigenes Fach</span></button>';
+    document.getElementById('nf-preset-grid').innerHTML = html;
+  }
+  renderPresetGrid();
+  document.getElementById('nf-preset-grid').addEventListener('click', function (e) {
+    var btn = e.target.closest('.fach-preset-btn');
+    if (!btn) return;
+    newFachIcon = btn.getAttribute('data-preset-icon') || null;
+    var presetName = btn.getAttribute('data-preset-name');
+    if (presetName) nfNameInput.value = presetName; else nfNameInput.focus();
+    renderPresetGrid();
+  });
+  nfNameInput.addEventListener('input', function () {
+    if (!newFachIcon) return;
+    var match = Lesify.FACH_PRESETS.find(function (p) { return p.icon === newFachIcon; });
+    if (!match || match.name !== nfNameInput.value) { newFachIcon = null; renderPresetGrid(); }
+  });
+
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-fach-color]');
+    if (!btn) return;
+    e.preventDefault();
+    e.stopPropagation();
+    LesifyUI.openFachColorPicker(btn.getAttribute('data-fach-color'), draw);
+  });
+
+  draw();
+
+  document.getElementById('new-fach-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var name = document.getElementById('nf-name').value.trim();
+    var klasse = document.getElementById('nf-klasse').value.trim();
+    if (!name) return;
+    var fach = Lesify.addFach({ name: name, klasse: klasse, farbe: newFachColor, icon: newFachIcon });
+    LesifyUI.closeModal(document.getElementById('modal-new-fach'));
+    this.reset();
+    newFachColor = Lesify.FACH_COLORS[0].key;
+    newFachIcon = null;
+    renderNewFachPicker();
+    renderPresetGrid();
+    draw();
+    LesifyUI.toast('„' + fach.name + '" wurde erstellt.');
+  });
+});
+</script>
+</body>
+</html>

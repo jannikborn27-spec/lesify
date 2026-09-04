@@ -1,0 +1,22 @@
+# Abhängigkeiten
+node_modules/
+.pnpm-store/
+
+# Build-Artefakte
+dist/
+*.tsbuildinfo
+
+# Umgebung & Secrets — echte Werte NIE committen
+.env
+.env.*
+!.env.example
+
+# Editor / OS
+.DS_Store
+*.log
+
+# Tooling-Caches
+.impeccable/
+
+# Prototyp-Altlast
+*.bak

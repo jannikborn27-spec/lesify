@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Themen · Lesify</title>
+<link rel="icon" href="assets/img/logo.png">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="themen">
+<div class="app-shell">
+  <div id="sidebar-root"></div>
+  <div class="main">
+    <div id="topbar-root"></div>
+    <main class="main-inner">
+
+      <div class="page-head">
+        <div>
+          <div class="page-eyebrow">Themen</div>
+          <h1 class="page-title">Alle Themen</h1>
+          <p class="page-sub">Fächerübergreifend — jedes Thema ist der zentrale Ort für Chats, Lernzettel, Dateien und Klausuren.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-2" style="margin-bottom:28px;flex-wrap:wrap" data-filter-group="#themen-grid [data-filter]" id="thema-filters"></div>
+
+      <div class="grid grid-3" id="themen-grid"></div>
+
+    </main>
+  </div>
+</div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var R = LesifyUI.Render, I = LesifyUI.Icons;
+
+  document.getElementById('thema-filters').innerHTML = R.fachFilterChips();
+
+  var themen = Lesify.themen();
+  document.getElementById('themen-grid').innerHTML = themen.map(function (t) {
+    return R.themaCard(t);
+  }).join('') || ('<div class="empty-state" style="grid-column:1/-1"><div class="es-icon">' + I.layers + '</div><h4>Noch keine Themen</h4><p>Lege in einem Fach dein erstes Thema an.</p></div>');
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fach · Lesify</title>
+<link rel="icon" href="assets/img/logo.png">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="faecher">
+<div class="app-shell">
+  <div id="sidebar-root"></div>
+  <div class="main">
+    <div id="topbar-root"></div>
+    <main class="main-inner">
+
+      <a href="faecher.html" class="section-link" style="margin-bottom:18px;display:inline-flex">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Alle Fächer
+      </a>
+
+      <div class="page-head" id="fach-head"></div>
+
+      <div class="section">
+        <div class="section-head">
+          <span class="section-title">Themen</span>
+          <button class="btn btn-secondary btn-sm" data-modal-open="modal-new-thema">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Neues Thema hinzufügen
+          </button>
+        </div>
+        <div class="grid grid-3" id="fach-themen"></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">
+          <span class="section-title">Klausuren</span>
+        </div>
+        <div class="klausur-list" id="fach-klausuren"></div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<div class="modal-scrim" id="modal-new-thema">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <h3 class="modal-title">Neues Thema hinzufügen</h3>
+        <p class="modal-sub" id="nt-sub">Wird direkt diesem Fach zugeordnet.</p>
+      </div>
+      <button class="modal-close" data-modal-close aria-label="Schließen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <form id="new-thema-form">
+      <div class="field">
+        <label for="nt-name">Themenname</label>
+        <input class="input" id="nt-name" type="text" placeholder="z. B. Trigonometrie" required>
+      </div>
+      <div class="field mt-0">
+        <label for="nt-desc">Kurzbeschreibung</label>
+        <textarea class="input" id="nt-desc" rows="2" placeholder="Worum geht es in diesem Thema?"></textarea>
+      </div>
+      <div class="modal-foot">
+        <button type="button" class="btn btn-secondary" data-modal-close>Abbrechen</button>
+        <button type="submit" class="btn btn-primary">Thema hinzufügen</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var R = LesifyUI.Render, I = LesifyUI.Icons;
+  var params = new URLSearchParams(window.location.search);
+  var fachId = params.get('id') || Lesify.faecher()[0].id;
+  var fach = Lesify.getFach(fachId) || Lesify.faecher()[0];
+  fachId = fach.id;
+  LesifyUI.setPageWatermark(Lesify.getFachIcon(fachId) || '', Lesify.getFachColor(fach.farbe).base);
+
+  document.title = fach.name + ' · Lesify';
+  document.getElementById('nt-sub').textContent = 'Wird direkt ' + fach.name + ' zugeordnet.';
+
+  function drawHead() {
+    fach = Lesify.getFach(fachId) || fach;
+    var counts = Lesify.countsForFach(fachId);
+    document.getElementById('fach-head').innerHTML =
+      '<div class="flex items-center gap-4">' +
+        '<button type="button" class="fach-avatar-btn" data-fach-color="' + fach.id + '" aria-label="Farbe von ' + fach.name + ' ändern" title="Farbe ändern">' +
+          R.fachAvatar(fach, 56) +
+        '</button>' +
+        '<div>' +
+          '<div class="page-eyebrow">Fach</div>' +
+          '<h1 class="page-title">' + fach.name + '</h1>' +
+          '<p class="page-sub">' + (fach.klasse || 'Keine Klassenstufe hinterlegt') + ' · ' + counts.themen + ' Themen · ' + counts.klausuren + ' Klausuren</p>' +
+        '</div>' +
+      '</div>';
+  }
+
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-fach-color]');
+    if (!btn) return;
+    LesifyUI.openFachColorPicker(btn.getAttribute('data-fach-color'), drawHead);
+  });
+
+  function drawThemen() {
+    var themen = Lesify.themen(fachId);
+    var html = themen.map(function (t) {
+      return R.themaCard(t, { showFachBadge: false, filter: false, countKeys: ['chats', 'lernzettel', 'dateien'] });
+    }).join('');
+    if (!themen.length) {
+      html = '<div class="empty-state" style="grid-column:1/-1"><div class="es-icon">' + I.layers + '</div><h4>Noch keine Themen</h4><p>Füge das erste Thema zu ' + fach.name + ' hinzu.</p></div>';
+    }
+    document.getElementById('fach-themen').innerHTML = html;
+  }
+
+  function drawKlausuren() {
+    var klausuren = Lesify.klausuren(fachId).filter(function (k) { return k.fachId === fachId; });
+    var html = R.klausurListe(klausuren);
+    if (!klausuren.length) {
+      html = '<div class="empty-state"><div class="es-icon">' + I.docCheck + '</div><h4>Noch keine Klausuren</h4><p>Für ' + fach.name + ' wurde noch keine Klausur angelegt.</p><a class="btn btn-secondary" href="klausuren.html">Klausur hinzufügen</a></div>';
+    }
+    document.getElementById('fach-klausuren').innerHTML = html;
+  }
+
+  drawHead(); drawThemen(); drawKlausuren();
+
+  document.getElementById('new-thema-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var name = document.getElementById('nt-name').value.trim();
+    var desc = document.getElementById('nt-desc').value.trim();
+    if (!name) return;
+    var thema = Lesify.addThema({ fachId: fachId, name: name, beschreibung: desc });
+    LesifyUI.closeModal(document.getElementById('modal-new-thema'));
+    this.reset();
+    drawHead(); drawThemen();
+    LesifyUI.toast('„' + thema.name + '" wurde zu ' + fach.name + ' hinzugefügt.');
+  });
+});
+</script>
+</body>
+</html>

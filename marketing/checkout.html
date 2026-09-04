@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kasse — Lesify</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="assets/img/logo.png">
+<link rel="stylesheet" href="assets/css/marketing.css">
+<script src="https://js.stripe.com/v3/"></script>
+</head>
+<body data-page="checkout" data-nav="none">
+
+<div class="checkout">
+
+  <aside class="checkout__summary">
+    <a class="brand" href="index.html" aria-label="Lesify — Startseite">
+      <span class="brand__mark"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c1 3.5.4 9.4-2.6 12.2C7.1 16.5 4.6 15.6 3.5 12.7c2.9 5 8.3 3.9 9.4-1.2C13.6 7.9 13 4 12 2Z"/><path d="M20.5 8c1 3.5.4 9.4-2.6 12.2-2.3 2.3-4.8 1.4-5.9-1.5 2.9 5 8.3 3.9 9.4-1.2C22 13.9 21.5 10 20.5 8Z"/></svg></span>
+      <span class="brand__word">Lesify</span>
+    </a>
+
+    <div class="checkout__summary-body">
+      <span class="eyebrow">Bestellung</span>
+      <h1>Lesify <span id="co-plan">Premium</span></h1>
+
+      <div class="co-interval" data-co-interval>
+        <button type="button" data-int="monthly" class="is-active">Monatlich</button>
+        <button type="button" data-int="yearly">Jährlich <span class="save">−20 %</span></button>
+      </div>
+
+      <div class="co-line">
+        <span>Abo <span id="co-plan-2" class="visually-hidden"></span></span>
+        <b id="co-price">19,99 €</b>
+      </div>
+      <p class="co-billing" id="co-billing">14 Tage kostenlos testen, danach monatlich abgebucht, jederzeit kündbar.</p>
+
+      <ul class="co-feats" id="co-feats"></ul>
+
+      <div class="co-total">
+        <span>Nach der Testphase fällig</span>
+        <b id="co-total">19,99 €</b>
+      </div>
+
+      <ul class="co-trust">
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></svg> Verschlüsselte Zahlung über Stripe</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.4 3.8 5.6 3.8 9s-1.3 6.6-3.8 9c-2.5-2.4-3.8-5.6-3.8-9S9.5 5.4 12 3Z"/></svg> Abrechnung in der EU, jederzeit kündbar</li>
+      </ul>
+    </div>
+  </aside>
+
+  <main class="checkout__form">
+    <div class="checkout__form-inner">
+      <a class="auth-card__back" href="preise.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg> Zurück zu den Preisen</a>
+      <h2>Zahlung</h2>
+      <p class="checkout__sub">Ihr Abo startet sofort. Sie können in den Kontoeinstellungen mit einem Klick kündigen.</p>
+
+      <form id="payment-form" novalidate>
+        <div class="field">
+          <label for="co-email">E-Mail für die Rechnung</label>
+          <input class="input" type="email" id="co-email" name="email" placeholder="name@beispiel.de" autocomplete="email" required>
+        </div>
+        <div class="field">
+          <label for="co-name">Name des Kontoinhabers</label>
+          <input class="input" type="text" id="co-name" name="name" placeholder="Vor- und Nachname" autocomplete="name">
+        </div>
+
+        <div class="field">
+          <label>Zahlungsart</label>
+          <div id="payment-element"><div class="co-skeleton"></div></div>
+        </div>
+
+        <div class="co-message" id="payment-message" role="alert"></div>
+
+        <button class="btn btn-primary btn-block btn-lg" id="submit" type="submit">
+          <span class="co-btn-label">Kostenlos testen &middot; danach <span id="btn-amount">19,99 €</span></span>
+          <span class="co-spinner" aria-hidden="true"></span>
+        </button>
+
+        <p class="co-fineprint">
+          Mit dem Klick auf „Zahlungspflichtig bestellen" stimmen Sie den <a href="agb.html">Nutzungsbedingungen</a> zu.
+          Als Verbraucher:in können Sie binnen 14 Tagen widerrufen. Testmodus: Es wird keine echte Zahlung ausgelöst.
+        </p>
+      </form>
+    </div>
+  </main>
+
+</div>
+
+<script src="assets/js/stripe-config.js"></script>
+<script src="assets/js/checkout.js"></script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anmelden — Lesify</title>
+<meta name="description" content="Bei Lesify anmelden und weiterlernen.">
+<link rel="icon" href="assets/img/logo.png">
+<link rel="stylesheet" href="assets/css/marketing.css">
+</head>
+<body data-page="login" data-nav="none">
+
+<div class="auth">
+  <aside class="auth__aside">
+    <a class="brand" href="index.html" aria-label="Lesify — Startseite">
+      <span class="brand__mark"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c1 3.5.4 9.4-2.6 12.2C7.1 16.5 4.6 15.6 3.5 12.7c2.9 5 8.3 3.9 9.4-1.2C13.6 7.9 13 4 12 2Z"/><path d="M20.5 8c1 3.5.4 9.4-2.6 12.2-2.3 2.3-4.8 1.4-5.9-1.5 2.9 5 8.3 3.9 9.4-1.2C22 13.9 21.5 10 20.5 8Z"/></svg></span>
+      <span class="brand__word">Lesify</span>
+    </a>
+    <div class="auth__aside-body">
+      <h2>Weiter, wo Ihr Kind aufgehört hat.</h2>
+      <p>Fächer, Lernzettel, Testklausuren und der Lernplan warten schon.</p>
+      <ul class="auth__aside-proof">
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Alle Fortschritte gespeichert</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Server in der EU, DSGVO-konform</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Monatlich kündbar</li>
+      </ul>
+    </div>
+  </aside>
+
+  <div class="auth__main">
+    <div class="auth-card">
+      <a class="auth-card__back" href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg> Zur Website</a>
+      <h1>Anmelden</h1>
+      <p class="auth-card__sub">Schön, dass Sie wieder da sind.</p>
+
+      <form data-demo="Prototyp ohne Backend — die Anmeldung ist hier nur angedeutet." style="margin-top:2rem" novalidate>
+        <div class="field">
+          <label for="email">E-Mail</label>
+          <input class="input" type="email" id="email" name="email" placeholder="name@beispiel.de" autocomplete="email" required>
+        </div>
+        <div class="field">
+          <label for="pw">Passwort</label>
+          <input class="input" type="password" id="pw" name="pw" placeholder="Ihr Passwort" autocomplete="current-password" required>
+          <a href="passwort-vergessen.html" class="hint" style="align-self:flex-end;color:var(--ink-900);font-weight:600">Passwort vergessen?</a>
+        </div>
+        <label class="check-row">
+          <input type="checkbox" name="stay" checked>
+          <span>Angemeldet bleiben auf diesem Gerät</span>
+        </label>
+        <button class="btn btn-primary btn-block btn-lg" type="submit">Anmelden</button>
+      </form>
+
+      <p class="auth-alt">Noch kein Konto? <a href="registrieren.html">Kostenlos registrieren</a></p>
+    </div>
+  </div>
+</div>
+
+<script src="assets/js/marketing.js"></script>
+</body>
+</html>

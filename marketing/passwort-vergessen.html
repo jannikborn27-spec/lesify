@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Passwort zurücksetzen — Lesify</title>
+<meta name="description" content="Passwort für das Lesify-Konto zurücksetzen.">
+<link rel="icon" href="assets/img/logo.png">
+<link rel="stylesheet" href="assets/css/marketing.css">
+</head>
+<body data-page="passwort-vergessen" data-nav="none">
+
+<div class="auth">
+  <aside class="auth__aside">
+    <a class="brand" href="index.html" aria-label="Lesify — Startseite">
+      <span class="brand__mark"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c1 3.5.4 9.4-2.6 12.2C7.1 16.5 4.6 15.6 3.5 12.7c2.9 5 8.3 3.9 9.4-1.2C13.6 7.9 13 4 12 2Z"/><path d="M20.5 8c1 3.5.4 9.4-2.6 12.2-2.3 2.3-4.8 1.4-5.9-1.5 2.9 5 8.3 3.9 9.4-1.2C22 13.9 21.5 10 20.5 8Z"/></svg></span>
+      <span class="brand__word">Lesify</span>
+    </a>
+    <div class="auth__aside-body">
+      <h2>Kein Problem, das ist schnell erledigt.</h2>
+      <p>Sie bekommen einen Link per E-Mail und vergeben ein neues Passwort. Alle Inhalte bleiben unverändert.</p>
+    </div>
+  </aside>
+
+  <div class="auth__main">
+    <div class="auth-card">
+      <a class="auth-card__back" href="login.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg> Zurück zur Anmeldung</a>
+      <h1>Passwort zurücksetzen</h1>
+      <p class="auth-card__sub">Geben Sie die E-Mail-Adresse Ihres Kontos ein.</p>
+
+      <form data-demo="Prototyp ohne Backend — es wird keine echte E-Mail verschickt." style="margin-top:2rem" novalidate>
+        <div class="field">
+          <label for="email">E-Mail</label>
+          <input class="input" type="email" id="email" name="email" placeholder="name@beispiel.de" autocomplete="email" required>
+        </div>
+        <button class="btn btn-primary btn-block btn-lg" type="submit">Link zum Zurücksetzen senden</button>
+      </form>
+
+      <p class="auth-alt">Doch wieder eingefallen? <a href="login.html">Zur Anmeldung</a></p>
+    </div>
+  </div>
+</div>
+
+<script src="assets/js/marketing.js"></script>
+</body>
+</html>

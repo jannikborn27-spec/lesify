@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dateien · Lesify</title>
+<link rel="icon" href="assets/img/logo.png">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="dateien">
+<div class="app-shell">
+  <div id="sidebar-root"></div>
+  <div class="main">
+    <div id="topbar-root"></div>
+    <main class="main-inner">
+
+      <div class="page-head">
+        <div>
+          <div class="page-eyebrow">Dateien</div>
+          <h1 class="page-title">Alle Dateien</h1>
+          <p class="page-sub">Fächerübergreifend — jede Datei ist automatisch einem Fach und Thema zugeordnet.</p>
+        </div>
+      </div>
+
+      <label class="surface" id="dropzone" style="display:flex;align-items:center;gap:20px;padding:28px 32px;margin-bottom:32px;cursor:pointer;border-style:dashed;border-color:var(--line-strong)">
+        <span class="spark" style="width:46px;height:46px;background:var(--ink-950);color:#fff;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:12px" id="upload-icon-wrap"></span>
+        <span style="flex:1">
+          <span style="display:block;font-weight:600;font-size:0.95rem;margin-bottom:4px">Datei hierher ziehen oder auswählen</span>
+          <span class="text-sm text-muted">PDF, DOCX, PNG bis 5 MB — wird direkt einem Fach &amp; Thema zugeordnet.</span>
+        </span>
+        <span class="btn btn-secondary" style="pointer-events:none">Datei auswählen</span>
+        <input type="file" id="file-input" style="position:absolute;width:1px;height:1px;opacity:0">
+      </label>
+
+      <div class="flex justify-between items-center" style="margin-bottom:24px;flex-wrap:wrap;gap:14px">
+        <div class="flex gap-2" style="flex-wrap:wrap" data-filter-group="#files-container [data-filter]" id="file-filters"></div>
+        <div class="flex gap-2">
+          <button class="icon-btn is-active" id="view-grid" aria-label="Rasteransicht"></button>
+          <button class="icon-btn" id="view-list" aria-label="Listenansicht"></button>
+        </div>
+      </div>
+
+      <div class="grid grid-auto" id="files-container"></div>
+
+    </main>
+  </div>
+</div>
+
+<div class="modal-scrim" id="modal-assign-file">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <h3 class="modal-title">Datei zuordnen</h3>
+        <p class="modal-sub">Wähle, zu welchem Fach und Thema „<span id="pending-filename"></span>" gehört.</p>
+      </div>
+      <button class="modal-close" data-modal-close aria-label="Schließen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <form id="file-assign-form">
+      <div class="field">
+        <label for="fa-fach">Fach</label>
+        <select class="select" id="fa-fach" required></select>
+      </div>
+      <div class="field mt-0" id="fa-new-fach-row" style="display:none">
+        <label for="fa-fach-neu">Neuer Fachname</label>
+        <input class="input" id="fa-fach-neu" type="text" placeholder="z. B. Physik">
+      </div>
+      <div class="field mt-0">
+        <label for="fa-thema">Thema</label>
+        <select class="select" id="fa-thema" required></select>
+      </div>
+      <div class="field mt-0" id="fa-new-thema-row" style="display:none">
+        <label for="fa-thema-neu">Neues Thema</label>
+        <input class="input" id="fa-thema-neu" type="text" placeholder="z. B. Optik">
+      </div>
+      <div class="modal-foot">
+        <button type="button" class="btn btn-secondary" data-modal-close>Abbrechen</button>
+        <button type="submit" class="btn btn-primary">Datei hinzufügen</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var R = LesifyUI.Render, I = LesifyUI.Icons;
+  document.getElementById('upload-icon-wrap').innerHTML = I.upload;
+  document.getElementById('view-grid').innerHTML = I.grid;
+  document.getElementById('view-list').innerHTML = I.list;
+
+  function drawFilters() {
+    document.getElementById('file-filters').innerHTML = R.fachFilterChips();
+  }
+
+  var currentView = 'grid';
+  function drawFiles() {
+    var container = document.getElementById('files-container');
+    container.className = currentView === 'grid' ? 'grid grid-auto' : 'card divide-list';
+    var dateien = Lesify.dateien().slice().reverse();
+    var html = dateien.map(currentView === 'grid' ? R.dateiCard : R.dateiRow).join('');
+    container.innerHTML = html || ('<div class="empty-state" style="grid-column:1/-1"><div class="es-icon">' + I.folder + '</div><h4>Noch keine Dateien</h4><p>Lade deine erste Datei hoch.</p></div>');
+  }
+
+  drawFilters(); drawFiles();
+
+  document.getElementById('view-grid').addEventListener('click', function () {
+    currentView = 'grid'; this.classList.add('is-active'); document.getElementById('view-list').classList.remove('is-active'); drawFiles();
+  });
+  document.getElementById('view-list').addEventListener('click', function () {
+    currentView = 'list'; this.classList.add('is-active'); document.getElementById('view-grid').classList.remove('is-active'); drawFiles();
+  });
+
+  /* upload -> mandatory Fach + Thema assignment */
+  var pendingFile = null;
+  var fachSelect = document.getElementById('fa-fach');
+  var themaSelect = document.getElementById('fa-thema');
+  var newFachRow = document.getElementById('fa-new-fach-row');
+  var newThemaRow = document.getElementById('fa-new-thema-row');
+
+  function populateFaecher() {
+    fachSelect.innerHTML = Lesify.faecher().map(function (f) { return '<option value="' + f.id + '">' + f.name + '</option>'; }).join('') +
+      '<option value="__new__">+ Neues Fach erstellen</option>';
+  }
+  function populateThemen() {
+    var fachId = fachSelect.value;
+    if (fachId === '__new__') {
+      newFachRow.style.display = 'flex';
+      themaSelect.innerHTML = '<option value="__new__">+ Neues Thema erstellen</option>';
+      newThemaRow.style.display = 'flex';
+      return;
+    }
+    newFachRow.style.display = 'none';
+    themaSelect.innerHTML = Lesify.themen(fachId).map(function (t) { return '<option value="' + t.id + '">' + t.name + '</option>'; }).join('') +
+      '<option value="__new__">+ Neues Thema erstellen</option>';
+    newThemaRow.style.display = themaSelect.value === '__new__' ? 'flex' : 'none';
+  }
+  fachSelect.addEventListener('change', populateThemen);
+  themaSelect.addEventListener('change', function () { newThemaRow.style.display = themaSelect.value === '__new__' ? 'flex' : 'none'; });
+
+  document.getElementById('file-input').addEventListener('change', function (e) {
+    if (!e.target.files.length) return;
+    var file = e.target.files[0];
+    if (file.size > 5 * 1024 * 1024) {
+      LesifyUI.toast('„' + file.name + '" ist größer als 5 MB — bitte kleinere Datei wählen.');
+      e.target.value = '';
+      return;
+    }
+    pendingFile = file;
+    document.getElementById('pending-filename').textContent = pendingFile.name;
+    populateFaecher(); populateThemen();
+    LesifyUI.openModal('modal-assign-file');
+    e.target.value = '';
+  });
+
+  document.getElementById('file-assign-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!pendingFile) return;
+    var fachId = fachSelect.value;
+    if (fachId === '__new__') {
+      var fachName = document.getElementById('fa-fach-neu').value.trim();
+      if (!fachName) { document.getElementById('fa-fach-neu').focus(); return; }
+      fachId = Lesify.addFach({ name: fachName }).id;
+    }
+    var themaId = themaSelect.value;
+    if (themaId === '__new__') {
+      var themaName = document.getElementById('fa-thema-neu').value.trim();
+      if (!themaName) { document.getElementById('fa-thema-neu').focus(); return; }
+      themaId = Lesify.addThema({ fachId: fachId, name: themaName }).id;
+    }
+    var ext = (pendingFile.name.split('.').pop() || '').toLowerCase();
+    var typ = ext === 'pdf' ? 'pdf' : (['png', 'jpg', 'jpeg', 'gif'].indexOf(ext) !== -1 ? 'img' : 'doc');
+    var sizeKb = pendingFile.size ? Math.max(1, Math.round(pendingFile.size / 1024)) : 240;
+    var groesse = sizeKb > 1024 ? (sizeKb / 1024).toFixed(1) + ' MB' : sizeKb + ' KB';
+    var d = Lesify.addDatei({ fachId: fachId, themaId: themaId, name: pendingFile.name, typ: typ, groesse: groesse });
+    Lesify.incrementUsage('dateien', 1);
+    LesifyUI.closeModal(document.getElementById('modal-assign-file'));
+    this.reset();
+    pendingFile = null;
+    drawFiles();
+    LesifyUI.toast('„' + d.name + '" wird gelesen und zusammengefasst…');
+    setTimeout(function () {
+      Lesify.markDateiBereit(d.id, 'Automatisch erzeugte Zusammenfassung von ' + d.name + '.');
+      drawFiles();
+      LesifyUI.toast('„' + d.name + '" ist bereit.');
+    }, 1600);
+  });
+});
+</script>
+</body>
+</html>

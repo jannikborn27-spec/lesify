@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lernzettel · Lesify</title>
+<link rel="icon" href="assets/img/logo.png">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="klausuren">
+<div class="app-shell">
+  <div id="sidebar-root"></div>
+  <div class="main">
+    <div id="topbar-root"></div>
+    <main class="main-inner" style="padding-bottom:60px">
+
+      <div id="sp-crumb" class="page-eyebrow" style="margin-bottom:16px"></div>
+      <div class="page-head" id="sp-head" style="margin-bottom:var(--sp-6)"></div>
+
+      <div class="split-doc" id="sp-doc" style="max-width:760px"></div>
+
+    </main>
+  </div>
+</div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var I = LesifyUI.Icons, R = LesifyUI.Render;
+  var params = new URLSearchParams(window.location.search);
+  var lernplanId = params.get('lernplan') || params.get('id');
+  var lp = lernplanId ? Lesify.getLernplan(lernplanId) : null;
+  if (!lp && params.get('klausur')) lp = Lesify.getLernplanFuerKlausur(params.get('klausur'));
+
+  if (!lp) {
+    document.getElementById('sp-head').innerHTML =
+      '<div><h1 class="page-title">Lernzettel nicht gefunden</h1>' +
+      '<p class="page-sub">Zu diesem Lernplan gibt es keinen Lernzettel.</p></div>';
+    return;
+  }
+  lernplanId = lp.id;
+
+  var k = Lesify.getKlausur(lp.klausurId);
+  var fach = k ? Lesify.getFach(k.fachId) : null;
+  if (k) {
+    var fachCol = fach ? Lesify.getFachColor(fach.farbe) : null;
+    LesifyUI.setPageWatermark(Lesify.getFachIcon(k.fachId) || '', fachCol ? fachCol.base : null);
+    document.title = 'Lernzettel – ' + k.titel + ' · Lesify';
+  }
+
+  document.getElementById('sp-crumb').innerHTML =
+    '<a href="lernplan.html?id=' + lernplanId + '" style="color:var(--ink-500)">Lernplan</a>' +
+    '<span style="color:var(--ink-300);margin:0 6px">/</span><span>Lernzettel</span>';
+
+  var updatedLine = lp.lernzettel ? ('Aktualisiert: ' + lp.lernzettel.aktualisiertAm) : 'Noch nicht gestartet';
+  var actions = lp.lernzettel
+    ? '<div class="page-actions"><button class="btn btn-secondary btn-sm" id="sp-download">' + I.download + ' Herunterladen</button>' +
+      '<a href="lernplan.html?id=' + lernplanId + '" class="btn btn-ghost btn-sm">Zurück zum Lernplan</a></div>'
+    : '<div class="page-actions"><a href="lernplan.html?id=' + lernplanId + '" class="btn btn-ghost btn-sm">Zurück zum Lernplan</a></div>';
+
+  document.getElementById('sp-head').innerHTML =
+    '<div>' + (k ? R.fachBadge(k.fachId) : '') +
+      '<h1 class="page-title" style="margin-top:14px;font-size:1.6rem">Lernzettel' + (k ? ' — ' + k.titel : '') + '</h1>' +
+      '<p class="page-sub">' + updatedLine + '</p>' +
+    '</div>' + actions;
+
+  document.getElementById('sp-doc').innerHTML = R.lernzettelSeite(lernplanId);
+
+  var dl = document.getElementById('sp-download');
+  if (dl) dl.addEventListener('click', function () {
+    Lesify.downloadText('lernzettel-' + Lesify.slugify(k ? k.titel : 'lernplan') + '.md', Lesify.lernzettelDokument(lp));
+  });
+});
+</script>
+</body>
+</html>

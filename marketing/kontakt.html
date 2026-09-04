@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kontakt — Lesify</title>
+<meta name="description" content="Fragen zu Lesify, zu einem Paket oder zum Datenschutz? Schreiben Sie uns.">
+<link rel="icon" href="assets/img/logo.png">
+<link rel="stylesheet" href="assets/css/marketing.css">
+</head>
+<body data-page="kontakt">
+<header id="mkt-nav"></header>
+
+<main class="overflow-x-hidden">
+
+  <section class="page-hero">
+    <div class="container">
+      <span class="eyebrow" data-reveal style="justify-content:center">Kontakt</span>
+      <h1 data-reveal data-reveal-delay="60">Wir lesen jede Nachricht.</h1>
+      <p data-reveal data-reveal-delay="120">
+        Ob Frage zum Produkt, zu einem Paket oder zum Datenschutz: in der Regel antworten wir
+        innerhalb eines Werktags.
+      </p>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:0">
+    <div class="container container--mid">
+      <div class="contact-grid">
+        <ul class="contact-info" data-reveal>
+          <li>
+            <b>E-Mail</b>
+            <p><a href="mailto:hallo@lesify.de">hallo@lesify.de</a></p>
+          </li>
+          <li>
+            <b>Datenschutz</b>
+            <p><a href="mailto:datenschutz@lesify.de">datenschutz@lesify.de</a></p>
+          </li>
+          <li>
+            <b>Antwortzeit</b>
+            <p>Montag bis Freitag, meist innerhalb eines Werktags.</p>
+          </li>
+          <li>
+            <b>Hinweis</b>
+            <p>Lesify ist ein Prototyp. Es gibt noch keine telefonische Hotline und keine echten Zahlungen.</p>
+          </li>
+        </ul>
+
+        <form class="contact-form" data-demo="Prototyp ohne Backend — Ihre Nachricht wird nicht wirklich verschickt." data-reveal data-reveal-delay="100" novalidate>
+          <div class="field">
+            <label for="cname">Name</label>
+            <input class="input" type="text" id="cname" name="name" placeholder="Ihr Name" autocomplete="name" required>
+          </div>
+          <div class="field">
+            <label for="cemail">E-Mail</label>
+            <input class="input" type="email" id="cemail" name="email" placeholder="name@beispiel.de" autocomplete="email" required>
+          </div>
+          <div class="field">
+            <label for="ctopic">Thema</label>
+            <select class="input" id="ctopic" name="topic">
+              <option>Frage zum Produkt</option>
+              <option>Frage zu einem Paket</option>
+              <option>Datenschutz</option>
+              <option>Feedback</option>
+              <option>Sonstiges</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="cmsg">Nachricht</label>
+            <textarea class="input" id="cmsg" name="message" placeholder="Worum geht es?" required></textarea>
+          </div>
+          <label class="check-row">
+            <input type="checkbox" name="privacy" required>
+            <span>Ich habe die <a href="datenschutz.html">Datenschutzerklärung</a> gelesen.</span>
+          </label>
+          <button class="btn btn-primary btn-block btn-lg" type="submit">Nachricht senden</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer id="mkt-footer"></footer>
+<script src="assets/js/marketing.js"></script>
+</body>
+</html>

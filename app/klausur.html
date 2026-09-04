@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Klausur · Lesify</title>
+<link rel="icon" href="assets/img/logo.png">
+<link rel="stylesheet" href="assets/css/style.css">
+<style>
+  /* =========================================================
+     klausur.html — Schnellzugriff- und Lernplan-Sektion.
+     Scoped mit kx-Präfix, nur Ink-Skala + Ampel + Fach-Farbe
+     (--fach-color/-ink/-bg vom Wrapper geerbt). Keine neuen Fonts,
+     Transitions nur auf transform/opacity/color.
+     ========================================================= */
+
+  .kx-wrap { --kx-accent: var(--fach-color, var(--ink-700)); }
+
+  .kx-sec-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 12px; margin-bottom: 14px;
+  }
+  .kx-sec-head .section-title { font-size: 1.05rem; font-weight: 600; color: var(--ink-950); }
+
+  /* ---------- Schnellzugriff ---------- */
+  .kx-ico {
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--kx-accent); flex-shrink: 0;
+  }
+  .kx-ico svg { width: 18px; height: 18px; }
+
+  .kx-sc-hero {
+    display: flex; align-items: center; gap: 16px; padding: 22px;
+    border-color: var(--kx-accent);
+    transition: transform .15s ease;
+  }
+  .kx-sc-hero:hover { transform: translateY(-2px); }
+  .kx-sc-hero .kx-ico {
+    width: 46px; height: 46px; border-radius: var(--radius-md);
+    background: var(--fach-bg, var(--ink-50));
+  }
+  .kx-sc-hero-body { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .kx-sc-hero-eyebrow {
+    display: block; font-size: 0.7rem; font-weight: 700; letter-spacing: .09em; text-transform: uppercase;
+    color: var(--kx-accent);
+  }
+  .kx-sc-hero-title { display: block; font-size: 1.05rem; font-weight: 700; color: var(--ink-950); margin-top: 3px; }
+  .kx-sc-hero-sub { display: block; font-size: 0.82rem; color: var(--ink-500); margin-top: 2px; }
+  .kx-sc-hero-go { color: var(--kx-accent); flex-shrink: 0; }
+  .kx-sc-hero-go svg { width: 22px; height: 22px; }
+  .kx-sc-mini-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+  .kx-sc-mini {
+    display: flex; align-items: center; gap: 10px; padding: 14px 16px;
+    transition: transform .15s ease, border-color .15s ease;
+  }
+  .kx-sc-mini:hover { transform: translateY(-1px); border-color: var(--line-strong); }
+  .kx-sc-mini .kx-ico { width: 16px; height: 16px; }
+  .kx-sc-mini-title { flex: 1; min-width: 0; font-size: 0.88rem; font-weight: 620; color: var(--ink-900); }
+  .kx-sc-mini-go { flex-shrink: 0; color: var(--ink-300); }
+  .kx-sc-mini-go svg { width: 16px; height: 16px; }
+  .kx-sc-mini:hover .kx-sc-mini-go { color: var(--kx-accent); }
+
+  /* =========================================================
+     Lernplan-Sektion — die vollständige lp-split-main von
+     lernplan.html (R.lernplanSplitMain, identisches Design inkl.
+     Checkliste, voll abhakbar), darüber eine horizontale „Pills"-
+     Fortschrittsleiste. Alles in .lp-page.lp-fc--4 gewickelt, damit
+     die Fachfarben-Akzente exakt wie auf lernplan.html greifen.
+     ========================================================= */
+  .kx-fm { display: flex; flex-direction: column; gap: 16px; }
+  .kx-fm .lp-split-main { width: 100%; }
+
+  .kx-fm-rail { display: flex; flex-direction: column; gap: 10px; }
+  .kx-fm-steps {
+    display: flex; gap: 4px; flex-wrap: nowrap;
+    overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin;
+  }
+  .kx-fm-steps .lp-nav-step { width: auto; flex: 0 0 auto; padding: 7px 12px; text-decoration: none; }
+  .kx-fm-steps .lp-nav-num { width: 22px; height: 22px; font-size: 0.72rem; }
+  .kx-fm-steps .lp-nav-num svg { width: 12px; height: 12px; }
+  .kx-fm-rail .lp-split-bar { height: 4px; }
+
+  @media (max-width: 760px) {
+    .kx-sc-mini-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body data-page="klausuren">
+<div class="app-shell">
+  <div id="sidebar-root"></div>
+  <div class="main">
+    <div id="topbar-root"></div>
+    <main class="main-inner" id="k-main"></main>
+  </div>
+</div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var R = LesifyUI.Render, I = LesifyUI.Icons;
+
+  var params = new URLSearchParams(window.location.search);
+  var kId = params.get('id') || Lesify.klausuren()[0].id;
+  var k = Lesify.getKlausur(kId) || Lesify.klausuren()[0];
+  kId = k.id;
+  var fach = Lesify.getFach(k.fachId);
+  var fachCol = fach ? Lesify.getFachColor(fach.farbe) : null;
+  LesifyUI.setPageWatermark(Lesify.getFachIcon(k.fachId) || '', fachCol ? fachCol.base : null);
+  document.title = k.titel + ' · Lesify';
+
+  var lp = Lesify.getLernplanFuerKlausur(kId);
+  var vergangen = Lesify.klausurVergangen(k);
+  var fcVars = R.fachColorVars(k.fachId);
+
+  var ARROW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
+
+  /* =========================================================
+     Seitengerüst.
+     ========================================================= */
+  function buildSkeleton() {
+    document.getElementById('k-main').innerHTML =
+      '<div class="kx-wrap" style="' + fcVars + '">' +
+        '<a href="klausuren.html" class="section-link" style="margin-bottom:18px;display:inline-flex">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg> Alle Klausuren</a>' +
+        '<div class="page-head" id="k-head"></div>' +
+        '<div class="section"><div class="section-head"><span class="section-title">Zugehörige Themen</span></div>' +
+          '<div class="grid grid-3" id="k-themen"></div></div>' +
+        '<div class="section"><div class="kx-sec-head"><span class="section-title">Schnellzugriff</span></div><div id="k-shortcuts"></div></div>' +
+        '<div class="section"><div class="kx-sec-head"><span class="section-title">Lernplan</span>' +
+          (lp ? '<a class="section-link" href="lernplan.html?id=' + lp.id + '">Ganzer Lernplan ' + ARROW + '</a>' : '') +
+        '</div><div id="k-lernplan"></div></div>' +
+      '</div>';
+  }
+
+  function renderAll() {
+    buildSkeleton();
+    drawHead();
+    drawThemen();
+    drawShortcuts();
+    drawLernplan();
+  }
+
+  function drawHead() {
+    // Bereits geschriebene Klausuren zeigen keine Note (nur den „Geschrieben"-Flag).
+    var noteBoxHtml = '';
+    if (!vergangen) {
+      var kn = Lesify.klausurNote(kId);
+      noteBoxHtml = kn ? R.testNoteBox(kn.note, kn.testNr, 'lg') : '';
+    }
+    document.getElementById('k-head').innerHTML =
+      '<div>' + R.fachBadge(k.fachId) +
+        (vergangen ? '<span class="klausur-card-flag" style="margin-left:10px;vertical-align:middle">' + I.check + 'Geschrieben</span>' : '') +
+        '<h1 class="page-title" style="margin-top:14px">' + k.titel + '</h1>' +
+        '<p class="page-sub"><span class="flex items-center gap-2" style="display:inline-flex">' +
+          '<span class="spark" style="width:14px;height:14px;color:var(--ink-400)">' + I.calendar + '</span>' +
+          R.formatDatum(k.datum) + ' · ' + R.countdown(k.datum) +
+        '</span></p>' +
+      '</div>' +
+      (noteBoxHtml ? '<div class="page-actions" style="align-items:center">' + noteBoxHtml + '</div>' : '');
+  }
+
+  function drawThemen() {
+    document.getElementById('k-themen').innerHTML = k.themaIds.map(function (tid) {
+      var thema = Lesify.getThema(tid);
+      return thema ? R.themaCard(thema, { showFachBadge: false, filter: false, countKeys: ['chats', 'lernzettel', 'dateien'] }) : '';
+    }).join('');
+  }
+
+  /* =========================================================
+     Schnellzugriff — 3 feste Ziele, festes Layout (Hero + 2 Mini).
+     ========================================================= */
+  function shortcutItems() {
+    var next = lp ? R.lernplanNaechsteAufgabe(lp.id) : null;
+    var nextItem = next
+      ? { icon: I.target, title: 'Nächste Lernplan-Aufgabe', sub: 'Tag ' + next.tag + ' · ' + next.label, href: next.href }
+      : { icon: I.target, title: lp ? 'Lernplan öffnen' : 'Lernplan', sub: lp ? 'Alle 7 Tage geschafft' : 'Noch kein Lernplan angelegt',
+          href: lp ? ('lernplan.html?id=' + lp.id) : 'lernplan.html' };
+    var lzItem = lp
+      ? { icon: I.book, title: 'Lernzettel zur Klausur', sub: lp.lernzettel ? ('Aktualisiert: ' + lp.lernzettel.aktualisiertAm) : 'Entsteht automatisch ab Tag 3',
+          href: 'lernplan-lernzettel.html?lernplan=' + lp.id }
+      : { icon: I.book, title: 'Lernzettel zur Klausur', sub: 'Kommt mit dem Lernplan', href: lp ? ('lernplan-lernzettel.html?lernplan=' + lp.id) : 'lernplan.html' };
+    return [
+      { icon: I.chat, title: 'Neuer Chat', sub: 'Frei mit der KI zu dieser Klausur', href: 'chat.html' },
+      nextItem,
+      lzItem
+    ];
+  }
+
+  function drawShortcuts() {
+    // Bereits geschriebene Klausur ohne Lernplan: kein „Weiter im Lernplan".
+    if (vergangen && !lp) {
+      var sec = document.getElementById('k-shortcuts').closest('.section');
+      if (sec) sec.style.display = 'none';
+      return;
+    }
+    var items = shortcutItems();
+    var hero = items[1], minis = [items[0], items[2]];
+    document.getElementById('k-shortcuts').innerHTML =
+      '<a class="card kx-sc-hero" href="' + hero.href + '">' +
+        '<span class="kx-ico">' + hero.icon + '</span>' +
+        '<span class="kx-sc-hero-body"><span class="kx-sc-hero-eyebrow">Weiter im Lernplan</span>' +
+        '<span class="kx-sc-hero-title">' + hero.title + '</span>' +
+        '<span class="kx-sc-hero-sub">' + hero.sub + '</span></span>' +
+        '<span class="kx-sc-hero-go">' + ARROW + '</span></a>' +
+      '<div class="kx-sc-mini-row">' + minis.map(function (it) {
+        return '<a class="card kx-sc-mini" href="' + it.href + '">' +
+          '<span class="kx-ico">' + it.icon + '</span>' +
+          '<span class="kx-sc-mini-title">' + it.title + '</span>' +
+          '<span class="kx-sc-mini-go">' + ARROW + '</span></a>';
+      }).join('') + '</div>';
+  }
+
+  /* =========================================================
+     Lernplan-Sektion — horizontale „Pills"-Fortschrittsleiste über
+     der VOLLEN lp-split-main der Lernplan-Seite (R.lernplanSplitMain).
+     Mit R.wireLernplan voll interaktiv: Haken setzen, Tag wechseln.
+     ========================================================= */
+  function fmState(s, m) {
+    if (s.aktuellerTag === m) return 'aktuell';
+    return (s['tag' + m] && s['tag' + m].erledigt) ? 'erledigt' : 'offen';
+  }
+  function fmDone(s) { var d = 0; for (var i = 1; i <= 7; i++) if (s['tag' + i] && s['tag' + i].erledigt) d++; return d; }
+
+  // Anklickbarer, beschrifteter Step-Button — schaltet den Tag im Panel um.
+  function fmStep(s, act, m) {
+    var st = fmState(s, m);
+    var meta = R.lernplanTagMeta(m);
+    var num = st === 'erledigt' ? I.check : m;
+    return '<button type="button" class="lp-nav-step lp-nav-' + st + (act === m ? ' is-active' : '') + '" ' +
+      'data-lp-focus="' + m + '" title="Tag ' + m + ' · ' + meta.titel + '">' +
+      '<span class="lp-nav-num">' + num + '</span>' +
+      '<span class="lp-nav-txt"><span class="lp-nav-t">Tag ' + m + '</span><span class="lp-nav-d">' + meta.titel + '</span></span>' +
+    '</button>';
+  }
+  function fmRailPills(s, act) {
+    var steps = '';
+    for (var m = 1; m <= 7; m++) steps += fmStep(s, act, m);
+    var done = fmDone(s);
+    return '<div class="kx-fm-rail">' +
+      '<div class="kx-fm-steps">' + steps + '</div>' +
+      '<div class="lp-split-bar"><span style="transform:scaleX(' + (done / 7).toFixed(3) + ')"></span></div>' +
+    '</div>';
+  }
+
+  function drawLernplan() {
+    var el = document.getElementById('k-lernplan');
+    if (!lp) {
+      el.innerHTML = '<p class="text-sm text-muted">' +
+        (vergangen
+          ? 'Diese Klausur ist bereits geschrieben — es gibt keinen aktiven Lernplan mehr.'
+          : 'Für diese Klausur ist noch kein Lernplan angelegt.') +
+        '</p>';
+      return;
+    }
+    // .lp-page.lp-fc--4 + fachColorVars → gleiche Fachfarben-Akzente wie auf
+    // lernplan.html (aktiver Tag, Fortschritt, Erledigt-Signale in Fachfarbe).
+    var redraw = function () {
+      var s = Lesify.lernplanStatus(lp.id);
+      var act = R.lernplanFocusTag(lp.id);
+      el.innerHTML =
+        '<div class="lp-page lp-fc--4" style="' + fcVars + '">' +
+          '<div class="kx-fm">' + fmRailPills(s, act) + R.lernplanSplitMain(lp.id) + '</div>' +
+        '</div>';
+      R.wireLernplan(el, lp.id, redraw);
+    };
+    redraw();
+  }
+
+  renderAll();
+});
+</script>
+</body>
+</html>

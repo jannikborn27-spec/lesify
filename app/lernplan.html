@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lernplan · Lesify</title>
+<link rel="icon" href="assets/img/logo.png">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="klausuren">
+<div class="app-shell">
+  <div id="sidebar-root"></div>
+  <div class="main">
+    <div id="topbar-root"></div>
+    <main class="main-inner">
+
+      <a href="#" class="section-link" id="back-link" style="margin-bottom:18px;display:inline-flex">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        <span id="back-label">Zurück</span>
+      </a>
+
+      <div id="lp-body"></div>
+
+    </main>
+  </div>
+</div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var R = LesifyUI.Render;
+
+  var params = new URLSearchParams(window.location.search);
+  var lernplanId = params.get('id');
+  var lp = lernplanId ? Lesify.getLernplan(lernplanId) : null;
+
+  // Fallback: ?klausur=<id> → Lernplan der Klausur.
+  if (!lp && params.get('klausur')) {
+    lp = Lesify.getLernplanFuerKlausur(params.get('klausur'));
+  }
+
+  if (!lp) {
+    document.getElementById('back-link').href = 'klausuren.html';
+    document.getElementById('back-label').textContent = 'Zu den Klausuren';
+    document.getElementById('lp-body').innerHTML =
+      '<div class="page-head"><div><h1 class="page-title">Lernplan nicht gefunden</h1>' +
+      '<p class="page-sub">Zu dieser Klausur gibt es keinen Lernplan.</p></div></div>';
+    return;
+  }
+  lernplanId = lp.id;
+
+  var k = Lesify.getKlausur(lp.klausurId);
+  if (k) {
+    var fach = Lesify.getFach(k.fachId);
+    var fachCol = fach ? Lesify.getFachColor(fach.farbe) : null;
+    LesifyUI.setPageWatermark(Lesify.getFachIcon(k.fachId) || '', fachCol ? fachCol.base : null);
+    document.title = 'Lernplan – ' + k.titel + ' · Lesify';
+  }
+  document.getElementById('back-link').href = k ? ('klausur.html?id=' + k.id) : 'klausuren.html';
+  document.getElementById('back-label').textContent = k ? 'Zurück zur Klausur' : 'Zu den Klausuren';
+
+  function draw() {
+    var body = document.getElementById('lp-body');
+    body.innerHTML = R.lernplanSeite(lernplanId);
+    R.wireLernplan(body, lernplanId, draw);
+  }
+  draw();
+});
+</script>
+</body>
+</html>

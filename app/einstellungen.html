@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Einstellungen · Lesify</title>
+<link rel="icon" href="assets/img/logo.png">
+<link rel="stylesheet" href="assets/css/style.css">
+<style>
+  .settings-card { padding: 26px 28px; margin-bottom: var(--sp-6); max-width: 640px; }
+  .settings-card h3 { font-size: 1rem; margin-bottom: 4px; }
+  .settings-card .settings-sub { font-size: 0.82rem; color: var(--ink-500); margin-bottom: 20px; }
+</style>
+</head>
+<body data-page="einstellungen">
+<div class="app-shell">
+  <div id="sidebar-root"></div>
+  <div class="main">
+    <div id="topbar-root"></div>
+    <main class="main-inner">
+
+      <div class="page-head">
+        <div>
+          <div class="page-eyebrow">Einstellungen</div>
+          <h1 class="page-title">Einstellungen</h1>
+          <p class="page-sub">Profil, Benachrichtigungen und dein Nutzungslimit im Überblick.</p>
+        </div>
+      </div>
+
+      <div class="card settings-card">
+        <h3>Profil</h3>
+        <p class="settings-sub">Wird u. a. in der Seitenleiste angezeigt.</p>
+        <form id="profil-form">
+          <div class="field">
+            <label for="p-name">Name</label>
+            <input class="input" id="p-name" type="text" required>
+          </div>
+          <div class="field mt-0">
+            <label for="p-klasse">Klassenstufe</label>
+            <input class="input" id="p-klasse" type="text" placeholder="z. B. 8. Klasse">
+          </div>
+          <button type="submit" class="btn btn-primary">Speichern</button>
+        </form>
+      </div>
+
+      <div class="card settings-card">
+        <h3>Benachrichtigungen</h3>
+        <p class="settings-sub">Steuere, wann Lesify sich meldet.</p>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">Erinnerung vor Klausuren</div>
+            <div class="toggle-sub">Hinweis ein paar Tage vor einem eingetragenen Klausurtermin.</div>
+          </div>
+          <label class="toggle-switch"><input type="checkbox" id="s-erinnerung"><span class="track"><span class="thumb"></span></span></label>
+        </div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">Wöchentliche Zusammenfassung</div>
+            <div class="toggle-sub">Kurzer Überblick über Fortschritt und offene Lerntage.</div>
+          </div>
+          <label class="toggle-switch"><input type="checkbox" id="s-zusammenfassung"><span class="track"><span class="thumb"></span></span></label>
+        </div>
+      </div>
+
+      <div class="card settings-card">
+        <h3>KI-Tonfall</h3>
+        <p class="settings-sub">Wie Lesify im Chat und in Erklärungen mit dir spricht.</p>
+        <div class="field mt-0">
+          <label for="s-tonfall">Tonfall</label>
+          <select class="select" id="s-tonfall">
+            <option value="freundlich">Freundlich &amp; locker</option>
+            <option value="direkt">Direkt &amp; knapp</option>
+            <option value="motivierend">Motivierend &amp; ausführlich</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="card settings-card">
+        <h3>Tarif</h3>
+        <p class="settings-sub">Steuert alle Monats-Kontingente. Im Prototyp frei umschaltbar zum Testen.</p>
+        <div class="field mt-0">
+          <label for="s-paket">Aktiver Tarif</label>
+          <select class="select" id="s-paket">
+            <option value="starter">Starter</option>
+            <option value="premium">Premium (Bestseller)</option>
+            <option value="infinite">Infinite</option>
+          </select>
+        </div>
+        <p class="text-xs text-muted" id="paket-info" style="margin-top:10px"></p>
+      </div>
+
+      <div class="card settings-card">
+        <h3>Nutzung &amp; Limits</h3>
+        <p class="settings-sub">Dein monatliches Kontingent — setzt sich am Monatsersten zurück und wird nicht übertragen.</p>
+        <div id="usage-detail"></div>
+      </div>
+
+      <div class="card settings-card">
+        <h3>Daten &amp; Aufbewahrung</h3>
+        <p class="settings-sub">Wie lange deine Inhalte gespeichert bleiben.</p>
+        <p class="text-sm text-muted" style="margin:0">
+          Deine Inhalte — Chats, Lernzettel, Dateien, Klausuren, Testklausuren und
+          Lernpläne — werden <strong>ein Jahr nach ihrer Erstellung automatisch
+          gelöscht</strong>. Lade dir Lernzettel rechtzeitig herunter, wenn du sie
+          länger behalten möchtest.
+        </p>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var user = Lesify.getUser();
+  document.getElementById('p-name').value = user.name;
+  document.getElementById('p-klasse').value = user.klasse;
+
+  var settings = Lesify.getSettings();
+  document.getElementById('s-erinnerung').checked = !!settings.erinnerungVorKlausuren;
+  document.getElementById('s-zusammenfassung').checked = !!settings.woechentlicheZusammenfassung;
+  document.getElementById('s-tonfall').value = settings.ki_tonfall;
+
+  document.getElementById('profil-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var name = document.getElementById('p-name').value.trim();
+    var klasse = document.getElementById('p-klasse').value.trim();
+    if (!name) return;
+    var updated = Lesify.updateUser({ name: name, klasse: klasse });
+    var chip = document.querySelector('.profile-chip');
+    if (chip) {
+      chip.querySelector('.avatar-initials').textContent = updated.initials;
+      chip.querySelector('.profile-name').textContent = updated.name;
+      chip.querySelector('.profile-role').textContent = updated.klasse;
+    }
+    LesifyUI.toast('Profil gespeichert.');
+  });
+
+  document.getElementById('s-erinnerung').addEventListener('change', function () {
+    Lesify.updateSettings({ erinnerungVorKlausuren: this.checked });
+    LesifyUI.toast(this.checked ? 'Erinnerungen aktiviert.' : 'Erinnerungen deaktiviert.');
+  });
+  document.getElementById('s-zusammenfassung').addEventListener('change', function () {
+    Lesify.updateSettings({ woechentlicheZusammenfassung: this.checked });
+    LesifyUI.toast(this.checked ? 'Wöchentliche Zusammenfassung aktiviert.' : 'Wöchentliche Zusammenfassung deaktiviert.');
+  });
+  document.getElementById('s-tonfall').addEventListener('change', function () {
+    Lesify.updateSettings({ ki_tonfall: this.value });
+    LesifyUI.toast('Tonfall aktualisiert.');
+  });
+
+  var paketSel = document.getElementById('s-paket');
+  var paketInfo = document.getElementById('paket-info');
+
+  function renderPlan() {
+    var plan = Lesify.plan();
+    paketSel.value = plan.paket;
+    var l = plan.limits;
+    var fam = plan.familie ? (' · Familien-Paket, ' + plan.familie.sitze + ' Kinder (volles Kontingent je Kind)') : '';
+    paketInfo.textContent = 'Kontingent im ' + plan.name + ': ' +
+      l.dateien + ' Content-Aufnahmen · ' +
+      (l.nachrichten == null ? 'unbegrenzt' : l.nachrichten) + ' Nachrichten · ' +
+      l.lernzettel + ' Lernzettel · ' + l.testklausuren + ' Testklausuren pro Monat' + fam + '.';
+    renderUsage();
+  }
+
+  function renderUsage() {
+    var u = Lesify.usage();
+    document.getElementById('usage-detail').innerHTML =
+      usageRow('Nachrichten', u.nachrichten) +
+      usageRow('Content-Aufnahmen', u.dateien) +
+      usageRow('Lernzettel', u.lernzettel) +
+      usageRow('Testklausuren', u.testklausuren) +
+      '<p class="text-xs text-muted" style="margin-top:14px">Setzt sich zurück am ' + LesifyUI.Render.formatDatum(u.resetDatum) + '.</p>';
+  }
+
+  paketSel.addEventListener('change', function () {
+    Lesify.setPlan({ paket: this.value });
+    renderPlan();
+    LesifyUI.toast('Tarif auf ' + Lesify.plan().name + ' gesetzt.');
+  });
+
+  renderPlan();
+
+  function usageRow(label, data) {
+    var unlimited = data.limit == null;
+    var ratio = unlimited ? 0 : Math.max(0, Math.min(1, data.used / data.limit));
+    var cls = unlimited ? 'is-gruen' : (ratio >= 0.66 ? 'is-rot' : (ratio >= 0.33 ? 'is-gelb' : 'is-gruen'));
+    var count = unlimited ? (data.used + ' / ∞') : (data.used + ' / ' + data.limit);
+    return '<div style="margin-bottom:16px">' +
+      '<div class="flex justify-between items-center" style="margin-bottom:7px"><span class="text-sm fw-600">' + label + '</span><span class="text-xs mono text-muted">' + count + '</span></div>' +
+      '<div class="usage-bar" style="height:6px"><div class="usage-bar-fill ' + cls + '" style="transform:scaleX(' + ratio + ')"></div></div>' +
+    '</div>';
+  }
+});
+</script>
+</body>
+</html>

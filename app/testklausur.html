@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Testklausur · Lesify</title>
+<link rel="icon" href="assets/img/logo.png">
+<link rel="stylesheet" href="assets/css/style.css">
+<style>
+  /* =========================================================
+     testklausur.html — Split-Layout: horizontaler Stepper bzw.
+     (ab 880px) vertikale Step-Schiene links, Inhalt rechts.
+     DOM: .tkx-head · .tkx-steps · .tkx-panel · .tkx-result.
+     Fach-Farbvariablen (--fach-color/-ink/-bg) inline auf .tkx.
+     Der Dev-Switcher unten rechts schaltet nur die angezeigte
+     PHASE um (erstellt/gelöst/analysiert), localStorage
+     ['lesify:tk:stage'] — ändert nichts am gespeicherten Zustand.
+     ========================================================= */
+  .note-pair { display: flex; gap: var(--sp-5); flex-wrap: wrap; margin-bottom: var(--sp-8); }
+  .aufgabe-card { padding: 22px; border-left: 4px solid var(--apc-color, var(--ink-300)); }
+  .aufgabe-card + .aufgabe-card { margin-top: 12px; }
+
+  .tkx { --tkx-accent: var(--fach-color, var(--ink-900)); }
+  .tkx .stepper-mini { margin-bottom: 0; }
+  .tkx-head { margin-bottom: var(--sp-6); }
+  .tkx-steps { margin-bottom: var(--sp-5); }
+  .tkx-panel {
+    padding: 28px 30px; margin-bottom: var(--sp-8);
+    background: var(--bg-surface); border-radius: var(--radius-lg);
+    border: 1px solid color-mix(in srgb, var(--fach-color) 34%, var(--line));
+  }
+  .tkx-panel:empty { display: none; }
+  .tkx-preview-hint { font-size: 0.76rem; color: var(--ink-500); margin: 0 0 12px; font-style: italic; }
+
+  /* Step-Nummerierung wie auf der Lernplan-Seite (fach-gefärbt):
+     erledigt = gefüllt, aktuell = fach-Rand, Verbindungslinie fach. */
+  .tkx .stepper-mini .sm-step.is-done .sm-num {
+    background: var(--fach-color, var(--ink-950)); border-color: var(--fach-color, var(--ink-950)); color: #fff;
+  }
+  .tkx .stepper-mini .sm-step.is-current .sm-num {
+    border-color: var(--fach-color, var(--ink-950)); color: var(--fach-ink, var(--ink-950));
+  }
+  .tkx .stepper-mini .sm-step.is-done + .sm-step .sm-line,
+  .tkx .stepper-mini .sm-line.is-done { background: var(--fach-color, var(--ink-950)); }
+
+  /* Karten: fach-getönter Rand, Ampel-Kante links bleibt (trägt Info). */
+  .tkx .aufgabe-card {
+    border-color: color-mix(in srgb, var(--fach-color) 26%, var(--line));
+    border-left-color: var(--apc-color, var(--ink-300));
+  }
+  .tkx .card-watermark { opacity: 0.06; }
+
+  /* Testklausurnote in Ampelfarbe (wie überall, wo Noten stehen). */
+  .tkx .frozen-note-box.vb-note-gruen { background: var(--gruen-bg); }
+  .tkx .frozen-note-box.vb-note-gruen .vb-note-num { color: var(--gruen); }
+  .tkx .frozen-note-box.vb-note-gelb { background: var(--gelb-bg); }
+  .tkx .frozen-note-box.vb-note-gelb .vb-note-num { color: var(--gelb-ink); }
+  .tkx .frozen-note-box.vb-note-rot { background: var(--rot-bg); }
+  .tkx .frozen-note-box.vb-note-rot .vb-note-num { color: var(--rot); }
+
+  /* Lernplan-Teaser: SVG-Kachel in Fachfarbe. */
+  .tkx .ap-teaser-ico { background: var(--fach-color, var(--ink-950)); }
+
+  /* Lösen (erstellt) + Analyse (geloest): mehr Fach-Präsenz im Panel. */
+  .tkx[data-status="erstellt"] .tkx-panel,
+  .tkx[data-status="geloest"] .tkx-panel {
+    background: color-mix(in srgb, var(--fach-bg) 32%, var(--bg-surface));
+  }
+  .tkx-panel .tk-aufgaben-box {
+    background: var(--bg-surface);
+    border: 1px solid color-mix(in srgb, var(--fach-color) 30%, var(--line));
+    border-radius: var(--radius-md); padding: 4px 18px; margin-bottom: 20px;
+  }
+  .tkx-panel .tk-dropzone { border-color: color-mix(in srgb, var(--fach-color) 44%, var(--line-strong)); }
+  .tkx-panel .tk-dropzone:hover {
+    border-color: var(--fach-color, var(--ink-700));
+    background: color-mix(in srgb, var(--fach-bg) 40%, var(--bg-surface));
+  }
+
+  @media (min-width: 880px) {
+    .tkx { display: grid; grid-template-columns: 210px 1fr; column-gap: 32px; align-items: start; }
+    .tkx-head { grid-column: 1 / -1; }
+    .tkx-steps { position: sticky; top: 20px; margin: 0; }
+    .tkx-steps .stepper-mini { flex-direction: column; align-items: flex-start; gap: 4px; }
+    .tkx-steps .sm-step { flex: none; }
+    .tkx-steps .sm-line { width: 1.5px; height: 14px; flex: none; margin-left: 12px; }
+    .tkx-panel,
+    .tkx-result { grid-column: 2; }
+  }
+</style>
+</head>
+<body data-page="klausuren">
+<div class="app-shell">
+  <div id="sidebar-root"></div>
+  <div class="main">
+    <div id="topbar-root"></div>
+    <main class="main-inner">
+
+      <a href="#" class="section-link" id="back-link" style="margin-bottom:18px;display:inline-flex">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        <span id="back-label">Zurück</span>
+      </a>
+
+      <div class="tkx" id="tkx">
+        <div class="page-head tkx-head" id="tk-head"></div>
+        <div class="tkx-steps" id="tk-steps"></div>
+        <div class="tkx-panel" id="tk-panel"></div>
+        <div class="tkx-result" id="tk-ergebnis"></div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var R = LesifyUI.Render, I = LesifyUI.Icons;
+  var params = new URLSearchParams(window.location.search);
+  var tkId = params.get('id') || Lesify.testklausuren()[0].id;
+  var t = Lesify.getTestklausur(tkId) || Lesify.testklausuren()[0];
+  tkId = t.id;
+  var fach = Lesify.getFach(t.fachId);
+  var fachCol = fach ? Lesify.getFachColor(fach.farbe) : null;
+  LesifyUI.setPageWatermark(Lesify.getFachIcon(t.fachId) || '', fachCol ? fachCol.base : null);
+
+  document.title = t.titel + ' · Lesify';
+  if (t.klausurId) { document.getElementById('back-link').href = 'klausur.html?id=' + t.klausurId; document.getElementById('back-label').textContent = 'Zurück zur Klausur'; }
+  else { document.getElementById('back-link').href = 'thema.html?id=' + t.themaIds[0] + '&tab=testklausuren'; document.getElementById('back-label').textContent = 'Zurück zum Thema'; }
+
+  var tkx = document.getElementById('tkx');
+  tkx.setAttribute('style', R.fachColorVars(t.fachId));
+
+  /* =========================================================
+     Dev-Phasen-Umschalter — überschreibt nur die ANZEIGE
+     (erstellt/gelöst/analysiert), nicht den Store. „Live" = echter
+     Status. Fehlt einer Phase die Daten (z. B. Ergebnis), wird eine
+     lokale Vorschau erzeugt (nicht persistiert).
+     ========================================================= */
+  var TK_STAGES = [['erstellt', 'Erstellt'], ['geloest', 'Gelöst'], ['analysiert', 'Analysiert']];
+  var stageOverride = null;
+  (function () {
+    var v; try { v = localStorage.getItem('lesify:tk:stage'); } catch (e) {}
+    if (v === 'erstellt' || v === 'geloest' || v === 'analysiert') stageOverride = v;
+  })();
+  function saveStage() { try { localStorage.setItem('lesify:tk:stage', stageOverride || ''); } catch (e) {} }
+  function effStatus() { return stageOverride || t.status; }
+
+  // Lokale Ergebnis-Vorschau (spiegelt Lesify.analysiereTestklausur, ohne
+  // Persistenz). Deterministisch, damit sie über Re-Renders stabil bleibt.
+  function previewErgebnis() {
+    var proThema = t.themaIds.map(function (themaId, i) {
+      // Stabiler Pseudo-Lernstand je Thema (~40–89), analog data.js themaBasis().
+      var h = 0, s = String(themaId || '');
+      for (var k = 0; k < s.length; k++) { h = (h * 31 + s.charCodeAt(k)) | 0; }
+      var basis = 40 + Math.abs(h) % 50;
+      var prozent = Math.max(8, Math.min(99, basis + ((i % 3) - 1) * 9));
+      return {
+        themaId: themaId, prozent: prozent, note: Lesify.prozentZuNote(prozent),
+        erklaerung: 'Vorschau — die echte KI-Auswertung entsteht erst mit „Analyse starten".'
+      };
+    });
+    var gp = Math.round(proThema.reduce(function (a, p) { return a + p.prozent; }, 0) / proThema.length);
+    return { note: Lesify.prozentZuNote(gp), prozent: gp, proThema: proThema, __preview: true };
+  }
+
+  function drawHead() {
+    document.getElementById('tk-head').innerHTML =
+      '<div>' + t.themaIds.map(R.badge).join(' ') +
+        '<h1 class="page-title" style="margin-top:14px">' + t.titel + '</h1>' +
+        '<p class="page-sub">Erstellt ' + t.erstelltAm + '</p>' +
+      '</div>';
+  }
+
+  var STEPS = [
+    { key: 'erstellt-vorher', label: 'Erstellen' },
+    { key: 'erstellt', label: 'Lösen' },
+    { key: 'geloest', label: 'Analyse' },
+    { key: 'analysiert', label: 'Ergebnis' }
+  ];
+  function stepIndex(status) { return STEPS.findIndex(function (s) { return s.key === status; }); }
+
+  function drawSteps() {
+    var idx = stepIndex(effStatus());
+    document.getElementById('tk-steps').innerHTML = '<div class="stepper-mini">' + STEPS.map(function (s, i) {
+      var cls = i < idx ? 'is-done' : (i === idx ? 'is-current' : '');
+      // Nummer bleibt immer sichtbar (weiß auf Fachfarbe), kein Häkchen-Tausch.
+      var inner = i + 1;
+      var line = i > 0 ? '<span class="sm-line' + (i <= idx ? ' is-done' : '') + '"></span>' : '';
+      return line + '<span class="sm-step ' + cls + '"><span class="sm-num">' + inner + '</span><span class="text-xs' + (i === idx ? ' fw-600' : ' text-muted') + '" style="' + (i === idx ? 'color:var(--ink-950)' : '') + '">' + s.label + '</span></span>';
+    }).join('') + '</div>';
+  }
+
+  function downloadTestklausur() { Lesify.downloadText(Lesify.slugify(t.titel) + '.txt', Lesify.testklausurDokument(t)); }
+
+  function drawErstelltPanel() {
+    var aufgabenHtml = t.aufgaben.map(function (a, i) {
+      var label = Lesify.label(a.themaId);
+      return '<div style="padding:14px 0' + (i ? ';border-top:1px solid color-mix(in srgb,var(--fach-color) 20%,var(--line))' : '') + '">' +
+        '<div class="text-xs fw-600" style="margin-bottom:4px;color:var(--fach-ink,var(--ink-700))">Aufgabe ' + (i + 1) + ' · ' + label.thema + '</div>' +
+        '<div class="text-sm text-muted">' + a.frage + '</div></div>';
+    }).join('');
+
+    return '<div>' +
+      '<h3 style="font-size:1.05rem;margin-bottom:6px;color:var(--fach-ink,var(--ink-950))">Aufgaben bereit</h3>' +
+      '<p class="text-sm text-muted" style="max-width:60ch;margin-bottom:18px">Jedes Thema hat eine Aufgabe bekommen. Lade die Testklausur herunter, löse sie eigenständig und lade deine Lösung anschließend als Dokument hoch.</p>' +
+      '<div class="tk-aufgaben-box">' + aufgabenHtml + '</div>' +
+      '<div class="flex gap-3" style="flex-wrap:wrap">' +
+        '<button class="btn btn-secondary" id="download-btn" style="border-color:color-mix(in srgb,var(--fach-color) 45%,var(--line-strong))">' + I.download + ' Testklausur herunterladen</button>' +
+      '</div>' +
+      '<label class="upload-dropzone tk-dropzone" style="margin-top:18px;position:relative">' +
+        '<span class="spark" style="width:32px;height:32px;color:var(--fach-color,var(--ink-500))">' + I.upload + '</span>' +
+        '<span><span style="display:block;font-weight:600;font-size:0.88rem;margin-bottom:3px">Lösung hochladen</span><span class="text-sm text-muted">Als Foto, Scan oder Dokument — max. 5 MB</span></span>' +
+        '<input type="file" id="solve-upload-input">' +
+      '</label>' +
+    '</div>';
+  }
+
+  function drawGeloestPanel() {
+    var name = t.geloesteDateiName || '(Vorschau) meine-loesung.pdf';
+    return '<div>' +
+      '<h3 style="font-size:1.05rem;margin-bottom:8px;color:var(--fach-ink,var(--ink-950))">Bereit zur Analyse</h3>' +
+      '<p class="text-sm text-muted" style="max-width:60ch;margin-bottom:18px">Hochgeladen: <strong style="color:var(--fach-ink,var(--ink-900))">' + name + '</strong>. Lesify wertet deine Antworten aus und erstellt einen Action Plan.</p>' +
+      '<button class="btn btn-primary" id="analyse-btn" style="background:var(--fach-color,var(--ink-950));border-color:var(--fach-color,var(--ink-950))"><span class="spark spark-live" style="width:15px;height:15px">' + I.spark + '</span>Analyse starten</button>' +
+    '</div>';
+  }
+
+  function drawPanel() {
+    var el = document.getElementById('tk-panel');
+    var st = effStatus();
+    tkx.setAttribute('data-status', st);
+    // Bei „analysiert" braucht das Panel keinen Inhalt — das Ergebnis steht
+    // direkt darunter. Leeres Panel wird per CSS (:empty) ausgeblendet.
+    el.innerHTML = st === 'erstellt' ? drawErstelltPanel()
+      : (st === 'geloest' ? drawGeloestPanel() : '');
+
+    var dl = document.getElementById('download-btn');
+    if (dl) dl.addEventListener('click', downloadTestklausur);
+
+    var solveInput = document.getElementById('solve-upload-input');
+    if (solveInput) solveInput.addEventListener('change', function (e) {
+      if (!e.target.files.length) return;
+      var file = e.target.files[0];
+      if (file.size > 5 * 1024 * 1024) { LesifyUI.toast('Datei größer als 5 MB.'); e.target.value = ''; return; }
+      var zone = solveInput.closest('.upload-dropzone');
+      zone.style.pointerEvents = 'none';
+      zone.style.opacity = '0.6';
+      LesifyUI.toast('„' + file.name + '" wird hochgeladen…');
+      setTimeout(function () {
+        t = Lesify.markTestklausurGeloest(tkId, file.name);
+        stageOverride = null; saveStage();
+        drawAll();
+        LesifyUI.toast('Lösung hochgeladen — bereit zur Analyse.');
+      }, 1000);
+    });
+
+    var analyseBtn = document.getElementById('analyse-btn');
+    if (analyseBtn) analyseBtn.addEventListener('click', function () {
+      analyseBtn.disabled = true;
+      analyseBtn.innerHTML = '<span class="skeleton" style="width:16px;height:16px;border-radius:50%;display:inline-block"></span>Wird ausgewertet…';
+      setTimeout(function () {
+        t = Lesify.analysiereTestklausur(tkId);
+        stageOverride = null; saveStage();
+        drawAll();
+        LesifyUI.toast('Analyse abgeschlossen.');
+      }, 1500);
+    });
+  }
+
+  function frozenNoteBoxHtml(erg) {
+    return '<div class="frozen-note-box vb-note-' + Lesify.noteAmpel(erg.note) + '"><span class="vb-note-num">' + erg.note.toFixed(1) + '</span>' +
+      '<span class="vb-note-meta"><span class="vb-note-cap">' + I.lock + 'Testklausurnote</span>' +
+      '<span class="vb-note-lbl">Eingefroren · ' + erg.prozent + '% · ' + Lesify.noteLabel(erg.note) + '</span></span></div>';
+  }
+
+  function drawErgebnis() {
+    var el = document.getElementById('tk-ergebnis');
+    if (effStatus() !== 'analysiert') { el.innerHTML = ''; return; }
+    var erg = t.ergebnis || previewErgebnis();
+
+    var hint = erg.__preview ? '<p class="tkx-preview-hint">Phasen-Vorschau — noch keine echte Auswertung.</p>' : '';
+    var notePair = '<div class="note-pair">' + frozenNoteBoxHtml(erg) + '</div>';
+
+    var aufgabenHtml = '<div class="section-head"><span class="section-title">Aufgabe für Aufgabe</span></div>' +
+      t.aufgaben.map(function (a) {
+        var pt = erg.proThema.find(function (p) { return p.themaId === a.themaId; });
+        var label = Lesify.label(a.themaId);
+        var ampel = Lesify.noteAmpel(pt.note);
+        return '<div class="card aufgabe-card has-watermark" style="--apc-color:var(--' + ampel + ')">' +
+          R.cardWatermark(t.fachId) +
+          '<div class="flex justify-between items-center" style="margin-bottom:10px">' +
+            '<span class="text-sm fw-600">' + label.thema + '</span>' + R.noteChip(pt.note) +
+          '</div>' +
+          '<p class="text-sm text-muted" style="margin-bottom:10px">' + a.frage + '</p>' +
+          '<p class="text-sm" style="padding-top:10px;border-top:1px solid var(--line)">' + pt.erklaerung + '</p>' +
+        '</div>';
+      }).join('') + '<div style="margin-bottom:var(--sp-10)"></div>';
+
+    var lp = t.klausurId ? Lesify.getLernplanFuerKlausur(t.klausurId) : null;
+    var lernplanHtml = lp
+      ? '<div class="section-head"><span class="section-title">Lernplan</span></div>' + R.lernplanTeaser(lp.id)
+      : '';
+
+    el.innerHTML = hint + notePair + aufgabenHtml + lernplanHtml;
+  }
+
+  function drawAll() { drawHead(); drawSteps(); drawPanel(); drawErgebnis(); }
+
+  function initStageDev() {
+    var panel = document.createElement('div');
+    panel.className = 'layout-dev';
+    function render() {
+      var eff = effStatus();
+      panel.innerHTML = '<span class="layout-dev-title">Testklausur-Phase</span>' +
+        '<div class="layout-dev-row"><span>Phase</span><div class="layout-dev-seg">' +
+        TK_STAGES.map(function (o) {
+          return '<button type="button" data-stage="' + o[0] + '"' + (o[0] === eff ? ' class="is-on"' : '') + '>' + o[1] + '</button>';
+        }).join('') +
+        '<button type="button" data-stage=""' + (stageOverride ? '' : ' class="is-on"') + '>Live</button>' +
+        '</div></div>';
+    }
+    render();
+    panel.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-stage]');
+      if (!b) return;
+      stageOverride = b.getAttribute('data-stage') || null;
+      saveStage();
+      drawAll();
+      render();
+    });
+    document.body.appendChild(panel);
+  }
+
+  drawAll();
+  initStageDev();
+});
+</script>
+</body>
+</html>

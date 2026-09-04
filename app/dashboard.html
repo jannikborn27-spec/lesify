@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard · Lesify</title>
+<link rel="icon" href="assets/img/logo.png">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="dashboard">
+<div class="app-shell">
+  <div id="sidebar-root"></div>
+  <div class="main">
+    <div id="topbar-root"></div>
+    <main class="main-inner" id="dash-main"></main>
+  </div>
+</div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var R = LesifyUI.Render, I = LesifyUI.Icons;
+
+  var user = Lesify.getUser();
+  var firstName = user.name.split(' ')[0];
+
+  // Nur anstehende Klausuren — bereits geschriebene gehören nicht in „Nächste"/
+  // „Anstehende Klausuren".
+  var allK = Lesify.klausuren().slice()
+    .filter(function (k) { return !Lesify.klausurVergangen(k); })
+    .sort(function (a, b) { return a.datum.localeCompare(b.datum); });
+  var faecher = Lesify.faecher();
+  var themen = Lesify.themen();
+  var chats = Lesify.chats();
+  var lernzettel = Lesify.lernzettel();
+  var dateien = Lesify.dateien();
+  var nextK = allK[0];
+
+  var hour = new Date().getHours();
+  var greeting = hour < 11 ? 'Guten Morgen' : (hour < 18 ? 'Guten Tag' : 'Guten Abend');
+  var MONTHS_LONG = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+  var now = new Date();
+  var todayStr = now.getDate() + '. ' + MONTHS_LONG[now.getMonth()] + ' ' + now.getFullYear();
+
+  var nextSentence = nextK
+    ? 'Nächste Klausur: ' + nextK.titel + ' · ' + R.countdown(nextK.datum)
+    : 'Keine anstehenden Klausuren — du bist auf dem Laufenden.';
+
+  /* ---- Suche (in allen Layouts gleich verdrahtet) ---- */
+  function wireSearch() {
+    var searchInput = document.getElementById('dash-search-input');
+    var searchDropdown = document.getElementById('dash-search-dropdown');
+    var iconSlot = document.getElementById('dash-search-icon');
+    if (!searchInput || !searchDropdown) return;
+    if (iconSlot) iconSlot.innerHTML = I.search;
+
+    function renderSearchDropdown() {
+      var q = searchInput.value.trim();
+      if (!q) { searchDropdown.classList.remove('is-open'); searchDropdown.innerHTML = ''; return; }
+      var groups = LesifyUI.search(q);
+      if (!groups.length) {
+        searchDropdown.innerHTML = '<div class="search-dd-empty">Keine Ergebnisse für „' + q + '"</div>';
+        searchDropdown.classList.add('is-open');
+        return;
+      }
+      searchDropdown.innerHTML = LesifyUI.searchDropdownHtml(groups, q);
+      searchDropdown.classList.add('is-open');
+    }
+
+    searchInput.addEventListener('input', renderSearchDropdown);
+    searchInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && searchInput.value.trim()) window.location.href = 'suche.html?q=' + encodeURIComponent(searchInput.value.trim());
+    });
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('.search-input-wrap') && !e.target.closest('.layout-dev')) searchDropdown.classList.remove('is-open');
+    });
+  }
+
+  /* ---- gemeinsame Bausteine ---- */
+  function feedItems() {
+    var rc = chats.slice(-3).reverse().map(function (c) { return { icon: 'chat', title: c.titel, sub: 'Chat · ' + c.updated, href: 'chat.html?fach=' + c.fachId + '&thema=' + c.themaId + '&chat=' + c.id, themaId: c.themaId }; });
+    var rl = lernzettel.slice(-2).reverse().map(function (l) { return { icon: 'book', title: l.titel, sub: 'Lernzettel · ' + l.updated, href: 'lernzettel.html?id=' + l.id, themaId: l.themaId }; });
+    var rd = dateien.slice(-2).reverse().map(function (d) { return { icon: 'file', title: d.name, sub: 'Datei · ' + d.updated, dateiId: d.id, themaId: d.themaId }; });
+    return rc.concat(rl, rd);
+  }
+  function feedRow(it) {
+    var target = it.dateiId ? 'data-datei-id="' + it.dateiId + '"' : 'data-href="' + it.href + '"';
+    return '<div class="row-item" ' + target + ' tabindex="0" role="link">' +
+      '<span class="row-ico">' + I[it.icon] + '</span>' +
+      '<span class="row-body"><span class="row-title">' + it.title + '</span><span class="row-sub">' + it.sub + '</span></span>' +
+      R.badge(it.themaId) +
+    '</div>';
+  }
+  function feedList(items, limit) {
+    var list = items.slice(0, limit || 6);
+    if (!list.length) return '<div class="mini-panel-empty">Noch keine Aktivität.</div>';
+    return list.map(feedRow).join('');
+  }
+  function searchBlock() {
+    return '<div class="hero-search search-input-wrap">' +
+      '<span id="dash-search-icon" class="search-field-ico"></span>' +
+      '<input type="text" class="search-input" id="dash-search-input" placeholder="Fächer, Themen, Chats, Dateien durchsuchen…" autocomplete="off">' +
+      '<div class="search-dropdown" id="dash-search-dropdown"></div>' +
+    '</div>';
+  }
+  function quickChip(href, icon, label, primary) {
+    return '<a class="hero-chip' + (primary ? ' is-primary' : '') + '" href="' + href + '">' + I[icon] + ' ' + label + '</a>';
+  }
+  function heroBlock() {
+    return '<div class="hero-head is-center">' +
+      '<div class="page-eyebrow"><span class="spark spark-live" style="width:13px;height:13px;color:var(--ink-400)">' + I.spark + '</span> Willkommen zurück</div>' +
+      '<h1 class="page-title">' + greeting + ', ' + firstName + '</h1>' +
+      '<p class="page-sub">' + todayStr + ' · ' + nextSentence + '</p>' +
+      searchBlock() +
+      '<div class="hero-actions">' +
+        quickChip('chat.html', 'chat', 'Chat starten', true) +
+        quickChip('faecher.html', 'layers', 'Fächer') +
+        quickChip('klausuren.html', 'docCheck', 'Klausuren') +
+        quickChip('suche.html', 'search', 'Suchen') +
+      '</div>' +
+    '</div>';
+  }
+  function chatTile() {
+    return '<a href="chat.html" class="ai-tile">' +
+      '<span class="ai-tile-illustration" aria-hidden="true">' + I.chat + '</span>' +
+      '<span class="spark-badge">' + I.chat + '</span>' +
+      '<h3>KI-Chat starten</h3>' +
+      '<p>Ein Thema erklären lassen oder Hilfe bei den Hausaufgaben holen — immer gebunden an Fach und Thema.</p>' +
+      '<span class="tile-cta">Chat starten ' + I.arrowRight + '</span>' +
+    '</a>';
+  }
+  function miniPanel(title, icon, bodyHtml) {
+    return '<div class="card mini-panel">' +
+      '<div class="mini-panel-head"><span class="mph-title"><span class="spark">' + I[icon] + '</span>' + title + '</span></div>' +
+      '<div class="mini-panel-body">' + bodyHtml + '</div>' +
+    '</div>';
+  }
+
+  /* =========================================================
+     "Nächste Klausur" — dieselbe Karte wie auf der Klausuren-
+     Seite (R.klausurCard). Fehlt eine Klausur, ein ruhiger
+     Platzhalter.
+     ========================================================= */
+  function nextKlausurCard() {
+    if (!nextK) {
+      return '<div class="card" style="padding:24px;display:flex;flex-direction:column;justify-content:center">' +
+        '<span class="nk-label">Nächste Klausur</span>' +
+        '<p class="text-sm text-muted" style="margin-top:10px">Keine anstehende Klausur eingetragen.</p></div>';
+    }
+    // Kicker über dem Titel ergänzen — R.klausurCard bleibt sonst unverändert.
+    return R.klausurCard(nextK).replace(
+      '<h3 class="klausur-card-title">',
+      '<span class="nk-label">Nächste Klausur</span><h3 class="klausur-card-title">'
+    );
+  }
+
+  /* Anstehende Klausuren nach der nächsten — kompakte, klickbare Liste. */
+  function upcomingRows() {
+    var rest = allK.slice(1);
+    if (!rest.length) return '<div class="mini-panel-empty">Keine weiteren anstehenden Klausuren.</div>';
+    return rest.slice(0, 5).map(function (k) {
+      return '<div class="row-item" data-href="klausur.html?id=' + k.id + '" tabindex="0" role="link" style="' + R.fachColorVars(k.fachId) + '">' +
+        '<span class="row-ico">' + I.docCheck + '</span>' +
+        '<span class="row-body"><span class="row-title">' + k.titel + '</span>' +
+          '<span class="row-sub mono">' + R.formatDatum(k.datum) + ' · ' + R.countdown(k.datum) + '</span></span>' +
+        R.badge(k.themaIds[0]) +
+      '</div>';
+    }).join('');
+  }
+
+  /* =========================================================
+     Grundlayout — zentrierter Welcome-Hero + ruhiges 2×2-Bento.
+     ========================================================= */
+  function build() {
+    return heroBlock() +
+      '<div class="dash-bento">' +
+        chatTile() +
+        nextKlausurCard() +
+        miniPanel('Zuletzt bearbeitet', 'clock', feedList(feedItems(), 5)) +
+        miniPanel('Anstehende Klausuren', 'docCheck', upcomingRows()) +
+      '</div>';
+  }
+
+  document.getElementById('dash-main').innerHTML = build();
+  wireSearch();
+  LesifyUI.mountSearchDev(function () {
+    var el = document.getElementById('dash-search-input');
+    if (el && el.value.trim()) el.dispatchEvent(new Event('input'));
+  });
+});
+</script>
+</body>
+</html>

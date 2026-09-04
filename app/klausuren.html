@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Klausuren · Lesify</title>
+<link rel="icon" href="assets/img/logo.png">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="klausuren">
+<div class="app-shell">
+  <div id="sidebar-root"></div>
+  <div class="main">
+    <div id="topbar-root"></div>
+    <main class="main-inner">
+
+      <div class="page-head">
+        <div>
+          <div class="page-eyebrow">Klausuren</div>
+          <h1 class="page-title">Alle Klausuren</h1>
+          <p class="page-sub">Fächerübergreifend — jede Klausur gehört zu einem Fach und einem Thema. Testklausuren bereiten dich gezielt vor.</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary" data-modal-open="modal-new-klausur">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Neue Klausur hinzufügen
+          </button>
+        </div>
+      </div>
+
+      <div class="flex gap-2" style="margin-bottom:24px;flex-wrap:wrap" data-filter-group="#klausuren-list [data-filter]" id="klausur-filters"></div>
+
+      <div class="klausur-list" id="klausuren-list"></div>
+
+    </main>
+  </div>
+</div>
+
+<div class="modal-scrim" id="modal-new-klausur">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <h3 class="modal-title">Neue Klausur hinzufügen</h3>
+        <p class="modal-sub">Jede Klausur braucht ein Fach und mindestens ein Thema — mehrere Themen sind möglich.</p>
+      </div>
+    </div>
+    <form id="nk-form">
+      <div class="field">
+        <label for="nk-titel">Titel der Klausur</label>
+        <input class="input" id="nk-titel" type="text" placeholder="z. B. Mathe Klausur 3 — Geometrie" required>
+      </div>
+      <div class="field mt-0">
+        <label for="nk-fach">Fach</label>
+        <select class="select" id="nk-fach" required></select>
+      </div>
+      <div class="field mt-0" id="nk-new-fach-row" style="display:none">
+        <label for="nk-fach-neu">Neuer Fachname</label>
+        <input class="input" id="nk-fach-neu" type="text" placeholder="z. B. Physik">
+      </div>
+      <div class="field mt-0">
+        <label>Themen <span class="tp-label-hint">— mindestens eines, mehrere möglich</span></label>
+        <div id="nk-thema-widget"></div>
+      </div>
+      <div class="field mt-0">
+        <label for="nk-datum">Klausurdatum</label>
+        <input class="input" id="nk-datum" type="date" required>
+      </div>
+      <div class="modal-foot">
+        <button type="button" class="btn btn-secondary" data-modal-close>Abbrechen</button>
+        <button type="submit" class="btn btn-primary">Klausur erstellen</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var R = LesifyUI.Render, I = LesifyUI.Icons;
+
+  function drawFilters() {
+    document.getElementById('klausur-filters').innerHTML = R.fachFilterChips();
+  }
+
+  function drawList() {
+    var klausuren = Lesify.klausuren();
+    var html = klausuren.length ? R.klausurListe(klausuren) : '';
+    document.getElementById('klausuren-list').innerHTML = html || ('<div class="empty-state"><div class="es-icon">' + I.docCheck + '</div><h4>Noch keine Klausuren</h4><p>Lege deine erste Klausur an.</p></div>');
+  }
+
+  drawFilters(); drawList();
+
+  /* =========================================================
+     create-klausur modal — Themenauswahl als fach-gefärbtes
+     Pill-Raster (Style „Solid": ausgewählt = Fachfarbe voll).
+     Zustand: selectedThemaIds (vorhandene) + pendingThemen (neue
+     Namen, beim Absenden per Lesify.addThema). Kein „×" —
+     Ab-/Anwählen per Klick auf die Pill, Abbruch übers Modal.
+     ========================================================= */
+  var fachSelect = document.getElementById('nk-fach');
+  var newFachRow = document.getElementById('nk-new-fach-row');
+  var widget = document.getElementById('nk-thema-widget');
+  var selectedThemaIds = [];
+  var pendingThemen = [];
+
+  function populateFaecher() {
+    fachSelect.innerHTML = Lesify.faecher().map(function (f) { return '<option value="' + f.id + '">' + f.name + '</option>'; }).join('') +
+      '<option value="__new__">+ Neues Fach erstellen</option>';
+  }
+
+  function curThemen() {
+    return fachSelect.value === '__new__' ? [] : Lesify.themen(fachSelect.value);
+  }
+  function isSel(id) { return selectedThemaIds.indexOf(id) !== -1; }
+  function toggleSel(id, on) {
+    var i = selectedThemaIds.indexOf(id);
+    if (on && i === -1) selectedThemaIds.push(id);
+    if (!on && i !== -1) selectedThemaIds.splice(i, 1);
+  }
+  function addPending(name) {
+    name = (name || '').trim();
+    if (!name) return;
+    if (!pendingThemen.some(function (n) { return n.toLowerCase() === name.toLowerCase(); })) pendingThemen.push(name);
+  }
+  function removePending(name) {
+    pendingThemen = pendingThemen.filter(function (n) { return n !== name; });
+  }
+  function focusNew() { var i = widget.querySelector('[data-tp-new]'); if (i) i.focus(); }
+
+  function pillEl(cls, attr, val, label) {
+    return '<button type="button" class="tp-pill' + cls + '" ' + attr + '="' + val + '">' + label + '</button>';
+  }
+
+  function renderWidget() {
+    var neu = fachSelect.value === '__new__';
+    newFachRow.style.display = neu ? 'flex' : 'none';
+    var themen = neu ? [] : curThemen();
+    var fcVars = neu ? '' : R.fachColorVars(fachSelect.value);
+
+    var pills = themen.map(function (t) {
+      return pillEl(isSel(t.id) ? ' is-on' : '', 'data-tp-toggle', t.id, t.name);
+    }).join('') + pendingThemen.map(function (name) {
+      return pillEl(' tp-pill-new is-on', 'data-tp-ptoggle', name, name);
+    }).join('');
+    if (!pills) pills = '<p class="tp-empty">' + (neu ? 'Erst das Fach benennen — dann hier Themen wählen oder anlegen.' : 'Noch keine Themen in diesem Fach — unten anlegen.') + '</p>';
+
+    widget.innerHTML =
+      '<div class="tp-pills"' + (fcVars ? ' style="' + fcVars + '"' : '') + '>' + pills + '</div>' +
+      '<div class="thema-add">' +
+        '<input class="input" data-tp-new type="text" placeholder="Neues Thema hinzufügen">' +
+        '<button type="button" class="btn btn-secondary btn-sm" data-tp-add>Hinzufügen</button>' +
+      '</div>';
+  }
+
+  widget.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-tp-add], [data-tp-toggle], [data-tp-ptoggle]');
+    if (!t) return;
+    if (t.hasAttribute('data-tp-add')) {
+      var input = widget.querySelector('[data-tp-new]');
+      addPending(input && input.value); renderWidget(); focusNew();
+    } else if (t.hasAttribute('data-tp-toggle')) {
+      var id = t.getAttribute('data-tp-toggle'); toggleSel(id, !isSel(id)); renderWidget();
+    } else if (t.hasAttribute('data-tp-ptoggle')) {
+      removePending(t.getAttribute('data-tp-ptoggle')); renderWidget();
+    }
+  });
+  widget.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && e.target.matches('[data-tp-new]')) {
+      e.preventDefault(); addPending(e.target.value); renderWidget(); focusNew();
+    }
+  });
+
+  fachSelect.addEventListener('change', function () {
+    selectedThemaIds = [];
+    renderWidget();
+  });
+
+  populateFaecher(); renderWidget();
+
+  document.getElementById('nk-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var titel = document.getElementById('nk-titel').value.trim();
+    var datum = document.getElementById('nk-datum').value;
+    if (!titel || !datum) return;
+
+    var fachId = fachSelect.value;
+    if (fachId === '__new__') {
+      var fachName = document.getElementById('nk-fach-neu').value.trim();
+      if (!fachName) { document.getElementById('nk-fach-neu').focus(); return; }
+      fachId = Lesify.addFach({ name: fachName }).id;
+    }
+
+    var themaIds = selectedThemaIds.slice();
+    pendingThemen.forEach(function (name) { themaIds.push(Lesify.addThema({ fachId: fachId, name: name }).id); });
+    if (!themaIds.length) { LesifyUI.toast('Wähle mindestens ein Thema aus oder lege eines an.'); return; }
+
+    var k = Lesify.addKlausur({ fachId: fachId, themaIds: themaIds, titel: titel, datum: datum });
+    // Jede neue Klausur startet sofort ihren 7-Tage-Lernplan (inkl. Testklausur 1).
+    var lp = Lesify.starteLernplan(k.id);
+    window.location.href = 'lernplan.html?id=' + lp.id;
+  });
+});
+</script>
+</body>
+</html>

@@ -558,6 +558,28 @@ oben — nichts inhaltlich Neues, nur beim Umsetzen festgelegt:
   `Lernplan.lernzettel` (nullable), `Lernplan.tageErledigt` (`Int[]`).
 - **Arrays ohne FK**: `Klausur.themaIds`, `Testklausur.themaIds` (`String[] @db.Uuid`).
 
+### Auth-Tabellen (Phase 3, 2026-09-04)
+
+Zwei Tabellen, die in §1 oben nicht stehen — sie tragen das „Session/JWT"-
+Konzept aus §5:
+
+| Tabelle | Feld | Typ | Hinweis |
+|---|---|---|---|
+| **Session** | id | uuid | opake, DB-gestützte Sitzung |
+| | userId | uuid (FK, Cascade) | |
+| | tokenHash | string (unique) | `sha256(roh)` hex — der Rohwert (base64url, 32 Byte) geht nur an den Client, als `Authorization: Bearer` |
+| | ablaeuftAm | timestamp | `login` + 7 Tage, mit `angemeldetBleiben` 90 Tage (`SESSION_TAGE` / `SESSION_TAGE_ANGEMELDET_BLEIBEN`) |
+| | erstelltAm | timestamp | |
+| **VerificationToken** | id | uuid | Einmal-Token für Double-Opt-in **und** Passwort-Reset |
+| | userId | uuid (FK, Cascade) | |
+| | typ | enum `VerificationTokenTyp` | `email_bestaetigung` \| `passwort_reset` |
+| | tokenHash | string (unique) | wie Session |
+| | ablaeuftAm | timestamp | E-Mail-Token 7 Tage, Reset-Token 1 Tag |
+| | eingeloestAm | timestamp (nullable) | gesetzt = verbraucht (Einmal-Nutzung) |
+| | erstelltAm | timestamp | |
+
+Migrationen: `20260904083856_init` (Kernmodell) + `20260904084337_auth_sessions_tokens`.
+
 ---
 
 ## 2. Notenlogik (muss exakt reproduziert werden)
@@ -741,8 +763,9 @@ Dev-Switch, `localStorage['lesify:search:v']` — nur Prototyp).
 | POST | `/auth/login` | `{email, passwort, angemeldetBleiben?}` → Session/JWT |
 | POST | `/auth/logout` | Session invalidieren |
 | POST | `/auth/passwort-vergessen` | `{email}` → Reset-Token (immer 200, keine Konto-Enumeration; Versandweg zurückgestellt) |
-| POST | `/auth/passwort-zuruecksetzen` | `{token, neuesPasswort}` |
-| POST | `/auth/email-bestaetigen` | `{token}` → `emailVerifiedAt` setzen |
+| POST | `/auth/passwort-zuruecksetzen` | `{token, neuesPasswort}` → Passwort setzen, Token verbrauchen, **alle Sessions löschen** |
+| POST | `/auth/email-bestaetigen` | `{token}` → `emailVerifiedAt` setzen (Einmal-Token) |
+| GET | `/auth/me` | aktuelle Sitzung → `{user}` (`requireAuth`); für das Frontend-Auth-Gate (Phase 11) |
 
 ### Abo & Abrechnung (neu — beliefert `marketing/preise.html` und den späteren Einstellungen-Bereich)
 | Methode | Pfad | Zweck |
@@ -775,12 +798,44 @@ ohne Backend (Formulare zeigen nur einen Toast). Für das echte Backend:
   die Verarbeitung der Daten des Kindes ein. Die genaue Eltern-Kind-Mechanik ist
   zurückgestellt (Entscheidung 2026-09-03).
 - **Schul-SSO entfällt** (Entscheidung 2026-09-03) — kein `GET /auth/sso/schule`,
-  der Button wird aus `marketing/login.html` entfernt.
+  der Button ist aus `marketing/login.html` entfernt.
 - Session/JWT, an jeden Endpunkt gebunden.
 - Alle Ressourcen (Fach, Thema, Chat, …) sind strikt userId-gescoped — nie
   fach-/themenübergreifend zwischen Usern sichtbar. Im Familien-Abo hat jedes
   Kind-Profil einen eigenen userId-Scope; das Elternkonto erhält nur aggregierte
   Fortschritts-Zusammenfassungen, keinen Chat-Wortlaut.
+
+### Umsetzung (Phase 3, 2026-09-04)
+
+- **Passwort-Hashing:** argon2id (`@node-rs/argon2`, prebuilt — kein Build-Step),
+  Parameter `m=19456, t=2, p=1`. Klartext-Passwort nie gespeichert/geloggt.
+- **Sitzungen: opake Bearer-Tokens, DB-gestützt** (Tabelle `Session`, siehe §1)
+  — nicht signierte JWTs, damit `logout` (und Passwort-Reset) eine Sitzung
+  **wirklich** invalidieren kann. Client schickt `Authorization: Bearer <roh>`;
+  Middleware `requireAuth` schlägt `sha256(roh)` in `Session` nach, prüft
+  `ablaeuftAm`, setzt `request.userId`. Cookie-Variante später nachrüstbar.
+- **Endpunkte** (Prefix `/auth`): `POST /registrieren`, `POST /email-bestaetigen`,
+  `POST /login`, `POST /logout`, `POST /passwort-vergessen`,
+  `POST /passwort-zuruecksetzen`, **`GET /me`** (neu — Sitzungs-Check fürs
+  Frontend-Auth-Gate, Phase 11).
+- **Registrierung:** legt `User` (+ leeren `Einstellungen`-Satz) an,
+  `trialEndetAm = jetzt + 14 Tage`, **kein `Abo`**. Erzeugt `VerificationToken`
+  (`email_bestaetigung`, 7 Tage). Doppelte E-Mail → `409 email_vergeben`.
+- **Kein E-Mail-Versand** (Phase 0): außerhalb von `production` geben
+  `/registrieren` und `/passwort-vergessen` den Roh-Token direkt in der Antwort
+  zurück (`emailBestaetigungToken` / `resetToken`), damit der Flow ohne
+  Versandweg testbar ist. In `production` entfällt das — Versandweg noch offen (§8).
+- **`/passwort-vergessen`** antwortet **immer `200`** (keine Konto-Enumeration),
+  entwertet vorher offene Reset-Token desselben Users.
+- **`/passwort-zuruecksetzen`** setzt das neue Passwort, verbraucht den Token und
+  **löscht alle Sessions** des Users (Neu-Anmeldung überall erzwungen).
+- **Timing-Angleich beim Login:** bei unbekannter E-Mail wird trotzdem gegen
+  einen Dummy-argon2-Hash geprüft, damit „User existiert" nicht an der
+  Antwortzeit erkennbar ist. Falsche Anmeldedaten → `401 anmeldedaten_falsch`.
+- **Eingabevalidierung:** `zod` pro Endpunkt; Fehler → `400 validierung` mit
+  `details` (`z.flattenError`).
+- **Rate-Limiting** für `/auth/*` ist noch **nicht** scharf — kommt in Phase 15
+  (siehe §7).
 
 ## 6. Datei-Speicherung
 

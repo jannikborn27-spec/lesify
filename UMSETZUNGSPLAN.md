@@ -265,24 +265,38 @@ Grundlage: `backend-planning.md` §1. Reihenfolge so, dass FKs immer schon exist
 Beliefert `marketing/login.html`, `registrieren.html`, `passwort-vergessen.html`.
 Endpunkte: `backend-planning.md` §4 „Auth", Regeln §5.
 
-- [ ] **Passwort-Hashing** (starker, gesalzener Algorithmus), nie Klartext.
-- [ ] **`POST /auth/registrieren`:** `{rolle, name, klassenstufe, email, passwort}`
-      → `User` anlegen, **`trialEndetAm = jetzt + 14 Tage`**, **kein** `Abo`.
-      Double-Opt-in-Token erzeugen (Mail-Versand zurückgestellt, Phase 0).
-      `rolle` wird gespeichert; tiefere Eltern-Kind-Mechanik ist zurückgestellt.
-- [ ] **`POST /auth/email-bestaetigen`:** `{token}` → `emailVerifiedAt` setzen.
-- [ ] **`POST /auth/login`:** `{email, passwort, angemeldetBleiben?}` → Session/JWT,
-      an jeden geschützten Endpunkt gebunden.
-- [ ] **`POST /auth/logout`:** Session/Token invalidieren.
-- [ ] **`POST /auth/passwort-vergessen`:** `{email}` → Reset-Mail, **immer 200**
-      (keine Konto-Enumeration).
-- [ ] **`POST /auth/passwort-zuruecksetzen`:** `{token, neuesPasswort}`, Token einmalig + befristet.
-- [ ] **Schul-SSO gestrichen** (Phase 0): `GET /auth/sso/schule` **nicht** bauen,
-      SSO-Button aus `frontend/login.html` entfernen.
-- [ ] **Auth-Middleware:** alle Ressourcen-Endpunkte strikt `userId`-gescoped;
-      Elternkonto sieht von Kind-Profilen nur Aggregat, nie Chat-Wortlaut.
-- [ ] **E-Mail-Verifikation + Trial** in einem manuellen Testdurchlauf bestätigen.
-- [ ] **backend-planning.md §1/§5** an die tatsächlich gebaute Eltern-Kind-Mechanik anpassen.
+- [x] **Passwort-Hashing** — _2026-09-04: argon2id via `@node-rs/argon2` (prebuilt,
+      kein Build-Step), `m=19456,t=2,p=1`. `api/src/lib/password.ts`, Unit-Tests._
+- [x] **`POST /auth/registrieren`** — _2026-09-04: `{rolle,name,klassenstufe,email,
+      passwort}` → `User` + leerer `Einstellungen`-Satz, `trialEndetAm = +14 Tage`,
+      kein `Abo`. `VerificationToken` (email_bestaetigung, 7 Tage). Doppelte
+      E-Mail → 409. Dev gibt den Token in der Antwort zurück (kein Mailversand)._
+- [x] **`POST /auth/email-bestaetigen`** — _2026-09-04: `{token}` → `emailVerifiedAt`,
+      Einmal-Token (`eingeloestAm`), abgelaufen/verbraucht → 400._
+- [x] **`POST /auth/login`** — _2026-09-04: `{email,passwort,angemeldetBleiben?}` →
+      opaker Bearer-Token, DB-`Session` (7 bzw. 90 Tage). Timing-Angleich gegen
+      Dummy-Hash bei unbekannter E-Mail. Falsch → 401._
+- [x] **`POST /auth/logout`** — _2026-09-04: löscht die `Session`-Zeile zum
+      Bearer-Token (idempotent, immer 200)._
+- [x] **`POST /auth/passwort-vergessen`** — _2026-09-04: immer 200, entwertet
+      offene Reset-Token, legt neuen an (1 Tag); Dev gibt `resetToken` zurück._
+- [x] **`POST /auth/passwort-zuruecksetzen`** — _2026-09-04: `{token,neuesPasswort}`,
+      Token einmalig + befristet, setzt Passwort **und löscht alle Sessions**._
+- [x] **Schul-SSO gestrichen** — _kein `/auth/sso/*`; `marketing/login.html` hat
+      keinen SSO-Block mehr (schon Phase 0)._
+- [x] **Auth-Middleware** — _2026-09-04: `app.requireAuth` (preHandler) prüft den
+      Bearer-Token gegen `Session`, setzt `request.userId`. `GET /auth/me` nutzt
+      sie bereits; ab Phase 4 hängt sie an allen Ressourcen-Endpunkten.
+      Eltern-Aggregat-Sicht: Phase 12._
+- [x] **E-Mail-Verifikation + Trial testen** — _2026-09-04: `api/src/routes/auth.test.ts`
+      fährt den kompletten Flow gegen die echte Supabase-DB (registrieren →
+      login → /me → bestätigen (2×) → vergessen → zurücksetzen → logout),
+      23 Tests grün. DB-Tests via `describe.runIf(DATABASE_URL)` — in CI
+      übersprungen, bis dort eine Test-DB steht (Phase 14/16)._
+- [x] **backend-planning.md §1/§5** — _2026-09-04: §1 „Auth-Tabellen" (Session,
+      VerificationToken) ergänzt, §5 „Umsetzung" mit Hashing/Session-/Token-/
+      Timing-Details, §4 um `GET /auth/me`. Eltern-Kind-Mechanik bleibt
+      zurückgestellt (nur `rolle` gespeichert)._
 
 ---
 

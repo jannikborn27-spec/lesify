@@ -1,9 +1,9 @@
 import type { FastifyInstance, FastifyReply } from 'fastify';
-import type { User } from '@prisma/client';
 import { z } from 'zod';
 import { hashPasswort, pruefePasswort } from '../lib/password.js';
 import { hashToken, inTagen, neuesToken } from '../lib/tokens.js';
 import { env, istProd } from '../env.js';
+import { userDTO } from '../lib/dto.js';
 
 const TRIAL_TAGE = 14;
 const EMAIL_TOKEN_TAGE = 7;
@@ -32,19 +32,6 @@ const passwortZuruecksetzenBody = z.object({
   token: z.string().min(1).max(500),
   neuesPasswort: passwort,
 });
-
-/** öffentlich zeigbare User-Felder */
-function userDTO(u: User) {
-  return {
-    id: u.id,
-    name: u.name,
-    klassenstufe: u.klassenstufe,
-    email: u.email,
-    rolle: u.rolle,
-    trialEndetAm: u.trialEndetAm,
-    emailVerifiedAt: u.emailVerifiedAt,
-  };
-}
 
 type ParseErgebnis = { success: true } | { success: false; error: z.ZodError };
 

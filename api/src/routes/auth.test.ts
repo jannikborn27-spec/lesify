@@ -77,14 +77,14 @@ const hatDb = !!process.env.DATABASE_URL;
 describe.runIf(hatDb)('auth — kompletter Flow (Supabase)', () => {
   const app = buildApp({ logger: false });
   const prisma = getPrisma();
-  const email = `test+${crypto.randomUUID()}@lesify.test`;
+  const email = `test+${crypto.randomUUID()}@auth.lesify.test`;
   const passwort = 'startpasswort-123';
 
   beforeAll(async () => {
     await app.ready();
   });
   afterAll(async () => {
-    await prisma.user.deleteMany({ where: { email: { endsWith: '@lesify.test' } } });
+    await prisma.user.deleteMany({ where: { email: { endsWith: '@auth.lesify.test' } } });
     await app.close();
     await prisma.$disconnect();
   });
@@ -150,7 +150,7 @@ describe.runIf(hatDb)('auth — kompletter Flow (Supabase)', () => {
     const r1 = await app.inject({
       method: 'POST',
       url: '/auth/registrieren',
-      payload: { ...reg, email: `v+${crypto.randomUUID()}@lesify.test` },
+      payload: { ...reg, email: `v+${crypto.randomUUID()}@auth.lesify.test` },
     });
     const vToken = r1.json().emailBestaetigungToken as string;
 
@@ -181,7 +181,7 @@ describe.runIf(hatDb)('auth — kompletter Flow (Supabase)', () => {
     const unbekannt = await app.inject({
       method: 'POST',
       url: '/auth/passwort-vergessen',
-      payload: { email: `nope+${crypto.randomUUID()}@lesify.test` },
+      payload: { email: `nope+${crypto.randomUUID()}@auth.lesify.test` },
     });
     expect(unbekannt.statusCode).toBe(200);
     expect(unbekannt.json().resetToken).toBeUndefined();

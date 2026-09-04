@@ -625,29 +625,33 @@ Ziel: `assets/js/data.js` wird durch einen API-Client **mit identischer
 Funktionssignatur** ersetzt (`backend-planning.md` §9). Die Seiten bleiben
 sonst unverändert.
 
-- [ ] **API-Client `assets/js/api.js`** mit denselben Namen wie `data.js`
-      (`Lesify.addTestklausur` → `POST /testklausuren`, `Lesify.lernplanStatus` →
-      `GET /lernplaene/:id`, `Lesify.usage` → `GET /usage`, `LesifyUI.search` →
-      `GET /suche?q=`, …). Vollständige Mapping-Liste in §9 abarbeiten.
-- [ ] **Auth-Gate für `app/`:** ohne gültige Session → Redirect auf
-      `marketing/login.html`. Session-Handling (Cookie/Token) im Client.
-- [ ] **Marketing-Formulare verdrahten:** Login, Registrierung, Passwort-Reset,
-      Kontakt rufen jetzt die echten Endpunkte (statt nur Toast).
-      Rollen-Auswahl (Elternteil/Schüler:in) an `POST /auth/registrieren`.
-- [ ] **Fehler-/Ladezustände + Guard-Popups:** Limit erreicht, Datei zu groß,
-      KI-Timeout, Offline — und die **Vorab-Filter-Meldungen** (nicht schulrelevant /
-      Anfrage zu groß / Spam) als Popup/Toast statt stillem Fehlschlag.
-- [ ] **Datei-Viewer** (`LesifyUI.openDateiModal`) auf `GET /dateien/:id/inhalt`
-      umstellen (echte Vorschau + echter Download statt `.txt`-Ersatz).
-- [ ] **Async-Datei-Status** im UI per **Polling** von `GET /dateien/:id`:
-      `verarbeitung` → `bereit` ohne Reload.
-- [ ] **Abo-/Einstellungs-Bereich in der App:** Tarif ansehen/wechseln/kündigen/
-      pausieren, Kind-Profile verwalten, Nutzungsanzeige aus `GET /usage`.
-- [ ] **Dev-Switcher entfernen/abschalten,** die keinen Backend-Bezug haben
-      (Suche-Varianten, Testklausur-Phasen-Umschalter, Pill-Style) — oder klar
-      hinter einen Dev-Flag legen.
-- [ ] **Seed-Parität prüfen:** angebundene App auf `staging` sieht identisch aus
-      wie der Prototyp mit `SEED`.
+> _2026-09-04: Client-Bausteine gebaut. Der eigentliche **Seiten-Cut-over**
+> (sync → async, Formulare verdrahten, Dev-Switcher entfernen) bleibt offen —
+> er braucht das laufende Backend auf `staging` zum Prüfen und geht Seite für
+> Seite, siehe `app/README.md` → „Phase 11"._
+
+- [x] **API-Client `assets/js/api.js`** — _`Lesify.*`-Namen wie `data.js`, aber
+      Promise-basiert; `fetch`-Wrapper mit Bearer-Token
+      (`localStorage['lesify:token']`), Basis-URL `window.LESIFY_API_BASE`,
+      normalisierter `ApiError` + `Lesify.fehlerText()`, `pollDateiStatus()`,
+      `dateiInhaltUrl()`/`*DokumentUrl()`. Mapping-Liste aus §9 abgedeckt._
+- [x] **Auth-Gate `assets/js/auth-gate.js`** — _ohne Token bzw. bei fehlschlagendem
+      `GET /auth/me` → `location.replace('../marketing/login.html?weiter=…')`._
+- [ ] **Seiten umstellen (pro Seite):** `data.js`→`api.js`+`auth-gate.js`,
+      `Lesify.*`-Aufrufe `await`en, Renderer in `app.js` auf Promises anpassen.
+- [ ] **Marketing-Formulare verdrahten:** Login, Registrierung (Rolle), Passwort-
+      Reset, Kontakt an `Lesify.login`/`registrieren`/`passwortZuruecksetzen`/`kontakt`.
+- [ ] **Fehler-/Ladezustände + Guard-Popups:** `Lesify.fehlerText(err)` als
+      Toast (Limit, Datei zu groß, nicht schulrelevant, zu groß, Spam, Rate-Limit,
+      Offline).
+- [ ] **Datei-Viewer** auf `Lesify.dateiInhaltUrl(id)` + `pollDateiStatus`
+      (`verarbeitung`→`bereit` ohne Reload) statt `.txt`-Ersatz.
+- [ ] **Abo-/Einstellungs-Bereich in der App:** `getAbo`/`aendernAbo`/
+      `kuendigenAbo`/`pausierenAbo`/`kinder`/`addKind`/`removeKind`, Ring aus
+      `usage()`.
+- [ ] **Dev-Switcher entfernen/abschalten** (Suche-Varianten,
+      Testklausur-Phasen-Umschalter, Pill-Style) — oder hinter Dev-Flag.
+- [ ] **Seed-Parität prüfen:** angebundene App auf `staging` == Prototyp mit `SEED`.
 
 ---
 

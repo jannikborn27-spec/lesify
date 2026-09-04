@@ -68,6 +68,47 @@ export const PLAN_NAMES: Record<Paket, string> = {
 /** Während der 14-Tage-Testphase gelten die Premium-Kontingente (Phase 0 / §7). */
 export const TRIAL_PAKET: Paket = 'premium';
 
+// --- Usage-Zähler & Ring (§7, Phase 8) ---
+
+/** Die vier monatlichen Usage-Zähler pro Sitz (§7). */
+export type UsageZaehler = 'nachrichten' | 'dateien' | 'lernzettel' | 'testklausuren';
+export const USAGE_ZAEHLER: readonly UsageZaehler[] = [
+  'nachrichten',
+  'dateien',
+  'lernzettel',
+  'testklausuren',
+];
+
+/**
+ * Gratis-Revisionen je Lernzettel, bevor Revisionsnachrichten gegen das
+ * Nachrichten-Limit zählen (data.js `addLernzettelRevision`: `freeMessagesUsed < 10`).
+ */
+export const GRATIS_REVISIONEN_PRO_LERNZETTEL = 10;
+
+/**
+ * Zählt die nächste Lernzettel-Revision gegen das Nachrichten-Limit? Erst ab
+ * der 11. Revision je Lernzettel — die ersten 10 sind gratis (§7).
+ */
+export function revisionZaehltGegenLimit(freeMessagesUsed: number): boolean {
+  return freeMessagesUsed >= GRATIS_REVISIONEN_PRO_LERNZETTEL;
+}
+
+/** Anteil `used/limit`, geklemmt auf [0,1]; `null`-Limit (unbegrenzt) → 0. */
+export function usageRatio(used: number, limit: number | null): number {
+  if (limit == null || limit <= 0) return 0;
+  return Math.max(0, Math.min(1, used / limit));
+}
+
+/**
+ * Ampel-Stufe des Usage-Rings — bit-genau wie `usageRatioClass` in `app.js`
+ * (grün 0–33 %, gelb 33–66 %, rot ≥ 66 %).
+ */
+export function usageStufe(ratio: number): 'gruen' | 'gelb' | 'rot' {
+  if (ratio >= 0.66) return 'rot';
+  if (ratio >= 0.33) return 'gelb';
+  return 'gruen';
+}
+
 /** Nächster Monatserster ab `ab` — Usage-Reset (§7, fix zum 1.). */
 export function naechsterMonatsErster(ab: Date = new Date()): Date {
   return new Date(Date.UTC(ab.getUTCFullYear(), ab.getUTCMonth() + 1, 1));

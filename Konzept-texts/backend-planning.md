@@ -705,8 +705,10 @@ Abweichungen von den Tabellen unten:
   Client-Kürzung gesetzt (KI-Titel = Prompt 07, Phase 6).
 - **`POST /chats/:id/nachrichten`** speichert die User-Nachricht + eine
   deterministische Platzhalter-KI-Antwort (`rolle=ai`, `zaehltGegenLimit=false`),
-  erhöht `Usage.nachrichtenUsed` (Upsert; harte Grenzen Phase 8) und setzt bei
-  `lernplanKontext` den `chatMap`-Eintrag `"<tag>|<modus>|<themaId>"`.
+  prüft **vor** dem Call `pruefeUsageLimit(…, 'nachrichten')` (→ `403
+  limit_erreicht` bei erreichtem Kontingent, Phase 8) und erhöht danach
+  `Usage.nachrichtenUsed` (Upsert). Bei `lernplanKontext` zusätzlich der
+  `chatMap`-Eintrag `"<tag>|<modus>|<themaId>"`.
 - **`POST /klausuren`** legt in **einer** Transaktion `Klausur` + `Testklausur 1`
   (mit Platzhalter-`Aufgabe` je Thema) + `Lernplan` an und gibt alle drei zurück.
 - **`GET /lernplaene/:id`** (und `GET /klausuren/:id/lernplan`) liefern vorerst
@@ -790,7 +792,7 @@ Kein `PATCH /klausuren/:id` — eine `Klausur` hat keine editierbaren Felder (En
 ### Usage
 | Methode | Pfad | Zweck |
 |---|---|---|
-| GET | `/usage` | Aktueller Stand (Nachrichten, Dateien, Reset-Datum) für den Ring/Popover und die Einstellungen-Seite |
+| GET | `/usage` | Aktueller Monatsstand für Ring/Popover + Einstellungen-Seite: `{ paket, planName, resetDatum, nachrichten, dateien, lernzettel, testklausuren, ring: { ratio, stufe } }`, jede Quote `{ used, limit, resetDatum }` (Spiegel `Lesify.usage()`). Limits live aus dem aktiven Paket, Reset implizit über den `Usage.monat`-Schlüssel (§7 „Umsetzung Phase 8") |
 
 ### Profil & Einstellungen
 | Methode | Pfad | Zweck |
@@ -948,6 +950,44 @@ offene „Archivierungs"-Frage.
   Chat und (Test-)Klausuren laufen normal weiter. Kein Soft-Warning, keine
   erzwungene Upgrade-Aufforderung, kein Nachkauf. Pro Zähler eine eigene, klare
   API-Fehlerantwort.
+
+### Umsetzung (Phase 8, 2026-09-04)
+
+- **`@lesify/shared`** (`shared/src/index.ts`): `PLAN_LIMITS` / `PLAN_NAMES`
+  (Spiegel `stripe-config.js` → `limits`), `USAGE_ZAEHLER`
+  (`nachrichten|dateien|lernzettel|testklausuren`), `usageRatio(used, limit)`
+  (null-Limit → 0, geklemmt auf [0,1]), `usageStufe(ratio)` (grün < 0.33,
+  gelb < 0.66, rot ≥ 0.66 — bit-genau wie `usageRatioClass` in `app.js`),
+  `GRATIS_REVISIONEN_PRO_LERNZETTEL = 10` + `revisionZaehltGegenLimit(freeMessagesUsed)`.
+- **`api/src/lib/usage.ts`**:
+  - `usageStand(prisma, userId)` — einzige Quelle für `GET /usage` **und** die
+    Durchsetzung. Limits kommen **live** aus `paketFuerUser` (Abo → sonst
+    Premium im Trial → sonst Starter); bei Upgrade gelten die neuen Grenzen
+    sofort, verbrauchte Zähler bleiben stehen. Liefert zusätzlich `ringRatio`
+    (Max der vier Quoten) + `stufe`.
+  - `pruefeUsageLimit(prisma, userId, art)` — wirft `403 limit_erreicht` mit
+    `details: { zaehler, used, limit, resetDatum }`, wenn der Zähler sein
+    Paketlimit erreicht hat. **Vor** der teuren Aktion aufrufen.
+  - `inkrementiereUsage(prisma, userId, art, betrag?)` — Upsert des
+    Monats-Zählers; setzt die Limit-Spalten der Zeile als Momentaufnahme auf
+    das aktuelle Paket (maßgeblich bleiben die Live-Limits).
+- **Monats-Reset = implizit**: `Usage` ist über `@@unique([userId, monat])`
+  (`monat` = `YYYY-MM`) gekeyt. Neuer Monat → neuer Schlüssel → `findUnique`
+  liefert `null` → Zähler 0, kein Übertrag. Kein Cron nötig; alte Zeilen räumt
+  die 1-Jahres-Löschung (Phase 13) mit ab.
+- **Durchgesetzt** ist bisher der Nachrichten-Zähler in
+  `POST /chats/:id/nachrichten` (`pruefeUsageLimit` vor dem Platzhalter-Call,
+  `inkrementiereUsage` danach). Die Zähler `dateien` (Upload, Phase 5),
+  `lernzettel` + `testklausuren` (KI-Endpunkte, Phase 6) hängen sich beim Bau
+  dieser Endpunkte mit demselben Vor-Prüfen/Nach-Zählen-Muster an;
+  Lernzettel-Revisionen zählen erst ab der 11. je Lernzettel
+  (`revisionZaehltGegenLimit`). Testklausur-Lösungs-Uploads zählen **nicht**.
+- **`GET /usage`** liefert `{ paket, planName, resetDatum, nachrichten, dateien,
+  lernzettel, testklausuren, ring: { ratio, stufe } }`; jede Quote ist
+  `{ used, limit, resetDatum }` (Spiegel `Lesify.usage()`).
+- **Offen (Phase 9):** Zugang nach Trial-Ende ohne Abo bzw. nach Kündigung —
+  aktuell fällt `paketFuerUser` nach Trial-Ende ohne Abo auf `starter` zurück;
+  das echte „Schreib-Aktionen gesperrt" braucht den Abo-/Kündigungs-Status.
 
 ### Rate-Limiting & Missbrauchsschutz (Entscheidung 2026-09-04)
 

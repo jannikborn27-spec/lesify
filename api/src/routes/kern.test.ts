@@ -160,9 +160,11 @@ describe.runIf(hatDb)('kern-API — Flow (Supabase)', () => {
     expect(res.statusCode).toBe(200);
     const b = res.json();
     expect(b.planName).toBe('Premium');
-    expect(b.nachrichten).toEqual({ used: 0, limit: 250 });
+    expect(b.nachrichten.used).toBe(0);
+    expect(b.nachrichten.limit).toBe(250);
     expect(b.dateien.limit).toBe(50);
     expect(typeof b.resetDatum).toBe('string');
+    expect(b.ring).toEqual({ ratio: 0, stufe: 'gruen' });
   });
 
   it('GET /suche findet das Fach nach Name', async () => {

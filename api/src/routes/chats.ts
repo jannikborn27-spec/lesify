@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { parse } from '../lib/validate.js';
 import { nichtGefunden } from '../lib/http.js';
 import { oder404 } from '../lib/scope.js';
-import { inkrementiereUsage } from '../lib/usage.js';
+import { inkrementiereUsage, pruefeUsageLimit } from '../lib/usage.js';
 import { chatMapKey, setChatMapEintrag } from '../lib/lernplan.js';
 
 const erstellen = z.object({
@@ -106,6 +106,11 @@ export async function chatsRoutes(app: FastifyInstance): Promise<void> {
     const chat = oder404(
       await prisma.chat.findFirst({ where: { id: req.params.id, userId: req.userId } }),
     );
+
+    // Harte Limit-Durchsetzung vor dem (Platzhalter-)KI-Call — Hard-Stop nur
+    // dieses Features: 403 limit_erreicht, Klausuren/Uploads laufen weiter (§7).
+    await pruefeUsageLimit(prisma, req.userId, 'nachrichten');
+
     if (body.anhangDateiId) {
       oder404(
         await prisma.datei.findFirst({ where: { id: body.anhangDateiId, userId: req.userId } }),
@@ -143,7 +148,7 @@ export async function chatsRoutes(app: FastifyInstance): Promise<void> {
       data: { titel: erste ? platzhalterTitel(body.text) : chat.titel },
     });
 
-    await inkrementiereUsage(prisma, req.userId, 'nachrichtenUsed');
+    await inkrementiereUsage(prisma, req.userId, 'nachrichten');
 
     let chatMap: Record<string, string> | undefined;
     if (body.lernplanKontext) {

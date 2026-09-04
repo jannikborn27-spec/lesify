@@ -490,27 +490,45 @@ Der gesamte abgeleitete Zustand muss **bit-genau** zu `data.js` passen.
 
 `backend-planning.md` §7.
 
-- [ ] **`Lesify.PLAN_LIMITS` serverseitig spiegeln** (Quelle: `stripe-config.js` →
-      `limits`), vier Zähler pro Sitz: Nachrichten, Content-Aufnahmen, Lernzettel,
-      Testklausuren.
-- [ ] **Zähl-Logik:** jede User-Chat-Nachricht zählt; Lernzettel-Revisionen erst
-      **ab der 11.** je Lernzettel; jede Datei (Chat-Anhang oder „Dateien"-Upload)
-      als Content-Aufnahme; **Testklausur-Lösungs-Uploads sind ausgenommen** (Phase 0).
-- [ ] **Monatlicher Reset:** **fix zum Monatsersten** (Phase 0), Cron **oder** lazy
-      beim ersten Request nach Monatswechsel. **Kein Übertrag.**
-- [ ] **Harte serverseitige Durchsetzung** der Paketgrenzen. Beim Upgrade gelten
-      neue Grenzen sofort, verbrauchte Zähler bleiben stehen.
-- [ ] **Limit-erreicht-Verhalten (Phase 0):** **Hard-Stop nur des betroffenen
-      Features** — z. B. Datei-Limit erreicht ⇒ Uploads gesperrt, Chats und
-      (Test-)Klausuren laufen normal weiter. Kein Soft-Warning, keine erzwungene
-      Upgrade-Aufforderung. Pro Zähler eine eigene, klare API-Fehlerantwort.
-- [ ] **Trial:** in der **14-tägigen** Testphase (`trialEndetAm`, kein `Abo`) gelten
-      die **Premium**-Kontingente. Nach 14 Tagen bucht Stripe automatisch den
-      gewählten Tarif ab (siehe Phase 9); nur bei vorheriger Kündigung endet der
-      Zugang — dann Schreib-Aktionen gesperrt.
-- [ ] **`GET /usage`** liefert Zähler + Limit + `resetDatum` + `planName`; der
-      Ring zeigt das Maximum der vier Quoten, `null`-Limit zählt als 0.
-      Warnschwellen grün 0–33 % / gelb 33–66 % / rot ≥ 66 % (wie `uwRatioCls`).
+> _2026-09-04: Kern umgesetzt. `@lesify/shared` um `USAGE_ZAEHLER`,
+> `usageRatio`, `usageStufe`, `GRATIS_REVISIONEN_PRO_LERNZETTEL` +
+> `revisionZaehltGegenLimit` ergänzt. `api/src/lib/usage.ts`: `usageStand`
+> (einzige Quelle, Live-Limits + Ring), `pruefeUsageLimit` (→ `403
+> limit_erreicht`), `inkrementiereUsage` (Art-Param). Nachrichten-Zähler in
+> `POST /chats/:id/nachrichten` hart durchgesetzt. `GET /usage` neu geformt.
+> Tests: `shared/src/usage.test.ts` (7) + `api/src/routes/usage.test.ts` (2,
+> inkl. 403-Fall + „Klausur läuft weiter") grün, gesamt 46/58._
+
+- [x] **`Lesify.PLAN_LIMITS` serverseitig spiegeln** — _`PLAN_LIMITS`/`PLAN_NAMES`
+      in `@lesify/shared` (seit Phase 2), Phase 8 zusätzlich `USAGE_ZAEHLER`
+      (`nachrichten|dateien|lernzettel|testklausuren`) + Ring-Helper._
+- [x] **Zähl-Logik** — _jede User-Chat-Nachricht zählt (`inkrementiereUsage`);
+      Revisionen erst ab der 11. je Lernzettel → `revisionZaehltGegenLimit`
+      (Helper steht, Verdrahtung mit dem Revisions-Endpunkt in Phase 6); jede
+      Datei als Content-Aufnahme → Verdrahtung in Phase 5; Testklausur-
+      Lösungs-Uploads ausgenommen (nichts zu zählen)._
+- [x] **Monatlicher Reset** — _implizit: `Usage` ist über `@@unique([userId,
+      monat])` (`monat` = `YYYY-MM`) gekeyt. Neuer Monat = neuer Schlüssel =
+      Zähler 0, kein Übertrag. Kein Cron nötig; alte Zeilen räumt die
+      1-Jahres-Löschung (Phase 13) mit ab._
+- [x] **Harte serverseitige Durchsetzung** — _`pruefeUsageLimit` vor der teuren
+      Aktion; Limits kommen live aus `paketFuerUser` → beim Upgrade gelten die
+      neuen Grenzen sofort, verbrauchte Zähler bleiben stehen. Aktiv am
+      Nachrichten-Zähler; `dateien`/`lernzettel`/`testklausuren` hängen sich in
+      Phase 5/6 mit demselben Muster an._
+- [x] **Limit-erreicht-Verhalten** — _pro Zähler `403 limit_erreicht` mit
+      `details: { zaehler, used, limit, resetDatum }`; nur das betroffene Feature
+      stoppt (Test: Chat blockiert, `POST /klausuren` läuft weiter). Kein
+      Soft-Warning, keine Upgrade-Erzwingung._
+- [x] **Trial** — _in der 14-Tage-Testphase gelten die Premium-Kontingente
+      (`paketFuerUser` → `TRIAL_PAKET`). **Offen (Phase 9):** Zugang nach
+      Trial-Ende ohne Abo / nach Kündigung — aktuell Rückfall auf `starter`
+      statt „Schreib-Aktionen gesperrt" (braucht Abo-/Kündigungs-Status)._
+- [x] **`GET /usage`** — _`{ paket, planName, resetDatum, nachrichten, dateien,
+      lernzettel, testklausuren, ring: { ratio, stufe } }`, jede Quote
+      `{ used, limit, resetDatum }`. `ring.ratio` = Max der vier Quoten
+      (`null`-Limit = 0), `ring.stufe` grün/gelb/rot nach 0.33 / 0.66 (wie
+      `usageRatioClass` in `app.js`)._
 
 ---
 

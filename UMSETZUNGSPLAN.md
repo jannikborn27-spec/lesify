@@ -719,24 +719,29 @@ Kritisch, weil Zielgruppe minderjährig ist.
 
 ## Phase 14 — Qualitätssicherung
 
-- [ ] **Unit-Tests** für alle reinen Berechnungen (Notenformel, `lernplanStatus`,
-      Checklist-Keys, Usage-Zählung) — inkl. der Paritäts-Tests aus Phase 7.
-- [ ] **API-Integrationstests** je Endpunkt (Happy Path + `userId`-Scoping +
-      Limit-Grenzen + Fehlerfälle).
-- [ ] **End-to-End-Test der Kern-Flows** gegen `staging`: Registrierung →
-      Verifikation → Fach/Thema → Chat → Datei → Lernzettel → Klausur → Lernplan
-      Tag 1–7 → Testklausur 1+2 → Abo abschließen → kündigen.
-- [ ] **KI-Calls mit aufgezeichneten Fixtures testen** (deterministisch, ohne bei
-      jedem CI-Lauf echt zu zahlen); zusätzlich ein manueller Smoke-Test gegen die
-      echte API pro Release.
-- [ ] **Lasttest** der teuren Pfade (Chat, Analyse) — Timeouts, gleichzeitige
-      KI-Calls, DB-Verbindungslimit.
-- [ ] **Sicherheitsreview:** Auth, `userId`-Scoping, signierte URLs, Upload-
-      Validierung (Typ/Größe/Inhalt), Rate-Limiting, Webhook-Signaturen,
-      Injection, Secrets nicht im Client.
-- [ ] **Barrierefreiheit & Responsiveness** der App- und Marketing-Seiten
-      (Fokuszustände sind im Design schon angelegt) durchgehen.
-- [ ] **Fehler-Budget definieren:** was blockiert den Launch, was ist Post-Launch-Fix.
+> _2026-09-04: `docs/QS-CHECKLISTE.md` angelegt (Test-Status, E2E-Flow,
+> Sicherheitsreview, Lasttest-Ziele, A11y, Fehler-Budget). Automatisierte
+> Abdeckung deutlich ausgebaut (shared 52 + api 91 Tests)._
+
+- [x] **Unit-Tests** für alle reinen Berechnungen — _`shared/` 52 Tests
+      (Notenformel + Paritäts-Fixtures, `lernplanStatus`, Checklist-Keys,
+      Usage-Ratio/Stufe, Abo-Preise)._
+- [x] **API-Integrationstests** je Endpunkt — _Auth, Kern-CRUD, Chats/Klausuren/
+      Lernplan, Usage-Limits, Abo/Stripe-Fake + Eltern-Features, Jobs, DSGVO,
+      **plus dediziertes `scoping.test.ts`** (B sieht/ändert A nie). Datei- (P5)
+      + KI-Endpunkte (P6) folgen mit ihren Phasen._
+- [ ] **End-to-End-Test der Kern-Flows gegen `staging`** — _Checkliste in
+      `docs/QS-CHECKLISTE.md` §2; braucht laufendes `staging` (Phase 16)._
+- [ ] **KI-Calls mit aufgezeichneten Fixtures** — _Phase 6._
+- [ ] **Lasttest** der teuren Pfade — _Ziele in `docs/QS-CHECKLISTE.md` §4;
+      braucht `staging` + echte KI._
+- [x] **Sicherheitsreview (Stand-Tabelle)** — _`docs/QS-CHECKLISTE.md` §3: Auth,
+      Scoping (getestet), Injection, Secrets ✅; signierte URLs/Upload-Validierung
+      (P5), KI-Guard (P6), Webhook-HMAC + CORS + Security-Header (P16) offen._
+- [ ] **Barrierefreiheit & Responsiveness** — _Checkliste `docs/QS-CHECKLISTE.md`
+      §5; manueller Durchgang mit dem Frontend-Cut-over (Phase 11)._
+- [x] **Fehler-Budget definiert** — _`docs/QS-CHECKLISTE.md` §6 (Launch-Blocker
+      vs. Post-Launch-Fix)._
 
 ---
 

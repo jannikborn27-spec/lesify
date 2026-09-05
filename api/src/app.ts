@@ -1,4 +1,5 @@
 import Fastify, { type FastifyError, type FastifyInstance } from 'fastify';
+import multipart from '@fastify/multipart';
 import type { PrismaClient } from '@prisma/client';
 import { getPrisma } from './db.js';
 import { env } from './env.js';
@@ -6,12 +7,13 @@ import { hashToken } from './lib/tokens.js';
 import { HttpError } from './lib/http.js';
 import { getZahlungsGateway, type ZahlungsGateway } from './lib/zahlung.js';
 import { getKiClient, type KiClient } from './lib/ki/client.js';
+import { getStorageGateway, type StorageGateway } from './lib/storage.js';
 import { RateLimiter } from './lib/ratelimit.js';
 import { healthRoutes } from './routes/health.js';
 import { authRoutes } from './routes/auth.js';
 import { faecherRoutes } from './routes/faecher.js';
 import { themenRoutes } from './routes/themen.js';
-import { dateienRoutes } from './routes/dateien.js';
+import { dateienRoutes, dateiInhaltRoutes } from './routes/dateien.js';
 import { lernzettelRoutes } from './routes/lernzettel.js';
 import { userRoutes } from './routes/user.js';
 import { usageRoutes } from './routes/usage.js';
@@ -28,6 +30,7 @@ export interface BuildOpts {
   prisma?: PrismaClient;
   zahlung?: ZahlungsGateway;
   ki?: KiClient;
+  storage?: StorageGateway;
   logger?: boolean;
   /** Request-Rate-Limiting (§7). Default: aus im Test, sonst an. */
   rateLimit?: boolean;
@@ -57,7 +60,9 @@ export function buildApp(opts: BuildOpts = {}): FastifyInstance {
   app.decorate('prisma', prisma);
   app.decorate('zahlung', opts.zahlung ?? getZahlungsGateway());
   app.decorate('ki', opts.ki ?? getKiClient());
+  app.decorate('storage', opts.storage ?? getStorageGateway());
   app.decorateRequest('userId', '');
+  app.register(multipart, { limits: { fileSize: env.DATEI_MAX_BYTES } });
 
   // ---- Rate-Limiting (§7, Phase 15) ----
   if (opts.rateLimit ?? env.NODE_ENV !== 'test') {
@@ -109,6 +114,7 @@ export function buildApp(opts: BuildOpts = {}): FastifyInstance {
   app.register(faecherRoutes);
   app.register(themenRoutes);
   app.register(dateienRoutes);
+  app.register(dateiInhaltRoutes);
   app.register(lernzettelRoutes);
   app.register(userRoutes);
   app.register(usageRoutes);

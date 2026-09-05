@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { noteAmpel, prozentZuNote } from '@lesify/shared';
@@ -7,6 +8,9 @@ import { HttpError } from '../lib/http.js';
 import { testklausurErstellen } from '../lib/testklausur.js';
 import { klassenstufeFuer, themaMaterial } from '../lib/ki/kontext.js';
 import { testklausurAnalyseErzeugen } from '../lib/ki/calls.js';
+import { typAusMime } from '../lib/dateiExtraktion.js';
+import { loesungTextExtrahieren } from '../lib/dateiVerarbeitung.js';
+import { liesDateiTeil } from '../lib/upload.js';
 
 const erstellenBody = z.object({
   fachId: z.string().uuid(),
@@ -25,7 +29,7 @@ const loesungBody = z
   .refine((o) => o.geloesteDateiId ?? o.loesungsText, 'geloesteDateiId oder loesungsText nötig');
 
 export async function testklausurenRoutes(app: FastifyInstance): Promise<void> {
-  const { prisma, ki } = app;
+  const { prisma, ki, storage } = app;
   app.addHook('preHandler', app.requireAuth);
 
   const laden = (userId: string, id: string) =>
@@ -81,11 +85,55 @@ export async function testklausurenRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // POST /testklausuren/:id/loesung
-  // `geloesteDateiId` referenziert eine vorhandene Datei (echter Upload:
-  // Phase 5). `loesungsText` ist die Bridge, bis die Datei-Extraktion steht.
+  // Multipart: echter Foto-/PDF-Upload (Phase 5) — landet nicht in der
+  // Themen-Dateiliste, zählt nicht gegen das Content-Limit (`zweck:
+  // testklausurLoesung`), Text-Extraktion (pdf/doc) bzw. Vision-Transkription
+  // (img) läuft synchron. JSON `loesungsText`: Bridge/Testing-Pfad, unverändert.
   app.post<{ Params: { id: string } }>('/testklausuren/:id/loesung', async (req) => {
-    const body = parse(loesungBody, req.body);
     const t = oder404(await laden(req.userId, req.params.id));
+
+    if (req.isMultipart()) {
+      const teil = await req.file();
+      if (!teil) throw new HttpError(400, 'validierung', { grund: 'keine_datei' });
+      const typ = typAusMime(teil.mimetype);
+      if (!typ) throw new HttpError(400, 'dateityp_nicht_unterstuetzt', { mime: teil.mimetype });
+
+      const buffer = await liesDateiTeil(teil);
+
+      const key = `${req.userId}/testklausur-loesungen/${t.id}/${randomUUID()}-${teil.filename}`;
+      await storage.hochladen(key, buffer, teil.mimetype);
+      const datei = await prisma.datei.create({
+        data: {
+          userId: req.userId,
+          fachId: t.fachId,
+          // Datei.themaId ist eine Pflicht-FK; Testklausuren haben immer ≥1 Thema
+          // (erstellenBody.themaIds.min(1)). `zweck: testklausurLoesung` hält die
+          // Datei trotzdem aus der Themen-Dateiliste raus (GET /dateien filtert).
+          themaId: t.themaIds[0]!,
+          name: teil.filename,
+          typ,
+          mime: teil.mimetype,
+          groesseBytes: buffer.byteLength,
+          speicherPfad: key,
+          status: 'bereit',
+          zweck: 'testklausurLoesung',
+        },
+      });
+
+      const loesungsText = await loesungTextExtrahieren(ki, buffer, typ, teil.mimetype);
+      const updated = await prisma.testklausur.update({
+        where: { id: t.id },
+        data: { geloesteDateiId: datei.id, loesungsText, status: 'geloest' },
+      });
+      return {
+        id: updated.id,
+        status: updated.status,
+        geloesteDateiId: updated.geloesteDateiId,
+        hatLoesungsText: !!updated.loesungsText,
+      };
+    }
+
+    const body = parse(loesungBody, req.body);
     if (body.geloesteDateiId) {
       oder404(
         await prisma.datei.findFirst({ where: { id: body.geloesteDateiId, userId: req.userId } }),

@@ -1,5 +1,5 @@
 import { env } from '../../env.js';
-import type { KiClient, KiNachricht } from './client.js';
+import type { KiBild, KiClient, KiNachricht } from './client.js';
 
 /**
  * Die zwölf KI-Calls aus `Konzept-texts/prompts/00-overview.md`–`12-*.md`,
@@ -648,12 +648,19 @@ Antworte ausschließlich über das bereitgestellte Tool.`;
 }
 
 // ============================================================================
-// Call 01 — Datei-Zusammenfassung (bereit für Phase 5, noch nicht verdrahtet)
+// Call 01 — Datei-Zusammenfassung (Phase 5)
 // ============================================================================
 
 export async function dateiZusammenfassungErzeugen(
   ki: KiClient,
-  ctx: { fachName: string; themaName: string; dateiTyp: string; dateiInhalt: string },
+  ctx: {
+    fachName: string;
+    themaName: string;
+    dateiTyp: string;
+    /** Extrahierter Text (pdf/doc). `null` bei Bildern — dann ist `bild` gesetzt (Vision). */
+    dateiInhalt: string | null;
+    bild?: KiBild;
+  },
 ): Promise<{ vorgeschlagenerTitel: string; zusammenfassung: string }> {
   const system = `Du bist ein Assistenzsystem für Lesify, eine Lern-App für Schülerinnen und
 Schüler der 8./9. Klasse. Deine einzige Aufgabe: den Inhalt einer
@@ -676,13 +683,16 @@ Regeln:
 
 Antworte ausschließlich über das bereitgestellte Tool.`;
 
+  const nachrichtText = ctx.dateiInhalt ?? 'Siehe angehängtes Bild.';
+
   const { ausgabe } = await ki.toolAufruf<{
     vorgeschlagenerTitel: string;
     zusammenfassung: string;
   }>({
     callTyp: 'datei_zusammenfassung',
     system,
-    messages: [{ rolle: 'user', text: ctx.dateiInhalt }],
+    messages: [{ rolle: 'user', text: nachrichtText }],
+    bilder: ctx.bild ? [ctx.bild] : undefined,
     tool: {
       name: 'datei_zusammenfassung',
       beschreibung: 'Titel-Vorschlag und Zusammenfassung einer hochgeladenen Datei',
@@ -700,4 +710,31 @@ Antworte ausschließlich über das bereitgestellte Tool.`;
     temperature: 0.25,
   });
   return ausgabe;
+}
+
+// ============================================================================
+// Testklausur-Lösungs-Transkription aus einem Bild (Phase 5)
+// ============================================================================
+
+/**
+ * Transkribiert eine fotografierte/gescannte Lösung wörtlich in Klartext —
+ * Grundlage für `Testklausur.loesungsText` (Call 11 braucht Text, kein Bild).
+ * Kein Tool-Call: Freitext, da die Ausgabe selbst der Zieltext ist.
+ */
+export async function loesungTextAusBildErzeugen(ki: KiClient, bild: KiBild): Promise<string> {
+  const system = `Du transkribierst die handschriftliche oder gedruckte Lösung einer Schul-
+Testklausur aus einem Foto/Scan wörtlich in Klartext. Gib **ausschließlich**
+den transkribierten Text zurück — keine Einleitung, keine Kommentare, keine
+Bewertung. Ist die Aufnahme unleserlich oder leer, gib „(nicht lesbar)" zurück.`;
+
+  const { text } = await ki.freitextAufruf({
+    callTyp: 'testklausur_loesung_transkription',
+    system,
+    messages: [{ rolle: 'user', text: 'Transkribiere die Lösung aus dem angehängten Bild.' }],
+    bilder: [bild],
+    model: MODELL_GUENSTIG,
+    maxTokens: 2000,
+    temperature: 0,
+  });
+  return text.trim();
 }

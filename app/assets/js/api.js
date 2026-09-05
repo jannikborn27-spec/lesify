@@ -55,6 +55,7 @@
     nicht_gefunden: 'Nicht gefunden.',
     abo_vorhanden: 'Es besteht bereits ein Abo.',
     datei_zu_gross: 'Die Datei ist größer als 5 MB.',
+    dateityp_nicht_unterstuetzt: 'Dieser Dateityp wird nicht unterstützt (PDF, Word, Bild).',
     nicht_schulrelevant: 'Die KI hilft nur bei schulischen Themen.',
     anfrage_zu_gross: 'Die Anfrage ist zu lang — bitte kürzen.',
     spam_erkannt: 'Zu viele gleiche Anfragen kurz hintereinander.',
@@ -233,8 +234,9 @@
     getDatei: function (id) {
       return GET('/dateien/' + id);
     },
+    /** Direkt navigierbare URL (`<a href>`/`<img src>`) — Token als `?token=`, da kein Authorization-Header möglich ist. */
     dateiInhaltUrl: function (id) {
-      return BASE + '/dateien/' + id + '/inhalt';
+      return BASE + '/dateien/' + id + '/inhalt?token=' + encodeURIComponent(getToken());
     },
     uploadDatei: function (themaId, file) {
       var fd = new FormData();

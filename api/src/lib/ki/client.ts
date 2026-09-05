@@ -26,6 +26,11 @@ export interface KiNachricht {
   text: string;
 }
 
+export interface KiBild {
+  mediaType: 'image/png' | 'image/jpeg' | 'image/webp' | 'image/gif';
+  base64: string;
+}
+
 export interface KiToolDefinition {
   name: string;
   beschreibung: string;
@@ -41,6 +46,8 @@ interface KiAufrufBasis {
   temperature?: number;
   /** System-Prompt cachen (`cache_control` ans Ende) — für gecachte Themen-Memory-Blöcke. */
   cache?: boolean;
+  /** Bild(er) an die letzte User-Nachricht anhängen (Vision, Phase 5 — Datei-Zusammenfassung/Lösungs-Transkription von Bildern). */
+  bilder?: KiBild[];
 }
 
 export interface KiToolAufruf<T> extends KiAufrufBasis {
@@ -85,6 +92,24 @@ export class AnthropicKiClient implements KiClient {
     return [{ type: 'text', text: opts.system, cache_control: { type: 'ephemeral' } }];
   }
 
+  /** Baut die Message-Liste; `opts.bilder` hängt als Bild-Blöcke an die letzte Nachricht (Vision). */
+  private messagesAus(opts: KiAufrufBasis): Anthropic.MessageParam[] {
+    return opts.messages.map((m, i): Anthropic.MessageParam => {
+      const istLetzte = i === opts.messages.length - 1;
+      if (!istLetzte || !opts.bilder?.length) return { role: m.rolle, content: m.text };
+      return {
+        role: m.rolle,
+        content: [
+          ...opts.bilder.map((b): Anthropic.ImageBlockParam => ({
+            type: 'image',
+            source: { type: 'base64', media_type: b.mediaType, data: b.base64 },
+          })),
+          { type: 'text', text: m.text },
+        ],
+      };
+    });
+  }
+
   private usageAus(u: Anthropic.Messages.Usage): KiUsage {
     return {
       inputTokens: u.input_tokens,
@@ -100,7 +125,7 @@ export class AnthropicKiClient implements KiClient {
       max_tokens: opts.maxTokens,
       temperature: opts.temperature,
       system: this.system(opts),
-      messages: opts.messages.map((m) => ({ role: m.rolle, content: m.text })),
+      messages: this.messagesAus(opts),
       tools: [
         {
           name: opts.tool.name,
@@ -124,7 +149,7 @@ export class AnthropicKiClient implements KiClient {
       max_tokens: opts.maxTokens,
       temperature: opts.temperature,
       system: this.system(opts),
-      messages: opts.messages.map((m) => ({ role: m.rolle, content: m.text })),
+      messages: this.messagesAus(opts),
     });
     const usage = this.usageAus(res.usage);
     this.onUsage({ callTyp: opts.callTyp, model: opts.model, usage });

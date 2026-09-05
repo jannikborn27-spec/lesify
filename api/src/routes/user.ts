@@ -22,7 +22,7 @@ const einstellungenPatch = z
   .refine((o) => Object.keys(o).length > 0, 'nichts zu ändern');
 
 export async function userRoutes(app: FastifyInstance): Promise<void> {
-  const { prisma } = app;
+  const { prisma, storage } = app;
   app.addHook('preHandler', app.requireAuth);
 
   app.get('/user', async (req) => {
@@ -126,17 +126,29 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
       : await pruefePasswort(user.passwordHash, body.passwort);
     if (!ok) throw new HttpError(401, 'passwort_falsch');
 
-    // Phase 5: vor dem Löschen die Objektspeicher-Keys aller Dateien einsammeln
-    // und im Bucket entfernen (inkl. der Kind-Profile).
     const kinder = await prisma.user.findMany({
       where: { parentUserId: req.userId },
       select: { id: true },
     });
+    const betroffeneUserIds = [req.userId, ...kinder.map((k) => k.id)];
+    const dateiKeys = (
+      await prisma.datei.findMany({
+        where: { userId: { in: betroffeneUserIds } },
+        select: { speicherPfad: true },
+      })
+    ).map((d) => d.speicherPfad);
+
     await prisma.$transaction([
       ...kinder.map((k) => prisma.user.delete({ where: { id: k.id } })),
       prisma.user.delete({ where: { id: req.userId } }),
     ]);
     // Cascade räumt Einstellungen, Fächer/Themen/Chats/…, Sessions, Abo (owner) mit.
+    // Objektspeicher liegt außerhalb der DB-Transaktion — best effort danach.
+    try {
+      await storage.loeschen(dateiKeys);
+    } catch (err) {
+      req.log.error({ err }, 'Objektspeicher-Löschung nach Konto-Löschung fehlgeschlagen');
+    }
     return { geloescht: true, kindProfileGeloescht: kinder.length };
   });
 }

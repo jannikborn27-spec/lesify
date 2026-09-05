@@ -2,6 +2,7 @@ import type { PrismaClient } from '@prisma/client';
 import type { preHandlerHookHandler } from 'fastify';
 import type { ZahlungsGateway } from './lib/zahlung.js';
 import type { KiClient } from './lib/ki/client.js';
+import type { StorageGateway } from './lib/storage.js';
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -10,6 +11,8 @@ declare module 'fastify' {
     zahlung: ZahlungsGateway;
     /** Claude-Client (Phase 6; Fake ohne ANTHROPIC_API_KEY). */
     ki: KiClient;
+    /** Objektspeicher-Adapter (Phase 5; Fake ohne SUPABASE_URL/SERVICE_KEY). */
+    storage: StorageGateway;
     /** preHandler: verlangt eine gültige Session, setzt `request.userId`. */
     requireAuth: preHandlerHookHandler;
   }

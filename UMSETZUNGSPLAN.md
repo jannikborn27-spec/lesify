@@ -124,6 +124,19 @@ Blockiert alles Weitere. Erst die offenen Produktfragen klären, dann bauen.
         `frontend/index.html` nutzt seine `lab-*`-Klassen, es ist damit faktisch
         das Landing-Stylesheet. Die öffentliche Website wird ohnehin erst später
         überarbeitet (dann ggf. umbenennen/aufräumen).
+  - [x] **Landing-Page (`marketing/index.html`) neu aufgebaut (2026-09-05):**
+        fester Section-Plan (Hero → KI-Chat → Klausurvorbereitung → Vergleich zu
+        Nachhilfe → Fächer & Klassenstufen → Preise → Testimonials → Eltern-Zugang
+        → FAQ → CTA), pro Sektion 5 echte Layout-Varianten in
+        `marketing/assets/js/landing.js` (Templates + Inhalte) und
+        `marketing/assets/css/landing.css` (Variantenstile). Dev-Umschalt-Panel
+        analog `LesifyUI.mountSearchDev`, Auswahl je Sektion in
+        `localStorage['lesify:landing:{sectionKey}:v']`, Re-Render ohne Reload.
+        Läuft ohne Build/Server direkt per `file://` (kein `type="module"`, kein
+        `fetch()`). `marketing/assets/css/landing-lab.css` wird von `index.html`
+        **nicht mehr eingebunden** (durch `landing.css` ersetzt) — Datei bleibt
+        unangetastet im Repo als Referenz für spätere Varianten-Arbeit, ist aber
+        jetzt ungenutzt.
 
 ### Architekturfragen — entschieden am 2026-09-04
 
@@ -361,23 +374,56 @@ echt mit Multi-User, KI-Antworten noch als deterministischer Platzhalter.
 
 `backend-planning.md` §6.
 
-- [ ] **Objektspeicher-Bucket je Umgebung** (EU-Region), Zugriff nur über
-      **zeitlich begrenzte signierte URLs**, nie öffentliche Links.
-- [ ] **`POST /themen/:id/dateien`:** multipart, **5-MB-Limit serverseitig hart
+> _2026-09-05: komplett umgesetzt. `api/src/lib/storage.ts`
+> (`SupabaseStorageGateway` + `FakeStorageGateway`, wie die anderen
+> Fake-Adapter), `api/src/lib/dateiExtraktion.ts` (pdf-parse/mammoth),
+> `api/src/lib/dateiVerarbeitung.ts` (Call-01-Orchestrierung + Testklausur-
+> Lösungs-Extraktion), `api/src/lib/upload.ts` (Größenlimit-Fehlerbehandlung).
+> `KiClient` um Bild-Input (Vision) erweitert (`client.ts`, `calls.ts`).
+> Tests: `storage.test.ts` (5), `dateiExtraktion.test.ts` (6, echte PDF/DOCX
+> via `pdfkit`/`docx`), `dateien.test.ts` (7), `testklausuren-upload.test.ts`
+> (1) — gesamt api jetzt 149 Tests. Storage-Layer zusätzlich live gegen das
+> echte Supabase-Projekt verifiziert (Bucket-Anlage, Upload, signierte URL,
+> Lesen, Löschen)._
+- [x] **Objektspeicher-Bucket je Umgebung** (EU-Region), Zugriff nur über
+      **zeitlich begrenzte signierte URLs**, nie öffentliche Links. —
+      _`SupabaseStorageGateway` legt den konfigurierten Bucket
+      (`SUPABASE_STORAGE_BUCKET`) beim ersten Zugriff automatisch an, falls er
+      fehlt — kein manueller Dashboard-Schritt nötig. Für `local` bereits live
+      verifiziert (`lesify-local`, `public: false`); `staging`/`production`
+      bekommen beim ersten echten Request denselben automatischen Bootstrap._
+- [x] **`POST /themen/:id/dateien`:** multipart, **5-MB-Limit serverseitig hart
       validiert** (zusätzlich zum Client), MIME → `typ` (`pdf`/`doc`/`img`),
-      Objekt-Key in `Datei.speicherPfad`, Status `verarbeitung`.
-- [ ] **Verarbeitungs-Queue/Job:** Datei → KI-Zusammenfassung (Phase 6, Prompt 01)
-      → Status `bereit`; bei Fehler Status `fehler`.
-- [ ] **Status-Abfrage durch den Client:** **Polling** von `GET /dateien/:id`
+      Objekt-Key in `Datei.speicherPfad`, Status `verarbeitung`. — _`typAusMime()`
+      lehnt HEIC und alles außer pdf/docx/png/jpeg/webp ab
+      (`dateityp_nicht_unterstuetzt`); Größenlimit übersetzt den
+      `@fastify/multipart`-Fehler in `413 datei_zu_gross`._
+- [x] **Verarbeitungs-Queue/Job:** Datei → KI-Zusammenfassung (Phase 6, Prompt 01)
+      → Status `bereit`; bei Fehler Status `fehler`. — _kein externer
+      Queue-Dienst: fire-and-forget direkt nach der Upload-Antwort
+      (`themenDateiVerarbeiten`), „nichts optimieren, bevor es weh tut"._
+- [x] **Status-Abfrage durch den Client:** **Polling** von `GET /dateien/:id`
       (kurzer Backoff, Stopp bei `bereit`/`fehler` oder ~60 s Timeout) — kein
-      Websocket/SSE (Entscheidung 2026-09-04).
-- [ ] **`GET /dateien/:id/inhalt`:** signierte URL / Stream der Originaldatei
+      Websocket/SSE (Entscheidung 2026-09-04). — _Client-Seite (`pollDateiStatus`)
+      stand schon aus Phase 11-Vorarbeit, Server liefert jetzt echte
+      Statuswechsel._
+- [x] **`GET /dateien/:id/inhalt`:** signierte URL / Stream der Originaldatei
       (PDF inline, Bild-Vorschau, Download-Button). Ersetzt die simulierte
-      Vorschau des Prototyps.
-- [ ] **Testklausur-Lösungs-Uploads** laufen über denselben Mechanismus, landen
+      Vorschau des Prototyps. — _302-Redirect auf eine 60 s gültige signierte
+      URL; eigener Plugin-Scope ohne `requireAuth`-Hook, weil die URL direkt in
+      `<a href>`/`<img src>` verwendet wird (Auth via Header **oder**
+      `?token=`, `api.js` → `dateiInhaltUrl()` angepasst)._
+- [x] **Testklausur-Lösungs-Uploads** laufen über denselben Mechanismus, landen
       aber **nicht** in der Themen-Dateiliste und zählen **nicht** gegen das
-      Content-Aufnahmen-Limit (Phase-0-Entscheidung).
-- [ ] **backend-planning.md §6/§8** auf den umgesetzten Stand bringen.
+      Content-Aufnahmen-Limit (Phase-0-Entscheidung). — _neues Feld
+      `Datei.zweck` (`thema`/`testklausurLoesung`); `POST
+      /testklausuren/:id/loesung` erkennt multipart zusätzlich zum
+      JSON-Bridge-Pfad, extrahiert synchron (Bild-Uploads über eine eigene
+      Vision-Transkription statt Zusammenfassung)._
+- [x] **backend-planning.md §6/§8** auf den umgesetzten Stand gebracht. —
+      _§1 (`Datei.mime`/`Datei.zweck`), §4 (Endpunkt-Details), §6 (ganzer
+      Umsetzungsabschnitt), §8/Phase-10-Notiz (Objektspeicher-Cleanup im
+      Aufbewahrungs-Job **und** in `POST /user/loeschen`) nachgezogen._
 
 ---
 
@@ -399,6 +445,11 @@ Preise/Modellwahl-Prinzipien: `00-overview.md` §7.
 > gegen echte Lesify-Calls, ~0,3–0,5 Cent/Call — Details + der Befund zu
 > `claude -p` (CLI-Modus lädt immer das teure Tool-Preset) in
 > `backend-planning.md` §3._
+>
+> _2026-09-05: Call 01 (Datei-Zusammenfassung) mit Phase 5 nachgezogen — jetzt
+> alle zwölf Calls end-to-end verdrahtet. `KiClient` zusätzlich um Bild-Input
+> (Vision) erweitert, für Bild-Uploads (Call 01) und die Testklausur-
+> Lösungs-Transkription._
 
 - [x] **Anthropic-Client kapseln** — _`api/src/lib/ki/client.ts`:
       `AnthropicKiClient` (`@anthropic-ai/sdk`, Retry+Timeout aus den
@@ -420,9 +471,9 @@ Preise/Modellwahl-Prinzipien: `00-overview.md` §7.
       `noteAmpel` im Backend._
 - [x] **Prompt Caching** — _`cache: true` auf den Chat-Calls (03–06/frei),
       `cache_control` ans Ende des kompletten System-Prompts._
-- [ ] **Call 01 — Datei-Zusammenfassung** — _`dateiZusammenfassungErzeugen()`
-      steht bereit, aber **nicht verdrahtet**: `POST /themen/:id/dateien`
-      (Upload/Objektspeicher) existiert erst in Phase 5._
+- [x] **Call 01 — Datei-Zusammenfassung** — _2026-09-05 (Phase 5): verdrahtet an
+      `POST /themen/:id/dateien` (`themenDateiVerarbeiten()`), inkl.
+      Bild-Uploads über Vision (`KiClient.bilder`, neu in `client.ts`)._
 - [x] **Call 02 — Themen Memory** — _`themenMemoryBlock()` in
       `api/src/lib/ki/kontext.ts`, Grundfall = Konkatenation, keine
       Verdichtung (kommt erst bei echtem Bedarf, Phase 17)._
@@ -620,8 +671,10 @@ bis das Thema wieder aufgemacht wird.
       dahin existiert nur der Token-Flow (Phase 3) ohne Versandweg.
 - [x] **Job-Funktionen + Runner** — _`inhalte-aufbewahrung` (löscht Lernpläne,
       Testklausuren, Klausuren, Chats, Lernzettel, Dateien > 365 Tage, Cascade
-      räumt Kind-Tabellen), `usage-historie` (Usage-Zeilen > 12 Monate),
-      `token-hygiene` (abgelaufene Sessions/Verification-Token). Aufruf:
+      räumt Kind-Tabellen; seit Phase 5 räumt der Job danach auch die
+      zugehörigen Objektspeicher-Objekte auf, best effort), `usage-historie`
+      (Usage-Zeilen > 12 Monate), `token-hygiene` (abgelaufene
+      Sessions/Verification-Token). Aufruf:
       `pnpm --filter @lesify/api job inhalte-aufbewahrung|usage-historie|token-hygiene|all`._
 - [x] **Usage-Reset** — _kein eigener Job nötig: der Monatszähler resettet
       implizit über den `Usage.monat`-Schlüssel (Phase 8). `usage-historie`
@@ -719,8 +772,10 @@ Kritisch, weil Zielgruppe minderjährig ist.
 - [x] **Datenexport & Konto-Löschung (DSGVO Art. 15/17)** — _`GET /user/export`
       (voller JSON-Dump ohne `passwordHash`, Download-Header),
       `POST /user/loeschen` (`{passwort}` bestätigt → harte Cascade-Löschung,
-      bei `elternteil` inkl. Kind-Profile). Objektspeicher-Dateien hängen an
-      Phase 5. Tests in `dsgvo.test.ts`. UI-Buttons: Phase 11._
+      bei `elternteil` inkl. Kind-Profile). Objektspeicher-Dateien werden seit
+      Phase 5 (2026-09-05) vor der Cascade-Löschung eingesammelt und danach
+      best effort aus dem Bucket entfernt. Tests in `dsgvo.test.ts`.
+      UI-Buttons: Phase 11._
 - [x] **Cookie-/Consent-Banner** — _entfällt: kein Tracking, keine
       nicht-essenziellen Cookies → kein Banner nötig. Bei späterem Tracking neu
       bewerten._

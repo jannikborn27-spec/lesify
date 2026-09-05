@@ -80,19 +80,19 @@ window.LESIFY_PAYMENTS = {
     seatOptions: [2, 3, 4],
     tiers: {
       starter: {
-        2: { monthly: { amount: 2899,  display: '28,99 €', normal: '35,99 €' },  yearly: { amount: 28068, display: '280,68 €', perMonth: '23,39 €' }, perSeat: '11,69 €' },
-        3: { monthly: { amount: 4199,  display: '41,99 €', normal: '51,99 €' },  yearly: { amount: 40548, display: '405,48 €', perMonth: '33,79 €' }, perSeat: '11,26 €' },
-        4: { monthly: { amount: 5499,  display: '54,99 €', normal: '67,99 €' },  yearly: { amount: 53028, display: '530,28 €', perMonth: '44,19 €' }, perSeat: '11,05 €' }
+        2: { monthly: { amount: 2899,  display: '28,99 €', normal: '35,99 €' },  yearly: { amount: 27588, display: '275,88 €', perMonth: '22,99 €' }, perSeat: '11,69 €' },
+        3: { monthly: { amount: 4199,  display: '41,99 €', normal: '51,99 €' },  yearly: { amount: 39588, display: '395,88 €', perMonth: '32,99 €' }, perSeat: '11,26 €' },
+        4: { monthly: { amount: 5499,  display: '54,99 €', normal: '67,99 €' },  yearly: { amount: 52788, display: '527,88 €', perMonth: '43,99 €' }, perSeat: '11,05 €' }
       },
       premium: {
-        2: { monthly: { amount: 3599,  display: '35,99 €', normal: '44,99 €' },  yearly: { amount: 34548, display: '345,48 €', perMonth: '28,79 €' }, perSeat: '14,39 €' },
-        3: { monthly: { amount: 5199,  display: '51,99 €', normal: '64,99 €' },  yearly: { amount: 49908, display: '499,08 €', perMonth: '41,59 €' }, perSeat: '13,86 €' },
-        4: { monthly: { amount: 6799,  display: '67,99 €', normal: '84,99 €' },  yearly: { amount: 65268, display: '652,68 €', perMonth: '54,39 €' }, perSeat: '13,60 €' }
+        2: { monthly: { amount: 3599,  display: '35,99 €', normal: '44,99 €' },  yearly: { amount: 33588, display: '335,88 €', perMonth: '27,99 €' }, perSeat: '14,39 €' },
+        3: { monthly: { amount: 5199,  display: '51,99 €', normal: '64,99 €' },  yearly: { amount: 49908, display: '499,08 €', perMonth: '40,99 €' }, perSeat: '13,86 €' },
+        4: { monthly: { amount: 6799,  display: '67,99 €', normal: '84,99 €' },  yearly: { amount: 64788, display: '647,88 €', perMonth: '53,99 €' }, perSeat: '13,60 €' }
       },
       infinite: {
-        2: { monthly: { amount: 6499,  display: '64,99 €',  normal: '80,99 €' },  yearly: { amount: 60468,  display: '604,68 €',   perMonth: '50,39 €' }, perSeat: '25,20 €' },
-        3: { monthly: { amount: 9399,  display: '93,99 €',  normal: '116,99 €' }, yearly: { amount: 87348,  display: '873,48 €',   perMonth: '72,79 €' }, perSeat: '24,26 €' },
-        4: { monthly: { amount: 12299, display: '122,99 €', normal: '152,99 €' }, yearly: { amount: 114228, display: '1.142,28 €', perMonth: '95,19 €' }, perSeat: '23,80 €' }
+        2: { monthly: { amount: 6499,  display: '64,99 €',  normal: '80,99 €' },  yearly: { amount: 59988,  display: '599,88 €',   perMonth: '49,99 €' }, perSeat: '25,20 €' },
+        3: { monthly: { amount: 9399,  display: '93,99 €',  normal: '116,99 €' }, yearly: { amount: 86388,  display: '863,88 €',   perMonth: '71,99 €' }, perSeat: '24,26 €' },
+        4: { monthly: { amount: 12299, display: '122,99 €', normal: '152,99 €' }, yearly: { amount: 113988, display: '1.139,88 €', perMonth: '94,99 €' }, perSeat: '23,80 €' }
       }
     }
   },

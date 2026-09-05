@@ -258,9 +258,11 @@ einzeln zählbar sind.
 | themaId | uuid (FK) | Pflicht |
 | name | string | Originaldateiname |
 | typ | enum | `pdf` \| `doc` \| `img` (abgeleitet aus MIME-Type) |
+| mime | string | Original-MIME (Phase 5) — unterscheidet `.docx`/Legacy-`.doc` bzw. Bild-Subtyp für Vision |
 | groesseBytes | int | Limit: 5 MB pro Datei (hart validiert, Backend UND Frontend) |
 | speicherPfad | string | siehe §6 |
 | status | enum | `verarbeitung` \| `bereit` \| `fehler` |
+| zweck | enum | `thema` \| `testklausurLoesung` (Phase 5) — Lösungs-Uploads erscheinen nicht in der Themen-Dateiliste, zählen nicht gegen das Content-Limit |
 | zusammenfassung | text (nullable) | KI-generiert beim Upload, siehe §3 |
 | erstelltAm | timestamp | |
 
@@ -394,7 +396,7 @@ einer Note. `Lesify.klausurNote(klausurId)` kapselt diese Auswahl und gibt
 | titel | string | |
 | status | enum | `erstellt` → `geloest` → `analysiert` (siehe Statusmaschine unten) |
 | geloesteDateiId | uuid (FK, nullable) | Upload der Lösung durch den Schüler |
-| loesungsText | string (nullable) | Phase 6: Klartext der Lösung, Grundlage für Call 11. Bridge bis Phase 5 (echte Datei-Extraktion) — `POST /testklausuren/:id/loesung` nimmt ihn direkt entgegen |
+| loesungsText | string (nullable) | Klartext der Lösung, Grundlage für Call 11. **Phase 5:** wird bei einem multipart-Upload automatisch extrahiert (pdf/docx-Text bzw. Vision-Transkription bei Bildern); der direkte JSON-`{loesungsText}`-Pfad aus Phase 6 bleibt als Bridge/Testing-Weg erhalten |
 | erstelltAm | timestamp | |
 
 ### Aufgabe
@@ -715,15 +717,15 @@ läuft nirgends ein echter Call, mit Key nutzt `AnthropicKiClient` das
   3.-Aufruf-Riegel), `POST /testklausuren/:id/analyse` (11),
   `POST /lernplaene/:id/testklausur2` (10, schwache/wackelige Themen aus
   `lernplanStatus`) und `POST /lernplaene/:id/lernzettel` (12, angehängt).
-- **Nicht verdrahtet (Phase 5 fehlt):** Call 01 (Datei-Zusammenfassung,
-  `dateiZusammenfassungErzeugen()` steht bereit) — es gibt noch keinen
-  echten Datei-Upload/Objektspeicher, der den Rohinhalt liefert.
-- **Bridge bis Phase 5:** `Testklausur.loesungsText` (neue Spalte) hält den
-  Klartext der Lösung; `POST /testklausuren/:id/loesung` nimmt ihn direkt
-  entgegen (neben `geloesteDateiId`), `POST /testklausuren/:id/analyse`
-  braucht ihn (`422 keine_loesung_extrahiert`, wenn keiner vorliegt). Sobald
-  Phase 5 echte Datei-Extraktion liefert, füllt sie `loesungsText`
-  automatisch — der Analyse-Call selbst bleibt unverändert.
+- **Call 01 — Phase 5 verdrahtet:** `dateiZusammenfassungErzeugen()` läuft
+  jetzt fire-and-forget nach jedem `POST /themen/:id/dateien`
+  (`themenDateiVerarbeiten()` in `api/src/lib/dateiVerarbeitung.ts`), Rohinhalt
+  kommt aus dem echten Objektspeicher-Upload (§6).
+- **`Testklausur.loesungsText` — Phase 5 verdrahtet:** wird bei einem
+  multipart-Upload automatisch extrahiert; die JSON-Bridge (`loesungsText`
+  direkt mitschicken, neben `geloesteDateiId`) bleibt zusätzlich als
+  Testing-/Fallback-Pfad bestehen. `POST /testklausuren/:id/analyse` braucht
+  ihn weiterhin (`422 keine_loesung_extrahiert`, wenn keiner vorliegt).
 - **Themen-Guard/Größen-Guard/Spam-Guard:** `api/src/lib/ki/guard.ts`.
   Themen-Guard als **Regelwerk** (konservative Muster-Liste, bewusst kein
   eigener Klassifikations-Call — beide Varianten sind laut §3 erlaubt);
@@ -821,9 +823,9 @@ Abweichungen von den Tabellen unten:
 - **`PATCH /lernplaene/:id/checklist`**: `{tag,key,checked}` pflegt das
   `checklist`-JSON; `{tag,checked}` („Tag abschließen") toggelt bis Phase 7 den
   Legacy-Marker `tageErledigt` (die Key-Liste je Tag braucht `lernplanStatus`).
-- **`POST /testklausuren/:id/loesung`** nimmt im Skelett JSON
-  `{geloesteDateiId}` (bereits vorhandene Datei) statt multipart — der echte
-  Upload läuft ab Phase 5 über den Objektspeicher.
+- **`POST /testklausuren/:id/loesung`** nahm im Phase-4-Skelett nur JSON
+  (`{geloesteDateiId}`/`{loesungsText}`) entgegen; seit Phase 5 zusätzlich
+  multipart über den echten Objektspeicher (siehe §6/§4-Endpunkttabelle).
 - **`POST /kontakt`**: Honeypot-Feld `website` (gefüllt → 200, still verworfen) +
   In-Memory-IP-Limit; Zielsystem (Support-Postfach/Ticket) weiter offen (§8),
   bis dahin nur strukturiertes Logging.
@@ -860,10 +862,10 @@ Abweichungen von den Tabellen unten:
 ### Dateien
 | Methode | Pfad | Zweck |
 |---|---|---|
-| POST | `/themen/:id/dateien` | multipart Upload (max. 5 MB), Status `verarbeitung` → async KI-Zusammenfassung → Status `bereit`. Der Client erfährt den Wechsel per **Polling** von `GET /dateien/:id` (kurzer Backoff, Stopp bei `bereit`/`fehler` oder ~60 s Timeout) — kein Websocket/SSE (Entscheidung 2026-09-04) |
-| GET | `/dateien?themaId=` oder ohne Filter | Aggregat-Liste |
+| POST | `/themen/:id/dateien` | **Phase 5 verdrahtet.** multipart Upload (max. 5 MB, hart via `@fastify/multipart`-Limit + manueller Check), Status `verarbeitung` → async Call 01 (Text-Extraktion oder Vision bei Bildern) → Status `bereit`/`fehler`. Der Client erfährt den Wechsel per **Polling** von `GET /dateien/:id` (kurzer Backoff, Stopp bei `bereit`/`fehler` oder ~60 s Timeout) — kein Websocket/SSE (Entscheidung 2026-09-04) |
+| GET | `/dateien?themaId=` oder ohne Filter | Aggregat-Liste, nur `zweck: thema` (Testklausur-Lösungs-Uploads ausgeschlossen) |
 | GET | `/dateien/:id` | Datei-Detail (Metadaten + KI-Zusammenfassung + Status) für den **Datei-Viewer**: Klick auf eine Datei-Karte/-Zeile (`dateien.html`, `thema.html` inkl. Übersicht, Dashboard-Feed) öffnet jetzt ein Modal (`LesifyUI.openDateiModal`) mit Dokument-Ansicht statt zur Themen-Dateien-Unterseite zu navigieren. Im Prototyp aus der bereits geladenen Liste bedient |
-| GET | `/dateien/:id/inhalt` | Signierte URL bzw. Stream der Originaldatei — zum Einbetten/Anzeigen im Viewer (PDF inline, Bild-Vorschau) **und** für den „Herunterladen"-Button im Viewer-Modal. Im Prototyp nicht vorhanden — das Modal zeigt eine simulierte Vorschau (Zusammenfassung + Platzhalter) und der Download liefert ersatzweise ein `.txt` mit Metadaten + KI-Zusammenfassung (`Lesify.downloadText`), keinen echten Datei-Inhalt |
+| GET | `/dateien/:id/inhalt` | **Phase 5 verdrahtet.** 302-Redirect auf eine 60 s gültige signierte URL — zum Einbetten/Anzeigen im Viewer (PDF inline, Bild-Vorschau) **und** für den „Herunterladen"-Button im Viewer-Modal. Läuft **ohne** den normalen `requireAuth`-Hook (eigener Plugin-Scope), weil `dateiInhaltUrl()` direkt als `<a href>`/`<img src>` genutzt wird und keinen `Authorization`-Header mitschicken kann — Auth via Header **oder** `?token=`. Im Prototyp nicht vorhanden — das Modal zeigt eine simulierte Vorschau (Zusammenfassung + Platzhalter) und der Download liefert ersatzweise ein `.txt` mit Metadaten + KI-Zusammenfassung (`Lesify.downloadText`), keinen echten Datei-Inhalt |
 
 ### Klausuren (echter Termin)
 | Methode | Pfad | Zweck |
@@ -890,7 +892,7 @@ Kein `PATCH /klausuren/:id` — eine `Klausur` hat keine editierbaren Felder (En
 | POST | `/testklausuren` | `{fachId, themaIds, titel, klausurId?}` → generiert Aufgaben (Call 10, **Phase 6 verdrahtet**, `testklausurErstellen()`), Status `erstellt`. Genutzt für Testklausur 1 (auch via `POST /klausuren`, alle Themen) **und** Testklausur 2 (nur schwache/wackelige Themen). Ein **dritter** Aufruf zur selben `klausurId` → `409 testklausur_limit_erreicht` (max. 2 pro Klausurvorbereitung) |
 | GET | `/testklausuren/:id` | Voller Zustand: Aufgaben, Ergebnis (falls vorhanden), Vorbereitungsstand |
 | GET | `/testklausuren/:id/dokument` | Aufgaben als Download (Text/PDF) |
-| POST | `/testklausuren/:id/loesung` | Ziel: multipart Upload → Status `geloest`. **Phase 6:** nimmt zusätzlich `{loesungsText}` direkt entgegen (Bridge bis Phase 5 — echte Datei-Extraktion füllt `loesungsText` später automatisch) |
+| POST | `/testklausuren/:id/loesung` | **Phase 5 verdrahtet.** multipart Upload → `Datei` (`zweck: testklausurLoesung`, zählt nicht gegen das Content-Limit, nicht in der Themenliste) → Text-Extraktion/Vision-Transkription synchron im Request → `loesungsText` gesetzt, Status `geloest`. Der direkte JSON-`{loesungsText}`-Pfad (Phase 6) bleibt als Bridge/Testing-Weg erhalten |
 | POST | `/testklausuren/:id/analyse` | Triggert Auswertung (Call 11, **Phase 6 verdrahtet**) → `TestklausurErgebnis` + `Vorbereitungsstand` (dreistufige Ampel) → Status `analysiert`. Braucht `status=geloest` **und** `loesungsText` (sonst `409`/`422`) |
 
 ### Usage
@@ -906,7 +908,7 @@ Kein `PATCH /klausuren/:id` — eine `Klausur` hat keine editierbaren Felder (En
 | GET | `/user/einstellungen` | Aktuelle Einstellungen (Benachrichtigungen, KI-Tonfall) |
 | PATCH | `/user/einstellungen` | Teilupdate einzelner Einstellungen (jeder Toggle/jede Auswahl speichert für sich, kein Sammel-Formular) |
 | GET | `/user/export` | **DSGVO Art. 15** — kompletter JSON-Export aller zum Konto gespeicherten Daten (ohne `passwordHash`), `Content-Disposition: attachment` (Phase 13) |
-| POST | `/user/loeschen` | **DSGVO Art. 17** — `{passwort}` bestätigt, dann harte Löschung des Kontos **und aller Inhalte** (Cascade); bei `elternteil` inkl. aller Kind-Profile. Objektspeicher-Dateien: mit Phase 5 (Phase 13) |
+| POST | `/user/loeschen` | **DSGVO Art. 17** — `{passwort}` bestätigt, dann harte Löschung des Kontos **und aller Inhalte** (Cascade); bei `elternteil` inkl. aller Kind-Profile. Objektspeicher-Dateien werden vor der DB-Löschung eingesammelt und danach best effort aus dem Bucket entfernt (Phase 5, siehe §6) |
 
 ### Suche
 | Methode | Pfad | Zweck |
@@ -1066,6 +1068,57 @@ ohne Backend (Formulare zeigen nur einen Toast). Für das echte Backend:
   landen aber nicht in der normalen „Dateien"-Liste des Themas (separater Zweck).
   Sie zählen **nicht** gegen das Content-Aufnahmen-Limit (Entscheidung 2026-09-03).
 
+### Umsetzung (Phase 5, 2026-09-05)
+
+- **Objektspeicher-Adapter** — `api/src/lib/storage.ts`: `StorageGateway`-
+  Interface (`hochladen`/`signierteUrl`/`lesen`/`loeschen`). `SupabaseStorageGateway`
+  (`@supabase/supabase-js`, `SUPABASE_URL`/`SUPABASE_SERVICE_KEY`/
+  `SUPABASE_STORAGE_BUCKET`, Default-Bucket `lesify-local`) legt den Bucket beim
+  ersten Zugriff automatisch an (`createBucket`, `public: false`), falls er noch
+  nicht existiert — ersetzt den manuellen Dashboard-Schritt. Ohne die beiden
+  Supabase-Variablen läuft `FakeStorageGateway` (In-Memory) — wie
+  `FakeKiClient`/`FakeZahlungsGateway`. `lesen()` ist der serverseitige
+  Direktzugriff für die Verarbeitungs-Jobs (kein Umweg über eine signierte URL).
+- **`POST /themen/:id/dateien`** — multipart (`@fastify/multipart`,
+  `limits.fileSize = DATEI_MAX_BYTES`, Default 5 MB). MIME → `typ` (`typAusMime`
+  in `api/src/lib/dateiExtraktion.ts`; pdf/docx/png/jpeg/webp — **kein** HEIC,
+  von Claudes Vision-API nicht akzeptiert). Größe wird sowohl vom Multipart-Limit
+  als auch manuell geprüft (`api/src/lib/upload.ts` → `liesDateiTeil`, übersetzt
+  `FST_REQ_FILE_TOO_LARGE` in `413 datei_zu_gross`). `pruefeUsageLimit`/
+  `inkrementiereUsage('dateien')` wie die anderen Zähler. Upload → `Datei`-Zeile
+  (`status: verarbeitung`, `zweck: thema`, `mime` gespeichert) → Call 01
+  **fire-and-forget** (`themenDateiVerarbeiten` in `api/src/lib/dateiVerarbeitung.ts`,
+  kein externer Queue-Dienst — „nichts optimieren, bevor es weh tut"): Text
+  extrahieren (`pdf-parse` für PDF, `mammoth` für `.docx`; legacy-`.doc` und
+  unbekannte Formate → `status: fehler`) bzw. bei Bildern das Bild direkt als
+  Vision-Block an Call 01 anhängen (`KiClient.bilder`, neu in `client.ts`) →
+  `Datei.status` → `bereit`/`fehler`.
+- **`GET /dateien` / `GET /dateien/:id`** — filtert `zweck: thema`, damit
+  Testklausur-Lösungs-Dateien nicht in der Themenliste erscheinen.
+- **`GET /dateien/:id/inhalt`** — eigener Plugin-Scope **ohne** den
+  `requireAuth`-Hook (`dateiInhaltRoutes`): `dateiInhaltUrl()` wird im Frontend
+  direkt als `<a href>`/`<img src>` genutzt und kann daher keinen
+  `Authorization`-Header mitschicken. Auth läuft wahlweise über den Header
+  (fetch) oder `?token=` (direkte Navigation, `api.js` hängt den Token an).
+  302-Redirect auf eine 60 s gültige signierte URL, nie ein öffentlicher Link.
+- **Testklausur-Lösungs-Upload** — `POST /testklausuren/:id/loesung` erkennt
+  jetzt `multipart` (`req.isMultipart()`) zusätzlich zum bisherigen JSON-Bridge-
+  Pfad (`loesungsText` direkt, bleibt für Tests/Dev nutzbar). Multipart:
+  `Datei`-Zeile mit `zweck: testklausurLoesung` (zählt nicht gegen `dateien`,
+  taucht nicht in der Themenliste auf), Extraktion läuft **synchron** im Request
+  (kurze Solo-Datei, kein Hintergrund-Job nötig): pdf/docx wie oben, Bilder über
+  eine eigene Vision-Transkription (`loesungTextAusBildErzeugen` in `calls.ts`,
+  gibt den wörtlichen Text zurück statt einer Zusammenfassung) — setzt
+  `Testklausur.loesungsText` automatisch, ersetzt die bisherige reine
+  JSON-Bridge für den Upload-Fall.
+- **Neues Feld `Datei.mime`** (Migration `datei_mime`) — Original-MIME wird
+  gebraucht, um bei der Verarbeitung zwischen `.docx`/Legacy-`.doc` bzw. dem
+  konkreten Bild-Subtyp (Vision-`media_type`) zu unterscheiden; reiner
+  `DateiTyp`-Enum (`pdf`/`doc`/`img`) reicht dafür nicht.
+- **Neues Feld `Datei.zweck`** (Enum `DateiZweck`: `thema`/`testklausurLoesung`,
+  Migration `phase5_datei_speicherung`) — expliziter Ersatz für eine
+  Relations-basierte Unterscheidung.
+
 ### Datenaufbewahrung (Entscheidung 2026-09-03)
 
 **Alle Inhalte** — Dateien (inkl. Objektspeicher-Objekt), Klausuren, Chats +
@@ -1074,15 +1127,20 @@ nach ihrer Erstellung gelöscht** (Cron-Job). Die Frist steht in der
 Datenschutzerklärung **und** sichtbar in den Einstellungen. Ersetzt die frühere
 offene „Archivierungs"-Frage.
 
-**Umsetzung (Phase 10, 2026-09-04):** Job `inhalte-aufbewahrung` in
-`api/src/lib/jobs.ts` (`inhalteAelterAlsEinJahrLoeschen`) löscht in einer
-Transaktion Lernpläne → Testklausuren → Klausuren → Chats → Lernzettel →
-Dateien mit `erstelltAm < jetzt − 365 Tage`; Kind-Tabellen (Nachricht,
-Revision, Aufgabe, Ergebnis, Vorbereitungsstand) gehen per Cascade mit. Der
-Objektspeicher-Teil (`Datei.speicherPfad`-Keys vorher einsammeln und im
-Bucket löschen) hängt an Phase 5. Aufruf über `pnpm --filter @lesify/api job
-inhalte-aufbewahrung`; Einhängen in einen echten Scheduler = Phase 16.
-Weitere Jobs: `usage-historie` (Usage-Zeilen > 12 Monate),
+**Umsetzung (Phase 10, 2026-09-04; Objektspeicher-Teil Phase 5, 2026-09-05):**
+Job `inhalte-aufbewahrung` in `api/src/lib/jobs.ts`
+(`inhalteAelterAlsEinJahrLoeschen`) sammelt zuerst die `speicherPfad`-Keys aller
+betroffenen Dateien ein, löscht dann in einer Transaktion Lernpläne →
+Testklausuren → Klausuren → Chats → Lernzettel → Dateien mit
+`erstelltAm < jetzt − 365 Tage` (Kind-Tabellen wie Nachricht/Revision/Aufgabe/
+Ergebnis/Vorbereitungsstand gehen per Cascade mit) und räumt **danach** den
+Objektspeicher auf (`storage.loeschen(keys)`, außerhalb der DB-Transaktion,
+best effort — ein einzelner fehlgeschlagener Objekt-Löschversuch bricht den Job
+nicht ab, wird nur geloggt). Dieselbe Reihenfolge (erst Keys einsammeln, dann
+DB löschen, dann Objektspeicher aufräumen) nutzt auch
+`POST /user/loeschen` (DSGVO-Konto-Löschung, §8/Phase 13). Aufruf über
+`pnpm --filter @lesify/api job inhalte-aufbewahrung`; Einhängen in einen echten
+Scheduler = Phase 16. Weitere Jobs: `usage-historie` (Usage-Zeilen > 12 Monate),
 `token-hygiene` (abgelaufene Sessions/Verification-Token).
 
 ## 7. Usage-Tracking & Limits
@@ -1140,13 +1198,12 @@ Weitere Jobs: `usage-historie` (Usage-Zeilen > 12 Monate),
   (`monat` = `YYYY-MM`) gekeyt. Neuer Monat → neuer Schlüssel → `findUnique`
   liefert `null` → Zähler 0, kein Übertrag. Kein Cron nötig; alte Zeilen räumt
   die 1-Jahres-Löschung (Phase 13) mit ab.
-- **Durchgesetzt** ist bisher der Nachrichten-Zähler in
-  `POST /chats/:id/nachrichten` (`pruefeUsageLimit` vor dem Platzhalter-Call,
-  `inkrementiereUsage` danach). Die Zähler `dateien` (Upload, Phase 5),
-  `lernzettel` + `testklausuren` (KI-Endpunkte, Phase 6) hängen sich beim Bau
-  dieser Endpunkte mit demselben Vor-Prüfen/Nach-Zählen-Muster an;
-  Lernzettel-Revisionen zählen erst ab der 11. je Lernzettel
-  (`revisionZaehltGegenLimit`). Testklausur-Lösungs-Uploads zählen **nicht**.
+- **Durchgesetzt** — alle vier Zähler nach demselben Vor-Prüfen/Nach-Zählen-
+  Muster: `nachrichten` in `POST /chats/:id/nachrichten`, `dateien` in
+  `POST /themen/:id/dateien` (Phase 5), `lernzettel`/`testklausuren` an den
+  jeweiligen KI-Endpunkten (Phase 6). Lernzettel-Revisionen zählen erst ab der
+  11. je Lernzettel (`revisionZaehltGegenLimit`). Testklausur-Lösungs-Uploads
+  zählen **nicht** (`zweck: testklausurLoesung`).
 - **`GET /usage`** liefert `{ paket, planName, resetDatum, nachrichten, dateien,
   lernzettel, testklausuren, ring: { ratio, stufe } }`; jede Quote ist
   `{ used, limit, resetDatum }` (Spiegel `Lesify.usage()`).

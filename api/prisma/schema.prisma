@@ -86,6 +86,14 @@ enum DateiStatus {
   fehler
 }
 
+// Phase 5: unterscheidet normale Themen-Dateien von Testklausur-Lösungs-
+// Uploads — Letztere erscheinen nicht in der Dateien-Liste des Themas und
+// zählen nicht gegen das Content-Aufnahmen-Limit (§6/§7-Entscheidung 2026-09-03).
+enum DateiZweck {
+  thema
+  testklausurLoesung
+}
+
 enum TestklausurStatus {
   erstellt
   geloest
@@ -335,9 +343,11 @@ model Datei {
   themaId         String      @db.Uuid
   name            String // Originaldateiname
   typ             DateiTyp
+  mime            String      @default("application/octet-stream") // Original-MIME (Bild-Subtyp/docx vs. legacy .doc — §6-Verarbeitung); Default nur für Alt-Zeilen vor Phase 5
   groesseBytes    Int // Limit 5 MB, hart validiert
   speicherPfad    String // Objektspeicher-Key, §6
   status          DateiStatus @default(verarbeitung)
+  zweck           DateiZweck  @default(thema)
   zusammenfassung String? // KI-generiert beim Upload, §3
   erstelltAm      DateTime    @default(now())
 

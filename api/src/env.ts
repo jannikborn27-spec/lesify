@@ -16,6 +16,18 @@ const schema = z.object({
   // Claude API (Phase 6) — optional: fehlt der Key, läuft der Fake-KI-Client
   // (deterministische Platzhalter-Antworten, kein echter Call/Kosten).
   ANTHROPIC_API_KEY: z.string().optional(),
+  // Supabase Storage (Phase 5) — optional: fehlen URL/Service-Key, läuft das
+  // deterministische FakeStorageGateway (In-Memory, kein echter Upload) —
+  // wie FakeKiClient/FakeZahlungsGateway.
+  SUPABASE_URL: z.string().optional(),
+  SUPABASE_SERVICE_KEY: z.string().optional(),
+  SUPABASE_STORAGE_BUCKET: z.string().default('lesify-local'),
+  // 5-MB-Limit pro Datei, serverseitig hart (§6) — Bytes, nicht MB.
+  DATEI_MAX_BYTES: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(5 * 1024 * 1024),
   // Modellwahl je Call-Klasse (Config, nicht fest verdrahtet — §3).
   KI_MODELL_GUENSTIG: z.string().default('claude-haiku-4-5-20251001'),
   KI_MODELL_STANDARD: z.string().default('claude-haiku-4-5-20251001'),

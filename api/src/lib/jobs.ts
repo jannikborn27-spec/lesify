@@ -1,5 +1,6 @@
 import type { PrismaClient } from '@prisma/client';
 import { monatsSchluessel } from '@lesify/shared';
+import { getStorageGateway, type StorageGateway } from './storage.js';
 
 /**
  * Wiederkehrende Wartungs-Jobs (Phase 10). Reine Funktionen — der echte
@@ -40,17 +41,24 @@ export interface LoeschStatistik {
  * (Lernplan → Testklausur → Klausur). Kind-Tabellen (Aufgabe, Ergebnis,
  * Vorbereitungsstand, …) gehen per Cascade mit.
  *
- * Der zugehörige Objektspeicher wird ab Phase 5 mit gelöscht (die
- * `speicherPfad`-Keys der betroffenen Dateien vorher einsammeln).
+ * Der zugehörige Objektspeicher wird **nach** dem Commit aufgeräumt (die
+ * `speicherPfad`-Keys der betroffenen Dateien werden vorher eingesammelt) —
+ * Storage-Calls laufen nie innerhalb der DB-Transaktion. Ein fehlgeschlagener
+ * Objekt-Löschversuch bricht den Job nicht ab (best effort, geloggt).
  */
 export async function inhalteAelterAlsEinJahrLoeschen(
   prisma: PrismaClient,
   jetzt: Date = new Date(),
+  storage: StorageGateway = getStorageGateway(),
 ): Promise<LoeschStatistik> {
   const cutoff = vorTagen(AUFBEWAHRUNG_TAGE, jetzt);
   const alt = { erstelltAm: { lt: cutoff } };
 
-  return prisma.$transaction(async (tx) => {
+  const dateiKeys = (
+    await prisma.datei.findMany({ where: alt, select: { speicherPfad: true } })
+  ).map((d) => d.speicherPfad);
+
+  const statistik = await prisma.$transaction(async (tx) => {
     const lernplaene = (await tx.lernplan.deleteMany({ where: alt })).count;
     const testklausuren = (await tx.testklausur.deleteMany({ where: alt })).count;
     const klausuren = (await tx.klausur.deleteMany({ where: alt })).count;
@@ -67,6 +75,14 @@ export async function inhalteAelterAlsEinJahrLoeschen(
       dateien,
     };
   });
+
+  try {
+    await storage.loeschen(dateiKeys);
+  } catch (err) {
+    console.error(JSON.stringify({ jobStorageLoeschenFehler: true, err: String(err) }));
+  }
+
+  return statistik;
 }
 
 /** Entfernt Usage-Zeilen, die älter als {@link USAGE_HISTORIE_MONATE} sind. */

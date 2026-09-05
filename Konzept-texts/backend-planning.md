@@ -755,6 +755,41 @@ läuft nirgends ein echter Call, mit Key nutzt `AnthropicKiClient` das
   ~4.000-Token-Schwelle wächst (Erweiterung, noch nicht gebraucht);
   KI-Kosten-Dashboard aus dem Usage-Log (Phase 15/17).
 
+#### Dev-only-Alternative: eigene Claude-Subscription statt API-Key (2026-09-05)
+
+Für lokales Testen vor dem ersten `ANTHROPIC_API_KEY` gibt es
+`ClaudeAgentSdkKiClient` (`api/src/lib/ki/devAgentSdkClient.ts`) — nutzt die
+persönliche Claude Pro/Max-Subscription über `@anthropic-ai/claude-agent-sdk`
+(`devDependency`) statt API-Billing. Aktiv **nur** bei `NODE_ENV=development`
+**und** explizit gesetztem `KI_DEV_ADAPTER=claude-agent-sdk` in
+`getKiClient()` — sonst (Produktion, Tests, normaler Dev-Betrieb) immer
+`FakeKiClient`, auch wenn `CLAUDE_CODE_OAUTH_TOKEN` in `.env` steht. Läuft nie
+gegen echte Nutzer:innen: technisch (Paket fehlt in einem Produktions-Install)
+und weil eine persönliche Subscription grundsätzlich keinen Traffic für ein
+drittes Produkt bedienen darf (Entscheidung 2026-09-04).
+
+**Wichtiger Befund beim Bauen:** `claude -p` (CLI-Print-Modus) lädt **immer**
+das volle Claude-Code-Tool-Preset — gemessen 25.000–45.000 Token Overhead pro
+Call, ~0,15–0,27 $/Call, unabhängig von `--system-prompt`/`--allowedTools`.
+`--bare` schaltet das ab, verlangt dann aber `ANTHROPIC_API_KEY` statt OAuth
+(kein Ausweg über die CLI). Der **SDK-Weg** (`query()` aus
+`@anthropic-ai/claude-agent-sdk`) mit `tools: []` (keine eingebauten Tools),
+`settingSources: []` (keine CLAUDE.md/Settings) und einem reinen
+**String**-`systemPrompt` (kein `{type:'preset', preset:'claude_code'}`)
+umgeht das komplett — gemessen ~230 Input-Tokens/< 1 Cent für eine Freitext-
+Antwort. Für strukturierte Ausgaben gibt es nativ `outputFormat:
+{type:'json_schema', schema}` → `structured_output`-Feld im `result`, ohne
+eigenes Tool-Use-Parsing; `thinking: {type:'disabled'}` vermeidet unnötige
+Extended-Thinking-Tokens. End-to-end mit echten Lesify-Calls
+(`chatTitelErzeugen`, `chatAntwortErzeugen`) verifiziert: ~0,3–0,5 Cent/Call,
+in der von `00-overview.md` §7 erwarteten Größenordnung.
+
+Multi-Turn-Chatverläufe werden dabei nicht als `messages`-Array geschickt
+(ein SDK-`query()`-Aufruf ist ein Einzel-Turn), sondern in den System-Prompt
+gefaltet, nur die letzte Nachricht geht als `prompt` — für schnelles manuelles
+Gegenprüfen ausreichend, keine exakte Parität zum Produktionspfad
+(`AnthropicKiClient`, echtes `messages`-Array + Prompt-Caching).
+
 ---
 
 ## 4. API-Endpunkte

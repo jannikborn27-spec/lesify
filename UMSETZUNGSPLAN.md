@@ -391,6 +391,14 @@ Preise/Modellwahl-Prinzipien: `00-overview.md` §7.
 > `ANTHROPIC_API_KEY` läuft kein echter Call — wie `FakeZahlungsGateway`,
 > Phase 9). Tests: `api/src/lib/ki/*.test.ts` (26) + `api/src/routes/ki.test.ts`
 > (13, DB-gated). Details siehe `backend-planning.md` §3 „Umsetzung Phase 6"._
+>
+> _2026-09-05: Dev-only-Alternative zum Testen ohne `ANTHROPIC_API_KEY`
+> ergänzt — `ClaudeAgentSdkKiClient` über die persönliche Claude-Subscription
+> (`claude setup-token` → `CLAUDE_CODE_OAUTH_TOKEN`), aktiv nur bei
+> `NODE_ENV=development` + `KI_DEV_ADAPTER=claude-agent-sdk`. Verifiziert
+> gegen echte Lesify-Calls, ~0,3–0,5 Cent/Call — Details + der Befund zu
+> `claude -p` (CLI-Modus lädt immer das teure Tool-Preset) in
+> `backend-planning.md` §3._
 
 - [x] **Anthropic-Client kapseln** — _`api/src/lib/ki/client.ts`:
       `AnthropicKiClient` (`@anthropic-ai/sdk`, Retry+Timeout aus den

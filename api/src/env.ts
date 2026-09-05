@@ -22,6 +22,12 @@ const schema = z.object({
   // Vorab-Filter (§3/§7): harte Zeichen-Obergrenze für eine einzelne
   // Nutzer-Eingabe (Chat-Nachricht, Revisionsanweisung).
   KI_ANFRAGE_MAX_ZEICHEN: z.coerce.number().int().positive().default(6000),
+  // Dev-only: eigene Claude-Subscription (OAuth-Token aus `claude setup-token`)
+  // statt Anthropic-API-Key zum lokalen Testen (2026-09-05, siehe
+  // api/src/lib/ki/devAgentSdkClient.ts). NIE in Produktion nutzbar — greift
+  // nur bei NODE_ENV=development UND explizit gesetztem KI_DEV_ADAPTER.
+  CLAUDE_CODE_OAUTH_TOKEN: z.string().optional(),
+  KI_DEV_ADAPTER: z.enum(['claude-agent-sdk']).optional(),
 });
 
 /** Validierte Umgebungsvariablen. Wirft beim Start, wenn Pflichtwerte fehlen. */

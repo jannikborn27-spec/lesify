@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { env } from '../../env.js';
+import { ClaudeAgentSdkKiClient } from './devAgentSdkClient.js';
 
 /**
  * Anthropic-Client-Kapselung (Phase 6): Retry + Timeout kommen aus den
@@ -231,12 +232,32 @@ function fakeToolAusgabe(toolName: string, letzteNachricht: string, fakeKontext:
 
 let instanz: KiClient | undefined;
 
-/** Prozessweiter KI-Client (in Tests via `buildApp({ ki })` ersetzbar). */
+/**
+ * Prozessweiter KI-Client (in Tests via `buildApp({ ki })` ersetzbar).
+ * Reihenfolge: echter `ANTHROPIC_API_KEY` gewinnt immer. Sonst — nur bei
+ * `NODE_ENV=development` **und** explizit gesetztem
+ * `KI_DEV_ADAPTER=claude-agent-sdk` — der dev-only `ClaudeAgentSdkKiClient`
+ * (persönliche Claude-Subscription, siehe `devAgentSdkClient.ts`). In jedem
+ * anderen Fall (Produktion, Tests, Standard-Dev-Betrieb) der deterministische
+ * `FakeKiClient`, auch wenn `CLAUDE_CODE_OAUTH_TOKEN` zufällig gesetzt ist —
+ * der Dev-Adapter ist ein bewusstes Opt-in, kein automatischer Fallback.
+ */
 export function getKiClient(): KiClient {
   if (!instanz) {
-    instanz = env.ANTHROPIC_API_KEY
-      ? new AnthropicKiClient(env.ANTHROPIC_API_KEY)
-      : new FakeKiClient();
+    if (env.ANTHROPIC_API_KEY) {
+      instanz = new AnthropicKiClient(env.ANTHROPIC_API_KEY);
+    } else if (
+      env.NODE_ENV === 'development' &&
+      env.KI_DEV_ADAPTER === 'claude-agent-sdk' &&
+      env.CLAUDE_CODE_OAUTH_TOKEN
+    ) {
+      console.warn(
+        '[ki] Dev-Adapter aktiv: Claude Agent SDK über die persönliche Subscription (CLAUDE_CODE_OAUTH_TOKEN). Nur fürs eigene lokale Testen — nie in Produktion.',
+      );
+      instanz = new ClaudeAgentSdkKiClient();
+    } else {
+      instanz = new FakeKiClient();
+    }
   }
   return instanz;
 }

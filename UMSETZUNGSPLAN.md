@@ -88,6 +88,12 @@ Blockiert alles Weitere. Erst die offenen Produktfragen klären, dann bauen.
     - **Dritte Testklausur:** Backend lehnt einen dritten `POST /testklausuren`
       zur selben `klausurId` **hart ab** — genau zwei pro Klausurvorbereitung.
     - **Lernplan-Neustart:** gibt es nicht — pro Klausur genau ein 7-Tage-Zyklus.
+  - [x] **Marketing-Website auf vier Seiten (2026-09-08):** Nur noch Home,
+        Preise, Über uns, FAQ in der Navigation. Funktions-Unterseiten
+        (`funktionen.html` + `feature-*.html`) und `vergleich.html` eingestellt,
+        Inhalte auf die Startseite verlagert (`index.html#vergleich`).
+        `ueber-uns.html` wird zur persönlichen Gründer-Seite. Details/Prüfung im
+        Marketing-Block dieser Phase; `backend-planning.md` §11 nachgezogen.
   - [x] **Architekturfragen (chatMap, Datei-Status, Suche, Rate-Limiting):**
         entschieden am 2026-09-04 — siehe Abschnitt **„Architekturfragen"** unten.
 - [x] **Prototyp-Bereinigung aus den Entscheidungen** (im statischen Frontend, vor
@@ -118,6 +124,27 @@ Blockiert alles Weitere. Erst die offenen Produktfragen klären, dann bauen.
         [frontend/login.html](frontend/login.html) entfernt.
   - [x] [einstellungen.html](einstellungen.html): Karte „Daten & Aufbewahrung"
         mit dem 1-Jahres-Löschhinweis ergänzt.
+  - [x] **Dunkles Design (2026-09-08):** Einstellung `settings.darkMode`
+        (Karte „Erscheinungsbild" auf `app/einstellungen.html`) — **nur
+        eingeloggter Bereich**, Marketing bleibt hell. Token-Override-Block
+        am Ende von `app/assets/css/style.css` (`:root[data-theme="dark"]`,
+        „Fog Blue"-Rampe semantik-treu invertiert), Anti-Flash-Snippet im
+        `<head>` jeder App-Seite + `applyTheme()` in `app.js`,
+        `Konzept-texts/backend-planning.md` (Einstellungen-Tabelle) nachgezogen.
+  - [x] **Dark-Mode-Lesbarkeitsdurchlauf (2026-09-08):** alle 16 App-Seiten
+        (inkl. Modals, Dropdowns, Suche-Varianten, Chat-/Lernzettel-Blasen)
+        per Kontrast-Audit geprüft. Behoben: zu dunkler Muted-Ton der
+        Ink-Rampe (`--ink-400/500/600` angehoben); `#fff`-Text auf
+        invertierten Flächen (`--ink-950`) → `var(--paper)` (Chat-Chips/
+        -Avatare, Lernzettel-Blasen, Datei-Dropzone, `.hero-chip.is-primary`);
+        helle Fach-Pastelltöne (`--fach-bg`) auf dunklem Grund → dunkle
+        Fach-Mischung in `fachColorVars()`/Chat-`--chi-fc`; Overlay-Panels
+        ohne sichtbare Kante → heller Rand + Lichtsaum + dunklerer Scrim;
+        `.modal-close` ohne `background` (UA-`buttonface`) → transparent;
+        Breadcrumb-/Pfeil-Affordances von `--ink-300` → `--ink-400`.
+        Bewusst unverändert: weiße Schrift auf Fach-Farbflächen
+        (Lernplan-Aktivschritt, Buchstaben-Fach-Avatare) — im Hell-Design
+        identisch, gehört zu einem breiteren Design-Review.
   - [x] **Landing-Lab entfernt (2026-09-04):** `frontend/landing-lab.html` und
         `frontend/assets/js/landing-lab.js` gelöscht.
         `frontend/assets/css/landing-lab.css` **bleibt** — die aktuelle
@@ -125,18 +152,1503 @@ Blockiert alles Weitere. Erst die offenen Produktfragen klären, dann bauen.
         das Landing-Stylesheet. Die öffentliche Website wird ohnehin erst später
         überarbeitet (dann ggf. umbenennen/aufräumen).
   - [x] **Landing-Page (`marketing/index.html`) neu aufgebaut (2026-09-05):**
-        fester Section-Plan (Hero → KI-Chat → Klausurvorbereitung → Vergleich zu
-        Nachhilfe → Fächer & Klassenstufen → Preise → Testimonials → Eltern-Zugang
-        → FAQ → CTA), pro Sektion 5 echte Layout-Varianten in
-        `marketing/assets/js/landing.js` (Templates + Inhalte) und
-        `marketing/assets/css/landing.css` (Variantenstile). Dev-Umschalt-Panel
-        analog `LesifyUI.mountSearchDev`, Auswahl je Sektion in
-        `localStorage['lesify:landing:{sectionKey}:v']`, Re-Render ohne Reload.
-        Läuft ohne Build/Server direkt per `file://` (kein `type="module"`, kein
-        `fetch()`). `marketing/assets/css/landing-lab.css` wird von `index.html`
-        **nicht mehr eingebunden** (durch `landing.css` ersetzt) — Datei bleibt
-        unangetastet im Repo als Referenz für spätere Varianten-Arbeit, ist aber
-        jetzt ungenutzt.
+        fester Section-Plan (Hero → Trust-Ticker → Problem Vorher/Nachher → So
+        geht's → Features → Vergleich → Ampel-Prinzip → Zahlen → Testimonial →
+        Preise → FAQ → CTA). Tatsächlicher Dateistand (abweichend vom
+        ursprünglichen Plan mit `landing.js`/`landing.css`):
+        `marketing/assets/js/marketing.js` (Nav/Footer, Reveal, Preis-Umschalter,
+        Demo-Formulare, Hero-Slideshow) und `marketing/assets/css/marketing.css`
+        (Tokens/Basis) + `marketing/assets/css/landing-lab.css` (`lab-*`-Klassen
+        der Sektionen — **weiterhin eingebunden**, nicht durch ein separates
+        `landing.css` ersetzt).
+  - [x] **Hero-Slideshow rechts, 10 Design-Varianten (2026-09-05):** rechte
+        Hero-Hälfte in `marketing/index.html` zeigt 4 Folien (KI-Chat, Lernpläne
+        &amp; Klausurvorbereitung, Testklausuren, Strukturierung), alle auf
+        demselben Platzhalterfoto (`assets/img/test-img-hero.jpg`, 1200×900-JPG-
+        Export von `assets/img/test-img.png`) aufgebaut. Datengetrieben statt
+        Markup-Duplikat: `HERO_FEATURES` in `marketing/assets/js/marketing.js`
+        (Titel/Text/URL/Fach-Akzentfarbe/Bildausschnitt pro Folie),
+        `buildHeroStage()` rendert alle 10 Varianten in `#hero-stage`
+        (`marketing/index.html`), `initHeroSlides()` steuert generisch über
+        `[data-hero-slides]`/`[data-hs-slide]` (Dots inkl. Akzentfarbe, Pfeile,
+        Offset-Attribut für Coverflow/Stapel-Varianten, Autoplay mit Pause bei
+        Hover/Fokus/Tab-Wechsel/`prefers-reduced-motion`). Varianten 1–5 =
+        Bild+Text-Karten (1 Karussell/Coverflow, 2 Bild-links/Text-rechts,
+        3 Polaroid-Stapel, 4 randlos mit Text im Bild, 5 Poster mit Farb-Tag).
+        Varianten 6–8 = echtes Vollbild (100vw/100vh, `.hv9__panel` wird zum
+        Hintergrundfoto, Haupt-Überschrift liegt als heller Text/Glas-Panel
+        darüber, Folien-Text schwebt als Glaskarte: 6 zentrierter Scrim,
+        7 Glas-Panel links/Foto rechts klar, 8 Duoton-Einfärbung per Fach-Akzent
+        + Ken-Burns-Zoom, Karte unten rechts). Varianten 9/10 = nur das rechte
+        `.hv9__panel` wird zum Foto, linke Spalte bleibt wie im Original-Design
+        (Fließtext auf Papier-Hintergrund): 9 = bestehender Diagonal-Schnitt,
+        jetzt mit Foto statt Flächenfarbe; 10 = kein Diagonal-Schnitt, Foto
+        bündig zum rechten Viewport-Rand, `.hv9__text` als weiße Karte mit
+        negativem `margin-right`, die über den Fotorand ragt. Umschaltung
+        zwischen allen 10 nur als Dev-Tool: `.layout-dev.is-hero` (analog
+        `mountSearchDev` in `app/assets/js/app.js`),
+        `localStorage['lesify:hero:v']`, nur auf `index.html`; setzt zusätzlich
+        `data-hero-bg` auf die `.hv9`-Section für die Panel-Foto-Overrides.
+        Mobile Fallback (≤899px) bricht 6–10 auf einfaches Stapeln um (Foto als
+        Block, Karte im normalen Textfluss statt schwebend) — beim Testen einer
+        alten `@media (max-width:900px){.hv9__panel{display:none}}`-Regel auf
+        den Grund gegangen, die die Foto-Overrides sonst unsichtbar gemacht
+        hätte. **2026-09-05, später am Tag:** kurzzeitig auf eine feste
+        Diagonal-Foto-Variante mit 5 neuen Content-Anzeigen (Story/Rail/
+        Ticker/Editorial/Statement) sowie PNG statt JPG umgestellt — auf
+        Wunsch wieder auf diesen 10-Varianten-Stand zurückgesetzt (JPG-Bild,
+        `data-hero-bg`-Umschalter, alle 10 Varianten).
+  - [x] **Variante 9 (Diagonal-Foto): Quadrat-Foto-Experiment verworfen,
+        zurück auf `.hv9__panel`-Hintergrund (2026-09-05):** kurzzeitig auf
+        ein eigenes `<div class="hv9__square">` (rechtsbündig, `100vh`,
+        `aspect-ratio:1/1`, Bild `test-img-square.png`) statt
+        `.hv9__panel`-Hintergrund umgestellt — trotz zweier Korrekturen
+        (Clip-Path ergänzt, dann auf die textsicheren 54%/48%-Werte
+        angepasst) auf Wunsch komplett verworfen. Variante 9 ist wieder exakt
+        im Stand des 10-Varianten-Basispakets: `.hv9__panel` selbst trägt das
+        Foto (`background-image:url('../img/test-img-hero.jpg')`,
+        `clip-path:polygon(54% 0,100% 0,100% 100%,48% 100%)`, Scrim-Gradient
+        über `::before`), wieder Teil der gemeinsamen 6–10-Foto-Regelgruppe
+        in `landing-lab.css`. `.hv9__square` (Markup + CSS) und
+        `assets/img/test-img-square.png` entfernt; `initHeroSlides()` in
+        `marketing.js` wieder auf einzelnes `panelBg` (`querySelector`) statt
+        `panelBgs`-Array zurückgesetzt. Alle 10 Varianten erneut im Browser
+        geprüft (9 und 10 explizit, keine Konsolenfehler).
+  - [x] **Variante 9: Foto ungecroppt, rechtsbündig (2026-09-05):** nur
+        `.hv9[data-hero-bg="9"] .hv9__panel` bekommt jetzt eine eigene
+        Bild-Regel statt der mit 6–8 geteilten: `background-image:
+        url('../img/test-img-hero.png')` (statt der JPG-Variante),
+        `background-size: contain` (ganzes Bild sichtbar, kein Zuschnitt
+        mehr wie bei `cover`), `background-repeat: no-repeat`,
+        `background-position: right !important` — das `!important` ist
+        nötig, weil `initHeroSlides()` sonst per Folie eine eigene
+        `background-position` (`data-hs-pos`, für den `cover`-Zuschnitt
+        gedacht) inline setzt, die sonst eine feste Position überschreiben
+        würde. `assets/img/test-img-hero.png` (1600px-PNG, aus
+        `assets/img/test-img.png` verkleinert) neu angelegt. Diagonal-Schnitt
+        (54%/48%) und Scrim unverändert; Mobile-Fallback erbt die neue
+        Bild-Regel automatisch (überschreibt dort nur Layout-Eigenschaften).
+        **Offen:** eine der 10 Varianten final auswählen, Dev-Switch danach
+        entfernen; eigene Bilder je Feature statt des einen Platzhalterfotos.
+  - [x] **Versuch „Diagonal-Foto only + 10 Folien-Inhalt-Varianten“ verworfen,
+        zurück auf den 10-Hero-Varianten-Stand (2026-09-05):** kurzzeitig den
+        Hero-Layout-Dev-Switch entfernt (Diagonal-Foto fest verdrahtet, kein
+        `data-hero-bg` mehr) und die schwebende Glaskarte durch 10 neue
+        Folien-Inhalt-Varianten (Ticker/Editorial/Story/Rail/Statement/Tabs/
+        Frame/Marquee/Side/Minimal) ersetzt — auf Wunsch komplett verworfen
+        („absolutely terrible“). Wieder exakt im vorherigen Stand: alle 10
+        Hero-LAYOUT-Varianten (Karussell, Split, Polaroid, Bleed, Tag,
+        Vollbild, Glas-Split, Duoton, Diagonal-Foto, Overlay-Karte) samt
+        Dev-Switch (`localStorage['lesify:hero:v']`, `data-hero-bg` auf
+        `.hv9`) sind zurück; Variante 9 (Diagonal-Foto) zeigt wieder die
+        schwebende Glaskarte (`.hs-glass-cap`) mit dem PNG-Bild
+        (`test-img-hero.png`, `contain`, rechtsbündig, Diagonal-Schnitt
+        54%/48%) aus dem vorletzten Schritt. `assets/img/test-img-hero.jpg`
+        (für Varianten 6–8/10) neu erzeugt. **Offen:** eine der 10 Varianten
+        final auswählen, Dev-Switch danach entfernen; eigene Bilder je
+        Feature statt des einen Platzhalterfotos.
+  - [x] **Hero final: Variante 9 (Diagonal-Foto) fest, Dev-Switch entfernt
+        (2026-09-05):** aus den 10 Layout-Varianten die Diagonal-Foto-Variante
+        gewählt und fest verdrahtet. `marketing/index.html`: `.hv9` trägt fest
+        `data-hero-bg="9"`, `.hv9__panel` ohne `data-hs-bg`. `marketing.js`:
+        `buildHeroStage()` rendert nur noch die eine `.hero-slides--9`-Gruppe
+        (Glaskarte `.hs-glass-cap` mit den 4 `HERO_FEATURES`), Dev-Tool
+        (`HERO_VARIANTS`/`heroVariant`/`applyHeroVariant`/`mountHeroDev`,
+        `localStorage['lesify:hero:v']`) samt Aufruf gelöscht; `initHeroSlides()`
+        auf das Nötige eingedampft (Dots/Pfeile/Autoplay, kein Offset-/Caption-/
+        `panelBg`-Sync mehr). `landing-lab.css`: alle Regeln der Varianten 1–8/10
+        und der `.layout-dev`-Block entfernt; übrig bleiben die geteilten
+        Steuer-Elemente (`.hs-dots`/`.hs-arrow`/`.hero-slides__nav`/`.hs-ico`),
+        `.hs-glass-cap` und die `.hv9[data-hero-bg="9"]`-Foto-Regel. Bildquelle
+        jetzt `assets/img/test-img.png` direkt (6000×4500-PNG), `background-size:
+        contain`, `background-position: right !important`, `background-repeat:
+        no-repeat`, Diagonal-Schnitt 54%/48% + Scrim-`::before` unverändert.
+        `test-img-hero.jpg`/`test-img-hero.png` damit ungenutzt. Im Browser
+        geprüft (Foto rechtsbündig, Glaskarte blättert, keine Konsolenfehler).
+        **Offen:** eigenes/echtes Foto statt des Platzhalters.
+  - [x] **Hero-Karte: 10 Info-Karten-Designs zur Auswahl + Dev-Panel
+        (2026-09-05):** Foto / Diagonal-Schnitt / Scrim / Hintergrundfarben
+        (`.hv9__panel`, `data-hero-bg="9"`) bleiben unverändert — nur der
+        Inhalt von `#hero-stage` (die Info-Karte über dem Foto) wird neu
+        gestaltet. `marketing.js`: `buildHeroStage()` rendert jetzt 10
+        Karten-Designs (`heroC1..heroC10`) gleichzeitig in `#hero-stage`,
+        jedes als eigene `.hs-stage.hs-stage--cN`-Gruppe mit denselben 4
+        `HERO_FEATURES`. Designs: 1 Editorial (opake Papier-Karte,
+        Display-Titel), 2 Lower-Third (Leiste am unteren Fotorand +
+        Fortschrittsbalken), 3 Bare (Text ohne Karte auf dem Scrim,
+        `01 / 04`-Zähler), 4 Accent-Flood (Karte in der Fach-Farbe der
+        Folie), 5 Index-Liste (alle 4 sichtbar, aktive klappt Text auf),
+        6 Tab-Chips (Pill-Reihe + kompakte Glas-Karte), 7 Spine (vertikales
+        Label als Buchrücken), 8 Pull-Quote (übergroßer Titel + Mono-Link
+        aus `data-hs-url`), 9 Stack (aktive Karte auf faux-gestapelten
+        Karten + „Nächste:“-Hinweis), 10 Pill (kleine Pillen, aktive klappt
+        Beschreibung aus). `initHeroSlides()` erweitert: unterstützt jetzt
+        auch `[data-hs-go="i"]` (Listen-/Chip-Direktwahl), `[data-hs-count]`
+        und `[data-hs-nexthint]`, und setzt `--hs-accent` (Fach-Farbe der
+        aktiven Folie) auf die Gruppe, damit jedes Design die Akzentfarbe
+        nutzen kann. Umschaltung per Dev-Panel `mountHeroCardDev()`
+        (`.layout-dev.is-herocard`, `localStorage['lesify:herocard:v']`,
+        1–10), analog `mountSearchDev` in `app/assets/js/app.js`; `.layout-dev`
+        -CSS wieder in `landing-lab.css`. Karten-CSS: `.hs-stage`-Grundgerüst
+        + `.hs-c1..c10` + geteilte `.hs-nav`/`.hs-dots`/`.hs-arrow`/`.hs-ico`
+        in `landing-lab.css` (ersetzt `.hs-glass-cap`). Alle 10 im Browser
+        geprüft (Desktop + Mobile, kein horizontales Overflow, keine
+        Konsolenfehler).
+  - [x] **Hero-Karte: Auswahl auf 7 Designs eingegrenzt (2026-09-05):**
+        Designs 5–10 (Index-Liste, Tab-Chips, Spine, Pull-Quote, Stack,
+        Pill) verworfen. Neuer Stand `heroC1..heroC7` / `HERO_CARD_VARIANTS`
+        1–7, `heroCardVariant()`-Regex auf `/^[1-7]$/`: 1 Editorial,
+        2 Lower-Third, 3 Bare, 4 Accent-Flood (mit Fach-Farbe), **5 Glass**
+        (die frostige dunkle Glas-Karte wie im Ausgangsstand, Icon-Chip +
+        Titel + Text), **6 Flat** (gleicher Aufbau wie Accent-Flood, aber
+        ohne Fach-Farbe — volle `--ink-950`-Karte, weißer Text, konstant
+        über alle Folien), **7 Polaroid** (weiße Sofortbild-Karte, ~-2,5°
+        gekippt, auf zwei faux-gestapelten Karten via `::before/::after` +
+        `isolation: isolate`; Icon als „Foto“ auf `--ink-100`, Titel/Text
+        als Bildunterschrift, Navi zentriert). `initHeroSlides()` wieder
+        verschlankt (kein `[data-hs-go]` / `[data-hs-nexthint]` mehr —
+        nur noch von den entfernten Designs gebraucht), ungenutzte
+        `HS_ARROWS`/`HS_DOTS` entfernt. CSS: `.hs-c5..c10`-Blöcke +
+        `.hs-stage--c5/--c6`-Zentrierung raus, neue `.hs-c5/.hs-c6/.hs-c7`
+        rein, 620px-Media-Query auf `.hs-c1..c6` reduziert. Alle 7 im
+        Browser geprüft (keine Konsolenfehler). **Offen:** eines der 7
+        Designs final wählen, Dev-Panel danach entfernen; eigenes/echtes
+        Foto statt des Platzhalters.
+  - [x] **Hero-Foto: responsives Skalieren gefixt — eigenes gesiztes
+        Foto-Element statt background auf der vollen Section (2026-09-05):**
+        Backup `marketing/index.html.bak` angelegt (Stand vor diesem Fix).
+        Problem: `.hv9__panel` ist `inset: 0` = volle Section-Fläche und nie
+        1:1. `background-size: contain` ließ das ganze Bild im Keil
+        „schweben“ (Papier-Rest mal null, mal großes Dreieck);
+        `background-size: cover` skalierte das quadratische Bild dagegen auf
+        die volle Section-Breite hoch (viel zu groß, nur ein schmaler
+        Mittelstreifen sichtbar). Lösung: in `.hv9__panel` liegt jetzt ein
+        eigenes Element `<span class="hv9__photo">`, dessen Box an BEIDE
+        Keil-Maße gekoppelt ist — `height: 100%` (= Keilhöhe H),
+        `width: auto` + `aspect-ratio: 1/1` (Breite = H), `min-width: 52vw`
+        (auf breiten Screens wächst die Breite auf die Keilbreite, Box wird
+        `52vw × H`). Das Foto sitzt als `background-size: cover` /
+        `center` in dieser kleinen, nahezu quadratischen Box → moderate
+        Skalierung, sinnvoller Ausschnitt, Keil auf jeder Größe randlos
+        gefüllt, Bild immer unverzerrt. `.hv9__panel` bleibt mit `--ink-100`
+        gefüllt (Absicherung). Stacking von negativem `z-index` auf
+        `isolation: isolate` (Section) + `z-index` 0/1 (Panel/`.hv9__grid`)
+        umgestellt, `translateZ(0)` auf dem Panel. Ein echtes `<img>` mit
+        `object-fit` wurde im clip-path-Container von Chromium erst nach
+        einem Repaint gemalt → daher `<span>` + CSS-Hintergrund.
+        `!important` bei der Position entfernt. Diagonal-Clip (54%/48%),
+        Scrim-`::before` (jetzt `z-index: 1`) und Mobile-Fallback
+        (`.hv9__photo` dort `inset: 0`, `object`-frei) im Prinzip
+        unverändert. Bei 960–2560 px Breite und 820 px Höhe + Mobile
+        geprüft (Foto füllt den Keil beidseitig, keine grauen Ränder,
+        erscheint direkt beim Laden, keine Konsolenfehler). Hinweis:
+        Test-Bild ist ein 6000×4500-PNG (~7,5 MB) — echte Bilder sollten
+        optimiert und 1:1 sein (dann auch kein Seiten-Zuschnitt).
+  - [x] **Hero: Schleier über dem Foto + 10 Text-Stil-Varianten
+        (2026-09-05):** (1) `.hv9[data-hero-bg="9"] .hv9__panel::after` —
+        zweiter Verlauf `linear-gradient(to top, rgba(16,18,20,0.82) …
+        transparent 70%)` über Foto und Diagonal-Scrim (`::before` bleibt),
+        `z-index: 1`, `pointer-events: none`; dunkelt den Fuß des Keils ab.
+        (2) Die linke Hero-Spalte `.hv9__text` bekommt 10 Stil-Varianten
+        (`.hv9[data-hero-text="1..10"] .hv9__text …` in `landing-lab.css`) —
+        gleicher Inhalt, nur Typo/Auszeichnung/Anordnung: 1 Standard,
+        2 Groß (Riesen-Headline), 3 Regel (Akzentlinie links), 4 Badge
+        (Eyebrow-Pille), 5 Editorial (leichte Headline, kursiver Lead),
+        6 Kompakt, 7 Zentriert, 8 Kicker (Mono-Label + Trennlinie),
+        9 Karte (Textblock auf Fläche), 10 Minimal (kein Eyebrow, 2. CTA
+        als Link, keine Trust-Zeile). Umschaltung: `.hv9` trägt
+        `data-hero-text` (init `"1"`); `marketing.js` — Dev-Panel
+        `mountHeroCardDev` → `mountHeroDev` mit zwei Zeilen „Karte“
+        (`[data-hc]`, `lesify:herocard:v`) und „Text“ (`[data-ht]`,
+        `lesify:herotext:v`), gemeinsamer `devRow()`-Builder,
+        `HERO_TEXT_VARIANTS` + `heroTextVariant()`/`applyHeroTextVariant()`.
+        `.layout-dev` bekam `max-height`/`overflow: auto`. Alle 10
+        Text-Varianten + Schleier im Browser geprüft (Desktop + Mobile,
+        keine Konsolenfehler). **Offen:** je eine Karten- und Text-Variante
+        final wählen, Dev-Panel danach entfernen.
+  - [x] **Neue Section „KI-Chat" (index.html, `#chat`) mit Live-Demo +
+        5 Layout-Designs (2026-09-06):** neue `<section class="lab-sec
+        chat-sec" id="chat" data-chat="1">` direkt nach der Trust-Ticker-
+        Leiste, vor „Problem". Inhalt komplett in `marketing.js`
+        (`buildChatSection` → `#chat-section`). **Live-Demo** (`chatDemoMarkup`
+        /`initChatDemo`): scripted KI-Chat-Panel mit 3 Beispiel-Chips
+        (Konjunktiv II · erklären / Zellatmung · üben / pq-Formel ·
+        hausaufgaben), Tipp-Indikator + Typewriter-Ausgabe, Freitext-Feld
+        mit generischer didaktischer Rückfrage; Modus-Label wechselt je
+        Antwort; „Demo — kein echter Chat"-Hinweis. **Perks** (`CHAT_PERKS`,
+        4): Erklärt den Weg statt der Lösung (Rückfragen, Jahrgangsniveau) ·
+        Sicher & beim Schulstoff (Themen-Riegel im System-Prompt, EU/DSGVO) ·
+        Für Eltern nachvollziehbar (Wochen-Zusammenfassung statt Chat-
+        Wortlaut, vgl. `backend-planning.md` §… Eltern-Ansicht) · Kennt das
+        Thema (Themen-Memory aus Lernzetteln/Dateien). **5 Designs**
+        (`chatV1..V5`, `.chat-var--vN`, `data-chat` auf der Section):
+        1 Split, 2 Zentriert, 3 Bühne (Demo im Browser-Frame), 4 Tabs
+        (Perk-Tabs starten den passenden Demo-Prompt), 5 Dark (dunkle
+        Section, Glas-Demo, Glas-Karten). Umschaltung: Dev-Panel —
+        `mountHeroDev` → `mountLabDev`, `LAB_DEV_AXES`-Tabelle, dritte Zeile
+        „Chat" (`[data-ch]`, `lesify:chat:v`, 1–5). CSS-Block `.chat-sec` /
+        `.chat-demo*` / `.chat-perks*` / `.chat-var--vN` in `landing-lab.css`.
+        Alle 5 Varianten + Demo-Interaktion strukturell im Browser geprüft
+        (je genau eine Demo-Instanz nach Wechsel, Tabs steuern Demo, Dark-
+        Styles greifen, keine Konsolenfehler). **Offen:** eine der 5
+        Varianten final wählen, Dev-Panel-Zeile danach entfernen;
+        Demo-Texte ggf. mit echten Beispielen ersetzen.
+  - [x] **Landing-Lab-Ausbau: KI-Chat auf 10 Varianten + 8 weitere
+        Sections mit je 10 Varianten (2026-09-06):** zweites Backup
+        `marketing/index.html.bak2`. **KI-Chat** +5 Designs (`chatV6..V10`):
+        6 Bento, 7 Rows, 8 Statement, 9 Stack (Faux-Karten-Stapel),
+        10 Banner (dunkles Vollband + Browser-Frame). **8 neue Sections**
+        nach `#chat`, vor „Problem" (bestehende Alt-Sections unangetastet):
+        `#kv` Klausurvorbereitung · `#cmp` Vergleich · `#subj` Fächer &
+        Klassenstufen · `#price` Preise · `#test` Testimonials · `#parent`
+        Eltern-Zugang · `#faq` FAQ · `#cta` Abschluss-CTA. Je Section
+        `<section class="lab-sec sv-sec" id="{key}" data-{key}="1"><div
+        id="{key}-section"></div></section>`; Inhalt datengetrieben in
+        `marketing.js` (`renderKv`/`renderCmp`/… mit switch über 1–10,
+        `LAB_SECTIONS` → `LAB_API` → `buildLabSections()`), CSS-Block
+        `.sv--{key}{n}` in `landing-lab.css`. Klausurvorbereitung zeigt den
+        6-Schritt-Ablauf (Testklausur → Lernplan-Erstellung → Durchführung →
+        2. Testklausur → Schwachstellen → Lernzettel) + Noten-Fortschritts-
+        Karte (Demo-Zahlen). Interaktiv: `priceInit` (Monats-/Jahres-
+        Umschalter, `[data-pm]`, tauscht `[data-m]`/`[data-y]`),
+        `testInit` (Carousel/Rotator, Auto-Rotate mit Interval-Cleanup),
+        FAQ/Accordion-Varianten über native `<details>`. **Dev-Panel:**
+        `LAB_DEV_AXES` jetzt Array (Hero-Karte/-Text/Chat + 8 Section-
+        Achsen), generischer Klick-Handler über `data-{key}`; Panel „Landing-
+        Lab" hat 11 Zeilen / 107 Buttons. Alle 85 neuen Section-Varianten
+        strukturell im Browser durchgeschaltet (kein Builder-Fehler, eine
+        Chat-Demo-Instanz, Preis-Toggle + Testimonial-Carousel + FAQ-Toggle
+        funktionieren, keine Konsolenfehler). Visuelle Prüfung stand aus
+        (Browser-Pane war ausgeblendet). Reiner Prototyp-Content (Demo-
+        Zahlen/-Stimmen). **Offen:** je Section eine Variante final wählen,
+        Alt-Sections + Dev-Panel danach entfernen; echte Testimonials/Zahlen.
+  - [x] **Dev-Panel kompakter (2026-09-06):** Buttons nur noch Nummer
+        (Voll-Label als `title`-Tooltip), kleinere Schrift/Abstände/Buttons
+        (17px), engere Zeilen; Titel „Landing-Lab" ist jetzt ein
+        Collapse-Toggle (▼/▶, `.layout-dev.is-min`, `localStorage['lesify:
+        lab:min']`).
+  - [x] **Landing-Lab-Runde 2: Neu-Designs für Chat/KV/CMP/Fächer/Preise/
+        Testimonials/FAQ (2026-09-06):**
+        · **Chat:** `.chat-demo`-Komponente neu (KI-Chat-Look: Marken-
+        Avatar, Bubbles mit Avatar, Pillen-Input, `__main`/`__foot`).
+        3 Größen `chat-demo--lg` / `--xl` + `--app` (Fächer-Navi-Fenster).
+        11 Varianten: 1 Statement + 2 Stack (die früheren v8/v9), 3–5 normale
+        Größe (Sidebar/Card-Row/Framed), 6–8 groß (Hero-LG/Split-LG/Dark-LG),
+        9–11 sehr groß (Fullbleed-XL/App-XL/Immersive-XL).
+        · **KV:** alle 10 von Grund auf neu, jeder Schritt visuell —
+        `KV_ART` (6 Inline-SVG-Illustrationen). 1–5 Bild-Varianten
+        (Strip/Grid/Zigzag/Stack/Filmstrip), 6–10 Animations-Varianten wie
+        die Chat-Demo: `kvPlayer`/`kvInit` (Auto-Advance 3,8 s, Dots/Pfeile,
+        Fortschrittsbalken; Track-, Scrubber- und Immersive-Dark-Aufsätze).
+        · **CMP:** v1 bleibt Karten-Vergleich (inspiriert von altem `cv2`) —
+        neu verfeinert (dunkle Lesify-Karte + Sparkle + CTA, `is-lose`-Zeilen
+        gedimmt, ehrlicher Callout). v2–v10 alle auf dieser Karten-Basis
+        (Empfohlen/VS/Aligned/Dark/Lead-in/Score/Pills/Callout/Compact).
+        · **Fächer:** neu, 5 Varianten — opake fach-farbige Karten mit
+        SVG-Icon (Astra-AI-Inspiration) + „Eigenes Fach"-Karte/-Hinweis
+        (Grid/Big/Bento/Scroll/Split). `SUBJ_LIST` mit Icon+Farbe pro Fach.
+        · **Preise:** v1 + 5 Redesigns (v2–v6). Bestseller-Karte deutlich
+        hervorgehoben (2 px Rahmen, Verlauf, Ribbon). Neuer **Sitze-Umschalter**
+        (1–4 Kinder, `PRICE.seatFactor` = Familien-Rabatt) neben dem Monats-/
+        Jahres-Toggle; `priceInit` rechnet Preis = Basis × Intervall × Sitze
+        live und blendet einen Familien-Paket-Hinweis ein.
+        · **Testimonials:** neu, 10 Varianten im knowunity-Stil — CSS-„UGC-
+        Video"-Karten (Farbverlauf + Play-Button + Name) als driftende
+        Hintergrund-Wall (`testWall`, vertikale Marquee-Spalten) hinter
+        Headline/Zahl/Zitaten (Hero/Split-Phone/Wall/Marquee/Dark/Thumbs/
+        Spotlight/Bento/Masonry/Circles). Alter Carousel-`testInit` entfernt.
+        · **FAQ:** v1 kräftiger (`faq-bold` — nummerierte Rahmen-Karten,
+        Kreis-+/−-Toggle, Kontakt-Fuß); v2–v10 unverändert.
+        Dev-Panel-Achsen jetzt: Karte 7 · Text 10 · Chat 11 · kv 10 · cmp 10 ·
+        subj 5 · price 6 · test 10 · parent 10 · faq 10 · cta 10 (99 Buttons).
+        Alle strukturell + interaktiv im Browser geprüft (KV-Player,
+        Preis-Toggles/Sitze, FAQ-Toggle, Chat-Demo, keine Konsolenfehler);
+        visuelle Endabnahme steht aus (Browser-Pane zeitweise ausgeblendet).
+  - [x] **Landing-Lab-Runde 3: Karte/Text eingegrenzt, Chat + KV komplett
+        neu als App-Nachbau (2026-09-07):**
+        · **Hero-Karte (`hc`):** nur noch Design 2 (Lower-Third) und 3 (Bare),
+        je mit einer zweiten Fassung — `2b` Full-Bleed (randlose Leiste am
+        absoluten unteren Bildrand, über die volle Hero-Breite gezogen via
+        `100vw`-Breakout; `applyHeroCardVariant` setzt zusätzlich
+        `data-hero-card` auf `.hv9`) und `3b` Bare · Clean (unten-links
+        verankert, engere Spalte, weicher Cross-Fade beim Folienwechsel statt
+        `display`-Umschaltung). `HERO_CARD_VARIANTS`/`heroCardVariant()`-Regex
+        auf `2|2b|3|3b`, Default `2`. Alte `heroC1/4/5/6/7` + zugehöriges CSS
+        entfernt.
+        · **Hero-Text (`ht`):** nur noch Variante `1` (Standard) plus `1.1`,
+        `1.2`, `1.3` — alle = Variante 1 zusätzlich mit einer Vertrauensleiste
+        (`.hv9__trust`, angelehnt an `test-circ__row` der Testimonial-Section
+        v10): überlappende fach-farbige Avatar-Kreise + „10.000+ Familien
+        lernen schon mit Lesify". `1.1` schlichte Reihe, `1.2` in einer
+        zurückhaltenden Pill-Karte, `1.3` kompakt-inline (ersetzt die
+        `.lab-trust`-Zeile). Markup einmalig via `ensureHeroTrust()` in
+        `.hv9__text` eingehängt, CSS blendet es nur für `data-hero-text^="1."`
+        ein. `heroTextVariant()`-Regex `1(\.[123])?`. Alte
+        `[data-hero-text="2..10"]`-Overrides entfernt.
+        · **Chat (`ch`):** alle 11 alten Varianten verworfen, 10 neue —
+        **alle** auf dunklem Section-Hintergrund (`.chat-sec { background:
+        var(--ink-950) }` global) und **alle** um denselben realistischen
+        Nachbau von `app/chat.html` herum: `chatAppMarkup()` baut Verlauf-
+        Spalte (4 fach-gefärbte Inbox-Zeilen), Kontext-Kopf mit Fach-Kachel +
+        Nutzungs-Donut, Messenger-Thread (nutzt weiter `initChatDemo` /
+        `.chat-demo__msg*`), Composer mit Klammer + Rund-Senden. 10 Rahmen:
+        1 App (Chrome+Verlauf) · 2 Fokus (schmal, kein Verlauf) · 3 Split
+        (Text/Perks links) · 4 Hero (breit) · 5 Floating (Glow) · 6 Window
+        (Perspektive + Caption) · 7 Bare (nur Kopf/Thread/Composer) · 8 Strip
+        (Perk-Strip drunter) · 9 Duo (App + Glas-Perk-Karten) · 10 Fullbleed.
+        `CHAT_BUILDERS`/`CHAT_VARIANTS` = 1–10, Regex `[1-9]|10`.
+        · **KV (`kv`):** alle 10 alten Varianten (Bild-/Player-Serie)
+        verworfen, 10 neue um `kvxMock()` — realistischer Nachbau von
+        `app/testklausur.html`: Fach-Badge + Titel, vertikale Step-Schiene
+        (Erstellen · Lösen · Analyse · Ergebnis), Panel mit 4 Phasen, die
+        `kvInit` automatisch durchläuft (3,6 s, Fortschrittsbalken,
+        Step-Klick). Phasen: KI erstellt → Aufgaben + Download + Upload-
+        Dropzone → „Bereit zur Analyse" → Ergebnis mit eingefrorener
+        Testklausurnote in Ampelfarbe + Aufgabe-für-Aufgabe-Karten +
+        Notenchips. Optional 7-Tage-Lernplan-Rail (`kvxPlanRail`). 10 Rahmen:
+        1 Split · 2 Fokus · 3 Split+Plan · 4 Text-Split (mit Ampel-Legende)
+        · 5 Floating · 6 Window · 7 Bare · 8 Dark (Section dunkel) · 9
+        Steps-Top (horizontale Schiene) · 10 Fullbleed+Plan. `LAB_LABELS.kv`
+        angepasst, `kvInit` neu (Phasen- statt Slide-Zyklus).
+        Alle 20 neuen Chat/KV-Varianten + Karte 2b/3b + Text 1.1–1.3
+        strukturell im Browser geprüft (Grids/Breiten korrekt bei echtem
+        Viewport, kein H-Overflow, dunkler Section-BG greift, keine
+        Konsolenfehler); vollständige visuelle Abnahme steht noch aus
+        (Browser-Pane im Desktop-App zeitweise eingeklappt, Screenshots
+        unzuverlässig). **Offen:** je Achse eine Variante final wählen,
+        Alt-Sections + Dev-Panel danach entfernen.
+  - [x] **Landing-Lab-Runde 4: Karte/Text finalisiert, Chat auf 4 +
+        Farb-Achse, KV = ganze Klausurvorbereitung (2026-09-07):**
+        · **Hero-Karte 2b:** Leiste lebt jetzt IM `.hv9__panel` (nicht
+        mehr in `#hero-stage`) — `buildHeroStage()` hängt `heroC2b()` per
+        `insertAdjacentHTML` ins Panel, `applyHeroCardVariant` sucht in
+        `.hv9 [data-hero-slides]`. Dadurch ist die Leiste genau so breit
+        wie das Foto (Panel-Box), wird vom diagonalen Weiß-Schnitt
+        (`clip-path` + `overflow:hidden` des Panels) beschnitten und liegt
+        per `z-index:2` über Foto (0) und Panel-Scrims (1), aber hinter dem
+        weißen Diagonal-Ausschnitt. `100vw`-Breakout + `padding-bottom:0`
+        auf `.hv9` entfernt.
+        · **Hero-Text:** fest auf Variante 1.3 (Trust · Inline) — Achse
+        `ht` aus `LAB_DEV_AXES` entfernt, `HERO_TEXT_VARIANTS`/
+        `heroTextVariant()` weg, `applyHeroTextVariant('1.3')` einmalig in
+        DOMContentLoaded. CSS auf die 1.3-Regeln reduziert.
+        · **Chat:** 10 → 4 Varianten. v1 = früheres v8 (Strip)
+        unverändert; v2 Cards (Perk-Strip → volle Perk-Karten + Lead +
+        Modi-Zeile), v3 Explainer (Perk-Liste + die vier Chat-Modi
+        nebeneinander + CTA), v4 Deep (Perk-Karten + Eltern-Notiz + Modi +
+        Kennzahlen-Zeile) — Redesigns von v8 mit deutlich mehr Text/Info.
+        Neue Daten `CHAT_MODES` (4) + `CHAT_STATS` (4), Helfer
+        `chatModeCards`/`chatStatRow`/`chatParentNote`. Neue Dev-Achse
+        **„Chat-Farbe"** (`cc`, `data-chat-color` auf `#chat`,
+        `localStorage['lesify:chatcolor:v']`): `fb` full black (Default) ·
+        `fw` full white · `wc` BG schwarz / Chat weiß · `bc` BG weiß / Chat
+        schwarz — greift über alle 4 Varianten. CSS: Section-BG per
+        `[data-chat-color]`, plus ein „Helle Chat-Anzeige (fw + wc)"-Block,
+        der den `.chat-app`-Nachbau auf Weiß dreht; Zusatz-Inhalte
+        (Perks/Modi/Stats) flippen ihre Typo für helle Section (fw + bc).
+        Donut-Ring über `.chat-app__donut-t/-v`-Klassen (statt Inline-Farbe).
+        · **KV:** komplett neu — nicht mehr nur Testklausur, sondern die
+        GANZE Klausurvorbereitung als „Klausur-Cockpit" (`kvxMock`): Kopf
+        mit Fach + Countdown, 6er-Journey-Schiene (Klausur · Testklausur 1
+        · Lernplan · Lernphase · Lernzettel · Testklausur 2) und ein Panel
+        mit 6 automatisch laufenden Phasen (`kvInit`): Klausur angelegt
+        (Themen-Ampel) → Testklausur 1 (Note + Ampel pro Thema) → Lernplan
+        (7 Tage, schwache Themen zuerst) → Lernphase (Tag 4/7, KI-Chats,
+        abgehakt) → Lernzettel (Definitionen/Formeln/typische Fehler aus
+        den Chats) → Testklausur 2 (Note 2,0, +1,6, Vergleich T1→T2).
+        Optionale Übersichts-Rail (Countdown, Themen-Ampel, Lernzettel,
+        nächster Lerntag). 10 Rahmen: 1 Split · 2 Fokus · 3 Cockpit
+        (Rail, xl) · 4 Text-Flow (Prozess-Liste links) · 5 Floating · 6
+        Window · 7 Bare · 8 Dark · 9 Steps-Top · 10 Fullbleed+Rail.
+        `KVX`-Daten, `LAB_LABELS.kv` + `kvInit` (6 statt 4 Phasen)
+        angepasst. Alles strukturell im Browser geprüft (Grids/Breiten bei
+        echtem Viewport, Farb-Achse fb/fw/wc/bc greift wie spezifiziert,
+        Phasen-Zyklus, kein H-Overflow, keine Konsolenfehler); volle
+        visuelle Abnahme weiter offen (Pane eingeklappt).
+  - [x] **Neue TLDR-Section „Was Lesify besonders macht" (index.html,
+        `#tldr`) mit 16 Varianten (2026-09-08):** Abschnitt direkt hinter
+        dem Hero, vor dem Trust-Ticker: `<section class="lab-sec sv-sec"
+        id="tldr" data-tldr="1"><div id="tldr-section"></div></section>`.
+        Verdichtet die sechs Kernpunkte (KI-Chat pro Fach/Thema · Lernzettel
+        automatisch · Testklausur mit echter Note · Lernplan bis Klausurtag
+        · Dateien/Fotos als Kontext · zu Hause + DSGVO) plus vier Kennzahlen
+        (9 Fächer · 4 Modi · 24/7 · ab 15,99 €) und vier Trust-Chips.
+        Datengetrieben in `marketing.js`: `TLDR`/`TLDR_IC`, Helfer
+        `tldrItems('card'|'line'|'num'|'zebra')` / `tldrStats` / `tldrChips`
+        / `tldrCta`, `renderTldr(v)` mit Switch 1–10, als erster Eintrag in
+        `LAB_SECTIONS` + `LAB_LABELS.tldr` registriert → Dev-Panel-Achse
+        „tldr" (10 Buttons) automatisch über `LAB_API`. 10 Rahmen:
+        1 Grid (3-Spalten-Karten + Stat-Leiste) · 2 Bento (dunkle Leitzelle
+        links) · 3 Split (Sticky-Aside + Liste) · 4 Rail (horizontaler
+        Scroller + Chips) · 5 Dark (dunkler Abschnitt via `[data-tldr="5"]`,
+        2-Spalten-Liste + Stat-Fuß) · 6 Ziffern (nummerierte Editorial-
+        Liste) · 7 Liste (zentriert, Icon-Chip-Zeilen) · 8 Pills (Feature-
+        Pills + kompakte 2-Spalten) · 9 Zebra (abwechselnde volle Reihen +
+        Stat-Band) · 10 Panorama (3 Spalten mit Akzentkante, Zahlen als
+        Punktzeile). CSS-Block `.sv--tldr1…10` in `landing-lab.css`
+        (gemeinsame Bausteine `.tldr-card` / `.tldr-stats` / `.tldr-chips` /
+        `.tldr-line__row` + Responsive 980/620 px). Reiner Prototyp-Content.
+        · **Kompakt-Runde 11–16 (2026-09-08):** dichte Aufsätze auf 1/2/5
+        mit weniger Höhe, nutzen den neuen Kurztext `point.s` statt der
+        langen Beschreibung. `RX10` auf 1–16 erweitert (pro Section weiter
+        per `+v <= max` begrenzt), `tldrItems` um `crow`/`crowm`/`ledger`,
+        neue Stat-Modifier `is-slim`, Punkt-Datenfeld `m` (ein voller Satz,
+        Mittel zwischen `s` und `d`). 11 Grid Kompakt (Icon neben Titel,
+        dichtes 3er-Raster, Inline-Zahlen) · 12 Bento Kompakt (dunkle
+        Kopfleiste Headline+CTA, darunter Haarlinien-3er-Raster) · 13 Dark
+        Kompakt · 14 Ledger (flache Spec-Sheet-Liste Icon|Titel|Kurztext,
+        Zahlen als Fußzeile) · 15 Split Kompakt (schmales Aside + geteilte
+        Kurzliste) · 16 Split Dark (v15 als schwarzes Panel).
+        **13 + 16** rendern als **schwarzer Abschnitt über die volle Breite
+        mit abgerundeten Ecken** (`background`/`border-radius: --radius-2xl`
+        auf `.sv-sec[data-tldr="13"|"16"]`, Inhalt bleibt in der
+        Container-Breite) und zeigen je Karte **einen vollen Satz** (`crowm`
+        → `point.m`). `.tldr-csplit`-Grid von v15 auf beide Varianten
+        verallgemeinert. CSS-Block „TLDR — Kompakt-Runde (11–16)" in
+        `landing-lab.css`.
+        **Offen:** eine Variante final wählen, Dev-Panel-Zeile danach
+        entfernen; visuelle Abnahme im Browser.
+  - [x] **Startseite: Trust-Ticker raus, Hero-Farbe fixiert, Hero-
+        Eckschnitt (2026-09-09):**
+        · **`tv5` (Trust-Ticker-Leiste) entfernt** — Markup aus
+        `marketing/index.html` (lag zwischen `#tldr` und `#chat`), CSS
+        `.tv5*` aus `landing-lab.css` (inkl. `reduced-motion`-Zeile).
+        · **Dev-Panel-Achse „Hero-Farbe" (`hc`) entfernt**, Variante 1 fest:
+        `LAB_DEV_AXES` ohne `hc`-Eintrag, `applyHeroColor('1')` statt
+        `applyHeroColor(heroColorVariant())` in DOMContentLoaded
+        (`HERO_COLOR_VARIANTS`/`heroColorVariant()` bleiben als tote Helfer).
+        · **Neuer Token `--section-radius: 48px`** in `marketing.css`
+        (`:root`, bei den `--radius-*`).
+        · **Hero (`.hv9`) mit Eckschnitt unten links:** `background:
+        var(--bg-canvas)` (Papier) + `border-bottom-left-radius:
+        var(--section-radius)`, `overflow: hidden` → `visible` (das
+        Foto-Panel beschneidet sich bei `data-hero-bg="9"` selbst).
+        `.hv9::before` = 48×48-Box unten links mit `radial-gradient`
+        (Mittelpunkt = Papier-Bogen-Zentrum, oben rechts): innerhalb des
+        Radius transparent, außerhalb `--ink-950` → der schwarze Zwickel
+        blitzt exakt im weggeschnittenen Radius durch, sonst nichts.
+        `z-index:-1` (hinter `.hv9__grid`/`.hv9__panel`, vor der
+        Papier-Fläche).
+  - [x] **Eckschnitt: TLDR-Dunkelabschnitt ohne Radius, Chat-Abschnitt
+        oben eingeschnitten (2026-09-09):**
+        · **`border-radius` auf `.sv-sec[data-tldr="13"|"16"]` entfernt** —
+        die schwarzen TLDR-Varianten sind wieder rechteckig (volle Breite).
+        · **`.chat-sec` (Abschnitt nach `#tldr`) bekommt oben denselben
+        Eckschnitt wie der Hero, an BEIDEN Ecken:**
+        `border-top-left-radius` + `border-top-right-radius:
+        var(--section-radius)`. Da der Chat-Abschnitt per Default schwarz
+        ist (`data-chat-color="fb"`), reicht `border-radius` +
+        `overflow: hidden` — die schwarze Fläche wird beschnitten, der
+        Papier-Seitenhintergrund blitzt im Schnitt durch. Kein `::before`
+        nötig (anders als beim Hero, wo der Schnitt sonst Papier auf Papier
+        zeigen würde).
+  - [x] **KI-Chat fixiert, KV vor KI-Chat, Eckschnitt auf KV (2026-09-09):**
+        · **Dev-Panel-Achsen „Chat" (`ch`) und „Chat-Farbe" (`cc`)
+        entfernt**, final: Layout `v3` (Explainer), Farbe `fw` (Full White).
+        `chatVariant()`/`chatColorVariant()` geben fest `'3'` / `'fw'`
+        zurück, `LAB_DEV_AXES` ist jetzt nur noch `LAB_API.map(...)`
+        (tldr · kv · cmp · subj · price · test · parent · faq · cta).
+        `CHAT_VARIANTS`/`CHAT_COLOR_VARIANTS`/`applyChatVariant`/
+        `applyChatColor` bleiben als tote Helfer.
+        · **Reihenfolge:** `#kv` (Klausurvorbereitung) in `index.html` VOR
+        `#chat` gezogen — Flow jetzt Hero → TLDR → KV → KI-Chat → Vergleich …
+        · **Eckschnitt vom Chat-Abschnitt entfernt** (`.chat-sec` wieder nur
+        `overflow: hidden`) und stattdessen auf **`#kv`** gelegt, weil KV
+        jetzt direkt auf `#tldr` folgt: `.sv-sec[data-kv]` bekommt
+        `background: var(--bg-canvas)`, `border-top-left-radius` +
+        `border-top-right-radius: var(--section-radius)`, `overflow:
+        visible`, `isolation: isolate` und **`::before` (Ecke oben links) +
+        `::after` (Ecke oben rechts)** — 48×48-Boxen mit `radial-gradient`
+        (Mittelpunkt = Radius-Bogen-Zentrum): innen transparent, außen
+        `--ink-950`, `z-index:-1`. Der schwarze Zwickel blitzt in beiden
+        oberen Ecken durch, exakt im weggeschnittenen Radius. Regel steht
+        VOR `.sv-sec[data-kv="8"]`, damit die dunkle KV-Variante ihren
+        schwarzen Section-Hintergrund behält.
+        · **Korrektur (2026-09-09):** `LAB_DEV_AXES` ist jetzt
+        `LAB_API.filter(a => !a.fixed).map(...)` — `LAB_SECTIONS`-Einträge
+        mit `fixed:'<n>'` rendern fest diese Variante (`labSectionApi.variant()`)
+        und tauchen NICHT als Dev-Panel-Achse auf.
+  - [x] **Hero-Slideshow-Fixes + Preise final v4 mit Redesigns (2026-09-09):**
+        · **Fortschrittsbalken (`.hs-progress`)** lief als reine CSS-Loop
+        unabhängig von der JS-Steuerung und war nach Pfeil-/Punkt-Klick aus
+        dem Takt. `initHeroSlides()`: `armProgress()` (Animation via
+        `animation:none` → Reflow → `''` neu starten) wird in `show()` und
+        `start()` aufgerufen, `pauseProgress()` in `stop()` — Balken startet
+        jetzt mit jeder Folie neu und pausiert beim Hovern.
+        · **Bild/Text-Sync:** Foto-Blende von 700 ms auf **340 ms** verkürzt
+        (`.hv9__photo`), aktive Karten-Folie bekommt eine gleich lange
+        Einblend-Animation (`@keyframes hsSlideIn`, 340 ms) — Foto und Text
+        wirken beim schnellen Durchklicken zusammen.
+        · **Kein Hover-/Fokus-Stopp mehr:** `mouseenter/leave` + `focusin/out`
+        → `stop`/`start` aus `initHeroSlides()` entfernt; die Slideshow läuft
+        durchgehend weiter (Pfeil-/Punkt-Klick setzt den Takt über `restart()`
+        neu), nur bei verstecktem Tab (`visibilitychange`) hält sie an.
+        · **Preise:** Section fest auf **v4 (Dark-Feat)** (`fixed:'4'` in
+        `LAB_SECTIONS`), `price`-Achse aus dem Dev-Panel raus.
+          – **Premium-Button** war schwarz auf schwarzer Karte (unsichtbar):
+          auf v4 jetzt heller Button (`--paper` Fläche, dunkler Text, heller
+          Hover-Ring).
+          – **Bestseller-Hinweis** von der Pillen-Fahne oben links zu einem
+          **45°-Eckbanner oben rechts** (`.price-card__tag` in v4: `rotate(45deg)`,
+          Karte `overflow: hidden`), Farbe **`--gelb`** statt `--paper` (hebt
+          sich klar von der Sektions-Papierfläche ab).
+          – **Familien-Paket-Auswahl** von der Segment-Reihe „1 Kind / 2
+          Kinder / …" zu einem **Stepper** (`.price-seats`, `[data-seats-step]`,
+          Kinderzahl 1–4, ±-Buttons mit Disabled-Grenzen, Sitz-Punkte,
+          grün getönt ab 2 Kindern). `priceInit` entsprechend umgebaut
+          (`data-seats-val`/`-dots`, `is-family`-Klasse). `PRICE.seatFactor`
+          unverändert; Backend-Planung nicht betroffen.
+  - [x] **Klausurvorbereitung (kv) komplett neu — Lernplan-Nachbau,
+        8 Rahmen (2026-09-09):**
+        · **Altes „Klausur-Cockpit" (`kvx*`, `renderKv` 1–10) für die
+        kv-Section abgelöst.** `KVX`/`kvxMock`/`kvxDays`/`kvxPhases`/`kvInit`
+        bleiben — die `feature-*`-Unterseiten nutzen sie weiter.
+        · **Neue Demo `kvl*` spiegelt die echte Lernplan-Seite
+        (`app/lernplan.html?id=lp1`):** Kopf (Fach-Badge + Titel +
+        Countdown), links die **7-Tage-Navigation** (`.kvl__nav`,
+        `.kvl__step[data-state=done|now|soon]`, Nummer→Häkchen bei
+        erledigt, aktiver Tag blau getönt), rechts der **aktive Lerntag**
+        (`.kvl__main`): Kopfzeile „Tag N · Titel" + Chip (Heute dran /
+        Erledigt / Kommt noch), Beschreibung, je nach Tag eine **abhakbare
+        Checkliste** (`.kvl__cl`, Kreis-Haken + „öffnen →"-Zeile wie in der
+        App), eine **Note-Box + Ampel pro Thema** (Testklausur-Tage) oder
+        eine kurze Themen-Liste. `kvlInit` lässt die Tage automatisch
+        durchlaufen (3,8 s) und reagiert auf Klick. Akzent = `--fach-blue`.
+        7 Tage (nicht 6): Testklausur 1 · Schwachstellen verstehen · …
+        üben · … festigen · Testklausur 2 · Restlücken · Selbsttest.
+        · **Linke Textspalte neu** (statt der nummerierten
+        `kvx-cv__flow`-Schrittliste): 4 Icon-Punkte (rückwärts geplant /
+        zwei Testklausuren / jeder Tag in den Chat / Lernzettel wächst
+        mit), eine Kennzahl-Zeile (7 Lerntage · 2 Testklausuren · 1
+        Lernzettel) und CTA — `kvlText()`.
+        · **8 Rahmen** (`LAB_LABELS.kv`): 1 Split (früher v4, jetzt Default:
+        Text links / Demo rechts) · 2 Fenster (Demo mit Browser-Chrome) ·
+        3 Sticky (schmales, klebendes Text-Aside) · 4 Flip (Demo links) —
+        das sind die vier „wie v4"; dazu frei: 5 Zentriert (Kopf mittig,
+        Demo voll, Punkte als Reihe) · 6 Dark (`[data-kv="6"]` dunkel, ohne
+        Eckschnitt, Demo dunkel) · 7 Bento (Demo groß + Punkt-/CTA-Kacheln)
+        · 8 Timeline (7 Tage als horizontale Schiene über einem Fokus-Tag).
+        CSS-Block „Klausurvorbereitung (kv) — Lernplan-Nachbau (.kvl*)" in
+        `landing-lab.css`; `.sv-sec[data-kv="8"]`-Dark-Regel → `="6"`.
+        **Offen:** visuelle Abnahme im Browser (Pane rendert diese Session
+        keine Screenshots).
+  - [x] **kv fixiert (v5), Chat schwarz + 10 Redesigns (2026-09-09):**
+        · **kv aus dem Dev-Panel** (`fixed:'5'` in `LAB_SECTIONS`) — final
+        v5 „Zentriert". Zwei Änderungen: (1) `kvlPointsRow()` steht jetzt
+        ZWISCHEN Kopf und Demo (vorher darunter). (2) Unter der Demo eine
+        Reihe **Tag-Nummern** (`.kvl-dots`, `[data-kvl-dot]`) als
+        Slideshow-Steuerung — `kvlInit` verdrahtet sie mit demselben
+        `show(i)` wie ein Klick in der Demo, aktive Nummer wird
+        mitgeführt.
+        · **KI-Chat = schwarzer Abschnitt.** `chatColorVariant()` fest
+        `'fb'`; die `[data-chat-color="fb"]`-Regeln färben Section dunkel,
+        Text hell.
+        · **Eckschnitt-Rahmen für die Nachbar-Abschnitte** (wie bei
+        tldr/Hero): `#kv` (darüber) bekommt runde UNTER-Ecken +
+        schwarze Zwickel (`::before`/`::after`, Radial-Gradient), `#cmp`
+        (darunter) runde OBER-Ecken + Zwickel — die schwarze Chat-Fläche
+        „blutet" so in die Ecken der angrenzenden Papier-Abschnitte.
+        `.sv-sec[data-kv]` von Ober- auf Unterrand umgestellt, neue Regel
+        `.sv-sec[data-cmp]` (vor `[data-cmp="5"]` platziert, damit die
+        dunkle cmp-Variante schwarz bleibt).
+        · **Chat-Achse „Chat" ins Dev-Panel zurück** mit **10
+        inhaltsreichen Redesigns** (`CHAT_BUILDERS` 1–10, `CHAT_VARIANTS`):
+        1 Explainer · 2 Deep · 3 Cards · 4 Modi-zuerst · 5 Leitplanken ·
+        6 Beispiele · 7 Vergleich · 8 Editorial (Eltern-Zitat) · 9 Für
+        Eltern · 10 Komplett. Jede kombiniert den App-Nachbau
+        (`chatAppMarkup`) mit deutlich mehr Text: neue Daten
+        `CHAT_EXAMPLES` (Beispiel-Fragen nach Fach), `CHAT_VS`
+        (Lesify-Chat vs. allgemeiner KI-Chat), `CHAT_GUARD` (Leitplanken),
+        `CHAT_QUOTE` (Eltern-Zitat) + Helfer `chatExamplesGrid` /
+        `chatVsBlock` / `chatGuardCards` / `chatQuoteBlock`. CSS-Block
+        „KI-Chat — 10 inhaltsreiche Redesigns" in `landing-lab.css`.
+        `chatColorVariant` fest, keine „Chat-Farbe"-Achse.
+        **Offen:** visuelle Abnahme (Pane rendert diese Session keine
+        Screenshots).
+  - [x] **Neue Section „Struktur" (org) — alles hängt an Fach & Thema,
+        10 Varianten (2026-09-09):**
+        · **Neuer Abschnitt `#org`** in `index.html` ZWISCHEN `#chat` und
+        `#cmp` (`<section class="lab-sec sv-sec" id="org" data-org="1">`),
+        registriert in `LAB_SECTIONS`/`LAB_LABELS` (`renderOrg`/`orgInit`).
+        · **Eckschnitt-Rahmen verschoben:** Der schwarze KI-Chat wird jetzt
+        nach unten von `#org` gerahmt (nicht mehr `#cmp`). Regel
+        `.sv-sec[data-cmp]` → `.sv-sec[data-org]` (runder Oberrand +
+        schwarze Zwickel); `#cmp` wieder ohne Eckschnitt. `#kv` (über dem
+        Chat) unverändert mit rundem Unterrand.
+        · **Demo komplett neu (2026-09-09, `.orgx*`):** Stil der
+        Klausurvorbereitung — links **3 Schritte** (Fach · Thema · Dateien),
+        rechts eine von **3 Mini-Seiten**, nachgebaut aus den echten
+        App-Seiten `fach.html` · `thema.html` · `dateien.html`:
+          – **Fach:** Avatar + „Mathematik" + Meta, Themen-Raster
+          (4 Karten mit „N Chats · N Lernzettel · N Dateien"), Klausur-Karte
+          mit Themen-Chips + Note.
+          – **Thema:** Breadcrumb + Fach-Pille + „Bruchrechnung" + Tab-Zeile
+          (Übersicht/Chats 2/Lernzettel 1/Dateien 1/Klausuren 2), vier
+          Gruppen-Karten (Chats · Dateien · Lernzettel · Klausuren) mit
+          Zeilen wie in der Übersicht.
+          – **Dateien:** „Alle Dateien" + Dropzone + Filter-Chips + 4
+          Datei-Karten, jede mit farbiger **„Fach · Thema"-Chip** (die
+          Pointe: jede Datei kennt ihr Fach und Thema).
+        Slideshow: `orgInit` wechselt automatisch (4,2 s) und reagiert auf
+        Klick — Schritte, **Nummern unter der Demo** (`.orgx-dots`) UND die
+        drei Nutzen-Punkte (`data-org-point`, aktiver Punkt hervorgehoben)
+        schalten synchron mit. Daten in `ORG` (`fach`/`thema`/`dateien`),
+        Seiten-Renderer `ORG_PAGES = [orgPageFach, orgPageThema,
+        orgPageDateien]`.
+        · **10 neue Rahmen** (`LAB_LABELS.org`): 1 Zentriert (Default) ·
+        2 Split · 3 Flip · 4 Fenster · 5 Sticky · 6 Dark · 7 Bento ·
+        8 Zebra · 9 Karten · 10 Editorial. Nutzen-Punkte je Variante
+        (`orgPoints()` mit Stack-/Cards-/Zebra-Modifier). CSS-Block
+        „Organisation (org)" in `landing-lab.css` komplett auf `.orgx*`
+        umgestellt.
+        · **Erklär-Karten-Runde 11–15 (2026-09-09):** statt der 3-Schritt-
+        Navi trägt die Demo hier die **kompakte App-Icon-Leiste**
+        (`.orgx__rail` — Marke + 8 Icons + Avatar, ~54 px; `ORG_RAIL`),
+        wodurch die Demo deutlich schmaler wird. Links (bzw. rechts) davon
+        **drei Erklär-Karten** (`.org-cv__scard`, `orgSwitchCards()`), die
+        wie v2/v7 die Slideshow umschalten (`data-org-point`). Zusätzlich
+        sind die Rail-Icons Fächer/Themen/Dateien Umschalter
+        (`data-org-nav`, in `orgInit` verdrahtet). Keine Nummern-Dots.
+        11 Erklär-Split · 12 Erklär-Flip · 13 Erklär-Karten (nur Karten,
+        kein Lead) · 14 Erklär-Sticky · 15 Erklär-Dark (`[data-org="15"]`).
+        `orgInit`-Guard von `!steps.length` auf `!main` gelockert.
+        · **org final = v11 (2026-09-09):** `fixed:'11'` in `LAB_SECTIONS`
+        (org raus aus dem Dev-Panel). Zwei Korrekturen: (1) fehlendes
+        `ORG_IC.topic`-Icon ergänzt — Rail-Icon „Themen" und die
+        „Thema"-Erklärkarte zeigten sonst „undefined". (2) Neuer Rahmen
+        `.org-cv--ecol`: Kopf mittig → drei Erklär-Karten als 3er-Reihe
+        (`org-cv__switch--row`) → kompakte Demo darunter zentriert —
+        gestapelt wie die KI-Chat- und KV-Section (statt nebeneinander).
+        · **Feinschliff v11 (2026-09-09):**
+          – **Feste Demo-Höhe:** `.orgx__main { height: 528px; overflow:
+          hidden }` — bemessen an der höchsten Seite (Inhalt inkl.
+          Innenabstand ~516 px), damit auf der Fach-Seite die Klausur-Karte
+          und auf der Thema-Seite die Lernzettel-/Klausuren-Gruppen
+          vollständig sichtbar sind. Dateien-Seite hat dadurch etwas
+          Leerraum unten (bewusst). Alle drei Seiten füllen dieselbe Box,
+          kein Springen beim Wechsel (Breite war über `.orgx--lg` schon
+          fix). Thema-Seite zusätzlich leicht gestrafft.
+          – **Thema-Färbung wie thema.html:** getönte Karten-Kopfleiste in
+          der Fach-Farbe (`.orgx-group-h` mit `color-mix`-Band + farbigem
+          Icon + Count-Badge), Fach-Pille mit Farbpunkt.
+          – **Fortschrittsbalken:** `.orgx__progress > i` mit
+          `@keyframes orgProg` (4,2 s, im Takt der Slideshow); `orgInit`
+          startet ihn per Reflow-Trick (`armBar()`) mit jeder Folie neu.
+          – **Wechsel-Animationen:** neue Seite blendet ein
+          (`@keyframes orgPageIn`), aktive Erklär-Karte hebt an + Icon
+          skaliert (weiche `transition`), Rail-Icons faden. Alle mit
+          `prefers-reduced-motion`-Ausnahme.
+        · **Demo-Box höher (2026-09-09):** `.orgx__main` 476 → **528 px** —
+        die frühere Höhe schnitt (falsch gegen die äußere statt innere
+        Höhe bemessen) die Klausur-Karte (Fach) und die Lernzettel-/
+        Klausuren-Gruppen (Thema) ab. Jetzt alle drei Seiten voll sichtbar.
+  - [x] **KI-Chat & TLDR final fixiert (2026-09-09):** `chatVariant()` fest
+        `'3'` (Cards), `tldr`-Eintrag in `LAB_SECTIONS` mit `fixed:'16'`
+        (Split Dark). Beide Achsen (`ch`, `tldr`) aus `LAB_DEV_AXES` /
+        Dev-Panel raus; `ch` war der letzte manuelle Sonder-Eintrag, die
+        Achsen-Liste ist jetzt nur noch `LAB_API.filter(!fixed)`.
+        `applyChatVariant`/`applyChatColor`/`CHAT_VARIANTS` bleiben als tote
+        Helfer. Dev-Panel zeigt nur noch: cmp · subj · test · parent ·
+        faq · cta.
+  - [x] **Landing-Page finalisiert — Dev-Tool raus, 10-Section-Layout,
+        Schwarz/Weiß-Wechsel mit Eckschnitten (2026-09-09):**
+        · **Backup:** `marketing/index-backup-2026-09-09.html` (Stand vor
+        dem Umbau).
+        · **Dev-Tool entfernt:** `mountLabDev()`-Aufruf aus dem
+        DOMContentLoaded raus (Funktion bleibt als toter Helfer).
+        `LAB_SECTIONS` = nur noch die 7 gerenderten Sections, alle mit
+        `fixed`: kv `'5'` · org `'11'` · cmp `'9'` · price `'4'` ·
+        parent `'1'` · faq `'1'` · cta `'1'`. `tldr`/`subj`/`test`
+        entfallen als eigene Sections (Inhalt wandert in org bzw. price);
+        `renderTldr/renderSubj/renderTest` + `LAB_LABELS`-Einträge bleiben
+        tot.
+        · **`marketing/index.html` neu:** `<main>` enthält exakt 10 Blöcke
+        in dieser Reihenfolge — Hero · KV (`#kv`) · KI-Chat (`#chat`) ·
+        Struktur (`#org`) · Vergleich (`#cmp`) · Preise + Stimmen
+        (`#price`) · Eltern-Zugang (`#parent`) · FAQ (`#faq`) · CTA
+        (`#cta`) · Footer. Alle Alt-Sections (`#tldr`, `#subj`, `#test`
+        und die ~10 Nicht-Lab-Blöcke `pv3`/`wv1`/`fv2`/… ) raus. Hero-
+        Button „So funktioniert’s" `#how` → `#kv`; Footer-Link ebenso;
+        `faq.html`/`preise.html` `index.html#vergleich` → `#cmp`.
+        · **Schwarz/Weiß-Wechsel mit Eckschnitten** (`landing-lab.css`):
+        Schwarze Abschnitte = Chat, Vergleich, Eltern, CTA
+        (`.sv-sec[data-cmp|data-parent|data-cta]` = `--ink-950`, heller
+        Text — Pendant zur Chat-Section). Weiße Abschnitte mit rundem Rand
+        NUR an Ecken, die an einen schwarzen Abschnitt grenzen: KV nur
+        unten (`border-bottom-*-radius`, 2 Radial-Zwickel), org/price/faq
+        an allen 4 Ecken (`border-radius: var(--section-radius)`, EIN
+        `::before` mit vier `radial-gradient`-Zwickeln je Ecke,
+        `z-index:-1`). Alte `[data-org]::before/::after`-Einzelregeln
+        ersetzt.
+        · **cmp v9 auf Schwarz:** Lesify-Karte `.cmp-card--a` → `#17191d`
+        + heller Rand (statt unsichtbar auf `--ink-950`); `CMP_SPARK` =
+        `LOGO_MARK` (echtes Logo statt Funken-Icon), Logo-`svg` weiß.
+        · **cta v1 auf Schwarz:** `.cta-band` (dunkle Innen-Bande)
+        aufgelöst — transparent, kein Padding/Radius/Schatten, `::before`
+        aus.
+        · **Stimmen in die Preis-Section:** `priceVoices()` rendert unter
+        dem Preisraster (v4) 4 Zitat-Karten aus `TEST.items`
+        (`.price-voices`, weiße Karten). Eigene Testimonial-Section
+        entfällt.
+        · **Fächer in die Struktur-Section:** `orgFaecher()` hängt unter
+        die Demo (v11) eine Fächer-Übersicht — 6 Fach-Karten + „Eigenes
+        Fach", Kartendesign wie `app/faecher.html` (farbiges Icon-Tile +
+        Name + Meta), `--t` je Fach-Farbe. Eigene „Fächer &
+        Klassenstufen"-Section entfällt.
+        · **Eltern-Zugang neu (`renderParent`, Nachbau `app/eltern.html`):**
+        Kind-Karte (`<details class="ptx-kid">`) mit Avatar, „diese Woche
+        aktiv"-Ampel-Chip und 6-Kachel-KPI-Grid (`.ptx-k`: Fächer,
+        Themen, Chats/Woche, Nachrichten/Woche, Lernzettel, Testklausuren/
+        Woche) — bewusst ohne Chat-/Lernzettel-Inhalte, ohne Noten.
+        Daneben Wochenüberblick-Report (`.ptx-report`, Ampelpunkte) und
+        rechts drei Konto-Argument-Karten + „Eltern-Konto anlegen".
+        Komplett dunkel gestylt. Alte `pt-*`-Varianten/CSS ersetzt durch
+        `ptx-*`.
+        · **Struktur-Slideshow +1 s:** `orgInit`-Intervall 4200 → 5200 ms;
+        `@keyframes orgProg` / `.orgx__progress i`-Animation ebenfalls
+        4200 → 5200 ms.
+        · **Unterseiten Preise / Über uns / FAQ:** zunächst nur die toten
+        `#vergleich`-Links auf `#cmp` gezogen. Vollständiger Umbau auf die
+        Startseiten-Optik dann am 2026-09-10 (siehe „Nachbesserung"-Block
+        weiter unten).
+        · Im Browser (:4325) geprüft: 10 Blöcke in Reihenfolge, Schwarz/
+        Weiß + Radien (kv 0/48, org/price/faq 48/48, cmp/parent/cta
+        `--ink-950`), 4-Zwickel-`::before`, Logo auf der Vergleichs-Karte,
+        4 Stimmen-Karten, 7 Fach-Karten, 6 KPI-Kacheln, `orgProg` 5,2 s,
+        kein Dev-Panel, keine Konsolenfehler; preise/faq/ueber-uns laden
+        sauber.
+        · **Nachbesserung (2026-09-10):**
+          – **TLDR wieder da:** `#tldr`-Section zwischen Hero und KV
+          zurück (`renderTldr`, `LAB_SECTIONS`-Eintrag `fixed:'16'` an
+          erster Stelle). v16 „Split Dark" ist per
+          `.sv-sec[data-tldr="16"]` ohnehin ein schwarzer Vollbreiten-
+          Abschnitt. Layout jetzt: Hero(w) · **TLDR(b)** · KV(w) ·
+          Chat(b) · Struktur(w) · Vergleich(b) · Preise(w) · Eltern(b) ·
+          FAQ(w) · CTA(b) · Footer.
+          – **KV jetzt alle 4 Ecken:** KV ist neu oben (TLDR) UND unten
+          (Chat) von Schwarz eingefasst → `data-kv` aus der „nur
+          unten"-Gruppe in die 4-Zwickel-Gruppe verschoben
+          (`landing-lab.css`). Hero behält seinen bestehenden
+          `border-bottom-left-radius` + `::before`-Zwickel (schneidet
+          jetzt wieder in die schwarze TLDR-Section, wie ursprünglich
+          gedacht).
+          – **Vergleich-Karten getauscht:** Lesify-Karte (`.cmp-card--a`)
+          jetzt WEISS (`--bg-surface`, dunkler Text, Logo/Spark dunkel,
+          Ampel-Icons in Hell-Theme, Primär-Button ohne `btn-on-dark`),
+          Klassische Nachhilfe (`.cmp-card--b`) jetzt SCHWARZ (`#17191d`,
+          heller Text, Ampel-Icons in Dunkel-Theme). Alle Textfarben je
+          Karte gesetzt — vorher erbte `--b` hellen Text auf Weiß
+          (unlesbar).
+          – **Footer:** auf der Startseite (`body[data-page="index"]`,
+          scoped in `landing-lab.css`) `margin-top: 0` + `border-top: 0`,
+          obere Ecken `var(--section-radius)` rund mit zwei Radial-
+          Zwickeln — schließt bündig an die schwarze CTA-Section an.
+          Andere Marketing-Seiten laden `landing-lab.css` nicht, dort
+          bleibt der Footer unverändert.
+          – Im Browser (:4327) geprüft: Reihenfolge, TLDR rendert
+          (6 Zeilen, 4 Zahlen, h2 hell), kv-Radius 48/48/48 + 4 Zwickel,
+          Footer-Radius 48 + 2 Zwickel + `margin-top:0` (bündig,
+          `ctaBottom === footerTop`), Vergleich-Karten A hell / B dunkel
+          mit lesbaren Texten, keine Konsolenfehler.
+        · **Nachbesserung 2 (2026-09-10):**
+          – **Vergleich:** Callout („Ehrlich bleibt ehrlich") aus v9
+          entfernt; Button auf der Lesify-Karte weg (`cmpCard('a',
+          {cta:false})`); Logo = `assets/img/logo.png` (statt `LOGO_MARK`,
+          `CMP_SPARK` als `<img class="cmp-card__logo">`, 24×24, r 6px) —
+          die PNG ist bereits ein fertiges schwarzes App-Icon.
+          – **Preise – Bestseller-Band:** Gelb → Weiß (`--paper`) auf der
+          schwarzen Premium-Karte.
+          – **Preise – Buttons:** auf allen weißen Karten schwarz
+          (`priceCard` immer `btn-primary` statt `btn-secondary`; die
+          schwarze Premium-Karte hat weiter ihren hellen Button-Override).
+          – **Preise – 10 Picker-Varianten** (`priceControls(pv)`,
+          `localStorage['lesify:pctrl:v']`): Standard · Gestapelt ·
+          Segment · Tabs · Karte · Groß · Betreff · Chips · Track ·
+          Minimal. Umschalter-Stile (`.price-toggle--pill|tabs|chips|
+          text|big`) + Kinderzahl als Stepper (`.price-seats--pill|bare|
+          big|track`) oder Segment-Reihe 1–4 (`.price-seats--seg|chips`,
+          neues `data-seats-set`, in `priceInit` absolut ausgewertet +
+          `is-on` markiert).
+          – **Preise – 10 Stimmen-Varianten** (`priceVoices(tv)`,
+          `localStorage['lesify:pvoice:v']`): Grid · Reihe · Marquee ·
+          Groß · Zahl · Avatare · Liste · Dunkel · Bubbles · Minimal.
+          Avatare jetzt fach-getönt (`--t` je `TEST_TONES`).
+          – **Dev-Panel „Preise-Lab"** (`mountPriceDev`, nur `index`,
+          `.layout-dev.is-price`): zwei Achsen `picker` / `stimmen`,
+          klickt → `localStorage` + `LAB_API` price neu bauen.
+          – Im Browser (:4331) geprüft: kein Button/Callout im Vergleich,
+          Logo-PNG lädt (24×24), Band weiß, weiße Karten mit schwarzem
+          Button; alle 10 Picker- und 10 Stimmen-Varianten rendern,
+          Segment-Auswahl skaliert Preis (1→3 Kinder 19,99 → 49,97 €) +
+          Jahres-Toggle funktioniert, keine Konsolenfehler.
+        · **Nachbesserung 3 (2026-09-10):**
+          – **Picker:** frühere v3 (Pill-Umschalter + Segmentreihe 1–4)
+          ist die neue v1. Alle 10 Varianten nutzen jetzt denselben
+          Inhalt und unterscheiden sich nur im Placement (`priceControls`
+          vereinfacht, `priceSeatStepper` bleibt ungenutzt):
+          1 Zentriert · 2 Links · 3 Rechts · 4 Verteilt (space-between) ·
+          5 Band (volle Fläche) · 6 Karte · 7 Beschriftet (Label vor
+          jeder Gruppe) · 8 Gestapelt · 9 Sticky-Leiste (`position:
+          sticky`, ab ≤860 px statisch) · 10 Kompakt. `PRICE_CTRL_LABELS`
+          angepasst.
+          – **Stimmen:** frühere v6 (Avatar-Reihe + „+9.994" + ein
+          hervorgehobenes Zitat) ist die neue v1. 9 weitere Varianten im
+          selben Stil (`pvAvRow()` / `pvLead()` / `pvFirst()`):
+          2 Zahl groß · 3 +2 Mini-Karten · 4 Aside (Avatare/Zahl links,
+          Zitat rechts) · 5 Sterne · 6 +3 Mini-Karten · 7 Drift
+          (laufende Avatar-Leiste) · 8 Dunkel · 9 Trust-Zeile · 10 Stapel
+          (alle 4 Kurzzitate). `PRICE_VOICE_LABELS` angepasst; alte
+          Grid/Marquee/Bubbles-Varianten + deren CSS entfernt.
+          – Im Browser (:4333) geprüft: alle 10 + 10 Varianten rendern,
+          Picker behält int-Toggle + 4 Segment-Buttons + Note, Segment
+          skaliert Preis (1→4 Kinder 19,99 → 61,97 €), v9 `sticky` bei
+          1280 px, v8-Stimmen dunkel mit hellem Text, keine
+          Konsolenfehler.
+        · **Nachbesserung 4 (2026-09-10):** Stimmen fest auf frühere v1
+          (Avatar-Reihe + „+9.994" + Leitzitat). `priceVoices()` ohne
+          Parameter, andere Stimmen-Varianten + `PRICE_VOICE_LABELS` +
+          Helfer `pvFirst/pvAvRow/pvLead` entfernt; „stimmen"-Zeile aus
+          dem „Preise-Lab"-Panel raus (nur noch „picker"). Überschrift
+          `.price-voices__h` aus dem Markup entfernt; `.price-voices`
+          ohne `border-top` / `padding-top` (nur noch `margin-top` +
+          `text-align:center`). Im Browser (:4334) geprüft: keine
+          Überschrift, kein Rahmen/Padding oben, 4 Avatare + Zitat +
+          Cite, Dev-Panel nur „picker", keine Konsolenfehler.
+        · **Nachbesserung 5 (2026-09-10):** 10 neue Picker-Varianten,
+          ALLE mit Abrechnungs-Umschalter + Kinderzahl (1–4-Segment) in
+          EINER horizontalen Reihe (`priceControls` neu; `flex-wrap:
+          nowrap`, ab ≤620 px `wrap`):
+          1 Zwei Pillen · 2 Eine Leiste (durchgehende helle Pille) ·
+          3 Umrandet (Fläche über die Breite, `space-between`) ·
+          4 Beschriftet (Inline-Label je Gruppe) · 5 Tabs
+          (Unterstrich) · 6 Minimal (dünne Text-Buttons) · 7 Dunkle
+          Leiste (schwarze Pille) · 8 Verteilt (`space-between`) ·
+          9 Chips (kleine umrandete Buttons) · 10 Segmentiert (Umschalter
+          im Segment-Stil der Kinderzahl, gemeinsamer Balken).
+          `PRICE_CTRL_LABELS` angepasst. **Bug gefixt:** `.price-toggle`
+          erbte aus `marketing.css` `margin: 0 auto 3rem` → im
+          Landing-Lab-`.price-toggle` jetzt `margin: 0; border: 0`, sonst
+          brach die Reihe um. Alte Placement-CSS (Band/Karte/Sticky/…)
+          und toter Stimmen-Variantencode/-CSS (v2–v10) entfernt.
+          Im Browser (:4335, 1280 px) geprüft: alle 10 Varianten auf
+          EINER Zeile (`ctrlH` 32–68 px), Segment + Jahres-Toggle
+          skalieren den Preis (2 Kinder + jährlich → 28,78 €),
+          `is-on`-Zustände korrekt, keine Konsolenfehler.
+        · **Nachbesserung 6 (2026-09-10):** Picker fest auf „Zwei Pillen"
+          (Abrechnungs-Umschalter + Kinderzahl-Segment in einer Reihe):
+          `priceControls()` ohne Parameter, `priceIntToggle`/
+          `priceSeatSegment` ohne `style`-Arg; `priceSeatStepper`,
+          `devVar`, `PRICE_CTRL_LABELS`, `mountPriceDev` + Aufruf und die
+          Placement-CSS v2–v10 entfernt → „Preise-Lab"-Panel ist ganz
+          weg. `.price-ctrl--v1` Spalten-Gap 20 → **48 px**. Grün im
+          Familien-Zustand (2+ Kinder) aus dem Kinderzahl-Control
+          entfernt: `.price-seats--seg.is-family` ohne grüne Fläche/
+          Rahmen, `.price-seats__cap` bleibt `--ink-500`, aktive Zahl
+          bleibt `--ink-950`. **Bug am Rande:** `.price-toggle` erbte aus
+          `marketing.css` `margin: 0 auto 3rem` → im Landing-Lab jetzt
+          `margin: 0; border: 0`. Im Browser (:4336) geprüft:
+          Umschalter + Kinderzahl auf einer Zeile, Gap 48 px, kein
+          Dev-Panel, im Familien-Zustand kein Grün (Text/Zahl/Fläche),
+          Preis skaliert (3 Kinder → 49,97 €), keine Konsolenfehler.
+        · **Unterseiten Preise / Über uns / FAQ komplett auf die
+          Startseiten-Optik umgebaut (2026-09-10):** Alle drei laden jetzt
+          zusätzlich `landing-lab.css` und bauen ihr `<main>` als Wechsel
+          schwarzer Vollflächen-Abschnitte und weißer Abschnitte mit
+          rundem Rand + schwarzem Eck-Zwickel — dieselbe Technik wie die
+          `.sv-sec[data-*]` der Startseite, nur über generische Modifier
+          in `landing-lab.css`:
+          – `.mkt-dark` (schwarzer Abschnitt, heller Text: eyebrow / h1–h4
+            / section-head-p / .cta-band aufgelöst),
+          – `.mkt-cut` + `.mkt-cut--all` / `--top` / `--bottom` (weißer
+            Abschnitt, 4 bzw. 2 Radial-Zwickel je Ecke gegen die
+            Nachbar-Schwarzfläche),
+          – `.section.mkt-dark`/`.mkt-cut { padding-block: var(--section-y) }`
+            (hebt den `.section + .section`-Merge auf),
+          – `.about-values__grid` (Werte-Karten auf Schwarz),
+          – `.faq-bold__group` (Gruppen-Zwischenüberschrift in der
+            Landing-FAQ-Liste).
+          **preise.html:** Hero(w) · Tarife(w, unten rund) · Familien-
+          Pakete(SCHWARZ) · Feature-Matrix(w, oben rund) · Billing-FAQ(w,
+          unten rund) · CTA(SCHWARZ). Premium-Karte behält die diagonale
+          weiße „Bestseller"-Ecke wie `#price`; die weißen Familien-Karten
+          im Schwarz-Abschnitt bekommen wieder dunklen Text
+          (`.mkt-dark .pricing-grid .price-card:not(--featured)`-Overrides).
+          Stripe-Familienraster + Monats/Jahres-Umschalter unverändert.
+          **ueber-uns.html:** Hero(w) · Gründer+Werdegang(w, unten rund) ·
+          Werte „KI als Helfer" (SCHWARZ, 4 Karten) · Ausblick+Zahlen (w,
+          alle 4 Ecken rund) · CTA(SCHWARZ). `.principle`-Block ersetzt.
+          **faq.html:** Hero(w) · FAQ (w, unten rund) mit der
+          Landing-Komponente `.faq-bold` / `.faq-bcard` (nummerierte
+          Karten, 4 `.faq-bold__group`-Überschriften) · CTA(SCHWARZ).
+          **Kollision behoben:** `landing-lab.css` trug die Basis-Regeln
+          `.price-card` / `.price-card__tag` / `.price-toggle` / `.price-*`
+          unscoped → auf `preise.html` überschrieben sie die
+          `marketing.css`-Preiskarten (weiße Schrift auf weißer Karte).
+          Jetzt alle auf `.sv--price4 …` gescoped (Startseiten-`#price`
+          liegt in `.sv--price4`, `preise.html` hat kein `.sv`); die
+          `.sv--price4 .price-grid--darkfeat …`-Varianten-Regeln gewinnen
+          weiterhin per Spezifität. Im Browser (:4337) geprüft: alle drei
+          Seiten mit `landing-lab.css`, Abschnitte bündig (gap 0), Zwickel-
+          `::before` (2 bzw. 4 Layer, `z-index:-1`), dunkle Section-Köpfe
+          hell, `.cta-band` transparent, Tarif-/Familien-/Feature-/FAQ-
+          Inhalte lesbar und interaktiv (Umschalter, Familienraster,
+          Accordion), Startseiten-`#price` unverändert (dunkle Premium-
+          Karte, weiße Ecke), keine Konsolenfehler (nur die vorbestehende
+          404 auf `assets/img/ueber-uns/jannik.jpg`, per `onerror`-Fallback
+          „JB" abgefangen).
+  - [x] **Landing-Feinschliff: Reveal-Varianten + Dev-Panel zurück,
+        Header-Hover gescrollt, KV-Tage, KI-Chat-Auto-Demo, Struktur =
+        Deutsch, Fach-Farben, Eltern-Zugang 10 Rahmen (2026-09-10):**
+        · **Reveal-Bewegung als Achse (global):** 10 Varianten über
+        `:root[data-reveal-anim="2..10"] [data-reveal]` in `marketing.css`
+        (1 Rise = Standard, dazu Fade · Weit · Links · Rechts · Zoom ·
+        Blur · Clip · Kippen · Feder), gekapselt in
+        `@media (prefers-reduced-motion: no-preference)`. `marketing.js`:
+        `REVEAL_VARIANTS`, `revealVariant()` (`localStorage['lesify:reveal:v']`),
+        `applyRevealAttr` / `applyRevealVariant` (Attribut setzen, alle
+        `.is-in` zurücksetzen, `initReveal()` neu — `initReveal` trennt
+        jetzt einen alten `revealIO` und legt ihn in einer Modul-Variablen
+        ab). Attribut wird in DOMContentLoaded aus `localStorage` gesetzt.
+        · **Dev-Panel (`mountLabDev`) wieder aktiv:** Aufruf zurück in
+        DOMContentLoaded. Zwei Zeilen — „reveal" (10, `data-revealv`,
+        eigener Handler vor `LAB_DEV_SEL`) und „parent" (10, automatisch
+        über `LAB_API`, da `parent`-Eintrag in `LAB_SECTIONS` ohne `fixed`).
+        `LAB_DEV_SEL`-Guard gegen leeren Selektor ergänzt.
+        · **Header gescrollt (`marketing.css`):** „Anmelden"-Hover greift
+        jetzt den Nav-Link-Hover des dunklen Headers ab
+        (`background: rgba(255,255,255,.1)`, Schrift weiß) statt der
+        deckenden Paper-Fläche. „Kostenlos starten" (`[data-hd="2"|"4a"]
+        .is-scrolled … .btn-primary:hover`) wird „hohl": Fläche
+        transparent, Rand + Schrift weiß, kein Ring-Shadow.
+        · **Globale Button-Sprache auf Schwarz:** `.btn-on-dark.btn-primary`
+        / `.btn-secondary` bekommen jetzt Pill-Form (`--radius-full`) +
+        die analogen Hover (Primär: weißer Ring, kein Bewegung; Sekundär:
+        1,5 px Rand + Micro-Lift + Schatten) — vorher `--radius-lg` +
+        flacher Hover. Betrifft TLDR- und Abschluss-CTA-Buttons (und die
+        Feature-Seiten).
+        · **KV-Demo — Tage 2/4/6/7:** waren identische Kurzansicht
+        (Themen-Liste + „freigeschaltet"-Hinweis). Jetzt jeder Arbeitstag
+        eine eigene abhakbare Checkliste wie `lpChecklist`/`lpTagAufgaben`
+        in `app/assets/js/app.js`: Tag 2 „Fehler klären / Beispiel /
+        Verständnis-Check" (erledigt), Tag 4 „Feynman / Wiederholung /
+        Transfer" (offen), Tag 6 „Lücke schließen / Auffrischen" (offen),
+        Tag 7 Selbsttest + Lernzettel-Vorschau (`KVL.lz`, `.kvl__lz`).
+        `kvlMainFor`-Checklist-Zweig: Fuß je Zustand (Erledigt / „Tag
+        abschließen" / „Freigeschaltet an Tag N"), neue Pills
+        `.kvl__pill--ok|--soon`.
+        · **KI-Chat-Demo = automatische Live-Demo:** `chatAppMarkup({auto})`
+        rendert keine Beispiel-Chips, Composer nur Attrappe (kein
+        `data-demo-form`, Input `disabled`, `.chat-app--auto` dimmt + Puls-
+        Punkt am Hinweis), `data-chat-auto` am Box. `initChatDemo`:
+        `auto`-Zweig spielt `CHAT_AUTO` (zusammenhängende Deutsch-
+        Unterhaltung Konjunktiv II) in Schleife — Frage in den Composer
+        tippen → Nutzer-Blase → KI tippt → Pause → nächste; nach dem
+        letzten Schritt Log leeren und neu. Pausiert bei verstecktem Tab.
+        `#chat` (`chatDemoLg`) nutzt jetzt `auto:true`.
+        · **KI-Chat Fach-Farben:** Chat-Kontext ist „Deutsch · Konjunktiv
+        II" → `.chat-app__idtile` / `.chat-app .chat-demo__ava` von
+        `--fach-amber` auf `--fach-rose` (App-Default Deutsch = rose),
+        `CHAT_HISTORY` Deutsch-Zeile amber→rose, Physik rose→pink.
+        · **Struktur-Demo = Fach Deutsch statt Mathe:** `ORG.fach` /
+        `ORG.thema` auf die Deutsch-Seed-Daten (Gedichtanalyse /
+        Erörterung / Satzglieder; Klausur „Deutsch — Gedichtanalyse" +
+        geschriebene „Satzglieder & Grammatik"). Neuer Akzent `--oc`
+        (`.orgx { --oc: var(--fach-rose) }`), alle `.orgx*`/
+        `.org-cv__scard`-Bezüge von `--fach-blue` auf `--oc` bzw.
+        `--fach-rose`. **Themen-/Klausur-Karten** an `.thema-card` /
+        `.klausur-card` angelehnt: Themenkarte mit Kurzbeschreibung +
+        Haarlinien-Fuß (Zählwerte), Klausur als Liste aus anstehender
+        Karte (Chips + mono Datum + Noten-Box im Fuß) und gestrichelter
+        „Geschrieben"-Karte. Dateien-Seite unverändert.
+        · **Fach-Farben an die App-Voreinstellung angeglichen:**
+        `marketing.css` `--fach-*` um `terracotta`/`pink`/`graphit`
+        ergänzt (1:1 aus `Lesify.FACH_COLORS`). `SUBJ_LIST` + `orgFaecher`
+        + `ORG.dateien`: Deutsch=rose, Englisch=amber, Biologie=teal,
+        Geschichte=terracotta (Seed-Zuordnung), nicht geseedete Fächer
+        violet/pink/graphit.
+        · **Eltern-Zugang: 10 Rahmen statt fix.** `parent`-Eintrag in
+        `LAB_SECTIONS` ohne `fixed` → Dev-Panel-Achse. `renderParent(v)`
+        1–10: Split · Centered · Grid · Two-Col · Panel · Up-Down ·
+        Numbered · Frame · Minimal · Accordion (Bausteine `parentKidCard`
+        / `parentReport` / `parentCardsHtml`/`-Num`/`-Acc`), CSS-Block
+        `.sv--parent2…10` in `landing-lab.css`. **„Eltern-Konto
+        anlegen"-Button aus dem Abschnitt entfernt** (alle Varianten).
+        · Im Browser (:4322) strukturell geprüft: Dev-Panel mit
+        reveal/parent, alle 10 Reveal-Varianten setzen/löschen
+        `data-reveal-anim` + `localStorage`, alle 10 Parent-Varianten
+        rendern ohne CTA-Button, TLDR/CTA-Buttons `border-radius: 999px`,
+        Header-Hover-Regeln (transparent/weiß bzw. hohl), KV-Tage 2/4/6/7
+        vier verschiedene Checklisten + Tag-7-Lernzettel, Chat-Auto-Demo
+        läuft (Composer inert), Struktur-Fach „Deutsch"/rose,
+        Fächer-Farben blue/rose/amber/teal/pink/terracotta, keine
+        Konsolenfehler. Volle visuelle Abnahme offen (Pane zeigt keine
+        Screenshots).
+  - [x] **Nachbesserung: Reveal wirklich global, KV-Lernzettel als
+        Dokument statt Text, feste Demo-Höhen, Struktur-Thema zurück auf
+        Mathe, Eltern-Zugang-Demo statt Layout-Varianten (2026-09-11):**
+        · **Reveal war faktisch nur der Hero** — die Sections werden per
+        JS-String gebaut und trugen gar kein `[data-reveal]`. Neue
+        `markRevealBlocks(root)`: markiert nach jedem (Neu-)Bau die
+        direkten Kinder jedes `.container` mit `[data-reveal]` +
+        gestaffeltem `data-reveal-delay` und ruft `initReveal()` neu auf.
+        Aufruf in `labSectionApi.build()` (deckt tldr/kv/org/cmp/price/
+        parent/faq/cta) und `buildChatSection()`.
+        · **KV Tag 7 — Lernzettel ist ein Dokument, kein Fließtext:**
+        die eingebettete Absatz-Vorschau (`KVL.lz`, `.kvl__lz-row`) war
+        sachlich falsch — der Lernzettel wird auf der echten Seite nicht
+        inline angezeigt. Ersetzt durch eine einzelne „öffnen"-Zeile wie
+        ein Datei-Link (`KVL.lzTitle`/`lzMeta`, `.kvl__lz-doc`).
+        · **Demos wachsen nicht mehr mit dem Inhalt — feste Höhe,
+        scrollt bei Bedarf** (galt vorher nur für `.orgx__main`):
+        `.kvl__main` von `min-height` auf `height: 480px` +
+        `overflow-y: auto`; `.chat-app` bekommt jetzt selbst eine feste
+        `height` je Größe (560/480/620/680px — vorher nur Grid `1fr`
+        ohne definierte Containerhöhe, dadurch griff `max-height` auf
+        `.chat-app__thread` nicht zuverlässig), `.chat-app__thread`
+        vereinfacht auf `flex:1; min-height:0; max-height:none` (füllt
+        den Rest exakt, scrollt intern statt die Karte zu strecken).
+        · **Struktur — Thema-Karte zurück auf Bruchrechnung/Mathe:**
+        `ORG.thema` wieder die ursprünglichen Mathematik-Daten (Fach-
+        Karte bleibt Deutsch). Akzent nicht mehr statisch `--oc: rose`
+        auf `.orgx`, sondern **live pro aktiver Seite** gesetzt
+        (`orgInit`.`show()`: `ORG_ACCENT = [rose, blue, ink-950]`) —
+        Fach = rose, Thema = Mathe-Blau, Dateien = Schwarz (kein
+        einzelnes Fach). Die drei Erklär-Karten (`org-cv__scard`) tragen
+        jetzt feste Farben je `data-org-point` (0 rose/1 blau/2 schwarz)
+        statt alle denselben Ton.
+        · **Eltern-Zugang — nur noch EIN Seiten-Layout (Two-Col), die
+        Dev-Panel-Achse „parent" wählt jetzt das Design der DEMO selbst:**
+        `renderParent` baut immer dieselbe `.pt-2col`-Struktur (Text +
+        Argumente links, Demo rechts); neu ist `eltDemo(v)` mit 10
+        Designs (Kacheln · Split · Report · Bento · Stapel · Kompakt ·
+        Zeitleiste · Ampel · Familie · Minimal) in derselben `.elt-demo`-
+        Hülle (Browser-Chrome-Leiste + feste Höhe wie kvl/orgx/chat-app).
+        Alte Layout-Varianten (v1/2/3/5/6/7/8/9/10 als Seiten-Anordnung)
+        + zugehörige tote CSS (`.pt-grid`/`.pt-panel`/`.pt-ud`/`.pt-num`/
+        `.pt-frame`/`.pt-accw` u. Ä., dazu ein bereits vorher totes
+        Alt-Fragment `.pt-report`/`.pt-points`/`.pt-split`/…) entfernt;
+        `parentKidCard`/`parentReport`(`.ptx-kid`/`.ptx-report`) bleiben
+        nur noch als tote Helfer für die (inerten) Feature-Unterseiten.
+        · Im Browser (:4322) geprüft: `[data-reveal]` jetzt in jeder
+        Section (nicht nur Hero), Tag 7 zeigt die Dokument-Zeile statt
+        Absatztext, `.kvl__main` bleibt bei jedem Tag 480 px hoch
+        (Tag 2 mit 5 Punkten scrollt intern), `.chat-app` bleibt bei 15
+        zusätzlichen Testnachrichten bei fixer Höhe (Thread scrollt),
+        Struktur-Akzent live rose/blau/schwarz je Seite + Thema wieder
+        „Bruchrechnung"/„Mathematik", alle 10 Eltern-Demo-Varianten
+        rendern in derselben `.pt-2col`-Hülle ohne CTA-Button, keine
+        Konsolenfehler.
+  - [x] **Nachbesserung 2: Eltern-Demo = echte drei Kinder statt
+        10 Design-Varianten, Reveal fest auf Zoom, Dev-Tool komplett
+        raus (2026-09-11):**
+        · **Eltern-Zugang — eine Demo, 1:1 `kindCard()`/`kzGrid()` aus
+        app/eltern.html:** die 10 Design-Varianten (`eltDemo(v)`,
+        `.elt-demo--1..10`) waren nicht das Ziel — ersetzt durch eine
+        einzige Demo mit den drei echten Seed-Kindern
+        (`SEED.familie.kinder` in app/assets/js/data.js): **Mara Berger**
+        (8. Klasse, violet, aufgeklappt — 7-Kachel-Wochenüberblick 6
+        Fächer/14 Themen/9 Chats diese Woche/63 Nachrichten diese
+        Woche/11 Lernzettel gesamt/2 Testklausuren diese Woche/2
+        Anstehende Klausuren, Ampel „Diese Woche aktiv" — echte Regel
+        `nachrichtenDieWoche ≥ 30`), **Jonas Berger** (6. Klasse, teal,
+        zu — Ampel „Wenig aktiv", 11 Nachrichten), **Lea Berger**
+        (9. Klasse, amber, zu, `is-pending` — noch nicht eingeladen,
+        „Einladung ausstehend" statt Ampel-Chip). Neue Bausteine
+        `PARENT.kinder` + `eltKidCard()`/`eltDemo()` (kein Parameter
+        mehr), CSS `.elt-kid-card*`/`.elt-kzgrid`/`.elt-kz`/`.elt-chip--
+        gruen|gelb|rot` ersetzt den alten `.elt-*`-Variantensatz
+        komplett. `renderParent` wieder ohne `v`-Verzweigung,
+        `LAB_SECTIONS`: `parent` wieder `fixed: '1'` — raus aus dem
+        Dev-Panel. Bleibt: feste `.pt-2col`-Seiten-Struktur, App-Fenster-
+        Hülle mit fester Höhe (480 px, scrollt), kein CTA-Button.
+        · **Reveal-Bewegung final auf 6 · Zoom:** `applyRevealAttr('6')`
+        fest in DOMContentLoaded statt `revealVariant()` aus
+        `localStorage`; `REVEAL_VARIANTS`/`revealVariant()`/
+        `applyRevealVariant()` bleiben als tote Helfer (CSS-Block
+        „Reveal-Varianten" in `marketing.css` bleibt komplett, dokumentiert
+        die anderen 9 Bewegungen).
+        · **Dev-Tool (Landing-Lab-Panel) komplett entfernt:** Jetzt sind
+        ALLE `LAB_SECTIONS`-Einträge `fixed` und die Reveal-Achse ist
+        hart codiert — `mountLabDev()`-Aufruf aus DOMContentLoaded raus
+        (Funktion bleibt toter Helfer, wie beim Vorbild „Dev-Tool
+        entfernt" vom 2026-09-09). Die `data-revealv`-Zeile/-Handler aus
+        `mountLabDev()` entfernt.
+        · Im Browser (:4322) geprüft: kein `.layout-dev`-Panel mehr im
+        DOM, `data-reveal-anim="6"` fest gesetzt (frisches Test-Element
+        zeigt `scale(0.9)`), Eltern-Demo zeigt genau 3 Kind-Karten (Mara
+        offen mit 7 Kacheln, Jonas/Lea zu), Farben/Ampel/Pending-Zustand
+        korrekt, feste 480-px-Höhe, kein CTA-Button, keine
+        Konsolenfehler.
+  - [x] **Echtes Logo + Header-Neuaufbau in 10 Varianten (2026-09-07):**
+        · **Logo:** Die Marke im Marketing war bisher ein Platzhalter-SVG
+        (Zwei-Blatt). Neu: das echte Lesify-Zeichen (Schallwellen-Swoosh,
+        deckungsgleich mit `marketing/assets/img/logo.png`) als
+        `LOGO_MARK`-Konstante (currentColor) in `marketing.js` —
+        `ICON.mark` (Nav + Footer) und `CHAT_MARK` (KI-Chat-Avatar/Marke)
+        zeigen es jetzt. Neue Asset-Datei `marketing/assets/img/logo-mark.svg`
+        (currentColor). Auth-Seiten (`login`/`registrieren`/`checkout`/
+        `passwort-vergessen`) nutzen `<img src="assets/img/logo-mark.svg">`
+        im `.brand__mark`. `.brand__mark svg/img` auf 18 px. Favicon bleibt
+        `logo.png`.
+        · **Header (Runde 1, verworfen):** kurzzeitig 10 Nav-Designs als
+        Dev-Achse „Header" — nach Feedback ersetzt (siehe unten).
+  - [x] **Header-Runde 2: transparent oben, „normal" beim Scrollen —
+        5 Designs (2026-09-07):** Feedback: über dem Hero soll die Leiste
+        komplett transparent sein (kein Rand, kein Hintergrund, kein Blur),
+        ab dem ersten Scrollen der „normale" Header; Favoriten aus Runde 1
+        waren die Glas-Pille (v1) und die dunkle Pille (v7). Umsetzung:
+        `HEADER_VARIANTS` → 5, `headerVariant()`-Regex `[1-5]`. Gemeinsamer
+        Transparent-Zustand für `.mkt-nav[data-hd="1..5"] .mkt-nav__inner`
+        (`background/border-color: transparent`, kein Shadow/Blur);
+        `.is-scrolled` (JS-Handler unverändert, ab `scrollY>12`) blendet pro
+        Variante den Zielzustand ein — `border-color` in die Transition der
+        Basis aufgenommen. Die 5: **1 Glas** (helle Glas-Pille, Blur,
+        Shadow) · **2 Dunkel** (Ink-950-Pille, helle Schrift/Links/CTA,
+        invertierte Logo-Kachel — nur im gescrollten Zustand) · **3 Leiste**
+        (immer flush & randlos, gescrollt Vollbreiten-Leiste mit Haarlinie
+        unten + Blur, kein Layout-Sprung) · **4 Solid** (deckende weiße
+        Pille, kräftigerer Rand, kein Blur) · **5 Kontrast** (helle Fläche
+        mit 1,5 px Ink-Kontur, eckigere Ecken, kein Blur/Shadow). Alle 5
+        per Computed-Style in beiden Zuständen geprüft (oben überall
+        transparent; gescrollt je eigener bg/border/radius/blur), Variante 2
+        zusätzlich per Screenshot; `window.scrollTo` schaltet `.is-scrolled`
+        im eingeklappten Pane nicht selbst — manuell erzwungen. Keine
+        Konsolenfehler. **Offen:** Header + restliche Achsen final wählen,
+        Dev-Panel danach entfernen.
+  - [x] **Hero-Foto → 4er-Slideshow mit echten Fotos (2026-09-07):**
+        Neuer Bild-Ordner `marketing/assets/img/lesi-mgs-nw-hero/`
+        (69–72.jpg, je 1500×1500, Person mit Tablet + Lesify-App). Das
+        bisher statische `.hv9__photo` (ein Bild, `test-img.png` im CSS)
+        wird zu vier gestapelten `.hv9__photo`-Ebenen in `.hv9__panel`
+        (`index.html`), die per Cross-Fade (`opacity`/`.is-on`, 700 ms)
+        synchron zur aktiven Karten-Folie laufen: Folie 0–3 → Bild 69–72.
+        `setHeroPhoto()` in `marketing.js`, aufgerufen aus `show()` in
+        `initHeroSlides()` (nur für die sichtbare Slideshow-Gruppe,
+        `offsetParent !== null`). CSS: `background-image` aus der
+        `.hv9__photo`-Basisregel entfernt (jetzt inline pro Ebene),
+        Fade + reduced-motion-Guard ergänzt. Im Browser (frischer Port)
+        geprüft: 4 Ebenen, alle 200, Sync bei Autoplay + Pfeil-Klick
+        (69→70→71→72→wrap), keine Konsolenfehler.
+  - [x] **Header-Feinschliff (Feedback zu v2, 2026-09-07):** gilt für
+        alle 5 Header-Varianten (`.mkt-nav[data-hd]`). 1) **Marke oben
+        größer, schrumpft beim Scrollen:** `.brand` bekommt im nicht
+        gescrollten Zustand `transform: scale(1.22)` (Ursprung links,
+        240 ms, kein Layout-Reflow) — beim Scrollen zurück auf 1. 2)
+        **Nav über Hero lesbar:** weicher Seiten-Kopf-Schleier als
+        `.mkt-nav[data-hd]::before` (heller Verlauf `bg-canvas` 0.82→0,
+        Höhe 132 px, `blur(3px)`, `pointer-events:none`, `z-index:-1`),
+        nur solange nicht gescrollt (fade-out via `.is-scrolled::before
+        { opacity:0 }`); zusätzlich Links/`btn-ghost` im Top-Zustand auf
+        `--ink-800`/`--ink-900` gedunkelt. Deckt weißen Hero UND
+        diagonales Foto ab, ohne wie eine feste Leiste zu wirken.
+        Im Browser (frischer Port) geprüft — v2: oben scale(1.22) +
+        Schleier sichtbar, gescrollt scale(1) + Schleier weg + dunkle
+        Pille; keine Konsolenfehler. (Impeccable-Hook markierte kurz
+        Width/Height-Transitions — behoben, jetzt reine transform-/
+        opacity-Animation.)
+  - [x] **Header auf 2 Setups reduziert + Foto-Schleier-Flip
+        (Feedback, 2026-09-07):** Der weiße Schleier + Blur hinter dem
+        Header (`.mkt-nav[data-hd]::before` + Link-/CTA-Dunkelung) ist
+        entfernt. Stattdessen steuert das Setup jetzt den **Foto-
+        Schleier** (`.hv9__panel::after`): `applyHeaderVariant()` setzt
+        zusätzlich `data-header` auf `<body>`; CSS in `landing-lab.css`.
+        · **1 Standard** = bisheriger Stand: Schleier dunkelt nach unten
+        ab, gescrollt helle Glas-Pille.
+        · **2 Vorschlag** = `body[data-header="2"]`: Schleier wird
+        stattdessen nach OBEN hell/weiß (linear-gradient to bottom,
+        `#fff` 0.96 → 0 bei ~52 %), macht die transparente Nav über dem
+        Foto lesbar; gescrollt dunkle Pille. Kein Bottom-Dark mehr in v2.
+        Marke-Skalierung (scale 1.22 oben → 1 gescrollt) bleibt für beide.
+        `HEADER_VARIANTS` → 2, Regex `[12]`, Dev-Achse „Header" zeigt nur
+        noch „1 · Standard" / „2 · Vorschlag". CSS für die alten
+        Varianten 3–5 (Leiste/Solid/Kontrast) entfernt. Im Browser
+        (frischer Port) geprüft: Umschalten setzt `data-hd` + `data-header`,
+        v1-Schleier `to top` dunkel / v2-Schleier `to bottom` weiß,
+        Header-`::before` = `content:none`, keine Konsolenfehler.
+  - [x] **Header +2 Setups auf 1-Basis (Feedback, 2026-09-07):**
+        `HEADER_VARIANTS` → 1/2/3/4a/4b/4c, Regex `([123]|4[abc])`.
+        · **3 Links** — Nav-Links linksbündig neben dem Logo
+        (`.mkt-nav[data-hd="3"] .mkt-nav__links { margin:0 }`, Aktionen
+        `margin-left:auto`), damit sie über dem weißen Hero-Bereich
+        stehen; sonst = 1. · **4a/4b/4c Pills** — Nav-Links bekommen im
+        Hero-Zustand (`:not(.is-scrolled)`) einen Hintergrund, „Anmelden"
+        eine dezente Glas-Fläche: **4a** Track (alle Links in einer
+        eingefassten Glas-Spur, aktiv = weiße Pille), **4b** Chips (je
+        Link eigene Glas-Pille + Schatten, aktiv = Ink gefüllt), **4c**
+        Outline (umrandete, fast durchsichtige Chips, aktiv = Ink
+        gefüllt). Ab `.is-scrolled` fallen 3 + 4x auf den 1-Look zurück
+        (klare Glas-Pille, schlichte Links — kein Pille-in-Pille). Shared
+        Transparent-Oben + Glas-Pille-Regel um `[data-hd="3"]` /
+        `[data-hd^="4"]` erweitert. 3/4x setzen `body[data-header]` auf den
+        Wert, greifen aber nicht die `="2"`-Schleier-Regel → Foto-Schleier
+        bleibt wie bei 1 (unten dunkel). Im Browser (frischer Port)
+        geprüft: 6 Dev-Buttons, v3 Links linksbündig (linksLeft =
+        brandRight), 4a Track-BG, 4b Chips, 4c Outline je sichtbar,
+        gescrollt alle = Glas-Pille mit transparenten Links, keine
+        Konsolenfehler.
+  - [x] **4a scrollt jetzt in den dunklen 2-Look (Feedback, 2026-09-07):**
+        `[data-hd="4a"]` aus der hellen Glas-Pille-Regel (jetzt nur
+        `1/3/4b/4c`) entfernt und zu allen `[data-hd="2"].is-scrolled …`
+        Regeln (Inner-BG `--ink-950`, `brand__word`/`brand__mark` invers,
+        Links/`btn-ghost` hell, `btn-primary` weiß, `nav-toggle` dunkel)
+        hinzugefügt. 4a im Hero-Zustand weiter transparent + Track-Pillen;
+        gescrollt = dunkle Pille wie 2. Computed-Style geprüft: 4a +
+        `.is-scrolled` → `.mkt-nav__inner` bg `rgb(16,18,20)`, gewinnende
+        Regel `[data-hd="4a"].is-scrolled .mkt-nav__inner`; 4b/4c weiter
+        helle Pille. Keine Konsolenfehler. (Screenshot des gescrollten
+        Zustands im eingeklappten Pane unzuverlässig — per getComputedStyle
+        + Rule-Match bestätigt.)
+  - [x] **Header + Hero-Karte final gewählt, aus Dev-Panel entfernt
+        (2026-09-07):** `LAB_DEV_AXES` nur noch `Chat` + `Chat-Farbe`
+        (+ die 8 sv-Sections). **Header = "4a"** — `buildNav()` ruft fest
+        `applyHeaderVariant('4a')`; `HEADER_VARIANTS`/`headerVariant()`
+        entfernt. **Hero-Karte = "2b"** (Lower-Third im Foto, liegt im
+        `.hv9__panel`, vom Diagonal-Schnitt beschnitten) — `buildHeroStage()`
+        ruft fest `applyHeroCardVariant('2b')`; `HERO_CARD_VARIANTS`/
+        `heroCardVariant()` entfernt. `mountLabDev()` ohne die beiden
+        `applyX(LAB_DEV_MAP…)`-Zeilen. Die CSS-Rahmen der übrigen
+        Header-Varianten (1/2/3/4b/4c) + Hero-Karten (2/3/3b) bleiben
+        im Stylesheet (ungenutzt, reversibel). Im Browser (frischer Port)
+        geprüft: Dev-Panel-Zeilen = Chat/Chat-Farbe/kv/…; `#mkt-nav`
+        `data-hd="4a"` + Track-Pillen, `.hv9` `data-hero-card="2b"`, nur
+        `data-hero-slides="2b"` sichtbar; keine Konsolenfehler.
+  - [x] **Landing-Lab: Button-Stile + Hero-Farbe als Dev-Achsen
+        (2026-09-07):** Drei neue Zeilen im „Landing-Lab"-Dev-Panel
+        (`LAB_DEV_AXES` vorangestellt), je v1 = aktueller Stand.
+        · **Btn prim** (`bp`, `data-btnp` auf `<body>`,
+        `localStorage['lesify:btnprimary:v']`, Regex `[1-6]`): 5 neue
+        Varianten des Haupt-Buttons (`.btn-primary`, z. B. „Kostenlos
+        starten") — 2 Verlauf (Tiefen-Gradient + oberer Glanz, Hub),
+        3 Pill (volle Rundung + Fokus-Ring-Glow), 4 Blau (`--fach-blue`
+        statt Tinte), 5 Kontur (Umriss, füllt sich beim Hover), 6 Raise
+        (dauerhafter Schatten + Translate).
+        · **Btn sek** (`bs`, `data-btns` auf `<body>`,
+        `localStorage['lesify:btnsecondary:v']`, Regex `[1-6]`): 5 neue
+        Varianten des Zweit-Buttons (`.btn-secondary`, z. B. „So
+        funktioniert's" / „Anmelden") — 2 Tinte (Ink-Umriss → Füllung),
+        3 Ghost (nur Text), 4 Grau (weiche Graufüllung, kein Rand),
+        5 Blau (Marken-Blau als Umriss), 6 Pill (volle Rundung,
+        kräftigerer Rand). `.btn-on-dark` in allen Regeln per `:not()`
+        ausgenommen. CSS-Block in `marketing.css` direkt hinter den
+        Basis-Buttons.
+        · **Hero-Farbe** (`hc`, `data-hero-color` auf `.hv9`,
+        `localStorage['lesify:herocolor:v']`, Regex `[1-9]|10`): 9 neue
+        Fassungen der Hero-Auszeichnung — steuert gemeinsam die Markierung
+        von `<em>Nachhilfe</em>` (`h1 em::after`) und den Akzent der
+        Foto-Leiste (`.hs-c2 { --hs-accent }`, überschreibt die per Folie
+        von `initHeroSlides()` gesetzte Fach-Farbe). v1 = gelb + Fach-Farbe
+        je Folie. **Farbig:** 2 Blau, 3 Grün, 4 Violett, 5 Verlauf
+        (Blau→Violett-Unterstrich + Progress-Gradient). **Nur Lesify-
+        Palette (kein Buntton):** 6 Tinte (grauer Marker-Block hinter dem
+        Wort), 7 Linie (dünner Ink-Unterstrich), 8 Marker invers (Wort
+        auf Ink gesetzt, `::after` aus), 9 Fog (blaugrauer `--ink-300`-
+        Block), 10 Doppel (`double`-Unterstrich). CSS-Block in
+        `landing-lab.css` hinter der Hero-Text-Sektion. Init in
+        DOMContentLoaded (`applyBtnPrimary/-Secondary/-HeroColor`), gilt
+        auf allen Marketing-Seiten (Dev-Panel selbst nur `index.html`).
+        Im Browser (frischer Port :4322) je Variante per Computed-Style
+        geprüft (Buttons mit deaktivierten Transitions, weil das
+        eingeklappte Pane die Transition-Timeline einfriert; Hero-Farbe +
+        Screenshots direkt), alle Achsen greifen, keine Konsolenfehler.
+        **Offen:** je Achse eine Variante final wählen, Dev-Panel danach
+        entfernen.
+  - [x] **Landing-Lab-Runde 2: Button-Grund-Stil fixiert, Achsen auf
+        reine Hover-Animation umgestellt; Hero-Farbe v1 folgt der
+        Folienfarbe (Feedback, 2026-09-07):**
+        · **Btn prim = v1 fest:** solide Tinte (Basis `.btn-primary`,
+        keine Regel). · **Btn sek = v1 fest:** Pill mit kräftigerem
+        1,5-px-Rand (früher „v6") — jetzt Grund-Stil für ALLE Achsen-Werte
+        (`body[data-btns] .btn-secondary:not(.btn-on-dark)`). Der
+        Header-„Anmelden"-Button ist `btn-ghost`, nicht `btn-secondary`,
+        und bleibt davon unberührt.
+        · **Beide Achsen jetzt 10 Werte, Regex `[1-9]|10`,
+        `BTN_HOVER_VARIANTS` (geteilt).** v1–v10 sehen im Ruhezustand
+        IDENTISCH aus (per Computed-Style bestätigt: Primär bg/color/
+        radius, Sekundär Pill/1,5-px-Rand über v1/4/7/10 gleich),
+        Unterschied NUR in der Hover-Animation:
+        1 Standard · 2 Snappy (90 ms, harter Micro-Lift) · 3 Smooth
+        (340 ms ease-out-expo, −2 px) · 4 Spring (federnd,
+        `cubic-bezier(.34,1.56,.64,1)`, −4 px + `--shadow-lg`) ·
+        5 Press (`translateY(2px) scale(.985)`, taktil) · 6 Zoom
+        (`scale(1.05)`) · 7 Shine (`::after`-Lichtstreifen wandert einmal
+        durch, `overflow:hidden`; heller Streifen für Primär, dunkler für
+        Sekundär; `@keyframes btnShine`) · 8 Puls (pulsierender Ring
+        solange gehovert, `@keyframes btnPulse`, `infinite`) · 9 Ring
+        (Kontur-Ring `box-shadow 0 0 0 4px` wächst weich) · 10 Wackeln
+        (`@keyframes btnWobble`, kurzer Rotations-Wobble). `@media
+        (prefers-reduced-motion: reduce)` schaltet `animation`/`transform`
+        der Hover-Zustände ab. Impeccable-Hook meldet die Overshoot-/
+        Bounce-Easing in v4 + v10 — hier bewusst: „Spring" und „Wackeln"
+        sind gerade die Varianten, die diesen Charakter zeigen sollen
+        (Auswahl-Lab). CSS-Block in `marketing.css` ersetzt die alten
+        Button-Varianten.
+        · **Hero-Farbe v1:** wie bisher (Karten-Akzent je Folie), aber die
+        Auszeichnung von `<em>Nachhilfe</em>` (`h1 em::after`) läuft jetzt
+        mit der Karten-/Slider-Farbe mit: `show()` in `initHeroSlides()`
+        legt den Akzent der aktiven Folie zusätzlich als `--hero-accent`
+        auf die `.hv9`-Section (nur für die sichtbare Gruppe,
+        `offsetParent`-Guard), `.hv9[data-hero-color="1"] h1 em::after`
+        nimmt ihn auf (`var(--hero-accent, var(--gelb))`, opacity 0.5,
+        `transition: background 420ms`). Per Computed-Style bestätigt:
+        Akzent blau→amber→teal→violet → Auszeichnung folgt exakt (im
+        Screenshot Wechsel gelb→farbig sichtbar; das eingeklappte Pane
+        friert die 420-ms-Transition ein und zeigt kurzzeitig noch den
+        Alt-Wert — Live-Timeline korrekt). v2–v10 unverändert.
+        **Namens-Labels** im Panel angepasst (Btn-Achsen:
+        Standard/Snappy/…/Wackeln; Hero-Farbe v1 „Gelb→Akzent").
+        **Offen:** je Achse eine Variante final wählen, Dev-Panel danach
+        entfernen.
+  - [x] **Landing-Lab-Runde 3: Buttons rund, Sekundär fixiert, Primär =
+        10 minimalistische Hover-Varianten, Header nutzt die Button-Stile
+        (Feedback, 2026-09-07):**
+        · **Rundung:** beide Buttons jetzt `border-radius: var(--radius-full)`
+        (Primär über `body[data-btnp] .btn-primary:not(.btn-on-dark)`,
+        Sekundär über `.btn-secondary:not(.btn-on-dark)`).
+        · **Sekundär-Button final gewählt, aus dem Dev-Panel entfernt:**
+        Pill + 1,5-px-Rand + „Snappy"-Hover (`translateY(-1px)` +
+        `--shadow-md`, Rand zieht auf `--ink-950`). Achse `bs` /
+        `BTN_SECONDARY_VARIANTS` / `btnSecondaryVariant` / `applyBtnSecondary`
+        / `localStorage['lesify:btnsecondary:v']` raus; feste Regeln in
+        `marketing.css`.
+        · **Primär-Button: 10 NEUE Hover-Varianten** (Achse `bp` bleibt,
+        `BTN_PRIMARY_VARIANTS`, Regex `[1-9]|10`). Ruhezustand für alle
+        10 IDENTISCH (Pill, solide Tinte — per Computed-Style über v1–v10
+        bestätigt: bg/color/radius gleich, `transform: none`).
+        **Minimalistisch, der Button selbst bewegt sich nicht** (kein
+        `transform` auf `.btn-primary` in irgendeinem `:hover` — nur der
+        `prefers-reduced-motion`-Block nennt `transform`, und der setzt es
+        auf `none`). Die 10: 1 Standard (Tinte → `--ink-800`) · 2 Hell
+        (→ `--ink-600`) · 3 Schatten (`--shadow-md`) · 4 Ring (`box-shadow
+        0 0 0 3px`) · 5 Puls (`@keyframes btnRingPulse`, atmender Ring,
+        `infinite`) · 6 Glow (diffuser Schein) · 7 Invert (Farbtausch
+        Tinte↔Papier, kein Move) · 8 Unterstrich (`::after`-Linie am Fuß
+        blendet per `opacity` ein) · 9 Sheen (`::after`-Lichtstreifen
+        `@keyframes btnSheen`, `overflow:hidden`, Button bleibt) ·
+        10 Kontrast (`filter: brightness(1.22)`). `prefers-reduced-motion`
+        schaltet Hover-`animation`/`transform` ab. Alte Varianten-Keyframes
+        (`btnShine`/`btnPulse`/`btnWobble`) ersetzt.
+        · **Header nutzt Primär/Sekundär:** „Anmelden" im
+        `.mkt-nav__actions` von `btn-ghost` → `btn-secondary` (Markup in
+        `marketing.js`), „Kostenlos starten" bleibt `btn-primary`. Nav-CSS
+        (`marketing.css`): die drei `.mkt-nav__actions .btn-ghost`-Regeln
+        auf `.btn-secondary` umgestellt — Hero-Zustand
+        (`[data-hd^="4"]:not(.is-scrolled)`): halbtransparente weiße Fläche
+        + Blur; gescrollt (`[data-hd="4a"]/[="2"].is-scrolled`):
+        transparent + heller Text + heller Rand (On-Dark-Outline);
+        Mobile-Ausblenden (`@media 960px`) ebenfalls auf `.btn-secondary`.
+        Im Browser (frischer Port :4322) geprüft: Dev-Panel ohne „Btn sek",
+        beide Buttons `999px`, v1–v10 Ruhezustand gleich + kein Hover-Move,
+        „Anmelden"/„Kostenlos starten" Pillen im Hero- UND gescrollten
+        Header-Zustand korrekt, keine Konsolenfehler.
+        **Offen:** Primär-Hover final wählen, Dev-Panel danach entfernen.
+  - [x] **Landing-Lab-Runde 4: Buttons final, „Anmelden" = Nav-Link,
+        Hero-Grid vertikal zentriert (Feedback, 2026-09-07):**
+        · **Primär-Button = „Ring"-Hover final gewählt**, Achse `bp` aus
+        dem Dev-Panel entfernt (`BTN_PRIMARY_VARIANTS` / `btnPrimaryVariant`
+        / `applyBtnPrimary` / `data-btnp` / `localStorage['lesify:btnprimary:v']`
+        raus). Feste Regel in `marketing.css`: `.btn-primary:not(.btn-on-dark)`
+        = Pill + Transition, `:hover` = `box-shadow: 0 0 0 3px rgba(16,18,20,.16)`
+        (kein `transform` — verifiziert). Sekundär-Button unverändert
+        (Pill + 1,5-px-Rand + Snappy-Hover). Die 10 Varianten-Blöcke +
+        `@keyframes btnRingPulse`/`btnSheen` entfernt.
+        · **„Anmelden" im Header** von `btn-secondary` → `mkt-nav__link`
+        (Markup in `marketing.js`): kein Button mehr, sondern eine
+        eigenständige Pille im Stil der Nav-Link-Spur. `.mkt-nav__actions
+        .mkt-nav__link` — Hero (`:not(.is-scrolled)`): Fläche
+        `rgba(255,255,255,.62)` + `1px solid var(--line)` + `--shadow-sm`
+        + `blur(10px)` (= gleiche Fläche/Rand wie `.mkt-nav[data-hd="4a"]
+        :not(.is-scrolled) .mkt-nav__links`), Text `--ink-700`.
+        `.mkt-nav.is-scrolled`: Fläche + Rand + Shadow weg, Text
+        `rgba(255,255,255,.7)` (wie die Nav-Links auf der dunklen Pille).
+        **Hover (beide Zustände):** `background: var(--paper)` +
+        `color: var(--ink-950)`. Tote `.mkt-nav__actions .btn-secondary`-
+        Regeln entfernt; Mobile-Ausblenden (`@media 960px`) auf
+        `.mkt-nav__link`. `.btn-ghost` wird nirgends mehr verwendet (nur
+        noch die Basis-Klasse in `marketing.css`). (Computed-Style-Check
+        mit deaktivierten Transitions: Hero-Rest = Track-Fläche/-Rand,
+        Hover = `#f8fafb` + `rgb(16,18,20)`, gescrollt analog.)
+        · **Hero-Grid vertikal mittig — nur über die Paddings** (`.hv9`
+        in `landing-lab.css`, Höhe bleibt inhaltsgetrieben, KEIN
+        `min-height` / kein Flex): `padding-top: clamp(7.5rem, 5.5rem +
+        6vw, 10.5rem)`, `padding-bottom: clamp(2rem, 6vw, 5rem)` — so
+        gewählt, dass `padding-top − padding-bottom` an JEDER
+        Viewport-Breite genau 5,5 rem (≈ Header-Höhe) ist. Damit sitzt
+        `.hv9__grid` optisch mittig zwischen Header-Unterkante und
+        Section-Ende. Im Browser geprüft: 1280×800 → 77 px = 77 px,
+        1024×768 → 62 px ≈ 61 px; `display: block`, `min-height: 0`.
+        Dev-Panel jetzt ohne „Btn prim" / „Btn sek"; Primär-Hover = Ring
+        ohne Move, „Anmelden" wie Nav-Link im Hero + gescrollt, Grid
+        zentriert — im Browser geprüft, keine Konsolenfehler.
+  - [x] **`funktionen.html` durch 5 Feature-Unterseiten + Header-Mega-Menü
+        ersetzt (2026-09-08):** Die einzelne Funktionen-Seite ist raus.
+        · **Mega-Menü:** `NAV_LINKS[0]` (`Funktionen`) ist kein Link mehr,
+        sondern ein `<button class="mkt-nav__mega-btn" aria-haspopup
+        aria-expanded aria-controls>` mit Panel `#mkt-mega` (`role="menu"`,
+        5 `menuitem`-Links aus neuer Liste `FEATURE_LINKS` in
+        `marketing.js`). Desktop: Hover (120 ms Delay) / Klick / Enter /
+        ArrowDown öffnet, Escape schließt + Fokus zurück, Klick außerhalb +
+        `focusout` aus dem Item + `hashchange`/`pagehide` schließen; bewusst
+        KEIN `focusin`-öffnet (sonst Re-Open nach Escape). Touch
+        (`hover:none`): nur Klick. Mobile: Sheet-Akkordeon
+        (`.sheet-acc__btn` + `.sheet-acc__panel`, `initSheetAccordion`).
+        CSS neu in `marketing.css` (Mega + Akkordeon, inkl. `data-hd`-
+        Scroll-/Hero-Zustände + `prefers-reduced-motion`).
+        · **Feature-Seiten:** `feature-chat.html`,
+        `feature-klausurvorbereitung.html`, `feature-lernplaene.html`,
+        `feature-testklausuren.html`, `feature-lernzettel.html` — je nur
+        Shell mit `<body data-feature="…">` + `<div id="feature-page">`.
+        EIN gemeinsames Schritt-Layout (`buildFeaturePage` / `FEATURE_PAGES`
+        in `marketing.js`, CSS in neuer `marketing/assets/css/feature.css`):
+        normales Scrollen, kein Snap; je Schritt Nummer + Eyebrow + H2 +
+        Text links, Demo rechts (Desktop) bzw. Text über Demo (Mobile,
+        `@media 900px`) — über alle 5 Seiten identisch. Demos sind die
+        vorhandenen Bausteine der Startseite: `chatDemoMarkup`/`initChatDemo`,
+        `chatAppMarkup`, `kvxMock`/`kvInit`, `kvxDays`, `kvxAmpelCards` +
+        daraus zusammengesetzte hellflächige Karten (`.feat-demo-card`,
+        `.feat-modes`, `.feat-rows`, Upload-/Suche-Mock, `.lab-grade`).
+        Init je Schritt-Instanz über `.feat-step__demo`-Scan. `initReveal`
+        um einen gedrosselten Scroll-Fallback ergänzt (lange, komplett aus
+        `[data-reveal]` gebaute Seiten).
+        · **Weiterleitung:** `funktionen.html` → Meta-Refresh +
+        `location.replace('feature-chat.html')` (Flaggschiff AI Chat),
+        `rel=canonical`, `noindex`. Interne Links: Footer-Spalte „Produkt"
+        listet jetzt die 5 Feature-Seiten (aus `FEATURE_LINKS`) statt eines
+        „Funktionen"-Links.
+        · Im Browser (:4322) geprüft: Panel öffnet/schließt (Hover, Klick,
+        Escape+Fokus, Klick-außerhalb), Navigation in jede Feature-Seite,
+        `/funktionen.html` leitet auf `/feature-chat.html`, Mobile-Akkordeon,
+        alle 5 Seiten bauen (Schritte, Demos, Chat-/kvx-Init), Mobile-
+        Stapelung Text→Demo, keine Konsolenfehler.
+  - [x] **Frontend auf vier Seiten reduziert (2026-09-08):** Nach Entscheidung
+        des Inhabers hat die Website nur noch vier Navigations-Seiten:
+        **Home** (`index.html`), **Preise** (`preise.html`), **Über uns**
+        (`ueber-uns.html`), **FAQ** (`faq.html`).
+        · **Nav/Footer:** `NAV_LINKS` in `marketing.js` = vier flache Links,
+        kein „Funktionen"-Mega-Menü mehr; `FEATURE_LINKS` entfernt.
+        Footer-Spalte „Produkt" listet jetzt Überblick / So funktioniert’s /
+        Preise / FAQ statt der Feature-Seiten; kein `vergleich.html` mehr.
+        Das Mega-Menü-/Feature-Seiten-Gerüst (`initMegaMenu`,
+        `initSheetAccordion`, `FEATURE_PAGES`, `buildFeaturePage`) bleibt im
+        Code, ist aber inert (kein Nav-Eintrag mit `.mega`, keine Seite mit
+        `#feature-page`).
+        · **Gelöscht:** `funktionen.html`, `feature-chat.html`,
+        `feature-klausurvorbereitung.html`, `feature-lernplaene.html`,
+        `feature-testklausuren.html`, `feature-lernzettel.html`,
+        `vergleich.html`. `marketing/assets/css/feature.css` wird von keiner
+        Seite mehr geladen (Datei bleibt vorerst liegen).
+        · **Vergleich:** Die `cv2`-Sektion in `index.html` hat `id="vergleich"`
+        bekommen; frühere `vergleich.html`-Links in `faq.html` und `preise.html`
+        zeigen auf `index.html#vergleich`.
+        · **`ueber-uns.html` neu:** persönliche Gründer-Seite (Jannik Born) —
+        Story Abitur-Lernsystem 2023 → Studium (mit KI weiterentwickelt) → App
+        für die Schwester → Unternehmen; Leitsatz „KI als Helfer, nicht als
+        Löser" + vier Grundsätze; Foto `assets/img/ueber-uns/jannik.jpg` mit
+        Initialen-Fallback (`onerror`) im Markup. Scoped `<style>` im
+        Seitenkopf, nur Fog-Blue-Tokens, kein neuer Akzent.
+        · Im Browser (:4322) geprüft: Desktop-Nav + Mobile-Sheet zeigen die vier
+        Links, Footer sauber, kein toter Link auf eine gelöschte Seite (alle
+        13 verbliebenen HTML-Seiten gefetcht und geprüft), `ueber-uns.html`
+        rendert inkl. Reveal + Initialen-Fallback, keine Konsolenfehler.
 
 ### Architekturfragen — entschieden am 2026-09-04
 
@@ -727,9 +2239,15 @@ sonst unverändert.
 
 > _2026-09-04: Backend umgesetzt (`api/src/routes/abo.ts` + Job
 > `abo-geplante-aenderungen`). Migration `abo_geplante_sitze`. Tests in
-> `api/src/routes/abo.test.ts` (Describe „Eltern-Features Phase 12", 5).
-> Die UI dafür (Kontext-Umschalter, Einladungs-Formular, Kennzahl-Kacheln)
-> entsteht mit dem Frontend-Cut-over Phase 11._
+> `api/src/routes/abo.test.ts` (Describe „Eltern-Features Phase 12", 5)._
+>
+> _2026-09-08: Eltern-Oberfläche als Prototyp umgesetzt (Plan
+> `Konzept-texts/eltern-zugang-plan.md`) — auf `data.js`/`app.js` wie der Rest
+> der App, nicht abhängig vom Phase-11-Cut-over. Neue Seite `app/eltern.html`,
+> Familien-Modell in `data.js`, Eltern-Nav-Variante + „Elternmodus"-Banner in
+> `app.js`, Dev-Ansichtsumschalter auf `einstellungen.html`. Die drei
+> `api.js`-Wrapper + die `auth-gate.js`-Rollenweiche sind für den späteren
+> Cut-over ebenfalls fertig verdrahtet._
 
 - [x] **Kind-Profil-Anlage & -Einladung** — _Direktanlage: `POST /abo/kinder`
       (Phase 9). Einladung: `POST /abo/kinder/:id/einladung {email}` setzt E-Mail
@@ -748,6 +2266,34 @@ sonst unverändert.
       Kind-Profile (`DELETE /abo/kinder/:id` → Cascade-Löschung der Inhalte);
       Job `abo-geplante-aenderungen` senkt `Abo.sitze` zum `aktuellerZeitraumEnde`,
       sobald `belegt <= geplanteSitze`._
+
+- [x] **UI-Aufbau (Prototyp — Plan: `Konzept-texts/eltern-zugang-plan.md`,
+      2026-09-08):** Eltern-Bereich als Prototyp auf `data.js`/`app.js` gebaut
+      (nicht abhängig vom Phase-11-Cut-over).
+  - [x] `app/assets/js/api.js`: Wrapper `kinderEinladung`, `kinderSitzung`,
+        `kinderZusammenfassung` ergänzt (für den späteren Cut-over).
+  - [x] `app/assets/js/auth-gate.js`: Rollen-/Familie-Weiche (nur
+        `rolle=elternteil` **mit** vorhandenen Kind-Profilen geht in den
+        Eltern-Bereich; Solo-Elternkonto bleibt wie ein Schüler-Account;
+        Schüler auf `eltern.html` → zurück aufs Dashboard). Greift im
+        `api.js`-Modus.
+  - [x] Neue Seite `app/eltern.html`: Kinder-Übersicht mit ausklappbaren
+        Karten (Wochen-Kennzahlen aus `kindZusammenfassung`, ohne Chat-/
+        Lernzettel-Inhalt/Noten), Kind anlegen/einladen/entfernen,
+        Benachrichtigungs-Toggles je Kind, Datenschutz-Karte.
+  - [x] Kontext-Wechsel „Als Kind ansehen": `store.elternModus` +
+        `Lesify.wechsleZuKind/zurueckZumElternkonto`; „Elternmodus"-Banner
+        auf jeder Schüler-Seite (`app.js` → `renderElternBanner`).
+  - [x] Abo-/Sitzverwaltung in `eltern.html` (`#abo`): Tarif, Intervall,
+        Sitz-Stepper (2–4, min = belegte Plätze), Status
+        (aktiv/gekündigt/Sommerpause). `data.js`: `Lesify.setFamilieSitze`,
+        `Lesify.setAboStatus`.
+  - [x] Doku: `backend-planning.md` §8 „Eltern-Kind-Modell" +
+        „Familien-Abo-Sichtbarkeit" + „Kontext-Wechsel" als entschieden
+        (2026-09-08), §9-Mapping + §10-Dev-Switcher nachgezogen; `app/README.md`.
+  - [ ] `marketing/login.html`: Redirect-Weiche nach Rolle/Familie — offen,
+        gehört zum Phase-11-Cut-over (die Prototyp-Login-Seite redirectet
+        aktuell nirgendwohin; die Weiche steht in `auth-gate.js` bereit).
 
 ---
 

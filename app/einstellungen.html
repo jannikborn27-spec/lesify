@@ -6,6 +6,7 @@
 <title>Einstellungen · Lesify</title>
 <link rel="icon" href="assets/img/logo.png">
 <link rel="stylesheet" href="assets/css/style.css">
+<script>(function(){try{var d=JSON.parse(localStorage.getItem("lesify_db_v2")||"null");if(d&&d.settingsOverride&&d.settingsOverride.darkMode)document.documentElement.setAttribute("data-theme","dark");}catch(e){}})();</script>
 <style>
   .settings-card { padding: 26px 28px; margin-bottom: var(--sp-6); max-width: 640px; }
   .settings-card h3 { font-size: 1rem; margin-bottom: 4px; }
@@ -63,6 +64,18 @@
       </div>
 
       <div class="card settings-card">
+        <h3>Erscheinungsbild</h3>
+        <p class="settings-sub">Gilt nur für die App, nicht für die öffentliche Website.</p>
+        <div class="toggle-row" style="padding-top:0">
+          <div>
+            <div class="toggle-label">Dunkles Design</div>
+            <div class="toggle-sub">Dunkler Hintergrund, heller Text — angenehmer bei wenig Licht.</div>
+          </div>
+          <label class="toggle-switch"><input type="checkbox" id="s-darkmode"><span class="track"><span class="thumb"></span></span></label>
+        </div>
+      </div>
+
+      <div class="card settings-card">
         <h3>KI-Tonfall</h3>
         <p class="settings-sub">Wie Lesify im Chat und in Erklärungen mit dir spricht.</p>
         <div class="field mt-0">
@@ -87,6 +100,19 @@
           </select>
         </div>
         <p class="text-xs text-muted" id="paket-info" style="margin-top:10px"></p>
+      </div>
+
+      <div class="card settings-card">
+        <h3>Ansicht</h3>
+        <p class="settings-sub">Prototyp-Schalter: zwischen Schüler-App und Eltern-Bereich (Familien-Abo) wechseln. Im Live-Betrieb ergibt sich das aus dem Konto.</p>
+        <div class="field mt-0">
+          <label for="s-rolle">Aktive Ansicht</label>
+          <select class="select" id="s-rolle">
+            <option value="schueler">Schüler-App</option>
+            <option value="elternteil">Eltern-Bereich (Familien-Abo)</option>
+          </select>
+        </div>
+        <p class="text-xs text-muted" id="rolle-info" style="margin-top:10px"></p>
       </div>
 
       <div class="card settings-card">
@@ -122,6 +148,7 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('s-erinnerung').checked = !!settings.erinnerungVorKlausuren;
   document.getElementById('s-zusammenfassung').checked = !!settings.woechentlicheZusammenfassung;
   document.getElementById('s-tonfall').value = settings.ki_tonfall;
+  document.getElementById('s-darkmode').checked = !!settings.darkMode;
 
   document.getElementById('profil-form').addEventListener('submit', function (e) {
     e.preventDefault();
@@ -149,6 +176,11 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('s-tonfall').addEventListener('change', function () {
     Lesify.updateSettings({ ki_tonfall: this.value });
     LesifyUI.toast('Tonfall aktualisiert.');
+  });
+  document.getElementById('s-darkmode').addEventListener('change', function () {
+    Lesify.updateSettings({ darkMode: this.checked });
+    if (this.checked) document.documentElement.setAttribute('data-theme', 'dark');
+    else document.documentElement.removeAttribute('data-theme');
   });
 
   var paketSel = document.getElementById('s-paket');
@@ -183,6 +215,25 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   renderPlan();
+
+  /* ---- Ansicht: Schüler-App ⇄ Eltern-Bereich (Prototyp) ---- */
+  var rolleSel = document.getElementById('s-rolle');
+  var rolleInfo = document.getElementById('rolle-info');
+  function renderRolle() {
+    var r = Lesify.getRolle();
+    rolleSel.value = r;
+    rolleInfo.innerHTML = r === 'elternteil'
+      ? 'Eltern-Bereich aktiv — die Seitenleiste führt zu <a href="eltern.html">eltern.html</a> (Kinder, Abo, Datenschutz).'
+      : 'Schüler-Ansicht — die normale App mit Fächern, Chat und Klausuren.';
+  }
+  rolleSel.addEventListener('change', function () {
+    Lesify.setRolle(this.value);
+    renderRolle();
+    if (this.value === 'elternteil') { window.location.href = 'eltern.html'; return; }
+    LesifyUI.toast('Ansicht: Schüler-App.');
+    setTimeout(function () { window.location.reload(); }, 200);
+  });
+  renderRolle();
 
   function usageRow(label, data) {
     var unlimited = data.limit == null;

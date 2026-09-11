@@ -7,12 +7,14 @@
 <meta name="description" content="Lesify: Starter, Premium und Infinite ab 15,99 € im Monat — aktuell −20 % zum Schuljahresstart. Familien-Pakete für 2 bis 4 Kinder. 14 Tage kostenlos testen.">
 <link rel="icon" href="assets/img/logo.png">
 <link rel="stylesheet" href="assets/css/marketing.css">
+<link rel="stylesheet" href="assets/css/landing-lab.css">
 </head>
 <body data-page="preise">
 <header id="mkt-nav"></header>
 
 <main class="overflow-x-hidden">
 
+  <!-- Hero (weiß) -->
   <section class="page-hero">
     <div class="container">
       <span class="eyebrow" data-reveal style="justify-content:center">Preise</span>
@@ -26,7 +28,8 @@
     </div>
   </section>
 
-  <section class="section" style="padding-top:0">
+  <!-- Tarife (weiß, untere Ecken rund gegen die schwarze Familien-Section) -->
+  <section class="section mkt-cut mkt-cut--bottom" style="padding-top:0">
     <div class="container">
       <div style="text-align:center" data-reveal>
         <div class="price-toggle" data-price-toggle>
@@ -44,7 +47,7 @@
             <b><span data-monthly="15,99&nbsp;&euro;" data-yearly="12,99&nbsp;&euro;">15,99&nbsp;&euro;</span></b><span>/ Monat</span>
           </div>
           <p class="price-card__note"><span data-note-monthly="14 Tage testen, dann monatlich kündbar" data-note-yearly="155,88 € pro Jahr, entspricht 12,99 € / Monat">14 Tage testen, dann monatlich kündbar</span></p>
-          <a class="btn btn-secondary btn-block" href="checkout.html?plan=starter">Starter testen</a>
+          <a class="btn btn-primary btn-block" href="checkout.html?plan=starter">Starter testen</a>
           <ul class="price-card__list">
             <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Alle Fächer, beliebig viele Themen</li>
             <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>20 Content-Aufnahmen pro Monat</li>
@@ -83,7 +86,7 @@
             <b><span data-monthly="35,99&nbsp;&euro;" data-yearly="27,99&nbsp;&euro;">35,99&nbsp;&euro;</span></b><span>/ Monat</span>
           </div>
           <p class="price-card__note"><span data-note-monthly="14 Tage testen, dann monatlich kündbar" data-note-yearly="335,88 € pro Jahr, entspricht 27,99 € / Monat">14 Tage testen, dann monatlich kündbar</span></p>
-          <a class="btn btn-secondary btn-block" href="checkout.html?plan=infinite">Infinite testen</a>
+          <a class="btn btn-primary btn-block" href="checkout.html?plan=infinite">Infinite testen</a>
           <ul class="price-card__list">
             <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Alles aus Premium</li>
             <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>100 Content-Aufnahmen pro Monat</li>
@@ -97,10 +100,10 @@
     </div>
   </section>
 
-  <!-- Familien-Pakete -->
-  <section class="section" style="padding-top:0">
+  <!-- Familien-Pakete (schwarzer Abschnitt) -->
+  <section class="section mkt-dark">
     <div class="container">
-      <div class="section-head" data-reveal>
+      <div class="section-head section-head--center" data-reveal>
         <span class="eyebrow">Für Geschwister</span>
         <h2>Familien-Pakete für 2 bis 4 Kinder</h2>
         <p>
@@ -127,10 +130,10 @@
     </div>
   </section>
 
-  <!-- Feature-Matrix -->
-  <section class="section">
+  <!-- Feature-Matrix (weiß, obere Ecken rund gegen die schwarze Familien-Section) -->
+  <section class="section mkt-cut mkt-cut--top">
     <div class="container">
-      <div class="section-head" data-reveal>
+      <div class="section-head section-head--center" data-reveal>
         <span class="eyebrow">Im Detail</span>
         <h2>Was in welchem Tarif steckt</h2>
       </div>
@@ -191,14 +194,15 @@
         </div>
         <div class="compare__foot">
           Alle Grenzen setzen sich am Monatsersten zurück und werden nicht in den Folgemonat
-          übertragen. Reicht ein Tarif in einem Monat nicht, lässt sich jederzeit sofort wechseln,           die Restlaufzeit wird tagesgenau verrechnet.
+          übertragen. Reicht ein Tarif in einem Monat nicht, lässt sich jederzeit sofort wechseln,
+          die Restlaufzeit wird tagesgenau verrechnet.
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Billing-FAQ -->
-  <section class="section">
+  <!-- Billing-FAQ (weiß, untere Ecken rund gegen die schwarze CTA) -->
+  <section class="section mkt-cut mkt-cut--bottom">
     <div class="container">
       <div class="section-head section-head--center" data-reveal>
         <span class="eyebrow">Rund ums Bezahlen</span>
@@ -233,14 +237,16 @@
     </div>
   </section>
 
-  <section class="section">
+  <!-- Abschluss-CTA (schwarzer Abschnitt) -->
+  <section class="section mkt-dark">
     <div class="container">
       <div class="cta-band" data-reveal>
+        <span class="eyebrow" style="justify-content:center">Loslegen</span>
         <h2>Erst 14 Tage testen.</h2>
         <p>14 Tage kostenlos, danach automatisch der gewählte Tarif — in der Testphase jederzeit kündbar, dann wird nichts berechnet.</p>
         <div class="hero__cta">
           <a class="btn btn-on-dark btn-primary btn-lg" href="checkout.html?plan=premium">Premium testen</a>
-          <a class="btn btn-on-dark btn-secondary btn-lg" href="vergleich.html">Vergleich zur Nachhilfe</a>
+          <a class="btn btn-on-dark btn-secondary btn-lg" href="index.html#cmp">Vergleich zur Nachhilfe</a>
         </div>
       </div>
     </div>
@@ -280,7 +286,7 @@
       '<div class="price-card__amount">' + was + '<b>' + p.display + '</b><span>/ Monat</span></div>' +
       '<p class="price-card__note">' + sub + '</p>' +
       '<p class="price-card__note">≈ ' + row.perSeat + ' pro Kind (Jahresabo)</p>' +
-      '<a class="btn ' + (seats === 3 ? 'btn-on-dark btn-primary' : 'btn-secondary') + ' btn-block" href="checkout.html?plan=family&tier=' + tier + '&seats=' + seats + '">Familie testen</a>' +
+      '<a class="btn ' + (seats === 3 ? 'btn-on-dark btn-primary' : 'btn-primary') + ' btn-block" href="checkout.html?plan=family&tier=' + tier + '&seats=' + seats + '">Familie testen</a>' +
       '<ul class="price-card__list">' +
         (CFG.features.family || []).map(function (f) { return '<li>' + CHECK + f + '</li>'; }).join('') +
       '</ul>' +

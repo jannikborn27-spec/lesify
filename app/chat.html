@@ -6,6 +6,7 @@
 <title>KI Chat · Lesify</title>
 <link rel="icon" href="assets/img/logo.png">
 <link rel="stylesheet" href="assets/css/style.css">
+<script>(function(){try{var d=JSON.parse(localStorage.getItem("lesify_db_v2")||"null");if(d&&d.settingsOverride&&d.settingsOverride.darkMode)document.documentElement.setAttribute("data-theme","dark");}catch(e){}})();</script>
 <style>
   /* =========================================================
      KI Chat — Vollbild-Arbeitsfläche (Redesign)
@@ -88,6 +89,25 @@
   .chat-history-item.is-active .chi-title { color: var(--chi-fc-ink, var(--ink-950)); }
   .chat-history-item.is-active .chi-meta { color: var(--ink-500); }
   .chat-history-empty { padding: 16px 10px; }
+
+  /* Dunkles Design: die inline gesetzte helle Pastell-Fläche (--chi-fc-bg) und
+     der dunkle --chi-fc-ink tragen auf dunklem Grund nicht — dunkle Fläche aus
+     der Fachfarbe + heller Text. */
+  :root[data-theme="dark"] .chi-avatar {
+    background: color-mix(in srgb, var(--chi-fc, var(--ink-400)) 22%, var(--bg-surface));
+    color: #e6ebef;
+  }
+  :root[data-theme="dark"] .chat-history-item.is-active {
+    background: color-mix(in srgb, var(--chi-fc, var(--ink-400)) 15%, var(--bg-surface));
+  }
+  :root[data-theme="dark"] .chat-history-item.is-active .chi-title { color: var(--ink-950); }
+
+  /* „Invertierte" Elemente (background: var(--ink-950)) tragen fest #fff-Text —
+     im Dunkeln ist --ink-950 fast weiß, der Text also unsichtbar. Auf den
+     mitdrehenden --paper-Ton heben. */
+  :root[data-theme="dark"] .msg.from-user .msg-avatar,
+  :root[data-theme="dark"] .mode-chip.is-active,
+  :root[data-theme="dark"] .ev-a-mode.is-active { color: var(--paper); }
 
   /* ========= Verlauf-Fach-Filter — einklappbar =========
      Die 288px-Sidebar ist zu schmal für alle Fach-Pills wie auf der

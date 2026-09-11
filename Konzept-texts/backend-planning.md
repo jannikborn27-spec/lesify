@@ -5,9 +5,14 @@
 > Update-Pflicht). Stand: Frontend-Prototyp (statisches HTML/CSS/JS, Dummy-Daten
 > in `app/assets/js/data.js`).
 >
-> **Neu:** Der Ordner `marketing/` enthält jetzt die öffentliche Marketing-Website
-> (Landing, Preise, Vergleich, Funktionen, FAQ, Login, Registrierung, Passwort
-> vergessen, Über uns, Kontakt, Impressum, Datenschutz, AGB). Sie ist ein
+> **Neu:** Der Ordner `marketing/` enthält jetzt die öffentliche Marketing-Website.
+> Vier Seiten in der Navigation (Stand 2026-09-08): **Home** (`index.html`),
+> **Preise** (`preise.html`), **Über uns** (`ueber-uns.html`), **FAQ** (`faq.html`);
+> dazu Utility-Seiten ohne Nav-Eintrag: Login, Registrierung, Passwort vergessen,
+> Checkout, Kontakt, Impressum, Datenschutz, AGB. Die früheren Funktions-Unterseiten
+> (`funktionen.html`, `feature-*.html`) und `vergleich.html` sind eingestellt — ihre
+> Inhalte liegen als Abschnitte auf der Startseite (Vergleich unter
+> `index.html#vergleich`). Sie ist ein
 > eigenständiger statischer Prototyp (`marketing/assets/css/marketing.css`,
 > `marketing/assets/js/marketing.js`) im selben Design-System wie die eingeloggte
 > App, ohne Backend-Anbindung. Die daraus resultierenden Backend-Anforderungen
@@ -171,8 +176,9 @@ Phase 9: angelegt/gelistet/gelöscht über `GET/POST/DELETE /abo/kinder`
 `DELETE` → `User`-Zeile weg → Cascade löscht alle Inhalte des Sitzes.
 
 ### Einstellungen
-Ein Datensatz pro User. Aktuell im Prototyp: Benachrichtigungs-Toggles und
-KI-Tonfall — Kandidat für spätere Erweiterung (z. B. Sprache, Barrierefreiheit).
+Ein Datensatz pro User. Aktuell im Prototyp: Benachrichtigungs-Toggles,
+KI-Tonfall und das App-Erscheinungsbild — Kandidat für spätere Erweiterung
+(z. B. Sprache, Barrierefreiheit).
 
 | Feld | Typ | Hinweis |
 |---|---|---|
@@ -180,6 +186,7 @@ KI-Tonfall — Kandidat für spätere Erweiterung (z. B. Sprache, Barrierefreihe
 | erinnerungVorKlausuren | bool | Hinweis ein paar Tage vor einem eingetragenen Klausurtermin — Versandmechanismus (E-Mail/Push) offen, siehe §8 |
 | woechentlicheZusammenfassung | bool | wöchentlicher Report zu Fortschritt/offenen Lerntagen — Versandmechanismus offen, siehe §8 |
 | kiTonfall | enum | `freundlich` \| `direkt` \| `motivierend` — fließt in den System-Prompt für Chat/Lernzettel/Erklärungen ein |
+| darkMode | bool | dunkles Design, **nur eingeloggter Bereich** (`app/`). Reine Client-Darstellung: setzt beim Seitenaufbau `data-theme="dark"` an `<html>` (Anti-Flash-Snippet im `<head>` jeder App-Seite + `applyTheme()` in `app.js`); CSS-Override-Block am Ende von `app/assets/css/style.css`. Marketing-Seiten sind ausgenommen. |
 
 ### Fach
 | Feld | Typ | Hinweis |
@@ -1298,13 +1305,18 @@ Themen-Guard-Treffer, viele fehlgeschlagene Logins, Upload-Flooding.
 - [x] **Backend-Stack**: TypeScript-Monorepo (`pnpm`-Workspaces), PostgreSQL + Objektspeicher über **Supabase (EU-Region)**, Auth selbst gebaut (nicht Supabase Auth), Stripe für Zahlungen, E-Mail zurückgestellt. Details + Ordnerstruktur siehe **§0 „Stack"**. Umsetzungs-Ebene (Fastify/Prisma/Vitest/GitHub Actions) als revidierbarer Vorschlag festgehalten.
 - [x] **Rate-Limiting & Missbrauchsschutz**: Es gibt Rate-Limiting (getrennt vom Nutzungs-Limit). KI-Anfragen, die nicht schulrelevant sind, **Spam** oder **übergroß** (Kontext/Token über einer Grenze), werden **vor** dem KI-Call abgewiesen — kein Usage-Verbrauch, dafür eine **Popup-/Toast-Meldung** an die/den Schüler:in. Details siehe **§7 → „Rate-Limiting & Missbrauchsschutz"**.
 
+### Entschieden am 2026-09-08
+
+- [x] **Eltern-Kind-Modell**: **getrennte, verknüpfte Accounts.** Das Elternkonto (`User.rolle = elternteil`) besitzt das `Abo` (`ownerUserId`) und verwaltet 1–4 Kind-Profile — eigene `User`-Zeilen mit `rolle = schueler`, `parentUserId` = Elternkonto, gemeinsames `aboId`. Kein „ein Account mit Unterprofilen". Ein Solo-Elternteil (`Abo.art = einzel`) hat **kein** Kind-Profil — dieser eine Account *ist* der Lern-Account. Die Endpunkte (`/abo/kinder`, `.../einladung`, `.../sitzung`, `.../zusammenfassung`) waren bereits so gebaut (Phase 12); die Frontend-Weiche steht (`app/assets/js/auth-gate.js`: nur `rolle = elternteil` **mit** vorhandenen Kind-Profilen landet im Eltern-Bereich). Prototyp-Umsetzung: `app/eltern.html` + Familien-Modell in `data.js` (`Lesify.familie/kinder/kindZusammenfassung/wechsleZuKind/…`), Plan `Konzept-texts/eltern-zugang-plan.md`.
+- [x] **Familien-Abo-Sichtbarkeit**: Der Eltern-Bereich zeigt je Kind **nur aggregierte Wochenkennzahlen** aus `GET /abo/kinder/:id/zusammenfassung` (Fächer, Themen, Chats/Nachrichten der Woche, Lernzettel gesamt, Testklausuren der Woche, anstehende Klausuren) plus eine daraus abgeleitete Aktivitäts-Ampel. **Kein** Chat-Wortlaut, **keine** Lernzettel-Inhalte, **keine** Noten. Frequenz vorerst rein in-app (Pull beim Öffnen); E-Mail-Digest hängt am projektweit zurückgestellten E-Mail-Versand. Dediziertes Kind-Opt-out bleibt Nach-Launch-Thema (Phase 17).
+- [x] **Kontext-Wechsel „Als Kind ansehen"**: Elternkonto kann per `POST /abo/kinder/:id/sitzung` eine eigene Kind-Session ziehen und voll im `userId`-Scope des Kindes arbeiten; Rückweg = eigenes Eltern-Token. UI: dauerhaftes „Elternmodus"-Banner auf allen Schüler-Seiten (`app.js` → `renderElternBanner`), `localStorage`-Flag statt Token im Prototyp.
+
 ### Weiterhin offen
 
 - [ ] **Preis-Feinheiten**: Angebotsdauer/-verlängerung, Jahrespreis-Rundung, Bindung des Angebotspreises an den Vertrag. Die Beträge selbst liegen jetzt code-seitig in `shared/src/abo.ts` (Spiegel `stripe-config.js`), bleiben aber Design-Platzhalter.
 - [ ] **Abrechnung produktiv (Phase 9-Rest / Phase 16)**: echtes Stripe-Adapter statt `FakeZahlungsGateway`, Stripe-Konto + Produkte/Preise, HMAC-Webhook-Signatur, Rechnungsstellung, Retry-/Mahnlogik bei `zahlung_offen`.
-- [ ] **Eltern-Kind-Modell**: ein Account mit Kind-Profilen vs. getrennte verknüpfte Accounts; Ablauf der Eltern-/Minderjährigen-Einwilligung bei der Schüler:in-Rolle.
-- [ ] **Familien-Paket-Mechanik**: Sitz nachträglich hinzufügen/entfernen (Proration, Downgrade zum Zeitraumende), Einladungsfluss pro Kind.
-- [ ] **Familien-Abo-Sichtbarkeit**: Umfang der Eltern-Zusammenfassung (Kennzahlen, Frequenz, Opt-out fürs Kind).
+- [ ] **Eltern-/Minderjährigen-Einwilligung**: Ablauf/Erneuerung der Einwilligung bei der Schüler:in-Rolle (das Eltern-Kind-Modell selbst ist entschieden, siehe oben).
+- [ ] **Familien-Paket-Mechanik (produktiv)**: Sitz nachträglich hinzufügen/entfernen mit echter Proration/Downgrade zum Zeitraumende. Backend-Grundlage (`PATCH /abo` + `geplanteSitze` + Job `abo-geplante-aenderungen`) steht; offen ist nur das echte Stripe-Adapter.
 - [ ] **Kontaktformular** (`marketing/kontakt.html`): Zielsystem (Support-Postfach/Ticketsystem). Spam-Schutz = IP-Rate-Limit + Honeypot-Feld (kein Captcha), Feinheiten offen.
 - [ ] **Double-Opt-in-/Reset-Mail-Versand**: Token-Flow steht, Versandweg noch offen (keine eigene E-Mail-Infrastruktur beschlossen).
 - [ ] **Auth-Fehlversuche**: temporärer Account-Lockout nach X Fehlversuchen vs. nur IP-Drosselung (Default aktuell: Drosselung + exponentieller Backoff, kein harter Lockout).
@@ -1331,6 +1343,12 @@ Testklausur 1 an),
 `Lesify.lernzettelDokument(lp)` → `GET /lernplaene/:id/lernzettel/dokument`,
 `Lesify.getUser`/`updateUser` → `GET`/`PATCH /user`,
 `Lesify.getSettings`/`updateSettings` → `GET`/`PATCH /user/einstellungen`,
+`Lesify.kinder`/`addKind`/`removeKind` → `GET`/`POST`/`DELETE /abo/kinder`,
+`Lesify.kindEinladung(id, email)` → `POST /abo/kinder/:id/einladung`,
+`Lesify.kindZusammenfassung(id)` → `GET /abo/kinder/:id/zusammenfassung`,
+`Lesify.wechsleZuKind(id)` → `POST /abo/kinder/:id/sitzung` (+ Token-Parken client-seitig),
+`Lesify.getRolle`/`istElternteil` → aus `GET /auth/me` (`user.rolle`) + `GET /abo/kinder` (Familien-Abo ja/nein),
+`Lesify.setFamilieSitze`/`setAboStatus` → `PATCH /abo` bzw. `POST /abo/kuendigen`·`/abo/pausieren`,
 `LesifyUI.search` (in `app.js`, nicht `data.js`) → `GET /suche?q=`,
 usw.) — beim Anbinden des echten Backends sollte `data.js` durch einen
 API-Client mit identischer Funktionssignatur ersetzt werden, damit die
@@ -1349,6 +1367,19 @@ angelegt und über `Lesify.appendChatMessages` fortgeschrieben (vorher: flüchti
 Entfallen: `Testklausur.nachtestPool`, `Vorbereitungsstand.nachtestsVerwendet`,
 `Lesify.nachtestVersuch`, `Lesify.nachtestDokument`, `NACHTEST_ERFOLGSCHANCE`.
 
+Dunkles Design: `SEED.settings.darkMode` (bool) — von `Lesify.getSettings`/
+`updateSettings` mitgeführt, sonst kein Datenfluss (reine Client-Darstellung,
+`data-theme` am `<html>` + CSS-Token-Override). Nur `app/`, nicht Marketing.
+
+Eltern-Zugang (Phase 12): `SEED.familie` (`elternName`, `elternEmail`,
+`einwilligungAm`, `kinder[]` mit je `woche`-Kennzahlen), `SEED.user.rolle`
+(`schueler`\|`elternteil`), `SEED.plan.status` (`aktiv`\|`gekuendigt`\|`pausiert`)
+und `SEED.plan.familie` (`{sitze}`). Store-Overlay: `rolleOverride` (Dev-Schalter
+Ansicht Schüler ⇄ Elternteil), `kinder` (nach erster Mutation Quelle der
+Kind-Liste), `elternModus` (`{kindId, kindName, kindKlasse}` während „Als Kind
+ansehen"). Neue Seite `app/eltern.html`; `app/assets/js/app.js` hat eine eigene
+`ELTERN_NAV_ITEMS`-Variante + `renderElternBanner()`.
+
 ---
 
 ## 10. Seiten-Layouts (nur Prototyp / Frontend)
@@ -1364,7 +1395,10 @@ erstellt/geloest/analysiert/leer) — überschreibt nur die angezeigte Phase
 (`effStatus()`), nicht den Store, fehlende Daten werden lokal synthetisiert
 (`previewErgebnis()`); und der **Pill-Style-Umschalter** im Neue-Klausur-Modal auf
 `klausuren.html` (`lesify:themepick:pill` = 1–5: Solid / Soft / Outline / Dot / Bar,
-alle fach-gefärbt). Fach-Färbung auf `testklausur.html` (Step-Nummern bleiben als
+alle fach-gefärbt); und der **Ansicht-Umschalter** auf `einstellungen.html`
+(Karte „Ansicht", `Lesify.setRolle` → `store.rolleOverride`) schaltet zwischen
+Schüler-App und Eltern-Bereich (`app/eltern.html`) — im Live-Betrieb ergibt sich
+die Rolle aus dem Konto. Fach-Färbung auf `testklausur.html` (Step-Nummern bleiben als
 Zahl sichtbar, weiß auf `--fach-color`; fach-getönte Kartenränder + Panel-Wash bei
 Lösen/Analyse; `vb-note-<ampel>` auf der Testklausurnote) ist rein kosmetisch.
 
@@ -1467,10 +1501,14 @@ Eigenständiger statischer Prototyp der öffentlichen Website, im selben
 Design-System wie die eingeloggte App (identische Tokens, Schriften Outfit +
 Hanken Grotesk, Ampel-Farben, „Fog Blue"-Tonleiter). Kein Build, Vanilla JS.
 
-- **Struktur:** `marketing/index.html` (Landing), `funktionen.html`,
-  `vergleich.html` (Lesify vs. klassische Nachhilfe), `preise.html`, `faq.html`,
-  `ueber-uns.html`, `kontakt.html`, `login.html`, `registrieren.html`,
+- **Struktur (Stand 2026-09-08):** Vier Seiten in der Navigation —
+  `marketing/index.html` (Home/Landing), `preise.html`, `ueber-uns.html`
+  (persönliche Gründer-Seite), `faq.html`. Ohne Nav-Eintrag, aber vorhanden:
+  `kontakt.html`, `checkout.html`, `login.html`, `registrieren.html`,
   `passwort-vergessen.html`, `impressum.html`, `datenschutz.html`, `agb.html`.
+  Eingestellt: `funktionen.html` + `feature-*.html` (Funktions-Unterseiten) und
+  `vergleich.html` — der Vergleich Lesify vs. klassische Nachhilfe lebt jetzt als
+  Abschnitt `index.html#vergleich`.
 - **Shared:** `marketing/assets/css/marketing.css` (redeklariert den `:root`-
   Token-Block aus `app/assets/css/style.css` und ergänzt Marketing-Komponenten),
   `marketing/assets/js/marketing.js` (baut Navigation + Footer per JS, Scroll-
@@ -1480,6 +1518,11 @@ Hanken Grotesk, Ampel-Farben, „Fog Blue"-Tonleiter). Kein Build, Vanilla JS.
   Kernbotschaften: günstiger und jederzeit verfügbar als klassische Nachhilfe,
   messbare Klausurvorbereitung (Testklausur + Notenprognose + Ampel + Lernplan).
   Enthält einen ehrlichen Vergleich (auch Punkte, in denen Nachhilfe gewinnt).
+- **`ueber-uns.html`:** persönliche Gründer-Seite (Jannik Born) — Story vom
+  Abitur-Lernsystem 2023 über das Studium und die App für die Schwester bis zum
+  Unternehmen; Leitsatz „KI als Helfer, nicht als Löser". Foto unter
+  `assets/img/ueber-uns/jannik.jpg`, mit Initialen-Fallback im Markup, falls die
+  Datei fehlt.
 - **Kein Backend:** Alle Formulare (Login, Registrierung, Passwort-Reset,
   Kontakt) verhindern das Submit und zeigen nur einen Toast. Preise/Limits sind
   Design-Platzhalter. Die daraus abgeleiteten echten Anforderungen stehen in
@@ -1493,6 +1536,10 @@ Hanken Grotesk, Ampel-Farben, „Fog Blue"-Tonleiter). Kein Build, Vanilla JS.
   bleibt vorerst, weil die aktuelle `index.html` seine `lab-*`-Klassen nutzt —
   effektiv ist es jetzt das Landing-Stylesheet, kein Spielwiesen-Artefakt.
 - **Aktuelle `index.html`:** statisches Landing-Markup, lädt `marketing.css` +
-  `landing-lab.css` + `marketing.js`. Vorige Fassung liegt als `index.html.bak`.
-  Die öffentliche Website (`marketing/`) wird ohnehin erst in einer späteren
-  Projektphase überarbeitet.
+  `landing-lab.css` + `marketing.js`. Vorige Fassung liegt als `index-backup.html`.
+- **Navigation (2026-09-08 überarbeitet):** `NAV_LINKS` in `marketing.js` hat nur
+  noch vier flache Links (Home · Preise · Über uns · FAQ), kein „Funktionen"-
+  Mega-Menü mehr. Das Mega-Menü- und Feature-Seiten-Gerüst in `marketing.js`
+  (`initMegaMenu`, `FEATURE_PAGES`, `buildFeaturePage`) bleibt vorerst im Code,
+  ist aber inert (kein Nav-Eintrag mit `.mega`, keine Seite mit `#feature-page`).
+  `marketing/assets/css/feature.css` wird von keiner Seite mehr geladen.

@@ -6,6 +6,7 @@
 <title>Lernzettel · Lesify</title>
 <link rel="icon" href="assets/img/logo.png">
 <link rel="stylesheet" href="assets/css/style.css">
+<script>(function(){try{var d=JSON.parse(localStorage.getItem("lesify_db_v2")||"null");if(d&&d.settingsOverride&&d.settingsOverride.darkMode)document.documentElement.setAttribute("data-theme","dark");}catch(e){}})();</script>
 </head>
 <body data-page="klausuren">
 <div class="app-shell">
@@ -51,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   document.getElementById('sp-crumb').innerHTML =
     '<a href="lernplan.html?id=' + lernplanId + '" style="color:var(--ink-500)">Lernplan</a>' +
-    '<span style="color:var(--ink-300);margin:0 6px">/</span><span>Lernzettel</span>';
+    '<span style="color:var(--ink-400);margin:0 6px">/</span><span>Lernzettel</span>';
 
   var updatedLine = lp.lernzettel ? ('Aktualisiert: ' + lp.lernzettel.aktualisiertAm) : 'Noch nicht gestartet';
   var actions = lp.lernzettel

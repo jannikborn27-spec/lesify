@@ -39,12 +39,18 @@
   --rot: #c1443c;
   --rot-bg: #fbeeed;
 
-  /* Fach-Beispielfarben (aus Lesify.FACH_COLORS) — nur Deko auf der Website */
+  /* Fach-Farben — 1:1 aus Lesify.FACH_COLORS (app/assets/js/data.js).
+     Reihenfolge dort: blue, rose, amber, teal, terracotta, violet, pink,
+     graphit. Seed-Zuordnung: Mathe=blue, Deutsch=rose, Englisch=amber,
+     Biologie=teal, Geschichte=terracotta. */
   --fach-blue: #007dae;
   --fach-rose: #c4334f;
   --fach-amber: #c26f00;
   --fach-teal: #009176;
+  --fach-terracotta: #985535;
   --fach-violet: #654db6;
+  --fach-pink: #b84999;
+  --fach-graphit: #516676;
 
   --font-display: 'Outfit', 'Hanken Grotesk', system-ui, sans-serif;
   --font-body: 'Hanken Grotesk', 'Outfit', system-ui, sans-serif;
@@ -60,6 +66,9 @@
   --radius-xl: 26px;
   --radius-2xl: 34px;
   --radius-full: 999px;
+
+  /* Eckenradius für ganze Sektionen (Hero-Schnitt, dunkle Panels …) */
+  --section-radius: 48px;
 
   --shadow-sm: 0 1px 2px rgba(16, 18, 20, 0.04);
   --shadow-md: 0 12px 28px -16px rgba(16, 18, 20, 0.16);
@@ -207,6 +216,65 @@ main { display: block; }
 .btn-on-dark.btn-primary { background: var(--white); color: var(--ink-950); }
 .btn-on-dark.btn-primary:hover { background: var(--ink-50); }
 
+/* =========================================================
+   Button-Stile (Prototyp) — final gewählt, kein Dev-Panel.
+     .btn-primary  — Pill, solide Tinte. „Ring"-Hover: schmaler
+       Kontur-Ring blendet ein, der Button selbst bewegt sich NICHT.
+     .btn-secondary — Pill + kräftigerer 1,5-px-Rand. „Snappy"-Hover:
+       kurzer Micro-Lift + Schatten, Rand zieht auf Tinte.
+   .btn-on-dark bleibt per :not() ausgenommen.
+   ========================================================= */
+
+.btn-primary:not(.btn-on-dark) {
+  border-radius: var(--radius-full);
+  transition: background 200ms var(--ease-out), box-shadow 200ms var(--ease-out),
+    color 200ms var(--ease-out), border-color 200ms var(--ease-out);
+}
+.btn-primary:not(.btn-on-dark):hover {
+  box-shadow: 0 0 0 3px rgba(16, 18, 20, 0.16);
+}
+
+.btn-secondary:not(.btn-on-dark) {
+  border-radius: var(--radius-full);
+  border-width: 1.5px;
+  transition: transform 90ms ease-out, box-shadow 90ms ease-out,
+    background 120ms, border-color 120ms, color 120ms;
+}
+.btn-secondary:not(.btn-on-dark):hover {
+  transform: translateY(-1px);
+  border-color: var(--ink-950);
+  box-shadow: var(--shadow-md);
+}
+
+/* Auf dunklem Grund (TLDR, Abschluss-CTA, Feature-Seiten) tragen die
+   Buttons dieselbe Sprache wie überall sonst: Pill-Form + „Ring"-Hover
+   für Primär, Pill + Micro-Lift für Sekundär — nur in Weiß statt Tinte. */
+.btn-on-dark.btn-primary {
+  border-radius: var(--radius-full);
+  transition: background 200ms var(--ease-out), box-shadow 200ms var(--ease-out),
+    color 200ms var(--ease-out), border-color 200ms var(--ease-out);
+}
+.btn-on-dark.btn-primary:hover {
+  background: var(--white);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.24);
+}
+.btn-on-dark.btn-secondary {
+  border-radius: var(--radius-full);
+  border-width: 1.5px;
+  transition: transform 90ms ease-out, box-shadow 90ms ease-out,
+    background 120ms, border-color 120ms, color 120ms;
+}
+.btn-on-dark.btn-secondary:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.55);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-secondary:not(.btn-on-dark):hover,
+  .btn-on-dark.btn-secondary:hover { transform: none !important; }
+}
+
 .link-arrow {
   display: inline-flex; align-items: center; gap: 7px;
   font-weight: 600; font-size: 0.95rem; color: var(--ink-900);
@@ -239,7 +307,8 @@ main { display: block; }
   -webkit-backdrop-filter: blur(18px) saturate(180%);
   box-shadow: 0 1px 0 rgba(255,255,255,0.6) inset, var(--shadow-sm);
   transition: box-shadow 260ms var(--ease-out), background 260ms var(--ease-out),
-    border-radius 260ms var(--ease-out), transform 260ms var(--ease-out);
+    border-color 260ms var(--ease-out), border-radius 260ms var(--ease-out),
+    transform 260ms var(--ease-out);
 }
 .mkt-nav.is-scrolled .mkt-nav__inner {
   background: rgba(255, 255, 255, 0.9);
@@ -260,7 +329,8 @@ main { display: block; }
   background: var(--ink-950);
   color: var(--paper);
 }
-.brand__mark svg { width: 17px; height: 17px; }
+.brand__mark svg,
+.brand__mark img { width: 18px; height: 18px; display: block; }
 .brand__word {
   font-family: var(--font-display);
   font-weight: 700;
@@ -338,6 +408,164 @@ main { display: block; }
 }
 .mkt-nav--minimal .mkt-nav__back svg { width: 16px; height: 16px; }
 .mkt-nav--minimal .mkt-nav__back:hover { color: var(--ink-950); }
+
+/* =========================================================
+   Header — Setups (data-hd auf #mkt-nav, Dev-Panel-Achse "Header").
+   Alle: über dem Hero / ganz oben komplett transparent (kein Rand,
+   kein Hintergrund, keine Unschärfe, KEIN Schleier hinter dem
+   Header); ab dem ersten Scrollen (JS: .is-scrolled) erscheint die
+   Pille.
+     1 Standard  — helle Glas-Pille; Hero-Foto-Schleier dunkelt nach
+                   unten ab (Regel in landing-lab.css).
+     2 Vorschlag — dunkle Pille; Hero-Foto-Schleier wird nach OBEN
+                   hell/weiß (body[data-header="2"] in landing-lab.css).
+     3 Links     — wie 1, Nav-Links linksbündig neben dem Logo.
+     4a/4b/4c    — Nav-Links mit Hintergrund im Hero-Zustand:
+                   a Track · b Chips · c Outline. Ab .is-scrolled:
+                   4b/4c → 1-Look (klare Glas-Pille), 4a → 2-Look
+                   (dunkle Pille, helle Schrift).
+   ========================================================= */
+
+/* --- gemeinsamer Transparent-Zustand oben (alle) --- */
+.mkt-nav[data-hd="1"] .mkt-nav__inner,
+.mkt-nav[data-hd="2"] .mkt-nav__inner,
+.mkt-nav[data-hd="3"] .mkt-nav__inner,
+.mkt-nav[data-hd^="4"] .mkt-nav__inner {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* --- Marke oben größer, schrumpft beim Scrollen (alle) ---
+   Über transform skaliert (kein Layout-Reflow, GPU-schonend);
+   Ursprung links, damit die Nav-Links nicht verdrängt werden. */
+.mkt-nav[data-hd] .brand { transition: transform 240ms var(--ease-out); transform-origin: left center; }
+.mkt-nav[data-hd]:not(.is-scrolled) .brand { transform: scale(1.22); }
+
+/* 1 · Standard (+ Basis für 3 / 4b / 4c) — gescrollt: helle Glas-Pille.
+   4a scrollt bewusst NICHT hierher, sondern in den dunklen 2-Look. */
+.mkt-nav[data-hd="1"].is-scrolled .mkt-nav__inner,
+.mkt-nav[data-hd="3"].is-scrolled .mkt-nav__inner,
+.mkt-nav[data-hd="4b"].is-scrolled .mkt-nav__inner,
+.mkt-nav[data-hd="4c"].is-scrolled .mkt-nav__inner {
+  background: rgba(255,255,255,0.9);
+  border-color: var(--line);
+  box-shadow: var(--shadow-md);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  backdrop-filter: blur(18px) saturate(180%);
+  transform: scale(0.98);
+}
+
+/* 2 · Vorschlag (+ 4a) — gescrollt: dunkle Pille, helle Schrift */
+.mkt-nav[data-hd="2"].is-scrolled .mkt-nav__inner,
+.mkt-nav[data-hd="4a"].is-scrolled .mkt-nav__inner {
+  background: var(--ink-950);
+  border-color: rgba(255,255,255,0.14);
+  box-shadow: var(--shadow-lg);
+  transform: scale(0.98);
+}
+.mkt-nav[data-hd="2"].is-scrolled .brand__word,
+.mkt-nav[data-hd="4a"].is-scrolled .brand__word { color: var(--paper); }
+.mkt-nav[data-hd="2"].is-scrolled .brand__mark,
+.mkt-nav[data-hd="4a"].is-scrolled .brand__mark { background: var(--paper); color: var(--ink-950); }
+.mkt-nav[data-hd="2"].is-scrolled .mkt-nav__links a,
+.mkt-nav[data-hd="4a"].is-scrolled .mkt-nav__links a { color: rgba(255,255,255,0.7); }
+.mkt-nav[data-hd="2"].is-scrolled .mkt-nav__links a:hover,
+.mkt-nav[data-hd="4a"].is-scrolled .mkt-nav__links a:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.mkt-nav[data-hd="2"].is-scrolled .mkt-nav__links a.is-active,
+.mkt-nav[data-hd="4a"].is-scrolled .mkt-nav__links a.is-active { color: #fff; }
+.mkt-nav[data-hd="2"].is-scrolled .mkt-nav__actions .btn-primary,
+.mkt-nav[data-hd="4a"].is-scrolled .mkt-nav__actions .btn-primary { background: var(--paper); color: var(--ink-950); }
+/* gescrollt: „Kostenlos starten" wird beim Hover „hohl" — Fläche
+   transparent, Rand + Schrift weiß (statt des hellen Ring-Hovers). */
+.mkt-nav[data-hd="2"].is-scrolled .mkt-nav__actions .btn-primary:hover,
+.mkt-nav[data-hd="4a"].is-scrolled .mkt-nav__actions .btn-primary:hover {
+  background: transparent;
+  border-color: #fff;
+  color: #fff;
+  box-shadow: none;
+}
+
+/* „Anmelden" verhält sich wie ein Nav-Element (kein Button): gleiche
+   Fläche + Rand wie die Nav-Link-Spur im festen 4a-Header. Beim Hover
+   wird die Fläche deckend (Paper) und der Text dunkel. */
+.mkt-nav__actions .mkt-nav__link {
+  padding: 7px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.62);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-sm);
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: var(--ink-700);
+  transition: background 150ms var(--ease-out), color 150ms var(--ease-out),
+    border-color 150ms var(--ease-out);
+}
+.mkt-nav__actions .mkt-nav__link:hover {
+  background: var(--paper);
+  color: var(--ink-950);
+}
+/* gescrollt: Header ist eine dunkle Pille — Fläche/Rand fallen weg
+   (wie bei den Nav-Links), Text hell; Hover weiter Paper + dunkel. */
+.mkt-nav.is-scrolled .mkt-nav__actions .mkt-nav__link {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  color: rgba(255, 255, 255, 0.7);
+}
+/* gescrollt: „Anmelden" bekommt exakt den Hover der Nav-Links im dunklen
+   Header — zarte weiße Fläche, Schrift bleibt weiß (statt der früheren
+   deckenden Paper-Fläche). */
+.mkt-nav.is-scrolled .mkt-nav__actions .mkt-nav__link:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+.mkt-nav[data-hd="2"].is-scrolled .nav-toggle,
+.mkt-nav[data-hd="4a"].is-scrolled .nav-toggle { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.18); color: #fff; }
+
+/* 3 · Links — Nav-Links linksbündig neben dem Logo (über weißem Hero-BG),
+   Aktionen bleiben rechts. Sonst = 1. */
+.mkt-nav[data-hd="3"] .mkt-nav__links { margin: 0; }
+.mkt-nav[data-hd="3"] .mkt-nav__actions { margin-left: auto; }
+
+/* 4a/4b/4c · Pills — Nav-Links bekommen im Hero-Zustand einen
+   Hintergrund. „Anmelden" ist ein Nav-Link (siehe .mkt-nav__link oben),
+   kein Button, und braucht hier keine eigene Fläche. */
+
+/* 4a · Track — alle Links in einer eingefassten Spur, aktiv = weiße Pille */
+.mkt-nav[data-hd="4a"]:not(.is-scrolled) .mkt-nav__links {
+  background: rgba(255,255,255,0.62); border: 1px solid var(--line);
+  border-radius: var(--radius-full); padding: 4px; gap: 2px;
+  box-shadow: var(--shadow-sm);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+}
+.mkt-nav[data-hd="4a"]:not(.is-scrolled) .mkt-nav__links a { padding: 7px 14px; color: var(--ink-700); }
+.mkt-nav[data-hd="4a"]:not(.is-scrolled) .mkt-nav__links a:hover { background: rgba(16,18,20,0.06); color: var(--ink-950); }
+.mkt-nav[data-hd="4a"]:not(.is-scrolled) .mkt-nav__links a.is-active { background: var(--bg-surface); color: var(--ink-950); box-shadow: var(--shadow-sm); }
+
+/* 4b · Chips — jeder Link eine eigene Glas-Pille, aktiv = Ink gefüllt */
+.mkt-nav[data-hd="4b"]:not(.is-scrolled) .mkt-nav__links { gap: 8px; }
+.mkt-nav[data-hd="4b"]:not(.is-scrolled) .mkt-nav__links a {
+  background: rgba(255,255,255,0.58); border: 1px solid rgba(255,255,255,0.7);
+  box-shadow: var(--shadow-sm); color: var(--ink-700);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+}
+.mkt-nav[data-hd="4b"]:not(.is-scrolled) .mkt-nav__links a:hover { background: var(--bg-surface); color: var(--ink-950); }
+.mkt-nav[data-hd="4b"]:not(.is-scrolled) .mkt-nav__links a.is-active { background: var(--ink-950); border-color: var(--ink-950); color: var(--paper); }
+
+/* 4c · Outline — umrandete, fast durchsichtige Chips, aktiv = Ink gefüllt */
+.mkt-nav[data-hd="4c"]:not(.is-scrolled) .mkt-nav__links { gap: 8px; }
+.mkt-nav[data-hd="4c"]:not(.is-scrolled) .mkt-nav__links a {
+  background: rgba(255,255,255,0.28); border: 1px solid var(--line-strong);
+  color: var(--ink-800);
+  -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+}
+.mkt-nav[data-hd="4c"]:not(.is-scrolled) .mkt-nav__links a:hover { background: rgba(255,255,255,0.5); border-color: var(--ink-500); color: var(--ink-950); }
+.mkt-nav[data-hd="4c"]:not(.is-scrolled) .mkt-nav__links a.is-active { background: var(--ink-950); border-color: var(--ink-950); color: var(--paper); }
 
 /* =========================================================
    Hero
@@ -1365,6 +1593,63 @@ select.input {
 }
 [data-reveal].is-in { opacity: 1; transform: none; }
 
+/* -----------------------------------------------------------
+   Reveal-Varianten — Dev-Panel-Achse "reveal" setzt
+   data-reveal-anim="2..10" auf <html> (localStorage
+   'lesify:reveal:v'). "1" = Standard oben (Rise), kein Attribut.
+   Nur bei erlaubter Bewegung; die reduced-motion-Regel unten
+   deckt alle Varianten mit ab.
+   ----------------------------------------------------------- */
+@media (prefers-reduced-motion: no-preference) {
+  :root[data-reveal-anim] [data-reveal].is-in {
+    opacity: 1; transform: none; filter: none; clip-path: none;
+  }
+  /* 2 · Fade — nur Deckkraft */
+  :root[data-reveal-anim="2"] [data-reveal] { transform: none; }
+  /* 3 · Weit — größerer Weg von unten, etwas länger */
+  :root[data-reveal-anim="3"] [data-reveal] {
+    transform: translateY(54px);
+    transition: opacity 820ms var(--ease-out), transform 820ms var(--ease-out);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+  /* 4 · Links — aus der linken Kante */
+  :root[data-reveal-anim="4"] [data-reveal] { transform: translateX(-46px); }
+  /* 5 · Rechts — aus der rechten Kante */
+  :root[data-reveal-anim="5"] [data-reveal] { transform: translateX(46px); }
+  /* 6 · Zoom — leicht kleiner, skaliert auf */
+  :root[data-reveal-anim="6"] [data-reveal] { transform: scale(0.9); }
+  /* 7 · Blur — Unschärfe blendet weg, minimaler Hub */
+  :root[data-reveal-anim="7"] [data-reveal] {
+    transform: translateY(14px);
+    filter: blur(16px);
+    transition: opacity 720ms var(--ease-out), transform 720ms var(--ease-out),
+      filter 720ms var(--ease-out);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+  /* 8 · Clip — von oben nach unten aufgedeckt (keine Deckkraft) */
+  :root[data-reveal-anim="8"] [data-reveal] {
+    opacity: 1;
+    transform: translateY(12px);
+    clip-path: inset(0 0 100% 0);
+    transition: transform 760ms var(--ease-out), clip-path 760ms var(--ease-out);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+  :root[data-reveal-anim="8"] [data-reveal].is-in { clip-path: inset(0 0 0 0); }
+  /* 9 · Kippen — 3D-Kippung um die obere Kante */
+  :root[data-reveal-anim="9"] [data-reveal] {
+    transform: perspective(1100px) rotateX(17deg) translateY(26px);
+    transform-origin: 50% 0;
+  }
+  /* 10 · Feder — spätes, kräftiges Ausschwingen (ease-out-expo-artig,
+     minimaler Settle, kein sichtbarer Rückprall) */
+  :root[data-reveal-anim="10"] [data-reveal] {
+    transform: translateY(42px);
+    transition: opacity 620ms var(--ease-out),
+      transform 780ms cubic-bezier(0.16, 1, 0.3, 1);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+}
+
 /* =========================================================
    Stat-Zeile
    ========================================================= */
@@ -1396,7 +1681,7 @@ select.input {
 }
 @media (max-width: 960px) {
   .mkt-nav__links { display: none; }
-  .mkt-nav__actions .btn-ghost { display: none; }
+  .mkt-nav__actions .mkt-nav__link { display: none; }
   .nav-toggle { display: flex; }
   .product-body { grid-template-columns: 1fr; }
   .product-rail { display: none; }
@@ -1586,4 +1871,95 @@ select.input {
   .checkout__form { order: 1; }
   .checkout__summary-body { max-width: none; }
   .co-trust { margin-top: 2rem; }
+}
+
+/* =========================================================
+   Header — Mega-Menü "Funktionen" (Desktop) + Sheet-Akkordeon (Mobile)
+   Datenquelle: FEATURE_LINKS in assets/js/marketing.js
+   ========================================================= */
+.mkt-nav__item--mega { position: relative; display: flex; }
+.mkt-nav__mega-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 8px 12px 8px 14px;
+  border-radius: var(--radius-full);
+  font-size: 0.92rem; font-weight: 500; color: var(--ink-600);
+  transition: background 150ms var(--ease-out), color 150ms var(--ease-out);
+}
+.mkt-nav__mega-btn:hover,
+.mkt-nav__item--mega.is-open .mkt-nav__mega-btn { background: var(--ink-50); color: var(--ink-950); }
+.mkt-nav__mega-btn.is-active { color: var(--ink-950); font-weight: 600; }
+.mkt-nav__caret { width: 13px; height: 13px; transition: transform 220ms var(--ease-out); }
+.mkt-nav__item--mega.is-open .mkt-nav__caret { transform: rotate(180deg); }
+
+.mkt-mega {
+  position: absolute; top: calc(100% + 16px); left: 50%;
+  width: min(540px, calc(100vw - 32px));
+  transform: translateX(-50%) translateY(-6px);
+  background: var(--bg-surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  padding: 10px;
+  opacity: 0; visibility: hidden;
+  transition: opacity 200ms var(--ease-out), transform 200ms var(--ease-out), visibility 200ms;
+  z-index: 120;
+}
+.mkt-mega[hidden] { display: none; }
+.mkt-mega::before { content: ""; position: absolute; left: 0; right: 0; top: -18px; height: 18px; }
+.mkt-nav__item--mega.is-open .mkt-mega { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+.mkt-mega__inner { display: grid; gap: 2px; }
+.mkt-mega__link {
+  display: flex; gap: 13px; align-items: flex-start;
+  padding: 12px; border-radius: var(--radius-md);
+  transition: background 150ms var(--ease-out);
+}
+.mkt-mega__link:hover,
+.mkt-mega__link:focus-visible { background: var(--ink-50); }
+.mkt-mega__link.is-active { background: var(--ink-50); }
+.mkt-mega__ico {
+  flex-shrink: 0; width: 34px; height: 34px;
+  border-radius: 10px; background: var(--ink-950); color: var(--paper);
+  display: flex; align-items: center; justify-content: center;
+}
+.mkt-mega__ico svg { width: 18px; height: 18px; }
+.mkt-mega__tx b { display: block; font-size: 0.9rem; font-weight: 600; color: var(--ink-950); margin-bottom: 2px; }
+.mkt-mega__tx span { display: block; font-size: 0.8rem; line-height: 1.45; color: var(--ink-500); }
+
+/* Über dem Hero transparent / nach Scroll dunkel — analog zu .mkt-nav__links a */
+.mkt-nav[data-hd="4a"]:not(.is-scrolled) .mkt-nav__mega-btn { padding: 7px 12px 7px 14px; color: var(--ink-700); }
+.mkt-nav[data-hd="4a"]:not(.is-scrolled) .mkt-nav__mega-btn:hover,
+.mkt-nav[data-hd="4a"]:not(.is-scrolled) .mkt-nav__item--mega.is-open .mkt-nav__mega-btn { background: rgba(16,18,20,0.06); color: var(--ink-950); }
+.mkt-nav[data-hd="2"].is-scrolled .mkt-nav__mega-btn,
+.mkt-nav[data-hd="4a"].is-scrolled .mkt-nav__mega-btn { color: rgba(255,255,255,0.7); }
+.mkt-nav[data-hd="2"].is-scrolled .mkt-nav__mega-btn:hover,
+.mkt-nav[data-hd="4a"].is-scrolled .mkt-nav__mega-btn:hover,
+.mkt-nav[data-hd="2"].is-scrolled .mkt-nav__item--mega.is-open .mkt-nav__mega-btn,
+.mkt-nav[data-hd="4a"].is-scrolled .mkt-nav__item--mega.is-open .mkt-nav__mega-btn { background: rgba(255,255,255,0.1); color: #fff; }
+.mkt-nav[data-hd="2"].is-scrolled .mkt-nav__mega-btn.is-active,
+.mkt-nav[data-hd="4a"].is-scrolled .mkt-nav__mega-btn.is-active { color: #fff; }
+
+@media (prefers-reduced-motion: reduce) {
+  .mkt-mega { transition: opacity 120ms linear, visibility 120ms; transform: translateX(-50%); }
+  .mkt-nav__item--mega.is-open .mkt-mega { transform: translateX(-50%); }
+}
+
+/* Mobile: "Funktionen" als Akkordeon im Sheet */
+.sheet-acc { border-bottom: 1px solid var(--line); }
+.sheet-acc__btn {
+  width: 100%; display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 6px;
+  font-family: var(--font-display); font-size: 1.5rem; font-weight: 600;
+  letter-spacing: -0.02em; color: var(--ink-900); text-align: left;
+}
+.sheet-acc__btn .mkt-nav__caret { width: 20px; height: 20px; }
+.sheet-acc__btn.is-open .mkt-nav__caret { transform: rotate(180deg); }
+.sheet-acc__panel { display: flex; flex-direction: column; padding: 2px 6px 12px; }
+.sheet-acc__panel[hidden] { display: none; }
+.sheet-acc__panel a {
+  padding: 12px 0 12px 16px;
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: var(--ink-600);
+  border-bottom: 0;
 }

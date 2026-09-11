@@ -61,13 +61,43 @@
     { key: 'einstellungen', href: 'einstellungen.html', label: 'Einstellungen', icon: 'settings' }
   ];
 
+  // Eigene Nav für ein Elternkonto mit Familien-Abo — es lernt selbst nicht,
+  // sondern verwaltet Kind-Profile. eltern.html ist eine Seite mit Abschnitten;
+  // die Unterpunkte sind Anker.
+  var ELTERN_NAV_ITEMS = [
+    { key: 'eltern', href: 'eltern.html', label: 'Übersicht', icon: 'grid' },
+    { key: 'eltern-kinder', href: 'eltern.html#kinder', label: 'Kinder & Zugänge', icon: 'layers' },
+    { key: 'eltern-abo', href: 'eltern.html#abo', label: 'Abo & Sitze', icon: 'docCheck' },
+    { key: 'eltern-daten', href: 'eltern.html#datenschutz', label: 'Datenschutz', icon: 'lock', divider: true },
+    { key: 'einstellungen', href: 'einstellungen.html', label: 'Einstellungen', icon: 'settings' }
+  ];
+
+  function istElternAnsicht() {
+    return typeof Lesify !== 'undefined' && Lesify.istElternteil && Lesify.istElternteil();
+  }
+
+  /* Dunkles Design — die Einstellung `darkMode` (nur eingeloggter Bereich).
+     Ein Inline-Snippet im <head> jeder Seite setzt data-theme schon vor dem
+     ersten Paint (kein Flash); dieser Aufruf zieht nur nach, falls das
+     Snippet fehlt oder die Einstellung in einem anderen Tab geändert wurde. */
+  function applyTheme() {
+    if (typeof Lesify === 'undefined' || !Lesify.getSettings) return;
+    var dark = false;
+    try { dark = !!Lesify.getSettings().darkMode; } catch (e) { /* noop */ }
+    if (dark) document.documentElement.setAttribute('data-theme', 'dark');
+    else document.documentElement.removeAttribute('data-theme');
+  }
+
   function renderChrome() {
     var sidebarRoot = document.getElementById('sidebar-root');
     var topbarRoot = document.getElementById('topbar-root');
     var current = (document.body.getAttribute('data-page') || '').toLowerCase();
+    var eltern = istElternAnsicht();
+    var items = eltern ? ELTERN_NAV_ITEMS : NAV_ITEMS;
+    var homeHref = eltern ? 'eltern.html' : 'dashboard.html';
 
     if (sidebarRoot) {
-      var navHtml = NAV_ITEMS.map(function (item) {
+      var navHtml = items.map(function (item) {
         var active = item.key === current ? ' is-active' : '';
         var divider = item.divider ? '<div class="nav-divider"></div>' : '';
         return divider + '<a href="' + item.href + '" class="nav-item' + active + '" data-nav="' + item.key + '">' +
@@ -76,14 +106,15 @@
       }).join('');
 
       var user = typeof Lesify !== 'undefined' ? Lesify.getUser() : { name: 'Jannik B.', klasse: '8. Klasse', initials: 'JB' };
+      var chipHref = user.rolle === 'elternteil' ? 'eltern.html' : 'einstellungen.html';
 
       sidebarRoot.outerHTML =
         '<div class="sidebar-scrim" data-nav-scrim></div>' +
         '<aside class="sidebar">' +
-          '<a href="dashboard.html" class="brand"><img src="assets/img/logo.png" alt="Lesify Logo"><span class="brand-word">Lesify</span></a>' +
+          '<a href="' + homeHref + '" class="brand"><img src="assets/img/logo.png" alt="Lesify Logo"><span class="brand-word">Lesify</span></a>' +
           '<nav class="nav-group">' + navHtml + '</nav>' +
           '<div class="sidebar-foot">' +
-            '<a href="einstellungen.html" class="profile-chip">' +
+            '<a href="' + chipHref + '" class="profile-chip">' +
               '<span class="avatar-initials">' + user.initials + '</span>' +
               '<span class="profile-meta"><span class="profile-name">' + user.name + '</span><span class="profile-role">' + user.klasse + '</span></span>' +
             '</a>' +
@@ -95,10 +126,37 @@
       topbarRoot.outerHTML =
         '<header class="topbar-mobile">' +
           '<button class="mobile-menu-btn" data-nav-toggle aria-label="Menü öffnen"><span class="spark" style="width:18px;height:18px">' + Icons.menu + '</span></button>' +
-          '<a href="dashboard.html" class="mobile-brand"><img src="assets/img/logo.png" alt="Lesify"><span>Lesify</span></a>' +
+          '<a href="' + homeHref + '" class="mobile-brand"><img src="assets/img/logo.png" alt="Lesify"><span>Lesify</span></a>' +
           '<span class="mobile-spacer"></span>' +
         '</header>';
     }
+  }
+
+  /* ---------------------------------------------------------
+     Elternmodus-Banner — sichtbar auf JEDER Schüler-Seite, solange
+     ein Elternteil sich per „Als Kind ansehen" in ein Kind-Profil
+     versetzt hat. Ein Klick bringt es ohne Neu-Login zurück ins
+     Elternkonto (Prototyp: `Lesify.zurueckZumElternkonto()`).
+     --------------------------------------------------------- */
+
+  function renderElternBanner() {
+    if (typeof Lesify === 'undefined' || !Lesify.elternModus) return;
+    var em = Lesify.elternModus();
+    if (!em) return;
+    var bar = document.createElement('div');
+    bar.className = 'eltern-banner';
+    bar.innerHTML =
+      '<span class="eltern-banner-txt">' +
+        '<span class="spark" style="width:15px;height:15px">' + Icons.lock + '</span>' +
+        'Elternmodus — du siehst gerade <strong>' + em.kindName + '</strong>' +
+      '</span>' +
+      '<button type="button" class="eltern-banner-btn" data-eltern-zurueck>Zurück zum Elternkonto</button>';
+    document.body.insertBefore(bar, document.body.firstChild);
+    document.body.classList.add('has-eltern-banner');
+    bar.querySelector('[data-eltern-zurueck]').addEventListener('click', function () {
+      Lesify.zurueckZumElternkonto();
+      window.location.href = 'eltern.html';
+    });
   }
 
   /* ---------------------------------------------------------
@@ -112,6 +170,7 @@
      --------------------------------------------------------- */
 
   var PAGE_WATERMARKS = {
+    eltern: Icons.layers,
     chat: Icons.chat,
     faecher: Icons.layers,
     themen: Icons.target,
@@ -558,6 +617,14 @@
     var f = Lesify.getFach(fachId);
     if (!f) return '';
     var c = Lesify.getFachColor(f.farbe);
+    // Im dunklen Design tragen `c.ink`/`c.bg` (dunkler Text auf hellem Pastell)
+    // nicht — dann eine dunkle Fläche aus der Fachfarbe + heller Text. `c.base`
+    // bleibt als Akzent (Rahmen, Punkt, Avatar) in beiden Designs tragfähig.
+    if (document.documentElement.getAttribute('data-theme') === 'dark') {
+      return '--fach-color:' + c.base +
+        ';--fach-ink:#e6ebef' +
+        ';--fach-bg:color-mix(in srgb, ' + c.base + ' 20%, #1b2126);';
+    }
     return '--fach-color:' + c.base + ';--fach-ink:' + c.ink + ';--fach-bg:' + c.bg + ';';
   }
 
@@ -1668,8 +1735,10 @@
      --------------------------------------------------------- */
 
   document.addEventListener('DOMContentLoaded', function () {
+    applyTheme();
     initNavCompact();
     renderChrome();
+    renderElternBanner();
     initNavHover();
     renderPageWatermark();
     initCardLinks();

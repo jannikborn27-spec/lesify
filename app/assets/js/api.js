@@ -351,6 +351,18 @@
     removeKind: function (id) {
       return DELETE('/abo/kinder/' + id);
     },
+    /** E-Mail am Kind-Profil setzen; Antwort enthält (dev) `resetToken`. */
+    kinderEinladung: function (id, email) {
+      return POST('/abo/kinder/' + id + '/einladung', { email: email });
+    },
+    /** Kontext-Wechsel: eigene Session fürs Kind-Profil → `{token, kindId}`. */
+    kinderSitzung: function (id) {
+      return POST('/abo/kinder/' + id + '/sitzung', {});
+    },
+    /** Aggregierte Wochenkennzahlen je Kind — kein Chat-Wortlaut. */
+    kinderZusammenfassung: function (id) {
+      return GET('/abo/kinder/' + id + '/zusammenfassung');
+    },
 
     /* Profil & Einstellungen ------------------------------- */
     getUser: function () {

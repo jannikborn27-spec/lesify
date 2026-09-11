@@ -1,0 +1,261 @@
+/* =========================================================
+   Lesify — Feature-Unterseiten (feature-*.html)
+   EIN gemeinsames Schritt-Layout, aus assets/js/marketing.js
+   (buildFeaturePage / FEATURE_PAGES) befüllt. Kein Snap-Scroll:
+   die Schritte stehen als normale Sektionen untereinander.
+   Muster je Schritt: Text links, Demo rechts (Desktop) —
+   gestapelt Text über Demo (Mobile), über alle 5 Seiten gleich.
+   Baut auf marketing.css + landing-lab.css auf (Demo-Bausteine).
+   ========================================================= */
+
+.feat-hero {
+  padding-top: clamp(8.5rem, 6rem + 8vw, 12rem);
+  padding-bottom: clamp(1.5rem, 1rem + 2vw, 3rem);
+  text-align: center;
+}
+.feat-hero .eyebrow { justify-content: center; }
+.feat-hero .eyebrow::before { display: none; }
+.feat-hero h1 {
+  max-width: 20ch;
+  margin: 1rem auto 0;
+  font-size: clamp(2.3rem, 1.7rem + 3vw, 3.7rem);
+}
+.feat-hero p {
+  max-width: 56ch;
+  margin: 1.2rem auto 0;
+  font-size: 1.08rem;
+  color: var(--ink-600);
+  line-height: 1.6;
+}
+
+.feat-steps { padding-bottom: var(--section-y); }
+
+.feat-step {
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+  gap: clamp(2rem, 1rem + 5vw, 5.5rem);
+  align-items: center;
+  padding-block: clamp(3rem, 2rem + 5vw, 6rem);
+}
+.feat-step + .feat-step { border-top: 1px solid var(--line); }
+
+.feat-step__text { max-width: 46ch; }
+.feat-step__n {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--ink-400);
+  margin-bottom: 0.9rem;
+}
+.feat-step__text .eyebrow { margin-bottom: 0.2rem; }
+.feat-step__text h2 {
+  font-size: clamp(1.6rem, 1.25rem + 1.7vw, 2.3rem);
+  margin-top: 0.55rem;
+}
+.feat-step__text > p {
+  margin-top: 1rem;
+  font-size: 1.02rem;
+  color: var(--ink-600);
+  line-height: 1.62;
+}
+.feat-step__list {
+  margin-top: 1.3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+.feat-step__list li {
+  display: flex;
+  gap: 10px;
+  font-size: 0.92rem;
+  color: var(--ink-700);
+  line-height: 1.5;
+}
+.feat-step__list svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--gruen);
+}
+
+.feat-step__demo {
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+.feat-step__demo > * { width: 100%; }
+.feat-step__demo .chat-demo,
+.feat-step__demo .chat-app,
+.feat-step__demo .kvx,
+.feat-step__demo .lab-grade,
+.feat-step__demo .pt-report { margin-inline: auto; }
+.feat-step__demo .pt-report { max-width: 440px; }
+.feat-step__demo .chat-perks--check { text-align: left; }
+
+/* --- Karten-Hülle für zusammengesetzte Demo-Bausteine --- */
+.feat-demo-card {
+  width: 100%;
+  background: var(--bg-surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  padding: clamp(18px, 2vw, 26px);
+  text-align: left;
+}
+.feat-demo-card__h {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-400);
+  margin-bottom: 14px;
+}
+
+/* --- Chat-Modi (hell, für .feat-step__demo) --- */
+.feat-modes {
+  display: grid;
+  gap: 14px;
+}
+.feat-modes li { display: flex; gap: 12px; align-items: flex-start; }
+.feat-modes__ico {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: var(--ink-50);
+  color: var(--ink-800);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.feat-modes__ico svg { width: 17px; height: 17px; }
+.feat-modes b { display: block; font-size: 0.9rem; color: var(--ink-950); margin-bottom: 2px; }
+.feat-modes p { margin: 0; font-size: 0.83rem; line-height: 1.5; color: var(--ink-600); }
+
+/* --- Zeilen-Listen (Aufgaben erzeugen, Dateien) --- */
+.feat-rows { display: flex; flex-direction: column; gap: 6px; }
+.feat-rows li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  font-size: 0.84rem;
+}
+.feat-rows__k { font-weight: 600; color: var(--ink-900); display: inline-flex; align-items: center; gap: 8px; }
+.feat-rows__v { font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink-500); flex-shrink: 0; }
+.feat-rows__note { margin-top: 12px; font-size: 0.8rem; color: var(--ink-500); line-height: 1.5; }
+
+/* --- Upload-Mock --- */
+.feat-upload__file {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+}
+.feat-upload__ico {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: var(--ink-50);
+  color: var(--ink-700);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.feat-upload__ico--sm { width: 24px; height: 24px; border-radius: 7px; }
+.feat-upload__ico svg { width: 17px; height: 17px; }
+.feat-upload__meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.feat-upload__meta b { font-size: 0.86rem; }
+.feat-upload__meta span { font-size: 0.76rem; color: var(--ink-500); }
+.feat-upload__ok {
+  margin-left: auto;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--gruen);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.feat-upload__ok svg { width: 13px; height: 13px; }
+.feat-upload__bar {
+  margin-top: 10px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--ink-100);
+  overflow: hidden;
+}
+.feat-upload__bar i { display: block; height: 100%; background: var(--gruen); border-radius: 3px; }
+
+/* --- Warnhinweis (Lernplan) --- */
+.feat-warn {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--gelb-bg);
+  color: var(--gelb-ink, #8a6d10);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+/* --- Suche-Mock --- */
+.feat-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  margin-bottom: 14px;
+}
+.feat-search__ico { color: var(--ink-400); flex-shrink: 0; }
+.feat-search__ico svg { width: 17px; height: 17px; }
+.feat-search__q { font-size: 0.9rem; color: var(--ink-800); }
+.feat-search__q::after {
+  content: "";
+  display: inline-block;
+  width: 1px;
+  height: 1em;
+  margin-left: 1px;
+  background: var(--ink-700);
+  vertical-align: -2px;
+  animation: feat-caret 1.1s steps(1) infinite;
+}
+@keyframes feat-caret { 50% { opacity: 0; } }
+.feat-hits { display: flex; flex-direction: column; gap: 6px; }
+.feat-hits li {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+}
+.feat-hits b { display: block; font-size: 0.82rem; margin-bottom: 2px; }
+.feat-hits span { display: block; font-size: 0.78rem; color: var(--ink-500); line-height: 1.45; }
+
+@media (prefers-reduced-motion: reduce) {
+  .feat-search__q::after { animation: none; }
+}
+
+/* --- Mobile: Text über Demo, gestapelt (alle 5 Seiten gleich) --- */
+@media (max-width: 900px) {
+  .feat-step {
+    grid-template-columns: 1fr;
+    gap: clamp(1.8rem, 1rem + 4vw, 2.8rem);
+    padding-block: clamp(2.8rem, 2rem + 4vw, 4rem);
+  }
+  .feat-step__text { max-width: none; }
+}

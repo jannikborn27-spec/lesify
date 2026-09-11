@@ -3,9 +3,17 @@
 Statischer Prototyp: HTML/CSS/Vanilla-JS, **kein Build-Tool**. Bisher lag dieser
 Ordner im Projekt-Root; beim Monorepo-Umbau (2026-09-04) nach `app/` verschoben.
 
-- Einstieg: `dashboard.html`
+- Einstieg: `dashboard.html` (Schüler) bzw. `eltern.html` (Elternkonto mit
+  Familien-Abo — Kinder-Übersicht, Wochen-Kennzahlen, Kind einladen/entfernen,
+  Kontext-Wechsel „Als Kind ansehen", Abo/Sitze, Datenschutz). Ansicht im
+  Prototyp über den Schalter „Ansicht" auf `einstellungen.html`.
 - Logik & Dummy-Daten: `assets/js/data.js`, `assets/js/app.js`
-- Design-System: `assets/css/style.css`
+- Design-System: `assets/css/style.css` — token-basierte „Fog Blue"-Rampe.
+  **Dunkles Design** über die Einstellung `settings.darkMode` (Karte
+  „Erscheinungsbild" auf `einstellungen.html`): setzt `data-theme="dark"` an
+  `<html>` (Anti-Flash-Snippet im `<head>` jeder Seite + `applyTheme()` in
+  `app.js`), der `:root[data-theme="dark"]`-Block am Ende von `style.css`
+  invertiert die Tokens. Nur `app/`, nicht `marketing/`.
 
 Lokal ausliefern: `pnpm dev` (Projekt-Root) → http://localhost:4001, oder direkt
 `python3 -m http.server 4001` in diesem Ordner. `file://` funktioniert außer

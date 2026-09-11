@@ -12,6 +12,8 @@
   if (!window.Lesify || !window.Lesify.me) return; // data.js-Modus: nichts tun
 
   var LOGIN = '../marketing/login.html';
+  var ELTERN_SEITE = 'eltern.html';
+  var SCHUELER_START = 'dashboard.html';
 
   function raus() {
     var ziel = encodeURIComponent(location.pathname.split('/').pop() || '');
@@ -22,7 +24,28 @@
     raus();
     return;
   }
-  window.Lesify.me().catch(function () {
+
+  // Rollen-/Familie-Weiche: Ein Elternkonto MIT Familien-Abo (Kind-Profile
+  // vorhanden) gehört in den Eltern-Bereich; ein Solo-Elternkonto
+  // (rolle=elternteil, art=einzel) verhält sich wie ein Schüler-Account.
+  // Ein Schüler-Account hat auf eltern.html nichts verloren.
+  function weiche(user) {
+    var hier = (location.pathname.split('/').pop() || '').toLowerCase();
+    var aufElternSeite = hier === ELTERN_SEITE;
+    if (user && user.rolle === 'elternteil') {
+      window.Lesify.kinder().then(function (kinder) {
+        var familienAbo = Array.isArray(kinder) && kinder.length > 0;
+        if (familienAbo && !aufElternSeite) location.replace(ELTERN_SEITE);
+        if (!familienAbo && aufElternSeite) location.replace(SCHUELER_START);
+      }).catch(function () {});
+    } else if (aufElternSeite) {
+      location.replace(SCHUELER_START);
+    }
+  }
+
+  window.Lesify.me().then(function (r) {
+    weiche(r && r.user);
+  }).catch(function () {
     raus();
   });
 })();

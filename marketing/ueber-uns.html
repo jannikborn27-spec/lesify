@@ -4,64 +4,211 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Über uns — Lesify</title>
-<meta name="description" content="Warum es Lesify gibt: gute Lernhilfe soll nicht am Geldbeutel oder am Fahrplan scheitern.">
+<meta name="description" content="Lesify begann als Lernsystem, das Jannik Born fürs eigene Abitur gebaut und im Studium mit KI weiterentwickelt hat — bis daraus die Lernapp für seine Schwester und schließlich ein Unternehmen wurde.">
 <link rel="icon" href="assets/img/logo.png">
 <link rel="stylesheet" href="assets/css/marketing.css">
+<link rel="stylesheet" href="assets/css/landing-lab.css">
+<style>
+  /* Scoped für die Über-uns-Seite — nutzt die Fog-Blue-Tokens aus marketing.css. */
+  .founder {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: clamp(1.5rem, 1rem + 3vw, 3.5rem);
+    align-items: center;
+    margin-bottom: clamp(2.4rem, 1.6rem + 3vw, 4rem);
+  }
+  .founder__photo {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    border-radius: var(--radius-xl);
+    background: var(--bg-surface);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-md);
+    object-fit: cover;
+    overflow: hidden;
+  }
+  .founder__initials {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-size: 2.4rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--ink-400);
+  }
+  .founder__text p { color: var(--ink-700); }
+  .founder__text p + p { margin-top: 0.9rem; }
+  .founder__name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--ink-950);
+  }
+  .signature {
+    margin-top: 1.4rem;
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    color: var(--ink-950);
+  }
+  .signature span { display: block; font-family: var(--font-body); font-size: 0.86rem; color: var(--ink-500); margin-top: 2px; }
+
+  .story { display: grid; gap: 0; }
+  .story__item {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 1.4rem;
+    padding: 1.6rem 0;
+    border-top: 1px solid var(--line);
+  }
+  .story__item:last-child { border-bottom: 1px solid var(--line); }
+  .story__year {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    letter-spacing: 0.04em;
+    color: var(--ink-500);
+    padding-top: 3px;
+  }
+  .story__item h3 { font-size: 1.05rem; margin-bottom: 0.35rem; color: var(--ink-950); }
+  .story__item p { color: var(--ink-600); font-size: 0.95rem; }
+
+  .about-outlook { max-width: 720px; }
+  .about-outlook h2 { font-size: clamp(1.6rem, 1.2rem + 1.6vw, 2.2rem); margin-bottom: 0.6rem; }
+  .about-outlook p { color: var(--ink-700); }
+  .about-outlook a { color: var(--ink-950); text-decoration: underline; text-underline-offset: 2px; }
+
+  @media (max-width: 720px) {
+    .founder { grid-template-columns: 1fr; }
+    .founder__photo { max-width: 200px; }
+    .story__item { grid-template-columns: 1fr; gap: 0.4rem; }
+  }
+</style>
 </head>
 <body data-page="ueber-uns">
 <header id="mkt-nav"></header>
 
 <main class="overflow-x-hidden">
 
+  <!-- Hero (weiß) -->
   <section class="page-hero">
     <div class="container">
       <span class="eyebrow" data-reveal style="justify-content:center">Über uns</span>
-      <h1 data-reveal data-reveal-delay="60">Lernhilfe sollte nicht am Geldbeutel scheitern.</h1>
+      <h1 data-reveal data-reveal-delay="60">Angefangen hat alles mit einem Lernzettel für mich selbst.</h1>
       <p data-reveal data-reveal-delay="120">
-        Lesify ist als Prototyp entstanden, weil gute Unterstützung beim Lernen zu oft eine Frage
-        von Budget, Wohnort und freien Nachmittagen ist.
+        Lesify ist kein Konzern-Produkt. Es ist aus einem Lernsystem entstanden, das ich
+        fürs eigene Abitur gebaut, im Studium weitergedacht und irgendwann für meine
+        Schwester zu einer echten App gemacht habe.
       </p>
     </div>
   </section>
 
-  <section class="section" style="padding-top:0">
+  <!-- Gründer + Werdegang (weiß, untere Ecken rund gegen den schwarzen Werte-Abschnitt) -->
+  <section class="section mkt-cut mkt-cut--bottom" style="padding-top:0">
     <div class="container container--narrow">
-      <div class="legal__body" data-reveal>
-        <h2>Die Idee</h2>
-        <p>
-          Zwischen zwei Klausuren passiert das eigentliche Lernen: eine Aufgabe, die nicht aufgeht,
-          eine Erklärung aus dem Unterricht, die nicht hängen geblieben ist, ein Thema, bei dem man
-          erst in der Arbeit merkt, dass es doch nicht saß. Für genau diese Momente braucht es
-          etwas, das sofort da ist, geduldig erklärt und ehrlich zurückmeldet, wo es noch hakt.
-        </p>
-        <p>
-          Klassische Nachhilfe kann das nur zu festen Zeiten und meist nur für ein Fach. Lesify
-          setzt daneben: ein Werkzeug für den Alltag, das jederzeit erreichbar ist, alle Fächer
-          abdeckt und die Vorbereitung auf die nächste Klausur messbar macht.
-        </p>
+      <div class="founder" data-reveal>
+        <img class="founder__photo" src="assets/img/ueber-uns/jannik.jpg" alt="Jannik Born, Gründer von Lesify"
+             onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'founder__photo founder__initials',textContent:'JB'}))">
+        <div class="founder__text">
+          <p><span class="founder__name">Hi, ich bin Jannik Born.</span> Ich studiere gerade und habe
+          vor zwei Jahren Abitur gemacht, genau in der Zeit, in der KI die ersten großen Wellen schlug.</p>
+          <p>Fürs Abi hatte ich mir ein eigenes Lernsystem gebastelt: Themen sortieren, ehrlich
+          prüfen, was schon sitzt, und gezielt an den Lücken arbeiten. Im Studium habe ich immer
+          mehr mit KI gearbeitet und das System Stück für Stück damit weiterentwickelt. Als meine
+          jüngere Schwester in dieselbe Phase kam, habe ich daraus eine richtige App gemacht.
+          Daraus ist inzwischen ein Unternehmen geworden.</p>
+          <div class="signature">Jannik<span>Gründer von Lesify</span></div>
+        </div>
+      </div>
 
-        <h2>Woran wir uns halten</h2>
-        <ul>
-          <li><strong>Verstehen statt vorsagen.</strong> Die KI erarbeitet Lösungswege und fragt nach, statt nur Ergebnisse auszugeben.</li>
-          <li><strong>Ehrliche Rückmeldung.</strong> Eine Testklausur mit echter Note ist unbequemer als ein gutes Gefühl, aber deutlich nützlicher.</li>
-          <li><strong>Datensparsam.</strong> Nur das speichern, was das Lernen wirklich braucht. Dateien nur über zeitlich begrenzte Links, Server in der EU.</li>
-          <li><strong>Kein Abo-Zwang.</strong> Kostenlos starten, monatlich kündbar, über die Ferien pausieren.</li>
-        </ul>
-
-        <h2>Wo Lesify steht</h2>
-        <p>
-          Der aktuelle Stand ist ein funktionsfähiger Prototyp. Notenberechnung, Ampel-Logik und der
-          Nachtest-Ablauf rechnen bereits echt, die KI-Antworten sind noch simulierter
-          Platzhaltertext. Diese Website zeigt, wie das fertige Produkt aussehen und sich anfühlen soll.
-        </p>
+      <div class="section-head" data-reveal><h2>Wie daraus Lesify wurde</h2></div>
+      <div class="story" data-reveal>
+        <div class="story__item">
+          <div class="story__year">2023</div>
+          <div>
+            <h3>Ein Lernsystem fürs eigene Abitur</h3>
+            <p>Kein Tool, nur Methode: jedes Thema einzeln einschätzen, Schwaches zuerst üben,
+            vor der Prüfung nichts dem Bauchgefühl überlassen. Das hat funktioniert, und die
+            Struktur ist bis heute der Kern von Lesify.</p>
+          </div>
+        </div>
+        <div class="story__item">
+          <div class="story__year">Studium</div>
+          <div>
+            <h3>Weitergedacht, diesmal mit KI</h3>
+            <p>Im Studium habe ich täglich mit KI gearbeitet und gemerkt, wie stark sie beim
+            Erklären ist, wenn man sie richtig einsetzt. Aus der Methode wurde ein Prototyp:
+            KI-Chat pro Fach, automatische Lernzettel, Testklausuren mit echter Note.</p>
+          </div>
+        </div>
+        <div class="story__item">
+          <div class="story__year">Schwester</div>
+          <div>
+            <h3>Die erste echte Nutzerin war meine Schwester</h3>
+            <p>Sie kam in die 8. Klasse, Nachhilfe war teuer und unflexibel, und sie wollte
+            vor allem verstehen, nicht vorgesagt bekommen. Für sie habe ich aus dem Prototyp
+            eine App gebaut, die man ohne Erklärung bedienen kann.</p>
+          </div>
+        </div>
+        <div class="story__item">
+          <div class="story__year">Heute</div>
+          <div>
+            <h3>Aus dem Projekt ist ein Unternehmen geworden</h3>
+            <p>Was für eine Person gedacht war, ist heute für viele Familien da. Die Idee ist
+            dieselbe geblieben: gute Lernhilfe soll nicht am Geldbeutel, am Wohnort oder am
+            freien Nachmittag scheitern.</p>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 
-  <section class="section section--tight">
-    <div class="container">
-      <div class="stats" data-stagger="90">
-        <div class="stat"><b>2</b><span>Klassenstufen im Fokus</span></div>
+  <!-- Werte (schwarzer Abschnitt) -->
+  <section class="section mkt-dark">
+    <div class="container container--narrow">
+      <div class="section-head" data-reveal>
+        <span class="eyebrow">Worauf es mir ankommt</span>
+        <h2>KI als Helfer, nicht als Löser.</h2>
+        <p>
+          Eine KI, die einfach die Antwort ausspuckt, bringt vor der nächsten Klausur nichts.
+          Lesify ist so gebaut, dass am Ende Ihr Kind die Aufgabe kann — nicht der Chat.
+        </p>
+      </div>
+      <div class="about-values__grid" data-reveal>
+        <div>
+          <h4>Verstehen statt vorsagen</h4>
+          <p>Die KI erarbeitet den Lösungsweg und fragt nach, statt Ergebnisse abzuliefern.</p>
+        </div>
+        <div>
+          <h4>Ehrliche Rückmeldung</h4>
+          <p>Eine Testklausur mit echter Note ist unbequemer als ein gutes Gefühl — und viel nützlicher.</p>
+        </div>
+        <div>
+          <h4>Datensparsam</h4>
+          <p>Nur speichern, was das Lernen braucht. Dateien nur über zeitlich begrenzte Links, Server in der EU.</p>
+        </div>
+        <div>
+          <h4>Kein Abo-Zwang</h4>
+          <p>Kostenlos starten, monatlich kündbar, über die Ferien pausieren.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Ausblick + Zahlen (weiß, alle 4 Ecken rund — schwarz darüber und darunter) -->
+  <section class="section mkt-cut mkt-cut--all">
+    <div class="container container--narrow">
+      <div class="about-outlook" data-reveal>
+        <h2>Wo Lesify gerade steht</h2>
+        <p>
+          Der aktuelle Stand ist ein funktionsfähiger Prototyp. Notenberechnung, Ampel-Logik und
+          der Nachtest-Ablauf rechnen bereits echt, die KI-Antworten sind noch simulierter
+          Platzhaltertext. Diese Website zeigt, wie sich das fertige Produkt anfühlen soll.
+          Fragen oder Feedback gehen direkt an mich, über die
+          <a href="kontakt.html">Kontaktseite</a>.
+        </p>
+      </div>
+      <div class="stats" data-stagger="90" style="margin-top:clamp(2rem,1.4rem+2vw,3rem)">
+        <div class="stat"><b>2023</b><span>als Lernsystem begonnen</span></div>
         <div class="stat"><b data-count="9">9</b><span>Schulfächer vorbereitet</span></div>
         <div class="stat"><b>EU</b><span>Serverstandort</span></div>
         <div class="stat"><b>ab 0&nbsp;&euro;</b><span>Einstieg</span></div>
@@ -69,9 +216,11 @@
     </div>
   </section>
 
-  <section class="section">
+  <!-- Abschluss-CTA (schwarzer Abschnitt) -->
+  <section class="section mkt-dark">
     <div class="container">
       <div class="cta-band" data-reveal>
+        <span class="eyebrow" style="justify-content:center">Loslegen</span>
         <h2>Sehen Sie selbst, ob es passt.</h2>
         <p>Kostenloses Konto, ein Fach, eine Woche. Danach entscheiden Sie.</p>
         <div class="hero__cta">

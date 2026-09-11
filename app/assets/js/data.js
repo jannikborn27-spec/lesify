@@ -441,7 +441,53 @@
     // (siehe Lesify.PLAN_LIMITS), `familie` ist gesetzt, wenn dieses Profil
     // Teil eines Familien-Pakets ist (Sitzzahl 2–4; jedes Kind hat das
     // volle Tarif-Kontingent, Nutzung wird nicht geteilt/übertragen).
-    plan: { paket: 'premium', intervall: 'monatlich', familie: null },
+    // `status`: aktiv | gekuendigt | pausiert (Sommerpause). `familie` wird erst
+    // gesetzt, wenn dieses Profil ein Familien-Abo hält (Sitzzahl 2–4) —
+    // im Prototyp durch `Lesify.setRolle('elternteil')`.
+    plan: { paket: 'premium', intervall: 'monatlich', status: 'aktiv', familie: null },
+
+    // Familien-/Elternkonto (Backend: `User.rolle = elternteil`, besitzt das
+    // `Abo`, verwaltet 1–4 Kind-Profile über `parentUserId`). Im Prototyp wird
+    // der Eltern-Bereich über den Dev-Schalter auf einstellungen.html
+    // (`Lesify.setRolle('elternteil')`) aktiviert. Die Wochen-Kennzahlen je Kind
+    // spiegeln exakt `GET /abo/kinder/:id/zusammenfassung` (kein Chat-Wortlaut).
+    familie: {
+      elternName: 'Sabine Berger',
+      elternEmail: 'sabine.berger@example.com',
+      einwilligungAm: '2026-08-14',
+      kinder: [
+        {
+          id: 'kind-mara', name: 'Mara Berger', klasse: '8. Klasse', farbe: 'violet',
+          email: 'mara.berger@example.com', eingeladen: true, aktiv: true,
+          letzteAktivitaet: 'vor 3 Stunden',
+          erinnerungVorKlausuren: true, woechentlicheZusammenfassung: true,
+          woche: {
+            faecher: 6, themen: 14, chatsDieWoche: 9, nachrichtenDieWoche: 63,
+            lernzettelGesamt: 11, testklausurenDieWoche: 2, anstehendeKlausuren: 2
+          }
+        },
+        {
+          id: 'kind-jonas', name: 'Jonas Berger', klasse: '6. Klasse', farbe: 'teal',
+          email: 'jonas.berger@example.com', eingeladen: true, aktiv: true,
+          letzteAktivitaet: 'vor 2 Tagen',
+          erinnerungVorKlausuren: true, woechentlicheZusammenfassung: false,
+          woche: {
+            faecher: 4, themen: 7, chatsDieWoche: 2, nachrichtenDieWoche: 11,
+            lernzettelGesamt: 3, testklausurenDieWoche: 0, anstehendeKlausuren: 1
+          }
+        },
+        {
+          id: 'kind-lea', name: 'Lea Berger', klasse: '9. Klasse', farbe: 'amber',
+          email: null, eingeladen: false, aktiv: false,
+          letzteAktivitaet: null,
+          erinnerungVorKlausuren: true, woechentlicheZusammenfassung: true,
+          woche: {
+            faecher: 0, themen: 0, chatsDieWoche: 0, nachrichtenDieWoche: 0,
+            lernzettelGesamt: 0, testklausurenDieWoche: 0, anstehendeKlausuren: 0
+          }
+        }
+      ]
+    },
 
     // Verbrauchszähler des laufenden Monats. Die Obergrenzen kommen aus
     // dem Tarif (Lesify.usage() mischt used + limit), nicht von hier.
@@ -453,12 +499,17 @@
       resetDatum: '2026-10-01'
     },
 
-    user: { name: 'Jannik B.', klasse: '8. Klasse' },
+    // `rolle`: schueler | elternteil. Steuert im Prototyp, welche Nav-Variante
+    // und welcher Bereich (Schüler-App vs. eltern.html) gezeigt wird.
+    user: { name: 'Jannik B.', klasse: '8. Klasse', rolle: 'schueler' },
 
     settings: {
       erinnerungVorKlausuren: true,
       woechentlicheZusammenfassung: false,
-      ki_tonfall: 'freundlich'
+      ki_tonfall: 'freundlich',
+      // Erscheinungsbild der App (nur eingeloggter Bereich, nicht Marketing).
+      // Wird beim Seitenaufbau als data-theme="dark" am <html> gesetzt.
+      darkMode: false
     }
   };
 
@@ -471,7 +522,11 @@
       faecher: [], themen: [], chats: [], lernzettel: [], dateien: [], klausuren: [],
       testklausuren: [], testklausurOverrides: {}, lernplaene: [], lernplanOverrides: {},
       fachOverrides: {}, usageDelta: { nachrichten: 0, dateien: 0, lernzettel: 0, testklausuren: 0 },
-      planOverride: null, userOverride: null, settingsOverride: null
+      planOverride: null, userOverride: null, settingsOverride: null,
+      // Eltern-Zugang (Phase 12): `rolleOverride` schaltet den Eltern-Bereich frei
+      // (Dev-Schalter), `kinder` wird nach der ersten Mutation zur Quelle der
+      // Kind-Liste, `elternModus` hält den Kontext-Wechsel „Als Kind ansehen".
+      rolleOverride: null, kinder: null, elternModus: null
     };
   }
 
@@ -1131,7 +1186,7 @@
   Lesify.PLAN_PAKETE = ['starter', 'premium', 'infinite'];
 
   Lesify.plan = function () {
-    var base = { paket: 'premium', intervall: 'monatlich', familie: null };
+    var base = { paket: 'premium', intervall: 'monatlich', status: 'aktiv', familie: null };
     var seed = SEED.plan || base;
     var ov = store.planOverride || {};
     var paket = ov.paket || seed.paket || base.paket;
@@ -1140,6 +1195,7 @@
       paket: paket,
       name: PLAN_NAMES[paket],
       intervall: ov.intervall || seed.intervall || 'monatlich',
+      status: ov.status || seed.status || 'aktiv',
       familie: ov.familie !== undefined ? ov.familie : (seed.familie || null),
       limits: PLAN_LIMITS[paket],
       economics: PLAN_ECONOMICS[paket]
@@ -1188,14 +1244,205 @@
 
   /* ---- Profil & Einstellungen ---- */
 
+  function initials(name) {
+    return String(name || '').split(/\s+/).map(function (p) { return p.charAt(0); }).join('').slice(0, 2).toUpperCase();
+  }
+
   Lesify.getUser = function () {
+    // Kontext-Wechsel: solange ein Elternteil „als Kind" unterwegs ist, gibt
+    // getUser das Kind-Profil zurück (Sidebar/Profil-Chip zeigen das Kind, die
+    // Schüler-Nav greift). Der Eltern-Bereich bleibt über das Banner erreichbar.
+    var em = store.elternModus;
+    if (em) {
+      return { name: em.kindName, klasse: em.kindKlasse || '', rolle: 'schueler', initials: initials(em.kindName) };
+    }
     var u = store.userOverride || SEED.user;
-    return { name: u.name, klasse: u.klasse, initials: u.name.split(' ').map(function (p) { return p.charAt(0); }).join('').slice(0, 2).toUpperCase() };
+    var rolle = store.rolleOverride || u.rolle || SEED.user.rolle || 'schueler';
+    if (rolle === 'elternteil') {
+      var fam = Lesify.familie();
+      return { name: fam.elternName, klasse: 'Elternkonto', rolle: 'elternteil', initials: initials(fam.elternName) };
+    }
+    return { name: u.name, klasse: u.klasse, rolle: 'schueler', initials: initials(u.name) };
   };
   Lesify.updateUser = function (data) {
-    store.userOverride = { name: data.name, klasse: data.klasse };
+    var prev = store.userOverride || SEED.user;
+    store.userOverride = { name: data.name, klasse: data.klasse, rolle: prev.rolle || SEED.user.rolle || 'schueler' };
     persist();
     return Lesify.getUser();
+  };
+
+  /* ---- Eltern-Zugang / Familien-Abo (Phase 12) ----
+     Prototyp-Spiegel von `api/src/routes/abo.ts` (`/abo/kinder*`). Alle
+     Kennzahlen kommen aus `SEED.familie` + `store` — kein Backend-Call. */
+
+  // Rolle des Accounts. `elternteil` schaltet den Eltern-Bereich frei; nur ein
+  // Elternteil MIT Familien-Abo (plan().familie) landet dort — ein Solo-
+  // Elternkonto (rolle=elternteil, familie=null) bleibt wie ein Schüler-Account.
+  Lesify.getRolle = function () {
+    if (store.elternModus) return 'schueler';
+    var u = store.userOverride || SEED.user;
+    return store.rolleOverride || u.rolle || SEED.user.rolle || 'schueler';
+  };
+  Lesify.istElternteil = function () {
+    return Lesify.getRolle() === 'elternteil' && !!Lesify.plan().familie;
+  };
+  // Dev-Schalter (einstellungen.html): Ansicht Schüler ⇄ Elternteil. Beim
+  // Wechsel auf `elternteil` wird sichergestellt, dass ein Familien-Abo mit
+  // genügend Sitzen für die Seed-Kinder besteht.
+  Lesify.setRolle = function (rolle) {
+    store.rolleOverride = rolle === 'elternteil' ? 'elternteil' : 'schueler';
+    store.elternModus = null; // Rollenwechsel beendet einen laufenden Kontext-Wechsel
+    if (store.rolleOverride === 'elternteil') {
+      var ov = store.planOverride || {};
+      var mind = Math.max(2, Lesify.kinder().length);
+      if (!ov.familie) ov.familie = { sitze: Math.min(4, Math.max(3, mind)) };
+      store.planOverride = ov;
+    }
+    persist();
+    return Lesify.getRolle();
+  };
+
+  function kinderListe() {
+    if (store.kinder) return store.kinder;
+    return JSON.parse(JSON.stringify((SEED.familie && SEED.familie.kinder) || []));
+  }
+  function saveKinder(list) { store.kinder = list; persist(); }
+
+  Lesify.familie = function () {
+    var f = SEED.familie || {};
+    return {
+      elternName: f.elternName || 'Elternkonto',
+      elternEmail: f.elternEmail || null,
+      einwilligungAm: f.einwilligungAm || null,
+      kinder: kinderListe()
+    };
+  };
+
+  // Kind-Liste mit abgeleiteten Feldern (Aktivitäts-Ampel aus den
+  // Wochen-Kennzahlen — bewusst KEINE Note, die gibt es im Produkt nicht).
+  function kindAktivitaetAmpel(w) {
+    if (!w) return 'rot';
+    var n = w.nachrichtenDieWoche || 0;
+    if (n >= 30) return 'gruen';
+    if (n >= 8) return 'gelb';
+    return 'rot';
+  }
+  var AKTIVITAET_LABEL = { gruen: 'Diese Woche aktiv', gelb: 'Wenig aktiv', rot: 'Kaum aktiv' };
+  Lesify.kindAktivitaetAmpel = kindAktivitaetAmpel;
+  Lesify.kindAktivitaetLabel = function (ampel) { return AKTIVITAET_LABEL[ampel] || ampel; };
+
+  Lesify.kinder = function () {
+    return kinderListe().map(function (k) {
+      return {
+        id: k.id, name: k.name, klasse: k.klasse, farbe: k.farbe || 'graphit',
+        email: k.email || null, eingeladen: !!k.eingeladen, aktiv: !!k.aktiv,
+        letzteAktivitaet: k.letzteAktivitaet || null,
+        erinnerungVorKlausuren: k.erinnerungVorKlausuren !== false,
+        woechentlicheZusammenfassung: !!k.woechentlicheZusammenfassung,
+        woche: k.woche || {},
+        aktivitaetAmpel: kindAktivitaetAmpel(k.woche)
+      };
+    });
+  };
+  Lesify.getKind = function (id) {
+    return Lesify.kinder().filter(function (k) { return k.id === id; })[0] || null;
+  };
+
+  // Spiegelt `GET /abo/kinder/:id/zusammenfassung` — aggregierte Wochenkennzahlen,
+  // KEIN Chat-Wortlaut, KEINE Lernzettel-Inhalte, KEINE Noten.
+  Lesify.kindZusammenfassung = function (id) {
+    var k = Lesify.getKind(id);
+    if (!k) return null;
+    var w = k.woche || {};
+    return {
+      kindId: k.id, name: k.name, klasse: k.klasse,
+      faecher: w.faecher || 0,
+      themen: w.themen || 0,
+      chatsDieWoche: w.chatsDieWoche || 0,
+      nachrichtenDieWoche: w.nachrichtenDieWoche || 0,
+      lernzettelGesamt: w.lernzettelGesamt || 0,
+      testklausurenDieWoche: w.testklausurenDieWoche || 0,
+      anstehendeKlausuren: w.anstehendeKlausuren || 0,
+      aktivitaetAmpel: k.aktivitaetAmpel,
+      letzteAktivitaet: k.letzteAktivitaet
+    };
+  };
+
+  // Kind anlegen — gedeckelt auf plan().familie.sitze (wie `POST /abo/kinder`).
+  Lesify.addKind = function (d) {
+    var fam = Lesify.plan().familie;
+    if (!fam) throw new Error('kein_familienabo');
+    var list = kinderListe();
+    if (list.length >= fam.sitze) throw new Error('sitze_ausgeschoepft');
+    var kind = {
+      id: uid('kind'),
+      name: String(d.name || '').trim(),
+      klasse: String(d.klasse || '').trim(),
+      farbe: d.farbe || 'graphit',
+      email: null, eingeladen: false, aktiv: false,
+      letzteAktivitaet: null,
+      erinnerungVorKlausuren: true, woechentlicheZusammenfassung: true,
+      woche: { faecher: 0, themen: 0, chatsDieWoche: 0, nachrichtenDieWoche: 0, lernzettelGesamt: 0, testklausurenDieWoche: 0, anstehendeKlausuren: 0 }
+    };
+    list = list.concat([kind]);
+    saveKinder(list);
+    return Lesify.getKind(kind.id);
+  };
+  // Kind entfernen — im echten Backend Cascade-Löschung aller Inhalte des Sitzes.
+  Lesify.removeKind = function (id) {
+    saveKinder(kinderListe().filter(function (k) { return k.id !== id; }));
+    if (store.elternModus && store.elternModus.kindId === id) store.elternModus = null;
+    persist();
+    return { ok: true };
+  };
+  // Einladung: E-Mail am Kind-Profil setzen; im Backend gibt es dazu einen
+  // Passwort-Token aus, mit dem sich das Kind selbst aktiviert.
+  Lesify.kindEinladung = function (id, email) {
+    var list = kinderListe();
+    var found = null;
+    for (var i = 0; i < list.length; i++) { if (list[i].id === id) { found = list[i]; break; } }
+    if (!found) throw new Error('nicht_gefunden');
+    found.email = String(email || '').trim().toLowerCase();
+    found.eingeladen = true;
+    saveKinder(list);
+    return { ok: true, resetLink: 'passwort-zuruecksetzen.html?token=' + uid('demo') };
+  };
+  Lesify.updateKind = function (id, patch) {
+    var list = kinderListe();
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].id === id) { for (var k in patch) { list[i][k] = patch[k]; } break; }
+    }
+    saveKinder(list);
+    return Lesify.getKind(id);
+  };
+
+  /* ---- Kontext-Wechsel „Als Kind ansehen" ---- */
+  Lesify.elternModus = function () { return store.elternModus || null; };
+  Lesify.wechsleZuKind = function (id) {
+    var k = Lesify.getKind(id);
+    if (!k) throw new Error('nicht_gefunden');
+    store.elternModus = { kindId: k.id, kindName: k.name, kindKlasse: k.klasse };
+    persist();
+    return store.elternModus;
+  };
+  Lesify.zurueckZumElternkonto = function () {
+    store.elternModus = null;
+    persist();
+    return { ok: true };
+  };
+
+  /* ---- Abo-/Sitzverwaltung (aus einstellungen.html herausgelöst) ---- */
+  Lesify.setAboStatus = function (status) {
+    return Lesify.setPlan({ status: status });
+  };
+  // Sitze anpassen: Erhöhung sofort; Verringerung nur bis zur aktuellen
+  // Kinderzahl (im Backend `geplanteSitze` + Job zum Periodenende).
+  Lesify.setFamilieSitze = function (n) {
+    var fam = Lesify.plan().familie || { sitze: 2 };
+    var belegt = Lesify.kinder().length;
+    var ziel = Math.max(2, Math.min(4, n | 0));
+    if (ziel < belegt) throw new Error('sitze_belegt');
+    return Lesify.setPlan({ familie: { sitze: ziel } });
   };
 
   Lesify.getSettings = function () {

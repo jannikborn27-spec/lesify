@@ -96,6 +96,19 @@ Blockiert alles Weitere. Erst die offenen Produktfragen klären, dann bauen.
         Marketing-Block dieser Phase; `backend-planning.md` §11 nachgezogen.
   - [x] **Architekturfragen (chatMap, Datei-Status, Suche, Rate-Limiting):**
         entschieden am 2026-09-04 — siehe Abschnitt **„Architekturfragen"** unten.
+  - [x] **Interim-Hosting für den Prototyp (2026-09-11):** `marketing/` +
+        `app/` (beides statisch, kein Build) laufen über **GitHub Pages**
+        (`.github/workflows/pages.yml`, Source = GitHub Actions) auf
+        `jannikborn27-spec/lesify`. Struktur: `marketing/` → Site-Root,
+        `app/` → `/app`-Unterpfad — **eine** Domain für beides, weil GitHub
+        Pages nur eine Custom Domain pro Repo erlaubt (kein echtes
+        `app.lesify.de`-Subdomain-Setup). Alle Pfade in den HTML/CSS/JS-
+        Dateien sind bereits relativ, daher funktioniert das unter
+        `github.io/lesify/…` genauso wie später unter der eigenen Domain.
+        `api/` läuft **nicht** über GitHub Pages (kein Static-Host-Ziel) —
+        bleibt bis zum echten Deploy (Phase 16) rein lokal/dev. Ersetzt
+        nicht die Produktions-Infrastruktur aus Phase 16 (Staging/Prod,
+        echtes API-Hosting, Supabase-Produktivbetrieb).
 - [x] **Prototyp-Bereinigung aus den Entscheidungen** (im statischen Frontend, vor
       dem Backend-Bau) — _erledigt 2026-09-03_:
   - [x] `Thema.mastery` überall entfernt: Seed + `addThema` in
@@ -2393,6 +2406,10 @@ Kritisch, weil Zielgruppe minderjährig ist.
 ## Phase 16 — Deployment & Go-Live
 
 - [ ] **Domain + DNS + TLS** für App und Marketing (EU-Hosting bestätigt).
+      (Teilfortschritt: GitHub-Pages-Hosting für `marketing/`+`app/` steht
+      bereits, siehe Phase 0 „Interim-Hosting" — fehlt nur noch die
+      Custom-Domain-DNS-Eintragung. `api/` braucht separates Hosting,
+      GitHub Pages kann keinen Server ausliefern.)
 - [ ] **CI/CD vervollständigen:** Merge auf `main` → Deploy auf `staging`;
       manueller Promote `staging` → `production`. Migrationen laufen automatisch,
       rückrollbar.

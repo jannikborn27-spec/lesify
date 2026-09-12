@@ -1711,6 +1711,36 @@ Blockiert alles Weitere. Erst die offenen Produktfragen klären, dann bauen.
 - [x] **ORM/Migrationen → Prisma.** `api/prisma/schema.prisma`, `prisma migrate`.
       → Phase 2 / §0.
 
+- [x] **`ueber-uns.html` neu strukturiert: Hero → Timeline → Stand → CTA,
+      10 Design-Varianten je Achse per Dev-Panel (2026-09-12):** Layout auf
+      Wunsch von vier Blöcken umgestellt — **Hero(w)** · **Timeline(SCHWARZ)**
+      · **Wo Lesify jetzt steht(w, alle 4 Ecken rund)** · **CTA(SCHWARZ)**.
+      Der bisherige Werte-Abschnitt „KI als Helfer, nicht als Löser" (4 Karten)
+      entfällt; die Werdegang-Story (2023 → Studium → Schwester → Heute) zieht
+      vom weißen Gründer-Block in einen eigenen schwarzen Timeline-Abschnitt.
+      · **Neue Datei `marketing/assets/css/ueber-uns.css`:** je 10 Layout-
+      Varianten für Hero und Timeline (volle eigene Komposition, z. B. Split-
+      Foto, Gründer-Zitat, Marquee-Hintergrund, Akkordeon, Zickzack-Linie,
+      horizontale Scroll-Karten) und 10 für den Stand-Abschnitt (Kopf mit
+      Überschrift/Absatz bleibt fix, nur die Stat-/Status-Darstellung wechselt:
+      Fortschrittsbalken, Ampel-Checkliste, Heute/Ziel-Tabelle, Roadmap-
+      Schritte, Icon-Kacheln u. a.).
+      · **Markup:** `.au-group[data-group="hero|timeline|stand"][data-active="N"]`
+      umschließt 10 Kind-Blöcke mit `data-variant="1..10"`; CSS zeigt nur das
+      zum `data-active`-Wert passende Kind. Eigenes `<script>` am Seitenende
+      (kein Ausbau von `LAB_API`/`mountLabDev`, da die Achsen hier fest 10
+      Varianten haben und nichts mit der Landing-Lab-Logik teilen): Dev-Panel
+      unten rechts (`.layout-dev.is-about`, wiederverwendet aus
+      `landing-lab.css`) mit drei Zeilen „Hero/Timeline/Stand" ×
+      1–10-Tasten, Auswahl in `localStorage['lesify:about:hero'|'timeline'|'stand']`,
+      Panel per `data-dev-min` einklappbar wie beim Landing-Lab-Panel.
+      · Im Browser (temporärer lokaler Server) geprüft: alle 30 Varianten
+      schalten korrekt um (genau ein Kind je Achse sichtbar, Rest
+      `display:none`), Auswahl übersteht Reload (`localStorage`), Foto lädt
+      (`assets/img/jborn-uberuns.jpg`), keine Konsolenfehler. Noch offen:
+      finale Variante je Achse auswählen und Dev-Panel danach entfernen
+      (fest verdrahten wie bei anderen abgeschlossenen Dev-Panels).
+
 ---
 
 ## Phase 1 — Stack-Entscheidung & Projekt-Setup

@@ -8,196 +8,426 @@
 <link rel="icon" href="assets/img/logo.png">
 <link rel="stylesheet" href="assets/css/marketing.css">
 <link rel="stylesheet" href="assets/css/landing-lab.css">
-<style>
-  /* Scoped für die Über-uns-Seite — nutzt die Fog-Blue-Tokens aus marketing.css. */
-  .founder {
-    display: grid;
-    grid-template-columns: 220px 1fr;
-    gap: clamp(1.5rem, 1rem + 3vw, 3.5rem);
-    align-items: center;
-    margin-bottom: clamp(2.4rem, 1.6rem + 3vw, 4rem);
-  }
-  .founder__photo {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 4 / 5;
-    border-radius: var(--radius-xl);
-    background: var(--bg-surface);
-    border: 1px solid var(--line);
-    box-shadow: var(--shadow-md);
-    object-fit: cover;
-    overflow: hidden;
-  }
-  .founder__initials {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--font-display);
-    font-size: 2.4rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    color: var(--ink-400);
-  }
-  .founder__text p { color: var(--ink-700); }
-  .founder__text p + p { margin-top: 0.9rem; }
-  .founder__name {
-    font-family: var(--font-display);
-    font-weight: 600;
-    color: var(--ink-950);
-  }
-  .signature {
-    margin-top: 1.4rem;
-    font-family: var(--font-display);
-    font-size: 1.15rem;
-    color: var(--ink-950);
-  }
-  .signature span { display: block; font-family: var(--font-body); font-size: 0.86rem; color: var(--ink-500); margin-top: 2px; }
-
-  .story { display: grid; gap: 0; }
-  .story__item {
-    display: grid;
-    grid-template-columns: 120px 1fr;
-    gap: 1.4rem;
-    padding: 1.6rem 0;
-    border-top: 1px solid var(--line);
-  }
-  .story__item:last-child { border-bottom: 1px solid var(--line); }
-  .story__year {
-    font-family: var(--font-mono);
-    font-size: 0.82rem;
-    letter-spacing: 0.04em;
-    color: var(--ink-500);
-    padding-top: 3px;
-  }
-  .story__item h3 { font-size: 1.05rem; margin-bottom: 0.35rem; color: var(--ink-950); }
-  .story__item p { color: var(--ink-600); font-size: 0.95rem; }
-
-  .about-outlook { max-width: 720px; }
-  .about-outlook h2 { font-size: clamp(1.6rem, 1.2rem + 1.6vw, 2.2rem); margin-bottom: 0.6rem; }
-  .about-outlook p { color: var(--ink-700); }
-  .about-outlook a { color: var(--ink-950); text-decoration: underline; text-underline-offset: 2px; }
-
-  @media (max-width: 720px) {
-    .founder { grid-template-columns: 1fr; }
-    .founder__photo { max-width: 200px; }
-    .story__item { grid-template-columns: 1fr; gap: 0.4rem; }
-  }
-</style>
+<link rel="stylesheet" href="assets/css/ueber-uns.css">
 </head>
 <body data-page="ueber-uns">
 <header id="mkt-nav"></header>
 
 <main class="overflow-x-hidden">
 
-  <!-- Hero (weiß) -->
-  <section class="page-hero">
-    <div class="container">
-      <span class="eyebrow" data-reveal style="justify-content:center">Über uns</span>
-      <h1 data-reveal data-reveal-delay="60">Angefangen hat alles mit einem Lernzettel für mich selbst.</h1>
-      <p data-reveal data-reveal-delay="120">
-        Lesify ist kein Konzern-Produkt. Es ist aus einem Lernsystem entstanden, das ich
-        fürs eigene Abitur gebaut, im Studium weitergedacht und irgendwann für meine
-        Schwester zu einer echten App gemacht habe.
-      </p>
+  <!-- ============================================================
+       1) HERO (weiß) — 10 Design-Varianten, Dev-Panel unten rechts
+       ============================================================ -->
+  <section class="page-hero au-hero mkt-cut mkt-cut--bottom">
+    <div class="container container--narrow">
+      <div class="au-group" data-group="hero" data-active="1" data-reveal>
+
+        <!-- v1 — Klassisch, zentriert -->
+        <div class="au-hero-1" data-variant="1">
+          <span class="eyebrow au-hero-eyebrow">Über uns</span>
+          <h1>Angefangen hat alles mit einem Lernzettel für mich selbst.</h1>
+          <p>Lesify ist kein Konzern-Produkt. Es ist aus einem Lernsystem entstanden, das ich
+          fürs eigene Abitur gebaut, im Studium weitergedacht und irgendwann für meine
+          Schwester zu einer echten App gemacht habe.</p>
+        </div>
+
+        <!-- v2 — Split: Foto links, Text rechts -->
+        <div class="au-hero-2" data-variant="2">
+          <div class="au-hero-2__grid">
+            <div class="au-hero-2__photo">
+              <img src="assets/img/jborn-uberuns.jpg" alt="Jannik Born, Gründer von Lesify"
+                   onerror="this.replaceWith(document.createTextNode('JB'))">
+            </div>
+            <div>
+              <span class="eyebrow au-hero-eyebrow">Über uns</span>
+              <h1>Angefangen hat alles mit einem Lernzettel für mich selbst.</h1>
+              <p>Lesify ist kein Konzern-Produkt. Es ist aus einem Lernsystem entstanden, das ich
+              fürs eigene Abitur gebaut, im Studium weitergedacht und irgendwann für meine
+              Schwester zu einer echten App gemacht habe.</p>
+              <div class="au-signature">Jannik Born<span>Gründer von Lesify</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- v3 — Überformatierter Display-Type, linksbündig -->
+        <div class="au-hero-3" data-variant="3">
+          <span class="eyebrow au-hero-eyebrow">Über uns</span>
+          <h1>Angefangen hat alles mit einem Lernzettel für mich selbst.</h1>
+          <div class="au-hero-3__row">
+            <p>Lesify ist kein Konzern-Produkt. Es ist aus einem Lernsystem entstanden, das ich
+            fürs eigene Abitur gebaut, im Studium weitergedacht und irgendwann für meine
+            Schwester zu einer echten App gemacht habe.</p>
+          </div>
+        </div>
+
+        <!-- v4 — Gründer-Zitat -->
+        <div class="au-hero-4" data-variant="4">
+          <span class="au-hero-4__mark" aria-hidden="true">&ldquo;</span>
+          <h1>Angefangen hat alles mit einem Lernzettel für mich selbst.</h1>
+          <p class="au-hero-4__sub">Lesify ist kein Konzern-Produkt. Es ist aus einem Lernsystem
+          entstanden, das ich fürs eigene Abitur gebaut, im Studium weitergedacht und irgendwann
+          für meine Schwester zu einer echten App gemacht habe.</p>
+          <div class="au-hero-4__attrib">
+            <span class="au-avatar" style="width:36px;height:36px;font-size:0.8rem">
+              <img src="assets/img/jborn-uberuns.jpg" alt="" onerror="this.replaceWith(document.createTextNode('JB'))">
+            </span>
+            <div class="au-hero-4__attrib-text"><b>Jannik Born</b><span>Gründer von Lesify</span></div>
+          </div>
+        </div>
+
+        <!-- v5 — Chip-Reihe über der Headline -->
+        <div class="au-hero-5" data-variant="5">
+          <div class="au-hero-5__chips">
+            <span class="au-badge">Gegründet 2023</span>
+            <span class="au-badge">Von Schülern für Schüler</span>
+            <span class="au-badge">Serverstandort EU</span>
+          </div>
+          <h1>Angefangen hat alles mit einem Lernzettel für mich selbst.</h1>
+          <p>Lesify ist kein Konzern-Produkt. Es ist aus einem Lernsystem entstanden, das ich
+          fürs eigene Abitur gebaut, im Studium weitergedacht und irgendwann für meine
+          Schwester zu einer echten App gemacht habe.</p>
+        </div>
+
+        <!-- v6 — Meta-Spalte links, Headline rechts -->
+        <div class="au-hero-6" data-variant="6">
+          <div class="au-hero-6__grid">
+            <div class="au-hero-6__meta">
+              <div><b>Gründer</b><span>Jannik Born</span></div>
+              <div><b>Seit</b><span>2023</span></div>
+              <div><b>Für</b><span>8./9. Klasse</span></div>
+            </div>
+            <div>
+              <span class="eyebrow au-hero-eyebrow">Über uns</span>
+              <h1>Angefangen hat alles mit einem Lernzettel für mich selbst.</h1>
+              <p>Lesify ist kein Konzern-Produkt. Es ist aus einem Lernsystem entstanden, das ich
+              fürs eigene Abitur gebaut, im Studium weitergedacht und irgendwann für meine
+              Schwester zu einer echten App gemacht habe.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- v7 — Marquee-Hintergrundtext -->
+        <div class="au-hero-7" data-variant="7">
+          <div class="au-hero-7__marquee" aria-hidden="true">LESIFY &middot; LESIFY &middot; LESIFY &middot; LESIFY &middot;</div>
+          <div class="au-hero-7__body">
+            <span class="eyebrow au-hero-eyebrow">Über uns</span>
+            <h1>Angefangen hat alles mit einem Lernzettel für mich selbst.</h1>
+            <p>Lesify ist kein Konzern-Produkt. Es ist aus einem Lernsystem entstanden, das ich
+            fürs eigene Abitur gebaut, im Studium weitergedacht und irgendwann für meine
+            Schwester zu einer echten App gemacht habe.</p>
+          </div>
+        </div>
+
+        <!-- v8 — Minimal, riesige Headline + Scroll-Cue -->
+        <div class="au-hero-8" data-variant="8">
+          <h1>Angefangen hat alles mit einem Lernzettel für mich selbst.</h1>
+          <span class="au-hero-8__tag">Gegründet 2023 von Jannik Born</span>
+          <span class="au-hero-8__cue"><span>Die Geschichte</span><span class="au-hero-8__cue-dot"></span></span>
+        </div>
+
+        <!-- v9 — Avatar-Pill inline vor der Headline -->
+        <div class="au-hero-9" data-variant="9">
+          <div class="au-hero-9__lead">
+            <span class="au-avatar" style="width:28px;height:28px;font-size:0.7rem">
+              <img src="assets/img/jborn-uberuns.jpg" alt="" onerror="this.replaceWith(document.createTextNode('JB'))">
+            </span>
+            <span>Jannik erzählt</span>
+          </div>
+          <h1>Angefangen hat alles mit einem Lernzettel für mich selbst.</h1>
+          <p>Lesify ist kein Konzern-Produkt. Es ist aus einem Lernsystem entstanden, das ich
+          fürs eigene Abitur gebaut, im Studium weitergedacht und irgendwann für meine
+          Schwester zu einer echten App gemacht habe.</p>
+        </div>
+
+        <!-- v10 — Faktenleiste unter der Headline -->
+        <div class="au-hero-10" data-variant="10">
+          <span class="eyebrow au-hero-eyebrow">Über uns</span>
+          <h1>Angefangen hat alles mit einem Lernzettel für mich selbst.</h1>
+          <p>Lesify ist kein Konzern-Produkt. Es ist aus einem Lernsystem entstanden, das ich
+          fürs eigene Abitur gebaut, im Studium weitergedacht und irgendwann für meine
+          Schwester zu einer echten App gemacht habe.</p>
+          <div class="au-hero-10__facts">
+            <span>Seit 2023</span><span>9 Fächer</span><span>EU-Server</span><span>Ab 0&nbsp;&euro;</span>
+          </div>
+        </div>
+
+      </div>
     </div>
   </section>
 
-  <!-- Gründer + Werdegang (weiß, untere Ecken rund gegen den schwarzen Werte-Abschnitt) -->
-  <section class="section mkt-cut mkt-cut--bottom" style="padding-top:0">
+  <!-- ============================================================
+       2) TIMELINE (schwarz) — 10 Design-Varianten
+       ============================================================ -->
+  <section class="section mkt-dark">
     <div class="container container--narrow">
-      <div class="founder" data-reveal>
-        <img class="founder__photo" src="assets/img/jborn-uberuns.jpg" alt="Jannik Born, Gründer von Lesify"
-             onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'founder__photo founder__initials',textContent:'JB'}))">
-        <div class="founder__text">
-          <p><span class="founder__name">Hi, ich bin Jannik Born.</span> Ich studiere gerade und habe
-          vor zwei Jahren Abitur gemacht, genau in der Zeit, in der KI die ersten großen Wellen schlug.</p>
-          <p>Fürs Abi hatte ich mir ein eigenes Lernsystem gebastelt: Themen sortieren, ehrlich
-          prüfen, was schon sitzt, und gezielt an den Lücken arbeiten. Im Studium habe ich immer
-          mehr mit KI gearbeitet und das System Stück für Stück damit weiterentwickelt. Als meine
-          jüngere Schwester in dieselbe Phase kam, habe ich daraus eine richtige App gemacht.
-          Daraus ist inzwischen ein Unternehmen geworden.</p>
-          <div class="signature">Jannik<span>Gründer von Lesify</span></div>
-        </div>
+      <div class="section-head au-tl-head" data-reveal>
+        <span class="eyebrow">Wie daraus Lesify wurde</span>
+        <h2>Vier Jahre, ein Ziel.</h2>
+        <p>Vom eigenen Abitur bis zum Unternehmen — die Stationen, die Lesify geprägt haben.</p>
       </div>
 
-      <div class="section-head" data-reveal><h2>Wie daraus Lesify wurde</h2></div>
-      <div class="story" data-reveal>
-        <div class="story__item">
-          <div class="story__year">2023</div>
-          <div>
+      <div class="au-group" data-group="timeline" data-active="1" data-reveal data-reveal-delay="80">
+
+        <!-- v1 — Klassische Linie, linksbündig -->
+        <div class="au-tl-1" data-variant="1">
+          <div class="au-tl-1__item">
+            <span class="au-story-year">2023</span>
+            <div class="au-story-item"><h3>Ein Lernsystem fürs eigene Abitur</h3>
+              <p>Kein Tool, nur Methode: jedes Thema einzeln einschätzen, Schwaches zuerst üben,
+              vor der Prüfung nichts dem Bauchgefühl überlassen. Das hat funktioniert, und die
+              Struktur ist bis heute der Kern von Lesify.</p></div>
+          </div>
+          <div class="au-tl-1__item">
+            <span class="au-story-year">Studium</span>
+            <div class="au-story-item"><h3>Weitergedacht, diesmal mit KI</h3>
+              <p>Im Studium habe ich täglich mit KI gearbeitet und gemerkt, wie stark sie beim
+              Erklären ist, wenn man sie richtig einsetzt. Aus der Methode wurde ein Prototyp:
+              KI-Chat pro Fach, automatische Lernzettel, Testklausuren mit echter Note.</p></div>
+          </div>
+          <div class="au-tl-1__item">
+            <span class="au-story-year">Schwester</span>
+            <div class="au-story-item"><h3>Die erste echte Nutzerin war meine Schwester</h3>
+              <p>Sie kam in die 8. Klasse, Nachhilfe war teuer und unflexibel, und sie wollte
+              vor allem verstehen, nicht vorgesagt bekommen. Für sie habe ich aus dem Prototyp
+              eine App gebaut, die man ohne Erklärung bedienen kann.</p></div>
+          </div>
+          <div class="au-tl-1__item">
+            <span class="au-story-year">Heute</span>
+            <div class="au-story-item"><h3>Aus dem Projekt ist ein Unternehmen geworden</h3>
+              <p>Was für eine Person gedacht war, ist heute für viele Familien da. Die Idee ist
+              dieselbe geblieben: gute Lernhilfe soll nicht am Geldbeutel, am Wohnort oder am
+              freien Nachmittag scheitern.</p></div>
+          </div>
+        </div>
+
+        <!-- v2 — Zickzack um Mittellinie -->
+        <div class="au-tl-2" data-variant="2">
+          <div class="au-tl-2__line"></div>
+          <div class="au-tl-2__row">
+            <div class="au-tl-2__text"><span class="au-story-year">2023</span>
+              <h3>Ein Lernsystem fürs eigene Abitur</h3>
+              <p>Kein Tool, nur Methode: jedes Thema einzeln einschätzen, Schwaches zuerst üben,
+              vor der Prüfung nichts dem Bauchgefühl überlassen.</p></div>
+            <span class="au-tl-2__dot"></span>
+            <div></div>
+          </div>
+          <div class="au-tl-2__row">
+            <div></div>
+            <span class="au-tl-2__dot"></span>
+            <div class="au-tl-2__text"><span class="au-story-year">Studium</span>
+              <h3>Weitergedacht, diesmal mit KI</h3>
+              <p>Aus der Methode wurde ein Prototyp: KI-Chat pro Fach, automatische Lernzettel,
+              Testklausuren mit echter Note.</p></div>
+          </div>
+          <div class="au-tl-2__row">
+            <div class="au-tl-2__text"><span class="au-story-year">Schwester</span>
+              <h3>Die erste echte Nutzerin war meine Schwester</h3>
+              <p>Für sie habe ich aus dem Prototyp eine App gebaut, die man ohne Erklärung
+              bedienen kann.</p></div>
+            <span class="au-tl-2__dot"></span>
+            <div></div>
+          </div>
+          <div class="au-tl-2__row">
+            <div></div>
+            <span class="au-tl-2__dot"></span>
+            <div class="au-tl-2__text"><span class="au-story-year">Heute</span>
+              <h3>Aus dem Projekt ist ein Unternehmen geworden</h3>
+              <p>Gute Lernhilfe soll nicht am Geldbeutel, am Wohnort oder am freien Nachmittag
+              scheitern.</p></div>
+          </div>
+        </div>
+
+        <!-- v3 — Horizontale Scroll-Karten -->
+        <div class="au-tl-3" data-variant="3">
+          <div class="au-tl-3__track">
+            <div class="au-tl-3__card"><span class="au-story-year">2023</span>
+              <h3>Ein Lernsystem fürs eigene Abitur</h3>
+              <p>Kein Tool, nur Methode: jedes Thema einzeln einschätzen, Schwaches zuerst
+              üben, nichts dem Bauchgefühl überlassen.</p></div>
+            <div class="au-tl-3__card"><span class="au-story-year">Studium</span>
+              <h3>Weitergedacht, diesmal mit KI</h3>
+              <p>Aus der Methode wurde ein Prototyp: KI-Chat pro Fach, automatische Lernzettel,
+              Testklausuren mit echter Note.</p></div>
+            <div class="au-tl-3__card"><span class="au-story-year">Schwester</span>
+              <h3>Die erste echte Nutzerin war meine Schwester</h3>
+              <p>Für sie habe ich aus dem Prototyp eine App gebaut, die man ohne Erklärung
+              bedienen kann.</p></div>
+            <div class="au-tl-3__card"><span class="au-story-year">Heute</span>
+              <h3>Aus dem Projekt ist ein Unternehmen geworden</h3>
+              <p>Gute Lernhilfe soll nicht am Geldbeutel, am Wohnort oder am freien Nachmittag
+              scheitern.</p></div>
+          </div>
+        </div>
+
+        <!-- v4 — Große verblasste Jahreszahl im Hintergrund -->
+        <div class="au-tl-4" data-variant="4">
+          <div class="au-tl-4__item"><span class="au-tl-4__big" aria-hidden="true">2023</span>
+            <span class="au-story-year">2023</span>
             <h3>Ein Lernsystem fürs eigene Abitur</h3>
+            <p>Kein Tool, nur Methode: jedes Thema einzeln einschätzen, Schwaches zuerst üben,
+            vor der Prüfung nichts dem Bauchgefühl überlassen.</p></div>
+          <div class="au-tl-4__item"><span class="au-tl-4__big" aria-hidden="true">Studium</span>
+            <span class="au-story-year">Studium</span>
+            <h3>Weitergedacht, diesmal mit KI</h3>
+            <p>Aus der Methode wurde ein Prototyp: KI-Chat pro Fach, automatische Lernzettel,
+            Testklausuren mit echter Note.</p></div>
+          <div class="au-tl-4__item"><span class="au-tl-4__big" aria-hidden="true">Schwester</span>
+            <span class="au-story-year">Schwester</span>
+            <h3>Die erste echte Nutzerin war meine Schwester</h3>
+            <p>Für sie habe ich aus dem Prototyp eine App gebaut, die man ohne Erklärung
+            bedienen kann.</p></div>
+          <div class="au-tl-4__item"><span class="au-tl-4__big" aria-hidden="true">Heute</span>
+            <span class="au-story-year">Heute</span>
+            <h3>Aus dem Projekt ist ein Unternehmen geworden</h3>
+            <p>Gute Lernhilfe soll nicht am Geldbeutel, am Wohnort oder am freien Nachmittag
+            scheitern.</p></div>
+        </div>
+
+        <!-- v5 — Nummerierte Kreise, Karten -->
+        <div class="au-tl-5" data-variant="5">
+          <div class="au-tl-5__row"><span class="au-tl-5__num">01</span>
+            <div class="au-tl-5__card"><span class="au-story-year">2023</span>
+              <h3>Ein Lernsystem fürs eigene Abitur</h3>
+              <p>Kein Tool, nur Methode: jedes Thema einzeln einschätzen, Schwaches zuerst
+              üben, nichts dem Bauchgefühl überlassen.</p></div></div>
+          <div class="au-tl-5__row"><span class="au-tl-5__num">02</span>
+            <div class="au-tl-5__card"><span class="au-story-year">Studium</span>
+              <h3>Weitergedacht, diesmal mit KI</h3>
+              <p>Aus der Methode wurde ein Prototyp: KI-Chat pro Fach, automatische Lernzettel,
+              Testklausuren mit echter Note.</p></div></div>
+          <div class="au-tl-5__row"><span class="au-tl-5__num">03</span>
+            <div class="au-tl-5__card"><span class="au-story-year">Schwester</span>
+              <h3>Die erste echte Nutzerin war meine Schwester</h3>
+              <p>Für sie habe ich aus dem Prototyp eine App gebaut, die man ohne Erklärung
+              bedienen kann.</p></div></div>
+          <div class="au-tl-5__row"><span class="au-tl-5__num">04</span>
+            <div class="au-tl-5__card"><span class="au-story-year">Heute</span>
+              <h3>Aus dem Projekt ist ein Unternehmen geworden</h3>
+              <p>Gute Lernhilfe soll nicht am Geldbeutel, am Wohnort oder am freien Nachmittag
+              scheitern.</p></div></div>
+        </div>
+
+        <!-- v6 — 2x2-Grid, gleichwertig -->
+        <div class="au-tl-6" data-variant="6">
+          <div class="au-tl-6__grid">
+            <div class="au-tl-6__card"><span class="au-story-year">2023</span>
+              <h3>Ein Lernsystem fürs eigene Abitur</h3>
+              <p>Kein Tool, nur Methode: jedes Thema einzeln einschätzen, Schwaches zuerst
+              üben.</p></div>
+            <div class="au-tl-6__card"><span class="au-story-year">Studium</span>
+              <h3>Weitergedacht, diesmal mit KI</h3>
+              <p>Aus der Methode wurde ein Prototyp: KI-Chat, Lernzettel, Testklausuren.</p></div>
+            <div class="au-tl-6__card"><span class="au-story-year">Schwester</span>
+              <h3>Die erste echte Nutzerin war meine Schwester</h3>
+              <p>Eine App, die man ohne Erklärung bedienen kann.</p></div>
+            <div class="au-tl-6__card"><span class="au-story-year">Heute</span>
+              <h3>Aus dem Projekt ist ein Unternehmen geworden</h3>
+              <p>Für viele Familien da, nicht nur für eine Person.</p></div>
+          </div>
+        </div>
+
+        <!-- v7 — Akkordeon -->
+        <div class="au-tl-7" data-variant="7">
+          <details class="au-tl-7__item" open>
+            <summary><span class="au-story-year">2023</span><h3>Ein Lernsystem fürs eigene Abitur</h3></summary>
             <p>Kein Tool, nur Methode: jedes Thema einzeln einschätzen, Schwaches zuerst üben,
             vor der Prüfung nichts dem Bauchgefühl überlassen. Das hat funktioniert, und die
             Struktur ist bis heute der Kern von Lesify.</p>
-          </div>
-        </div>
-        <div class="story__item">
-          <div class="story__year">Studium</div>
-          <div>
-            <h3>Weitergedacht, diesmal mit KI</h3>
+          </details>
+          <details class="au-tl-7__item">
+            <summary><span class="au-story-year">Studium</span><h3>Weitergedacht, diesmal mit KI</h3></summary>
             <p>Im Studium habe ich täglich mit KI gearbeitet und gemerkt, wie stark sie beim
-            Erklären ist, wenn man sie richtig einsetzt. Aus der Methode wurde ein Prototyp:
-            KI-Chat pro Fach, automatische Lernzettel, Testklausuren mit echter Note.</p>
+            Erklären ist. Aus der Methode wurde ein Prototyp: KI-Chat pro Fach, automatische
+            Lernzettel, Testklausuren mit echter Note.</p>
+          </details>
+          <details class="au-tl-7__item">
+            <summary><span class="au-story-year">Schwester</span><h3>Die erste echte Nutzerin war meine Schwester</h3></summary>
+            <p>Sie kam in die 8. Klasse, Nachhilfe war teuer und unflexibel. Für sie habe ich
+            aus dem Prototyp eine App gebaut, die man ohne Erklärung bedienen kann.</p>
+          </details>
+          <details class="au-tl-7__item">
+            <summary><span class="au-story-year">Heute</span><h3>Aus dem Projekt ist ein Unternehmen geworden</h3></summary>
+            <p>Was für eine Person gedacht war, ist heute für viele Familien da — gute Lernhilfe
+            soll nicht am Geldbeutel, am Wohnort oder am freien Nachmittag scheitern.</p>
+          </details>
+        </div>
+
+        <!-- v8 — Jahres-Leiste links, Inhalt rechts -->
+        <div class="au-tl-8" data-variant="8">
+          <div class="au-tl-8__years">
+            <span class="au-story-year">2023</span>
+            <span class="au-story-year">Studium</span>
+            <span class="au-story-year">Schwester</span>
+            <span class="au-story-year">Heute</span>
+          </div>
+          <div class="au-tl-8__content">
+            <div><h3>Ein Lernsystem fürs eigene Abitur</h3>
+              <p>Kein Tool, nur Methode: jedes Thema einzeln einschätzen, Schwaches zuerst üben,
+              vor der Prüfung nichts dem Bauchgefühl überlassen.</p></div>
+            <div><h3>Weitergedacht, diesmal mit KI</h3>
+              <p>Aus der Methode wurde ein Prototyp: KI-Chat pro Fach, automatische Lernzettel,
+              Testklausuren mit echter Note.</p></div>
+            <div><h3>Die erste echte Nutzerin war meine Schwester</h3>
+              <p>Für sie habe ich aus dem Prototyp eine App gebaut, die man ohne Erklärung
+              bedienen kann.</p></div>
+            <div><h3>Aus dem Projekt ist ein Unternehmen geworden</h3>
+              <p>Gute Lernhilfe soll nicht am Geldbeutel, am Wohnort oder am freien Nachmittag
+              scheitern.</p></div>
           </div>
         </div>
-        <div class="story__item">
-          <div class="story__year">Schwester</div>
-          <div>
+
+        <!-- v9 — Gestrichelte Linie mit Icon-Markern -->
+        <div class="au-tl-9" data-variant="9">
+          <div class="au-tl-9__item"><span class="au-tl-9__icon" aria-hidden="true">&#128214;</span>
+            <span class="au-story-year">2023</span>
+            <h3>Ein Lernsystem fürs eigene Abitur</h3>
+            <p>Kein Tool, nur Methode: jedes Thema einzeln einschätzen, Schwaches zuerst üben,
+            vor der Prüfung nichts dem Bauchgefühl überlassen.</p></div>
+          <div class="au-tl-9__item"><span class="au-tl-9__icon" aria-hidden="true">&#128161;</span>
+            <span class="au-story-year">Studium</span>
+            <h3>Weitergedacht, diesmal mit KI</h3>
+            <p>Aus der Methode wurde ein Prototyp: KI-Chat pro Fach, automatische Lernzettel,
+            Testklausuren mit echter Note.</p></div>
+          <div class="au-tl-9__item"><span class="au-tl-9__icon" aria-hidden="true">&#127891;</span>
+            <span class="au-story-year">Schwester</span>
             <h3>Die erste echte Nutzerin war meine Schwester</h3>
-            <p>Sie kam in die 8. Klasse, Nachhilfe war teuer und unflexibel, und sie wollte
-            vor allem verstehen, nicht vorgesagt bekommen. Für sie habe ich aus dem Prototyp
-            eine App gebaut, die man ohne Erklärung bedienen kann.</p>
-          </div>
-        </div>
-        <div class="story__item">
-          <div class="story__year">Heute</div>
-          <div>
+            <p>Für sie habe ich aus dem Prototyp eine App gebaut, die man ohne Erklärung
+            bedienen kann.</p></div>
+          <div class="au-tl-9__item"><span class="au-tl-9__icon" aria-hidden="true">&#128640;</span>
+            <span class="au-story-year">Heute</span>
             <h3>Aus dem Projekt ist ein Unternehmen geworden</h3>
-            <p>Was für eine Person gedacht war, ist heute für viele Familien da. Die Idee ist
-            dieselbe geblieben: gute Lernhilfe soll nicht am Geldbeutel, am Wohnort oder am
-            freien Nachmittag scheitern.</p>
-          </div>
+            <p>Gute Lernhilfe soll nicht am Geldbeutel, am Wohnort oder am freien Nachmittag
+            scheitern.</p></div>
         </div>
+
+        <!-- v10 — Kompakte Editorial-Liste -->
+        <div class="au-tl-10" data-variant="10">
+          <div class="au-tl-10__item"><span class="au-story-year">2023</span>
+            <h3>Ein Lernsystem fürs eigene Abitur</h3>
+            <p>Kein Tool, nur Methode: jedes Thema einzeln einschätzen, Schwaches zuerst üben,
+            nichts dem Bauchgefühl überlassen.</p></div>
+          <div class="au-tl-10__item"><span class="au-story-year">Studium</span>
+            <h3>Weitergedacht, diesmal mit KI</h3>
+            <p>Aus der Methode wurde ein Prototyp: KI-Chat, Lernzettel, Testklausuren mit
+            echter Note.</p></div>
+          <div class="au-tl-10__item"><span class="au-story-year">Schwester</span>
+            <h3>Die erste echte Nutzerin war meine Schwester</h3>
+            <p>Eine App, die man ohne Erklärung bedienen kann.</p></div>
+          <div class="au-tl-10__item"><span class="au-story-year">Heute</span>
+            <h3>Aus dem Projekt ist ein Unternehmen geworden</h3>
+            <p>Für viele Familien da, nicht nur für eine Person.</p></div>
+        </div>
+
       </div>
     </div>
   </section>
 
-  <!-- Werte (schwarzer Abschnitt) -->
-  <section class="section mkt-dark">
-    <div class="container container--narrow">
-      <div class="section-head" data-reveal>
-        <span class="eyebrow">Worauf es mir ankommt</span>
-        <h2>KI als Helfer, nicht als Löser.</h2>
-        <p>
-          Eine KI, die einfach die Antwort ausspuckt, bringt vor der nächsten Klausur nichts.
-          Lesify ist so gebaut, dass am Ende Ihr Kind die Aufgabe kann — nicht der Chat.
-        </p>
-      </div>
-      <div class="about-values__grid" data-reveal>
-        <div>
-          <h4>Verstehen statt vorsagen</h4>
-          <p>Die KI erarbeitet den Lösungsweg und fragt nach, statt Ergebnisse abzuliefern.</p>
-        </div>
-        <div>
-          <h4>Ehrliche Rückmeldung</h4>
-          <p>Eine Testklausur mit echter Note ist unbequemer als ein gutes Gefühl — und viel nützlicher.</p>
-        </div>
-        <div>
-          <h4>Datensparsam</h4>
-          <p>Nur speichern, was das Lernen braucht. Dateien nur über zeitlich begrenzte Links, Server in der EU.</p>
-        </div>
-        <div>
-          <h4>Kein Abo-Zwang</h4>
-          <p>Kostenlos starten, monatlich kündbar, über die Ferien pausieren.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Ausblick + Zahlen (weiß, alle 4 Ecken rund — schwarz darüber und darunter) -->
+  <!-- ============================================================
+       3) WO LESIFY JETZT STEHT (weiß) — 10 Design-Varianten
+       ============================================================ -->
   <section class="section mkt-cut mkt-cut--all">
     <div class="container container--narrow">
-      <div class="about-outlook" data-reveal>
+      <div class="about-outlook au-stand-head" data-reveal>
         <h2>Wo Lesify gerade steht</h2>
         <p>
           Der aktuelle Stand ist ein funktionsfähiger Prototyp. Notenberechnung, Ampel-Logik und
@@ -207,16 +437,145 @@
           <a href="kontakt.html">Kontaktseite</a>.
         </p>
       </div>
-      <div class="stats" data-stagger="90" style="margin-top:clamp(2rem,1.4rem+2vw,3rem)">
-        <div class="stat"><b>2023</b><span>als Lernsystem begonnen</span></div>
-        <div class="stat"><b data-count="9">9</b><span>Schulfächer vorbereitet</span></div>
-        <div class="stat"><b>EU</b><span>Serverstandort</span></div>
-        <div class="stat"><b>ab 0&nbsp;&euro;</b><span>Einstieg</span></div>
+
+      <div class="au-group" data-group="stand" data-active="1" data-reveal data-reveal-delay="80"
+           style="margin-top:clamp(2rem,1.4rem+2vw,3rem)">
+
+        <!-- v1 — Klassisch: 4 Kacheln -->
+        <div class="au-stand-1" data-variant="1">
+          <div class="au-cols-4 au-stand-1__stats">
+            <div class="au-stat-tile"><b>2023</b><span>als Lernsystem begonnen</span></div>
+            <div class="au-stat-tile"><b>9</b><span>Schulfächer vorbereitet</span></div>
+            <div class="au-stat-tile"><b>EU</b><span>Serverstandort</span></div>
+            <div class="au-stat-tile"><b>ab 0&nbsp;&euro;</b><span>Einstieg</span></div>
+          </div>
+        </div>
+
+        <!-- v2 — Status-Karte + Checkliste -->
+        <div class="au-stand-2" data-variant="2">
+          <div class="au-stand-2__card">
+            <span class="au-stand-2__badge">Prototyp aktiv</span>
+            <p>Ein Teil von Lesify rechnet schon vollständig echt — der Rest ist bewusst
+            simulierter Platzhalter, bis die KI-Anbindung live geht.</p>
+            <ul class="au-stand-2__list">
+              <li class="is-real"><b>&#10003;</b> Notenberechnung</li>
+              <li class="is-real"><b>&#10003;</b> Ampel-Logik</li>
+              <li class="is-real"><b>&#10003;</b> 7-Tage-Lernplan</li>
+              <li class="is-sim"><b>&hellip;</b> KI-Chat-Antworten</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- v3 — Fortschrittsbalken -->
+        <div class="au-stand-3" data-variant="3">
+          <p>Aktueller Meilenstein: <b>funktionsfähiger Prototyp</b> — Notenberechnung,
+          Ampel-Logik und Lernplan rechnen bereits echt.</p>
+          <div class="au-stand-3__track"><div class="au-stand-3__fill"></div></div>
+          <div class="au-stand-3__marks">
+            <span class="is-now">Prototyp</span><span>Beta</span><span>Live-Produkt</span>
+          </div>
+        </div>
+
+        <!-- v4 — Split: Text links, Stats rechts -->
+        <div class="au-stand-4" data-variant="4">
+          <div class="au-stand-4__grid">
+            <p>Der aktuelle Stand ist ein funktionsfähiger Prototyp: Notenberechnung und
+            Ampel-Logik rechnen bereits vollständig echt, die KI-Antworten sind noch
+            simulierter Platzhaltertext.</p>
+            <div class="au-stand-4__stats">
+              <div class="au-stat-tile"><b>2023</b><span>Start als Lernsystem</span></div>
+              <div class="au-stat-tile"><b>9</b><span>Fächer vorbereitet</span></div>
+              <div class="au-stat-tile"><b>EU</b><span>Serverstandort</span></div>
+              <div class="au-stat-tile"><b>0&nbsp;&euro;</b><span>Einstieg</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- v5 — Vergleichstabelle Heute/Ziel -->
+        <div class="au-stand-5" data-variant="5">
+          <table class="au-stand-5__table">
+            <thead><tr><th></th><th>Heute</th><th>Ziel</th></tr></thead>
+            <tbody>
+              <tr><td>Notenberechnung</td><td class="is-live">Echt</td><td>Echt</td></tr>
+              <tr><td>KI-Antworten</td><td>Platzhalter</td><td class="is-live">Live-KI</td></tr>
+              <tr><td>Fächer</td><td class="is-live">9 vorbereitet</td><td>Alle Kernfächer</td></tr>
+              <tr><td>Preis</td><td class="is-live">ab 0&nbsp;&euro;</td><td>ab 0&nbsp;&euro;</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- v6 — Ampel-Checkliste -->
+        <div class="au-stand-6" data-variant="6">
+          <div class="au-stand-6__list">
+            <div class="au-stand-6__row is-gruen"><span class="au-stand-6__dot"></span>
+              <span>Notenberechnung rechnet echt</span></div>
+            <div class="au-stand-6__row is-gruen"><span class="au-stand-6__dot"></span>
+              <span>Ampel-Logik (grün/gelb/rot) ist live</span></div>
+            <div class="au-stand-6__row is-gruen"><span class="au-stand-6__dot"></span>
+              <span>7-Tage-Lernplan funktioniert</span></div>
+            <div class="au-stand-6__row is-gelb"><span class="au-stand-6__dot"></span>
+              <span>KI-Antworten sind noch Platzhaltertext</span></div>
+          </div>
+        </div>
+
+        <!-- v7 — Große Einzel-Kennzahl -->
+        <div class="au-stand-7" data-variant="7">
+          <div class="au-stand-7__lead">
+            <span class="au-stand-7__num">2023</span>
+            <span class="au-stand-7__num-label">als Lernsystem fürs eigene Abitur begonnen —
+            heute ein Unternehmen.</span>
+          </div>
+          <div class="au-stand-7__row">
+            <span><b>9</b> Fächer vorbereitet</span>
+            <span><b>EU</b> Serverstandort</span>
+            <span><b>ab 0&nbsp;&euro;</b> Einstieg</span>
+          </div>
+        </div>
+
+        <!-- v8 — Zitat-Statement + Fußnoten-Stats -->
+        <div class="au-stand-8" data-variant="8">
+          <p class="au-stand-8__quote">&bdquo;Ein Prototyp, der schon so rechnet, wie das
+          fertige Produkt einmal rechnen soll.&ldquo;</p>
+          <div class="au-stand-8__row">
+            <span>Seit 2023</span><span>9 Fächer</span><span>EU-Server</span><span>Ab 0&nbsp;&euro;</span>
+          </div>
+        </div>
+
+        <!-- v9 — Horizontale Roadmap-Schritte -->
+        <div class="au-stand-9" data-variant="9">
+          <div class="au-stand-9__steps">
+            <div class="au-stand-9__step is-done"><span class="au-stand-9__dot"></span>
+              <div class="au-stand-9__label">Idee &amp; Methode</div></div>
+            <div class="au-stand-9__step is-now"><span class="au-stand-9__dot"></span>
+              <div class="au-stand-9__label">Prototyp</div></div>
+            <div class="au-stand-9__step"><span class="au-stand-9__dot"></span>
+              <div class="au-stand-9__label">Beta</div></div>
+            <div class="au-stand-9__step"><span class="au-stand-9__dot"></span>
+              <div class="au-stand-9__label">Live-Produkt</div></div>
+          </div>
+        </div>
+
+        <!-- v10 — Icon-Stat-Kacheln -->
+        <div class="au-stand-10" data-variant="10">
+          <div class="au-cols-4 au-stand-10__grid">
+            <div class="au-stand-10__card"><span class="au-stand-10__icon" aria-hidden="true">&#128197;</span>
+              <div class="au-stat-tile"><b>2023</b><span>als Lernsystem begonnen</span></div></div>
+            <div class="au-stand-10__card"><span class="au-stand-10__icon" aria-hidden="true">&#128218;</span>
+              <div class="au-stat-tile"><b>9</b><span>Schulfächer vorbereitet</span></div></div>
+            <div class="au-stand-10__card"><span class="au-stand-10__icon" aria-hidden="true">&#127757;</span>
+              <div class="au-stat-tile"><b>EU</b><span>Serverstandort</span></div></div>
+            <div class="au-stand-10__card"><span class="au-stand-10__icon" aria-hidden="true">&#128176;</span>
+              <div class="au-stat-tile"><b>ab 0&nbsp;&euro;</b><span>Einstieg</span></div></div>
+          </div>
+        </div>
+
       </div>
     </div>
   </section>
 
-  <!-- Abschluss-CTA (schwarzer Abschnitt) -->
+  <!-- ============================================================
+       4) ABSCHLUSS-CTA (schwarz) — fest, keine Varianten
+       ============================================================ -->
   <section class="section mkt-dark">
     <div class="container">
       <div class="cta-band" data-reveal>
@@ -235,5 +594,69 @@
 
 <footer id="mkt-footer"></footer>
 <script src="assets/js/marketing.js"></script>
+<script>
+(function () {
+  /* Dev-Switcher für die drei Design-Achsen dieser Seite (Hero /
+     Timeline / Stand). Gleiches Muster wie mountSearchDev in
+     app/assets/js/app.js bzw. mountLabDev in marketing.js — eigenes,
+     seitengebundenes Panel statt Erweiterung von LAB_API, da die
+     Achsen hier fest 10 Varianten haben und nichts mit der
+     Startseiten-Lab-Logik teilen. */
+  var AXES = [
+    { key: 'hero', label: 'Hero', group: 'hero', max: 10 },
+    { key: 'timeline', label: 'Timeline', group: 'timeline', max: 10 },
+    { key: 'stand', label: 'Stand', group: 'stand', max: 10 }
+  ];
+
+  function getVariant(ax) {
+    try { return localStorage.getItem('lesify:about:' + ax.key) || '1'; } catch (e) { return '1'; }
+  }
+  function applyVariant(ax, v) {
+    var el = document.querySelector('.au-group[data-group="' + ax.group + '"]');
+    if (el) el.setAttribute('data-active', v);
+  }
+  function devRow(ax, active) {
+    var btns = '';
+    for (var i = 1; i <= ax.max; i++) {
+      btns += '<button type="button" data-au="' + ax.key + '" data-v="' + i + '"' +
+        (String(i) === active ? ' class="is-on"' : '') + '>' + i + '</button>';
+    }
+    return '<div class="layout-dev-row"><span>' + ax.label + '</span><div class="layout-dev-seg">' + btns + '</div></div>';
+  }
+  function mountDev() {
+    if (document.querySelector('.layout-dev.is-about')) return;
+    var panel = document.createElement('div');
+    panel.className = 'layout-dev is-about';
+    try { if (localStorage.getItem('lesify:about:min') === '1') panel.classList.add('is-min'); } catch (e) {}
+    var html = '<button type="button" class="layout-dev-title" data-dev-min>Über uns</button>';
+    AXES.forEach(function (ax) { html += devRow(ax, getVariant(ax)); });
+    panel.innerHTML = html;
+    panel.addEventListener('click', function (e) {
+      if (e.target.closest('[data-dev-min]')) {
+        panel.classList.toggle('is-min');
+        try { localStorage.setItem('lesify:about:min', panel.classList.contains('is-min') ? '1' : '0'); } catch (err) {}
+        return;
+      }
+      var b = e.target.closest('[data-au]');
+      if (!b) return;
+      var key = b.getAttribute('data-au');
+      var v = b.getAttribute('data-v');
+      var ax = null;
+      for (var i = 0; i < AXES.length; i++) { if (AXES[i].key === key) { ax = AXES[i]; break; } }
+      if (!ax) return;
+      try { localStorage.setItem('lesify:about:' + key, v); } catch (err) {}
+      panel.querySelectorAll('[data-au="' + key + '"]').forEach(function (x) { x.classList.toggle('is-on', x === b); });
+      applyVariant(ax, v);
+    });
+    document.body.appendChild(panel);
+  }
+  function init() {
+    AXES.forEach(function (ax) { applyVariant(ax, getVariant(ax)); });
+    mountDev();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+</script>
 </body>
 </html>

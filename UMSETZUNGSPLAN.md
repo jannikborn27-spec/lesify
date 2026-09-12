@@ -1753,8 +1753,36 @@ Blockiert alles Weitere. Erst die offenen Produktfragen klären, dann bauen.
       zeigt jetzt nur noch „Hero" (1–10) und „Timeline" (1–2);
       `getVariant()` klemmt gespeicherte Werte über dem neuen Maximum auf 1,
       damit alte `localStorage`-Stände (z. B. `timeline: "7"`) nicht zu
-      einer leeren Sektion führen. Noch offen: finale Hero-/Timeline-Variante
-      auswählen und Dev-Panel danach ganz entfernen.
+      einer leeren Sektion führen.
+      · **Zweite Nachjustierung (2026-09-12, gleicher Tag):**
+      **Eck-Passermarken auf allen vier Abschnitten:** neue Komponente
+      `.au-frame-mark` (vier `<span>` je Section, `--tl/--tr/--bl/--br`),
+      dunkel auf Weiß (Hero/Stand), hell auf Schwarz
+      (`.mkt-dark .au-frame-mark`) — auf Screens < 640px ausgeblendet.
+      **Timeline final** → nur noch die Variante mit der großen verblassten
+      Jahreszahl (`.au-tl__item`/`.au-tl__big`, vorher `.au-tl-2`), Zickzack-
+      Variante gelöscht, Dev-Panel-Zeile „Timeline" entfernt (Achse jetzt
+      wieder fix). **Hero komplett neu (2. Anlauf, 1. Anlauf gefiel nicht):**
+      alle 10 Varianten aus Anlauf 1 gelöscht, 10 grundlegend andere
+      Kompositionen statt Foto-Platzierungs-Varianten: diagonaler Split
+      (`clip-path`), großes „J" mit Foto als Buchstaben-Maske
+      (`background-clip:text`), Zeitungs-Titelseite mit Masthead +
+      Foto-Credit, Farbfeld-Split mit dunkel getöntem Foto im Tinten-Panel,
+      Magazin-Umfluss (Foto als `shape-outside`-Drop-Bild), Gründer-Memo mit
+      Textmarker-`<mark>` + Ausweis-Badge, Scrapbook mit Washi-Tape auf
+      Punktraster-Hintergrund, Ticker-Leiste mit pulsierendem „Live"-Avatar,
+      Foto-Maske im ersten Headline-Wort (groß + eigene Zeile, sonst
+      innerhalb der Buchstaben kaum erkennbar), Interview-Karte mit
+      Tonspur-Balken. **Bug gefunden + gefixt:** vier der neuen Varianten
+      (v1/v4/v6/v7) hatten `display:grid` direkt auf dem `[data-variant]`-
+      Element gesetzt — die generische Sichtbarkeits-Regel
+      `.au-group>[data-variant]{display:block}` gewann per Spezifität
+      dagegen und warf die Spalten übereinander. Fix: Grid immer auf einen
+      inneren `.au-hero-N__grid`-Wrapper, nie auf das `[data-variant]`-
+      Element selbst. Im Browser (temporärer lokaler Server) geprüft: alle
+      10 Hero-Varianten je genau 1 sichtbares Kind, alle 16 Eck-Marken
+      (4 Sections × 4 Ecken) vorhanden, Dev-Panel zeigt nur noch „Hero",
+      keine Konsolenfehler.
 
 ---
 

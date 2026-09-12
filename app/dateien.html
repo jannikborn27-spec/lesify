@@ -83,29 +83,32 @@
   </div>
 </div>
 
-<script src="assets/js/data.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/auth-gate.js"></script>
 <script src="assets/js/app.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
   var R = LesifyUI.Render, I = LesifyUI.Icons;
   document.getElementById('upload-icon-wrap').innerHTML = I.upload;
   document.getElementById('view-grid').innerHTML = I.grid;
   document.getElementById('view-list').innerHTML = I.list;
+
+  await Promise.all([Lesify.faecher(), Lesify.themen()]);
 
   function drawFilters() {
     document.getElementById('file-filters').innerHTML = R.fachFilterChips();
   }
 
   var currentView = 'grid';
-  function drawFiles() {
+  async function drawFiles() {
     var container = document.getElementById('files-container');
     container.className = currentView === 'grid' ? 'grid grid-auto' : 'card divide-list';
-    var dateien = Lesify.dateien().slice().reverse();
+    var dateien = await Lesify.dateien(); // bereits neueste zuerst
     var html = dateien.map(currentView === 'grid' ? R.dateiCard : R.dateiRow).join('');
     container.innerHTML = html || ('<div class="empty-state" style="grid-column:1/-1"><div class="es-icon">' + I.folder + '</div><h4>Noch keine Dateien</h4><p>Lade deine erste Datei hoch.</p></div>');
   }
 
-  drawFilters(); drawFiles();
+  drawFilters(); await drawFiles();
 
   document.getElementById('view-grid').addEventListener('click', function () {
     currentView = 'grid'; this.classList.add('is-active'); document.getElementById('view-list').classList.remove('is-active'); drawFiles();
@@ -122,10 +125,10 @@ document.addEventListener('DOMContentLoaded', function () {
   var newThemaRow = document.getElementById('fa-new-thema-row');
 
   function populateFaecher() {
-    fachSelect.innerHTML = Lesify.faecher().map(function (f) { return '<option value="' + f.id + '">' + f.name + '</option>'; }).join('') +
+    fachSelect.innerHTML = Lesify._faecherCache().map(function (f) { return '<option value="' + f.id + '">' + f.name + '</option>'; }).join('') +
       '<option value="__new__">+ Neues Fach erstellen</option>';
   }
-  function populateThemen() {
+  async function populateThemen() {
     var fachId = fachSelect.value;
     if (fachId === '__new__') {
       newFachRow.style.display = 'flex';
@@ -134,7 +137,10 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
     newFachRow.style.display = 'none';
-    themaSelect.innerHTML = Lesify.themen(fachId).map(function (t) { return '<option value="' + t.id + '">' + t.name + '</option>'; }).join('') +
+    themaSelect.innerHTML = '<option value="__new__">+ Neues Thema erstellen</option>';
+    var themenListe = await Lesify.themenFuerFach(fachId);
+    if (fachSelect.value !== fachId) return; // Fach wurde inzwischen gewechselt
+    themaSelect.innerHTML = themenListe.map(function (t) { return '<option value="' + t.id + '">' + t.name + '</option>'; }).join('') +
       '<option value="__new__">+ Neues Thema erstellen</option>';
     newThemaRow.style.display = themaSelect.value === '__new__' ? 'flex' : 'none';
   }
@@ -156,37 +162,39 @@ document.addEventListener('DOMContentLoaded', function () {
     e.target.value = '';
   });
 
-  document.getElementById('file-assign-form').addEventListener('submit', function (e) {
+  document.getElementById('file-assign-form').addEventListener('submit', async function (e) {
     e.preventDefault();
     if (!pendingFile) return;
     var fachId = fachSelect.value;
     if (fachId === '__new__') {
       var fachName = document.getElementById('fa-fach-neu').value.trim();
       if (!fachName) { document.getElementById('fa-fach-neu').focus(); return; }
-      fachId = Lesify.addFach({ name: fachName }).id;
+      fachId = (await Lesify.addFach({ name: fachName })).id;
     }
     var themaId = themaSelect.value;
     if (themaId === '__new__') {
       var themaName = document.getElementById('fa-thema-neu').value.trim();
       if (!themaName) { document.getElementById('fa-thema-neu').focus(); return; }
-      themaId = Lesify.addThema({ fachId: fachId, name: themaName }).id;
+      themaId = (await Lesify.addThema({ fachId: fachId, name: themaName })).id;
     }
-    var ext = (pendingFile.name.split('.').pop() || '').toLowerCase();
-    var typ = ext === 'pdf' ? 'pdf' : (['png', 'jpg', 'jpeg', 'gif'].indexOf(ext) !== -1 ? 'img' : 'doc');
-    var sizeKb = pendingFile.size ? Math.max(1, Math.round(pendingFile.size / 1024)) : 240;
-    var groesse = sizeKb > 1024 ? (sizeKb / 1024).toFixed(1) + ' MB' : sizeKb + ' KB';
-    var d = Lesify.addDatei({ fachId: fachId, themaId: themaId, name: pendingFile.name, typ: typ, groesse: groesse });
-    Lesify.incrementUsage('dateien', 1);
+    var file = pendingFile;
     LesifyUI.closeModal(document.getElementById('modal-assign-file'));
     this.reset();
     pendingFile = null;
-    drawFiles();
+
+    var d;
+    try {
+      d = await Lesify.uploadDatei(themaId, file);
+    } catch (err) {
+      LesifyUI.toast(Lesify.fehlerText(err));
+      return;
+    }
+    await drawFiles();
     LesifyUI.toast('„' + d.name + '" wird gelesen und zusammengefasst…');
-    setTimeout(function () {
-      Lesify.markDateiBereit(d.id, 'Automatisch erzeugte Zusammenfassung von ' + d.name + '.');
-      drawFiles();
-      LesifyUI.toast('„' + d.name + '" ist bereit.');
-    }, 1600);
+    Lesify.pollDateiStatus(d.id, function () {}).then(async function (updated) {
+      await drawFiles();
+      LesifyUI.toast(updated.status === 'bereit' ? '„' + updated.name + '" ist bereit.' : '„' + updated.name + '" konnte nicht verarbeitet werden.');
+    });
   });
 });
 </script>

@@ -397,8 +397,12 @@
 
   function openDateiModal(dateiId) {
     if (typeof Lesify === 'undefined') return;
-    var d = Lesify.getDatei(dateiId);
-    if (!d) return;
+    var maybe = Lesify.getDatei(dateiId);
+    if (maybe && typeof maybe.then === 'function') maybe.then(function (d) { if (d) renderDateiModal(d); });
+    else if (maybe) renderDateiModal(maybe);
+  }
+
+  function renderDateiModal(d) {
     var l = Lesify.label(d.themaId);
     var bereit = d.status === 'bereit';
     var typLabel = fileTypeLabel(d.typ);
@@ -479,7 +483,20 @@
         '', 'KI-Zusammenfassung', '------------------',
         d.zusammenfassung || 'Noch keine Zusammenfassung verfügbar.'
       ].join('\n');
-      Lesify.downloadText(Lesify.slugify(d.name.replace(/\.[^.]+$/, '')) + '.txt', doc);
+      var filename = Lesify.slugify(d.name.replace(/\.[^.]+$/, '')) + '.txt';
+      // `Lesify.downloadText` gibt es nur in data.js — api.js baut den Blob
+      // lokal, da dieses Dokument ohnehin rein aus bereits geladenen Feldern
+      // zusammengesetzt wird (kein Server-Roundtrip nötig).
+      if (typeof Lesify.downloadText === 'function') {
+        Lesify.downloadText(filename, doc);
+      } else {
+        var blob = new Blob([doc], { type: 'text/plain' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url; a.download = filename;
+        document.body.appendChild(a); a.click(); a.remove();
+        URL.revokeObjectURL(url);
+      }
       toast('„' + d.name + '" wird heruntergeladen…');
     });
   }

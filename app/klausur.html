@@ -95,22 +95,25 @@
   </div>
 </div>
 
-<script src="assets/js/data.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/auth-gate.js"></script>
 <script src="assets/js/app.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
   var R = LesifyUI.Render, I = LesifyUI.Icons;
 
   var params = new URLSearchParams(window.location.search);
-  var kId = params.get('id') || Lesify.klausuren()[0].id;
-  var k = Lesify.getKlausur(kId) || Lesify.klausuren()[0];
+  await Lesify.faecher();
+  var kId = params.get('id');
+  var k = kId ? await Lesify.getKlausur(kId) : (await Lesify.klausuren())[0];
   kId = k.id;
   var fach = Lesify.getFach(k.fachId);
   var fachCol = fach ? Lesify.getFachColor(fach.farbe) : null;
   LesifyUI.setPageWatermark(Lesify.getFachIcon(k.fachId) || '', fachCol ? fachCol.base : null);
   document.title = k.titel + ' · Lesify';
 
-  var lp = Lesify.getLernplanFuerKlausur(kId);
+  var lp = null;
+  try { lp = await Lesify.getLernplanFuerKlausur(kId); } catch (err) { lp = null; }
   var vergangen = Lesify.klausurVergangen(k);
   var fcVars = R.fachColorVars(k.fachId);
 
@@ -134,20 +137,26 @@ document.addEventListener('DOMContentLoaded', function () {
       '</div>';
   }
 
-  function renderAll() {
+  async function renderAll() {
     buildSkeleton();
+    // Zuerst die Themen laden — füllt (über Lesify.getThema()) den
+    // Themen-Cache, aus dem badge()/label() in der Lernplan-Sektion
+    // (Tag-1/5-Diagnose-Chips) synchron lesen (Lehre aus fach.html/
+    // klausuren.html: sonst zeigen die Chips "—" statt Fach/Thema).
+    await drawThemen();
     drawHead();
-    drawThemen();
     drawShortcuts();
     drawLernplan();
   }
 
   function drawHead() {
     // Bereits geschriebene Klausuren zeigen keine Note (nur den „Geschrieben"-Flag).
+    // k.note kommt mit GET /klausuren/:id bereits eingebettet — kein
+    // separater Lesify.klausurNote()-Aufruf nötig (den gibt es unter api.js
+    // nicht, im echten Backend gibt es keinen flachen Testklausur-Index).
     var noteBoxHtml = '';
-    if (!vergangen) {
-      var kn = Lesify.klausurNote(kId);
-      noteBoxHtml = kn ? R.testNoteBox(kn.note, kn.testNr, 'lg') : '';
+    if (!vergangen && k.note) {
+      noteBoxHtml = R.testNoteBox(k.note.note, k.note.testNr, 'lg');
     }
     document.getElementById('k-head').innerHTML =
       '<div>' + R.fachBadge(k.fachId) +
@@ -161,9 +170,9 @@ document.addEventListener('DOMContentLoaded', function () {
       (noteBoxHtml ? '<div class="page-actions" style="align-items:center">' + noteBoxHtml + '</div>' : '');
   }
 
-  function drawThemen() {
-    document.getElementById('k-themen').innerHTML = k.themaIds.map(function (tid) {
-      var thema = Lesify.getThema(tid);
+  async function drawThemen() {
+    var themen = await Promise.all(k.themaIds.map(function (tid) { return Lesify.getThema(tid); }));
+    document.getElementById('k-themen').innerHTML = themen.map(function (thema) {
       return thema ? R.themaCard(thema, { showFachBadge: false, filter: false, countKeys: ['chats', 'lernzettel', 'dateien'] }) : '';
     }).join('');
   }

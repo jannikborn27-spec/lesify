@@ -389,9 +389,23 @@
         return list;
       });
     },
-    /** Async — volles Aggregat inkl. Zählwerten/Kurzlisten (Thema-Detailseite). */
+    /** Async — volles Aggregat inkl. Zählwerten/Kurzlisten (Thema-Detailseite).
+        `stats.*` zusätzlich als `anzahlChats`/… gespiegelt — dieselbe
+        Konvention wie `GET /faecher`/`GET /faecher/:id/themen` — und ins
+        Themen-Cache gemerged, damit badge()/label() das Thema danach auch
+        synchron finden. */
     getThema: function (id) {
-      return GET('/themen/' + id);
+      return GET('/themen/' + id).then(function (t) {
+        if (t.stats) {
+          t.anzahlChats = t.stats.chats;
+          t.anzahlLernzettel = t.stats.lernzettel;
+          t.anzahlDateien = t.stats.dateien;
+          t.anzahlKlausuren = t.stats.klausuren;
+          t.anzahlTestklausuren = t.stats.testklausuren;
+        }
+        mergeCache(_cache.themen, [t]);
+        return t;
+      });
     },
     addThema: function (d) {
       return POST('/themen', d);

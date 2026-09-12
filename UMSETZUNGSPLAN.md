@@ -2635,13 +2635,45 @@ sonst unverändert.
 > überhaupt bleibt. Tests: `api/src/routes/ki.test.ts` (+1),
 > `api/src/routes/kern.test.ts` (+2)._
 >
+> _2026-09-12: **`faecher.html` als zweite Seite umgestellt.** Fach-Karten
+> (Zähler, Farbe, Icon, anstehende Klausur), Fach-Farbe ändern
+> (`LesifyUI.openFachColorPicker`) und neues Fach anlegen alle live gegen
+> Supabase geprüft. Zähler (`anzahlThemen`/`anzahlKlausuren`) kommen mit
+> `GET /faecher` bereits eingebettet (`fachDTO`) — kein eigener
+> `Lesify.countsForFach()`-Aufruf nötig, anders als im data.js-Prototyp.
+> `openFachColorPicker()` (app.js, geteilt mit dem noch nicht umgestellten
+> `fach.html`) rief `Lesify.updateFach()` bisher ungeawaitet auf — unter
+> api.js (Promise statt synchronem Rückgabewert) schloss das Modal, bevor
+> die Farbe gespeichert war. Jetzt: Thenable-Check wie bei `renderChrome()`,
+> data.js-Pfad unverändert synchron. Fach-Formular schickte testweise
+> `icon: null` mit — die Zod-Validierung (`erstellen`-Schema in
+> `faecher.ts`) lehnt explizites `null` bei einem `.optional()`-Feld ab
+> (`400 validierung`); Fix: `icon` nur mitschicken, wenn tatsächlich eins
+> gewählt wurde.
+>
+> **Dabei ein ernsterer, bis dahin unentdeckter CORS-Bug gefunden:**
+> `@fastify/cors` erlaubt ohne explizite `methods`-Option nur
+> `GET,HEAD,POST` — jeder `PATCH`- und `DELETE`-Endpunkt (Fächer-Farbe,
+> Lernplan-Checklist, Abo ändern/kündigen/pausieren, Einstellungen,
+> Kind-Profile entfernen, …) lief lautlos ins Leere: der Preflight (`OPTIONS`)
+> antwortete mit `204`, aber der Browser schickte den eigentlichen Request
+> gar nicht erst ab (`net::ERR_FAILED`, keine Server-Log-Zeile danach). Weder
+> die Marketing-Formulare (nur `POST`) noch `dashboard.html` (nur `GET`)
+> hätten das je ausgelöst — erst der Fach-Farbe-Test auf `faecher.html`
+> (`PATCH /faecher/:id`) hat es sichtbar gemacht. Fix: `methods: ['GET',
+> 'HEAD', 'POST', 'PATCH', 'DELETE']` explizit in `api/src/app.ts`. **Betrifft
+> jede künftige Seite, die etwas ändert oder löscht — beim nächsten
+> Cut-over sofort eine schreibende Aktion mittesten, nicht nur Lesen.**
+> Tests: `api/src/app.test.ts` (+2, Preflight erlaubt PATCH/DELETE).
+>
 > Der Rest des `app/*.html`-Seiten-Cut-overs (`chat.html`, `thema.html`,
 > `klausuren.html`, `klausur.html`, `testklausur.html`, `lernplan.html`,
-> `lernplan-lernzettel.html`, `lernzettel.html`, `faecher.html`, `fach.html`,
+> `lernplan-lernzettel.html`, `lernzettel.html`, `fach.html`,
 > `themen.html`, `dateien.html`, `suche.html`, `einstellungen.html`, die vier
 > `eltern-*.html`) bleibt offen — jede Seite braucht denselben sorgfältigen
-> Umbau + Browser-Test wie `dashboard.html`, jetzt aber ohne die
-> grundsätzlichen Blocker (Cache-Layer + CORS stehen bereits).
+> Umbau + Browser-Test wie `dashboard.html`/`faecher.html`, jetzt aber ohne
+> die grundsätzlichen Blocker (Cache-Layer + CORS inkl. PATCH/DELETE stehen
+> bereits).
 
 - [x] **API-Client `assets/js/api.js`** — _`Lesify.*`-Namen wie `data.js`, aber
       Promise-basiert; `fetch`-Wrapper mit Bearer-Token
@@ -2652,8 +2684,8 @@ sonst unverändert.
       `GET /auth/me` → `location.replace('../marketing/login.html?weiter=…')`._
 - [ ] **Seiten umstellen (pro Seite):** `data.js`→`api.js`+`auth-gate.js`,
       `Lesify.*`-Aufrufe `await`en, Renderer in `app.js` auf Promises anpassen.
-      _(Teilfortschritt 2026-09-12: `dashboard.html` fertig + verifiziert,
-      siehe Progress-Notiz oben. 19 Seiten offen.)_
+      _(Teilfortschritt 2026-09-12: `dashboard.html` + `faecher.html` fertig +
+      verifiziert, siehe Progress-Notizen oben. 18 Seiten offen.)_
 - [x] **`assets/js/api.js` — Fächer-/Themen-Cache + reine Helfer nachgezogen**
       — _2026-09-12 (mit `dashboard.html`, siehe Progress-Notiz oben):
       `getFach`/`label` als sync Cache-Lookups, `prozentZuNote`/`noteAmpel`/

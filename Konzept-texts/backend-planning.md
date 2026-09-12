@@ -1471,6 +1471,21 @@ Pfade bleiben nebeneinander bestehen (Unterscheidung: trägt das übergebene
 Objekt ein `note`-Feld, auch `null`). Gilt für **jede** künftige Seite im
 Cut-over, nicht nur `dashboard.html`.
 
+**Nachtrag `faecher.html` (2026-09-12):** dasselbe Embedded-Aggregat-Muster
+gilt für `Fach.anzahlThemen`/`anzahlKlausuren` (`fachDTO` in `api/src/lib/
+dto.ts`, mit `GET /faecher` eingebettet) — kein eigener
+`Lesify.countsForFach()`-Aufruf nötig, anders als im data.js-Prototyp, wo das
+eine separate synchrone Berechnung ist. Zwei weitere generische Lehren:
+(1) **jede geteilte `app.js`-Funktion, die einen Lesify-Schreibaufruf ohne
+Rückgabewert nutzt** (hier `openFachColorPicker()` → `Lesify.updateFach()`),
+braucht denselben Thenable-Check wie `renderChrome()` — sonst rennt der
+UI-Nachher-Schritt (Modal schließen, neu rendern) dem noch nicht
+abgeschlossenen `PATCH`/`POST` davon. (2) **Formulare dürfen `null` nicht als
+JSON-Wert für ein `.optional()`-Feld mitschicken** — Zod lehnt das ab (`400
+validierung`), anders als `undefined`/fehlender Key. Betrifft jedes Formular,
+das einen im Prototyp „leeren aber gesetzten" Wert (hier `icon: null`) an
+einen entsprechenden API-Endpunkt schickt.
+
 Dunkles Design: `SEED.settings.darkMode` (bool) — von `Lesify.getSettings`/
 `updateSettings` mitgeführt, sonst kein Datenfluss (reine Client-Darstellung,
 `data-theme` am `<html>` + CSS-Token-Override). Nur `app/`, nicht Marketing.
@@ -1660,6 +1675,12 @@ Hanken Grotesk, Ampel-Farben, „Fog Blue"-Tonleiter). Kein Build, Vanilla JS.
   muss in Phase 16 mit der echten Domain gesetzt werden. Tests:
   `api/src/lib/cors.test.ts` (5) + `api/src/app.test.ts` (2, Preflight +
   echte Antwort tragen den Header).
+- **CORS-Nachtrag (2026-09-12, mit `faecher.html`):** `@fastify/cors` erlaubt
+  ohne explizite `methods`-Option nur `GET,HEAD,POST` — jeder `PATCH`/`DELETE`-
+  Endpunkt lief bis dahin lautlos ins Leere (Preflight `204`, aber der Browser
+  schickte den eigentlichen Request nie ab). Fix: `methods: ['GET','HEAD',
+  'POST','PATCH','DELETE']` explizit gesetzt. Tests: `api/src/app.test.ts`
+  (+2, `it.each` für PATCH/DELETE).
 - **Backend-Pflege:** Ändern sich im `PRICE`-Objekt (`marketing/assets/js/
   marketing.js`) die Pakete, Limits oder Preise, müssen die Tabelle in §1
   „Usage / Limits", §7 und die offenen Punkte in §8 mitgezogen werden.

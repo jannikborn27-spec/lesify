@@ -69,8 +69,26 @@ erweitert, das für **jede** weitere Seite gebraucht wird (Details:
 - Neu: `relativeTime()` für `.updated`-Anzeigen (Chats/Lernzettel/Dateien).
 - `GET /lernzettel(?themaId=)` — neue Backend-Route, fehlte für Feeds.
 
-Nächste Seite: eigenes Ermessen, aber die Grundbausteine (Cache, CORS, echte
-Umgebung) stehen jetzt für alle ~19 verbleibenden Seiten bereit.
+**`faecher.html` als zweite Seite umgestellt (2026-09-12)** — Fach-Karten,
+Fach-Farbe ändern, neues Fach anlegen live geprüft. Dabei zwei generische
+Lehren für **jede** weitere Seite:
+- **CORS-`methods` fehlte** — `@fastify/cors` erlaubt ohne explizite Angabe
+  nur `GET,HEAD,POST`; jeder `PATCH`/`DELETE` (Fach-Farbe, Checklist, Abo,
+  Kind-Profile, …) lief lautlos ins Leere (Preflight `204`, Request nie
+  abgeschickt). Fix in `api/src/app.ts`. **Beim nächsten Cut-over sofort eine
+  schreibende Aktion mittesten, nicht nur Lesen** — `dashboard.html` (nur
+  `GET`) hätte das nie gezeigt.
+- Geteilte `app.js`-Funktionen mit einem Lesify-Schreibaufruf ohne
+  Rückgabewert (hier `openFachColorPicker()`) brauchen denselben
+  Thenable-Check wie `renderChrome()`, sonst rennt „Modal schließen + neu
+  rendern" dem noch offenen `PATCH`/`POST` davon.
+- Embedded-Aggregate wie bei `klausurNoteBox()`: `Fach.anzahlThemen`/
+  `anzahlKlausuren` kommen mit `GET /faecher` schon mit — kein
+  `Lesify.countsForFach()`-Äquivalent nötig.
+
+Nächste Seite: eigenes Ermessen, aber die Grundbausteine (Cache, CORS inkl.
+PATCH/DELETE, echte Umgebung) stehen jetzt für alle ~18 verbleibenden Seiten
+bereit.
 
 Basis-URL: `window.LESIFY_API_BASE` (Default `http://localhost:3000`).
 Session-Token: `localStorage['lesify:token']`.

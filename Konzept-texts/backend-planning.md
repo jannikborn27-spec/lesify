@@ -1484,6 +1484,22 @@ Race Condition in `fach.html` selbst (nicht im Cache-Layer): mehrere
 Draw-Funktionen liefen per `Promise.all([…])` parallel, aber eine liest
 synchron aus einem Cache, den eine andere erst füllt — ohne Sequenzierung
 (die cache-füllende Funktion zuerst einzeln awaiten) manchmal noch leer.
+**Nachtrag `klausuren.html` (2026-09-12):** drei weitere generische Lücken,
+alle im Cache-/Seiten-Muster, nicht seitenspezifisch. (1) `fachFilterChips()`
+(app.js) rief `Lesify.faecher()` synchron auf — unter api.js ein Promise.
+Neu: `Lesify._faecherCache()` (Sync-Snapshot), `fachFilterChips()` nutzt es,
+wenn vorhanden. (2) `Lesify.themen(fachId)` (gefiltert) gibt es unter api.js
+nicht — nur `themenFuerFach(fachId)` (async); das „neue Klausur"-Formular
+lädt Themen jetzt einmal pro Fach-Wechsel in eine lokale Variable statt sie
+synchron abzufragen. (3) **Cache-Warm-Lücke wie bei `fach.html`, diesmal
+fächerübergreifend:** die Liste awaitete nur `Lesify.faecher()`, nie
+`Lesify.themen()` — Klausur-Karten zeigten „—·—" statt Fach/Thema.
+**Faustregel:** jede Seite mit Thema-Badges braucht **sowohl**
+`faecher()` **als auch** `themen()` (oder eine Teilmenge wie
+`themenFuerFach()`) vorher geawaitet. Außerdem: `POST /klausuren` legt
+Klausur + Testklausur 1 (echter KI-Call) + Lernplan in einem Request an —
+`Lesify.starteLernplan()` aus data.js entfällt unter api.js ersatzlos, die
+Antwort liefert `lernplan.id` direkt.
 **Nachtrag `faecher.html` (2026-09-12):** dasselbe Embedded-Aggregat-Muster
 gilt für `Fach.anzahlThemen`/`anzahlKlausuren` (`fachDTO` in `api/src/lib/
 dto.ts`, mit `GET /faecher` eingebettet) — kein eigener

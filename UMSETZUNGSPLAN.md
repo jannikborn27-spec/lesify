@@ -2696,14 +2696,42 @@ sonst unverändert.
 > einzeln awaiten. Tests: `api/src/routes/kern.test.ts` (+1, `anzahlChats`
 > u. a. im `GET /faecher/:id/themen`-Response).
 >
+> _2026-09-12: **`klausuren.html` als vierte Seite umgestellt** (Liste + Fach-
+> Filter + Klausur anlegen, inkl. neues Fach/neues Thema im selben Formular).
+> Drei weitere generische Lücken gefixt, wieder alle im Cache-Layer bzw. im
+> Seiten-Muster, nicht seitenspezifisch:
+> (1) `fachFilterChips()` (app.js) rief `Lesify.faecher()` synchron auf —
+> unter api.js ein Promise. Neu: `Lesify._faecherCache()` (Sync-Snapshot des
+> Fächer-Caches) in `api.js`, `fachFilterChips()` nutzt es, wenn vorhanden,
+> sonst (data.js) unverändert den alten Pfad.
+> (2) `Lesify.themen(fachId)` (gefiltert) gibt es unter api.js nicht — nur
+> `themenFuerFach(fachId)` (async). Das „neue Klausur"-Formular lädt die
+> Themen-Pillen jetzt einmal pro Fach-Wechsel in eine lokale Variable, statt
+> sie bei jedem Render synchron neu abzufragen.
+> (3) **Wieder eine Cache-Warm-Lücke wie bei `fach.html`, diesmal fächer-
+> übergreifend:** die Klausur-Liste zeigte „—·—" auf allen Karten, weil die
+> Seite nur `Lesify.faecher()`, aber nie `Lesify.themen()` awaitete, bevor
+> `klausurCard()`/`badge()` synchron aus dem (leeren) Themen-Cache lasen.
+> **Faustregel geschärft:** jede Seite, die Karten/Zeilen mit
+> Thema-Badges rendert, muss vorher **sowohl** `Lesify.faecher()` **als auch**
+> `Lesify.themen()` (oder eine Seiten-lokale Teilmenge wie
+> `themenFuerFach()`) geawaitet haben — nicht nur Fächer.
+> Backend: `POST /klausuren` legt Klausur + Testklausur 1 (echter KI-Call) +
+> Lernplan in einem Request an — `Lesify.starteLernplan()` aus dem
+> data.js-Prototyp entfällt unter api.js ersatzlos, die Seite liest
+> `ergebnis.lernplan.id` direkt aus der Antwort. Live mit echtem
+> `ANTHROPIC_API_KEY` durchgeklickt (neues Fach + neues Thema + Klausur in
+> einem Formular-Durchlauf, danach Weiterleitung zu `lernplan.html` mit
+> echter Lernplan-ID) — Testdaten/-user danach gelöscht.
+>
 > Der Rest des `app/*.html`-Seiten-Cut-overs (`chat.html`, `thema.html`,
-> `klausuren.html`, `klausur.html`, `testklausur.html`, `lernplan.html`,
+> `klausur.html`, `testklausur.html`, `lernplan.html`,
 > `lernplan-lernzettel.html`, `lernzettel.html`,
 > `themen.html`, `dateien.html`, `suche.html`, `einstellungen.html`, die vier
 > `eltern-*.html`) bleibt offen — jede Seite braucht denselben sorgfältigen
-> Umbau + Browser-Test wie `dashboard.html`/`faecher.html`/`fach.html`, jetzt
-> aber ohne die grundsätzlichen Blocker (Cache-Layer inkl. `mergeCache` + CORS
-> inkl. PATCH/DELETE stehen bereits).
+> Umbau + Browser-Test wie die vier fertigen Seiten, jetzt aber ohne die
+> grundsätzlichen Blocker (Cache-Layer inkl. `mergeCache`/`_faecherCache` +
+> CORS inkl. PATCH/DELETE stehen bereits).
 
 - [x] **API-Client `assets/js/api.js`** — _`Lesify.*`-Namen wie `data.js`, aber
       Promise-basiert; `fetch`-Wrapper mit Bearer-Token
@@ -2715,8 +2743,8 @@ sonst unverändert.
 - [ ] **Seiten umstellen (pro Seite):** `data.js`→`api.js`+`auth-gate.js`,
       `Lesify.*`-Aufrufe `await`en, Renderer in `app.js` auf Promises anpassen.
       _(Teilfortschritt 2026-09-12: `dashboard.html` + `faecher.html` +
-      `fach.html` fertig + verifiziert, siehe Progress-Notizen oben. 17 Seiten
-      offen.)_
+      `fach.html` + `klausuren.html` fertig + verifiziert, siehe
+      Progress-Notizen oben. 16 Seiten offen.)_
 - [x] **`assets/js/api.js` — Fächer-/Themen-Cache + reine Helfer nachgezogen**
       — _2026-09-12 (mit `dashboard.html`, siehe Progress-Notiz oben):
       `getFach`/`label` als sync Cache-Lookups, `prozentZuNote`/`noteAmpel`/

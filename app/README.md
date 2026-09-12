@@ -98,9 +98,23 @@ generische Cache-Lücken gefixt, die **jede** weitere Seite treffen können:
   den eine andere erst füllt. **Faustregel:** die cache-füllende
   Draw-Funktion zuerst einzeln awaiten, erst danach den Rest parallelisieren.
 
+**`klausuren.html` als vierte Seite umgestellt (2026-09-12)** — Liste +
+Fach-Filter + Klausur anlegen (inkl. neues Fach/Thema im selben Formular,
+echter KI-Call für Testklausur 1). Drei weitere Lücken im selben Muster:
+- `fachFilterChips()` (app.js) rief `Lesify.faecher()` synchron auf — neu:
+  `Lesify._faecherCache()` als Sync-Snapshot.
+- `Lesify.themen(fachId)` (gefiltert) gibt es unter api.js nicht — nur
+  `themenFuerFach(fachId)` (async); Themen-Pillen jetzt lokal zwischengespeichert.
+- **Cache-Warm-Lücke wie bei `fach.html`, diesmal fächerübergreifend:** nur
+  `faecher()`, nie `themen()` geawaitet → Klausur-Karten zeigten „—·—".
+  **Faustregel:** Seiten mit Thema-Badges brauchen **beide** Caches warm,
+  nicht nur den Fächer-Cache. `POST /klausuren` legt Klausur + Testklausur 1
+  + Lernplan in einem Request an — kein separates `starteLernplan()` mehr
+  nötig, `ergebnis.lernplan.id` kommt direkt in der Antwort.
+
 Nächste Seite: eigenes Ermessen, aber die Grundbausteine (Cache inkl.
-`mergeCache`, CORS inkl. PATCH/DELETE, echte Umgebung) stehen jetzt für alle
-~17 verbleibenden Seiten bereit.
+`mergeCache`/`_faecherCache`, CORS inkl. PATCH/DELETE, echte Umgebung) stehen
+jetzt für alle ~16 verbleibenden Seiten bereit.
 
 Basis-URL: `window.LESIFY_API_BASE` (Default `http://localhost:3000`).
 Session-Token: `localStorage['lesify:token']`.

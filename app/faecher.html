@@ -73,18 +73,23 @@
   </div>
 </div>
 
-<script src="assets/js/data.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/auth-gate.js"></script>
 <script src="assets/js/app.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
   var I = LesifyUI.Icons, R = LesifyUI.Render;
 
-  function draw() {
-    var faecher = Lesify.faecher();
+  async function draw() {
+    // Beide neu laden (nicht nur Fächer) — Zähler (anzahlThemen/anzahlKlausuren)
+    // kommen mit GET /faecher bereits eingebettet; die anstehende Klausur je
+    // Fach filtern wir clientseitig aus der einmal geladenen Klausur-Liste.
+    var geladen = await Promise.all([Lesify.faecher(), Lesify.klausuren()]);
+    var faecher = geladen[0];
+    var alleKlausuren = geladen[1];
     document.getElementById('faecher-grid').innerHTML = faecher.map(function (f) {
-      var counts = Lesify.countsForFach(f.id);
       var col = Lesify.getFachColor(f.farbe);
-      var upcoming = Lesify.klausuren(f.id).filter(function (k) { return k.fachId === f.id; })
+      var upcoming = alleKlausuren.filter(function (k) { return k.fachId === f.id; })
         .slice().sort(function (a, b) { return a.datum.localeCompare(b.datum); })[0];
       return '<div class="card is-hoverable has-watermark" data-href="fach.html?id=' + f.id + '" tabindex="0" role="link" style="padding:24px;' + R.fachColorVars(f.id) + '">' +
         R.cardWatermark(f.id) +
@@ -95,8 +100,8 @@ document.addEventListener('DOMContentLoaded', function () {
         '<h3 style="font-size:1.15rem;margin-bottom:4px">' + f.name + '</h3>' +
         '<p class="text-sm text-muted" style="margin-bottom:18px">' + (f.klasse || 'Keine Klassenstufe hinterlegt') + '</p>' +
         '<div class="flex gap-4 text-xs text-muted" style="padding-top:16px;border-top:1px solid var(--line)">' +
-          '<span>' + counts.themen + ' Themen</span>' +
-          '<span>' + counts.klausuren + ' Klausuren</span>' +
+          '<span>' + f.anzahlThemen + ' Themen</span>' +
+          '<span>' + f.anzahlKlausuren + ' Klausuren</span>' +
         '</div>' +
         (upcoming ? '<div class="fach-next-klausur"><span class="spark" style="width:13px;height:13px;flex-shrink:0">' + I.calendar + '</span>' + upcoming.titel + ' · ' + R.countdown(upcoming.datum) + '</div>' : '') +
       '</div>';
@@ -160,21 +165,29 @@ document.addEventListener('DOMContentLoaded', function () {
     LesifyUI.openFachColorPicker(btn.getAttribute('data-fach-color'), draw);
   });
 
-  draw();
+  await draw();
 
-  document.getElementById('new-fach-form').addEventListener('submit', function (e) {
+  document.getElementById('new-fach-form').addEventListener('submit', async function (e) {
     e.preventDefault();
     var name = document.getElementById('nf-name').value.trim();
     var klasse = document.getElementById('nf-klasse').value.trim();
     if (!name) return;
-    var fach = Lesify.addFach({ name: name, klasse: klasse, farbe: newFachColor, icon: newFachIcon });
+    var payload = { name: name, klasse: klasse, farbe: newFachColor };
+    if (newFachIcon) payload.icon = newFachIcon;
+    var fach;
+    try {
+      fach = await Lesify.addFach(payload);
+    } catch (err) {
+      LesifyUI.toast(Lesify.fehlerText ? Lesify.fehlerText(err) : 'Fach konnte nicht angelegt werden.');
+      return;
+    }
     LesifyUI.closeModal(document.getElementById('modal-new-fach'));
     this.reset();
     newFachColor = Lesify.FACH_COLORS[0].key;
     newFachIcon = null;
     renderNewFachPicker();
     renderPresetGrid();
-    draw();
+    await draw();
     LesifyUI.toast('„' + fach.name + '" wurde erstellt.');
   });
 });

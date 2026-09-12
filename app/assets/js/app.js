@@ -372,9 +372,16 @@
       close();
     });
     qs('[data-save]', scrim).addEventListener('click', function () {
-      Lesify.updateFach(fachId, { farbe: selected });
-      close();
-      if (onSaved) onSaved();
+      // data.js aktualisiert synchron; api.js liefert ein Promise (PATCH
+      // /faecher/:id) — erst nach dessen Abschluss schließen/neu rendern,
+      // sonst zeigt `onSaved` (meist ein re-`draw()`) noch die alte Farbe.
+      var ergebnis = Lesify.updateFach(fachId, { farbe: selected });
+      if (ergebnis && typeof ergebnis.then === 'function') {
+        ergebnis.then(function () { close(); if (onSaved) onSaved(); });
+      } else {
+        close();
+        if (onSaved) onSaved();
+      }
     });
   }
 

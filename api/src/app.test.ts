@@ -28,4 +28,28 @@ describe('CORS (§4/Phase 11) — Marketing/App laufen auf anderem Origin', () =
     });
     expect(res.headers['access-control-allow-origin']).toBe('http://localhost:4001');
   });
+
+  // Regression: @fastify/cors erlaubt ohne explizite `methods`-Option nur
+  // GET/HEAD/POST — PATCH (Fächer-Farbe, Checklist, Abo, Einstellungen, …)
+  // und DELETE (Kind-Profile) liefen dann lautlos ins Leere (Preflight 204,
+  // aber der Browser schickt den eigentlichen Request gar nicht erst ab).
+  // Live per curl gefunden (2026-09-12), siehe UMSETZUNGSPLAN.md Phase 11.
+  it.each(['PATCH', 'DELETE'])(
+    'Preflight erlaubt %s (nicht nur den Plugin-Default GET/HEAD/POST)',
+    async (method) => {
+      const res = await app.inject({
+        method: 'OPTIONS',
+        url: '/faecher/irgendeine-id',
+        headers: {
+          origin: 'http://localhost:4311',
+          'access-control-request-method': method,
+        },
+      });
+      expect(res.statusCode).toBe(204);
+      const erlaubt = (res.headers['access-control-allow-methods'] as string)
+        .split(',')
+        .map((m) => m.trim());
+      expect(erlaubt).toContain(method);
+    },
+  );
 });

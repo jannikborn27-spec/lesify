@@ -67,7 +67,15 @@ export function buildApp(opts: BuildOpts = {}): FastifyInstance {
   app.decorateRequest('rawBody', undefined);
 
   // ---- CORS (§4/Phase 11) — Marketing/App laufen auf anderem Origin. ----
-  app.register(cors, { origin: corsOriginOption(istProd, env.CORS_ORIGINS), credentials: false });
+  // `methods` explizit setzen: der Plugin-Default ist nur GET,HEAD,POST —
+  // PATCH (Fächer-Farbe, Lernplan-Checklist, Abo, Einstellungen, …) und
+  // DELETE (Kind-Profile) liefen damit lautlos ins Leere (Preflight 204, aber
+  // der eigentliche Request wurde vom Browser gar nicht erst abgeschickt).
+  app.register(cors, {
+    origin: corsOriginOption(istProd, env.CORS_ORIGINS),
+    methods: ['GET', 'HEAD', 'POST', 'PATCH', 'DELETE'],
+    credentials: false,
+  });
 
   app.register(multipart, { limits: { fileSize: env.DATEI_MAX_BYTES } });
 

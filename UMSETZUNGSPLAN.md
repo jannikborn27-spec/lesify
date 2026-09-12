@@ -1737,9 +1737,24 @@ Blockiert alles Weitere. Erst die offenen Produktfragen klären, dann bauen.
       · Im Browser (temporärer lokaler Server) geprüft: alle 30 Varianten
       schalten korrekt um (genau ein Kind je Achse sichtbar, Rest
       `display:none`), Auswahl übersteht Reload (`localStorage`), Foto lädt
-      (`assets/img/jborn-uberuns.jpg`), keine Konsolenfehler. Noch offen:
-      finale Variante je Achse auswählen und Dev-Panel danach entfernen
-      (fest verdrahten wie bei anderen abgeschlossenen Dev-Panels).
+      (`assets/img/jborn-uberuns.jpg`), keine Konsolenfehler.
+      · **Nachjustiert (2026-09-12, gleicher Tag):** Stand-Achse entschieden
+      → fest auf die 4-Kacheln-Variante (`.au-stand__stats`), Dev-Panel-Zeile
+      „Stand" entfernt, die anderen 9 Stand-Layouts aus HTML/CSS gelöscht.
+      Timeline-Achse auf die zwei besten Layouts eingedampft (Zickzack
+      `.au-tl-1`, große verblasste Jahreszahl `.au-tl-2`; die 8 anderen
+      gelöscht) und die Stationsnamen „Studium/Schwester/Heute" durch echte
+      Jahre ersetzt (2023 → 2024 → 2025 → 2026, passend zum aktuellen Datum).
+      Hero-Achse komplett neu entworfen — alle 10 Varianten binden jetzt
+      `assets/img/jborn-uberuns.jpg` ein (Split links/rechts mit
+      Akzent-Rahmen, Vollbild-Foto mit Verlauf, großer runder Avatar,
+      Editorial-Rahmen mit Passermarken, Polaroid, Sprechblase, Visitenkarte,
+      Foto-Collage über der Headline, Foto-Banner mit Namens-Tag). Dev-Panel
+      zeigt jetzt nur noch „Hero" (1–10) und „Timeline" (1–2);
+      `getVariant()` klemmt gespeicherte Werte über dem neuen Maximum auf 1,
+      damit alte `localStorage`-Stände (z. B. `timeline: "7"`) nicht zu
+      einer leeren Sektion führen. Noch offen: finale Hero-/Timeline-Variante
+      auswählen und Dev-Panel danach ganz entfernen.
 
 ---
 

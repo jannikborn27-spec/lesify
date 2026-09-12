@@ -309,6 +309,17 @@
     item.updated = relativeTime(item[isoFeld]);
     return item;
   }
+  /** "1.2 MB"/"240 KB" statt `groesseBytes` — data.js hat die Größe direkt
+      als formatierten String im Seed. */
+  function formatBytes(bytes) {
+    if (bytes == null) return '—';
+    var kb = bytes / 1024;
+    return kb > 1024 ? (kb / 1024).toFixed(1) + ' MB' : Math.max(1, Math.round(kb)) + ' KB';
+  }
+  function mitDateiForm(d) {
+    d.groesse = formatBytes(d.groesseBytes);
+    return mitUpdated(d, 'erstelltAm');
+  }
   function initialen(name) {
     return String(name || '').split(/\s+/).map(function (p) { return p.charAt(0); }).join('').slice(0, 2).toUpperCase();
   }
@@ -453,11 +464,11 @@
     /* Dateien --------------------------------------------------- */
     dateien: function (themaId) {
       return GET('/dateien' + qs({ themaId: themaId })).then(function (list) {
-        return list.map(function (d) { return mitUpdated(d, 'erstelltAm'); });
+        return list.map(mitDateiForm);
       });
     },
     getDatei: function (id) {
-      return GET('/dateien/' + id);
+      return GET('/dateien/' + id).then(mitDateiForm);
     },
     /** Direkt navigierbare URL (`<a href>`/`<img src>`) — Token als `?token=`, da kein Authorization-Header möglich ist. */
     dateiInhaltUrl: function (id) {
@@ -466,7 +477,7 @@
     uploadDatei: function (themaId, file) {
       var fd = new FormData();
       fd.append('datei', file);
-      return POST('/themen/' + themaId + '/dateien', fd);
+      return POST('/themen/' + themaId + '/dateien', fd).then(mitDateiForm);
     },
     /** Pollt `GET /dateien/:id`, bis Status `bereit`/`fehler` oder Timeout (~60 s). */
     pollDateiStatus: function (id, onUpdate) {

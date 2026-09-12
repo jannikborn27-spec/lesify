@@ -127,16 +127,18 @@
   </div>
 </div>
 
-<script src="assets/js/data.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/auth-gate.js"></script>
 <script src="assets/js/app.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
   var R = LesifyUI.Render, I = LesifyUI.Icons;
   document.getElementById('lz-btn-icon').innerHTML = I.spark;
 
   var params = new URLSearchParams(window.location.search);
-  var themaId = params.get('id') || Lesify.themen()[0].id;
-  var thema = Lesify.getThema(themaId) || Lesify.themen()[0];
+  await Lesify.faecher();
+  var themaId = params.get('id');
+  var thema = themaId ? await Lesify.getThema(themaId) : (await Lesify.themen())[0];
   themaId = thema.id;
   var fach = Lesify.getFach(thema.fachId);
   var fachVars = R.fachColorVars(fach.id);
@@ -165,14 +167,13 @@ document.addEventListener('DOMContentLoaded', function () {
       '</div>';
   }
 
-  function drawTabs() {
-    var c = Lesify.countsForThema(themaId);
+  function drawTabs(c) {
     var tabs = [
       { key: 'uebersicht', label: 'Übersicht' },
-      { key: 'chats', label: 'Chats', count: c.chats },
-      { key: 'lernzettel', label: 'Lernzettel', count: c.lernzettel },
-      { key: 'dateien', label: 'Dateien', count: c.dateien },
-      { key: 'klausuren', label: 'Klausuren', count: c.klausuren }
+      { key: 'chats', label: 'Chats', count: c.chats.length },
+      { key: 'lernzettel', label: 'Lernzettel', count: c.lernzettel.length },
+      { key: 'dateien', label: 'Dateien', count: c.dateien.length },
+      { key: 'klausuren', label: 'Klausuren', count: c.klausuren.length }
     ];
     var validKeys = tabs.map(function (t) { return t.key; });
     var requested = params.get('tab');
@@ -190,26 +191,43 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   /* ---------------------------------------------------------
+     Daten einmal laden — Chats/Klausuren gibt es unter api.js nur
+     fach-gefiltert (bzw. ungefiltert), darum hier client-seitig auf
+     themaId eingeengt, wie schon auf klausuren.html/fach.html.
+     --------------------------------------------------------- */
+  async function loadDaten() {
+    var results = await Promise.all([
+      Lesify.chats(fach.id), Lesify.lernzettel(themaId), Lesify.dateien(themaId), Lesify.klausuren()
+    ]);
+    return {
+      chats: results[0].filter(function (c) { return c.themaId === themaId; }),
+      lernzettel: results[1],
+      dateien: results[2],
+      klausuren: results[3].filter(function (k) { return k.themaIds.indexOf(themaId) !== -1; })
+    };
+  }
+
+  /* ---------------------------------------------------------
      Inhalts-Items
      --------------------------------------------------------- */
-  function chatItems() {
-    return Lesify.chats(themaId).map(function (c) {
+  function chatItems(chats) {
+    return chats.map(function (c) {
       return { icon: 'chat', title: c.titel, sub: (MODE_LABEL[c.modus] || 'Chat') + ' · ' + c.updated,
         href: 'chat.html?fach=' + fach.id + '&thema=' + themaId + '&chat=' + c.id };
     });
   }
-  function lzItems() {
-    return Lesify.lernzettel(themaId).map(function (l) {
+  function lzItems(lernzettel) {
+    return lernzettel.map(function (l) {
       return { icon: 'book', title: l.titel, sub: 'Lernzettel · ' + l.updated, href: 'lernzettel.html?id=' + l.id };
     });
   }
-  function dateiItems() {
-    return Lesify.dateien(themaId).map(function (d) {
+  function dateiItems(dateien) {
+    return dateien.map(function (d) {
       return { icon: 'file', title: d.name, sub: 'Datei · ' + d.groesse + ' · ' + d.updated, dateiId: d.id };
     });
   }
-  function klausurItems() {
-    return Lesify.klausuren(themaId).filter(function (k) { return k.themaIds.indexOf(themaId) !== -1; }).map(function (k) {
+  function klausurItems(klausuren) {
+    return klausuren.map(function (k) {
       return { icon: 'docCheck', title: k.titel, sub: R.formatDatum(k.datum) + ' · ' + R.countdown(k.datum), href: 'klausur.html?id=' + k.id };
     });
   }
@@ -242,8 +260,8 @@ document.addEventListener('DOMContentLoaded', function () {
   /* ---------------------------------------------------------
      Übersicht — Zweispalten-Panels, alles sichtbar.
      --------------------------------------------------------- */
-  function drawUebersicht() {
-    var chatsI = chatItems(), lzI = lzItems(), datI = dateiItems(), klI = klausurItems();
+  function drawUebersicht(c) {
+    var chatsI = chatItems(c.chats), lzI = lzItems(c.lernzettel), datI = dateiItems(c.dateien), klI = klausurItems(c.klausuren);
     document.getElementById('t-uebersicht').innerHTML =
       '<div class="col-even">' +
         '<div style="display:flex;flex-direction:column;gap:var(--sp-6)">' +
@@ -271,54 +289,63 @@ document.addEventListener('DOMContentLoaded', function () {
       : '<div class="empty-state"><div class="es-icon">' + I[emptyIcon] + '</div><h4>' + emptyTitle + '</h4><p>' + emptyText + '</p></div>';
   }
 
-  function drawChats() {
-    fillPanel('t-chats', chatItems(), 'chat', 'Noch kein Chat', 'Starte einen Chat zu ' + thema.name + '.');
+  function drawChats(chats) {
+    fillPanel('t-chats', chatItems(chats), 'chat', 'Noch kein Chat', 'Starte einen Chat zu ' + thema.name + '.');
   }
 
-  function drawLernzettel() {
-    fillPanel('t-lernzettel', lzItems(), 'book', 'Noch kein Lernzettel', 'Erstelle den ersten Lernzettel zu ' + thema.name + '.');
+  function drawLernzettel(lernzettel) {
+    fillPanel('t-lernzettel', lzItems(lernzettel), 'book', 'Noch kein Lernzettel', 'Erstelle den ersten Lernzettel zu ' + thema.name + '.');
   }
 
-  function drawDateien() {
-    var items = Lesify.dateien(themaId);
-    var html = items.map(R.dateiCard).join('');
+  function drawDateien(dateien) {
+    var html = dateien.map(R.dateiCard).join('');
     document.getElementById('t-dateien').innerHTML = html || ('<div class="empty-state" style="grid-column:1/-1"><div class="es-icon">' + I.folder + '</div><h4>Noch keine Dateien</h4><p>Lade ein Dokument zu ' + thema.name + ' hoch.</p></div>');
   }
 
-  function drawKlausuren() {
-    var items = Lesify.klausuren(themaId).filter(function (k) { return k.themaIds.indexOf(themaId) !== -1; });
-    var html = R.klausurListe(items);
+  function drawKlausuren(klausuren) {
+    var html = R.klausurListe(klausuren);
     document.getElementById('t-klausuren').innerHTML = html || ('<div class="empty-state"><div class="es-icon">' + I.docCheck + '</div><h4>Noch keine Klausur eingetragen</h4><p>Trage den nächsten Klausurtermin zu ' + thema.name + ' ein.</p></div>');
   }
 
-  function drawAll() { drawTabs(); drawUebersicht(); drawChats(); drawLernzettel(); drawDateien(); drawKlausuren(); }
-  drawHead(); drawAll();
+  async function drawAll() {
+    var c = await loadDaten();
+    drawTabs(c); drawUebersicht(c); drawChats(c.chats); drawLernzettel(c.lernzettel); drawDateien(c.dateien); drawKlausuren(c.klausuren);
+  }
+  drawHead(); await drawAll();
 
   document.getElementById('new-chat-btn').addEventListener('click', function (e) {
     e.preventDefault();
     window.location.href = 'chat.html?fach=' + fach.id + '&thema=' + themaId;
   });
 
-  document.getElementById('new-lernzettel-btn').addEventListener('click', function () {
+  document.getElementById('new-lernzettel-btn').addEventListener('click', async function () {
     var btn = this;
     btn.disabled = true;
     btn.innerHTML = '<span class="skeleton" style="width:14px;height:14px;border-radius:50%;display:inline-block"></span> Wird erstellt…';
-    setTimeout(function () {
-      var l = Lesify.addLernzettel({ fachId: fach.id, themaId: themaId });
+    try {
+      var l = await Lesify.addLernzettel(themaId);
       window.location.href = 'lernzettel.html?id=' + l.id;
-    }, 1100);
+    } catch (err) {
+      btn.disabled = false;
+      btn.innerHTML = '<span class="spark" style="width:14px;height:14px" id="lz-btn-icon">' + I.spark + '</span> Lernzettel erstellen';
+      LesifyUI.toast(Lesify.fehlerText ? Lesify.fehlerText(err) : 'Lernzettel konnte nicht erstellt werden.');
+    }
   });
 
   document.getElementById('mk-sub').textContent = 'Wird ' + fach.name + ' · ' + thema.name + ' zugeordnet.';
 
   // Weitere Themen der Klausur — das aktuelle Thema ist immer gesetzt.
+  // Lesify.themen(fachId) (gefiltert, sync) gibt es unter api.js nicht — nur
+  // themenFuerFach(fachId) (async); einmal geladen, dann lokal wie auf
+  // klausuren.html (curThemenList-Muster).
   var mkThemaDd = document.getElementById('mk-thema-dd');
   var mkThemenBox = document.getElementById('mk-themen');
   var mkThemaNeu = document.getElementById('mk-thema-neu');
   var mkSelectedIds = [];
   var mkPending = [];
+  var mkFachThemen = [];
   function renderMkThemen() {
-    var offen = Lesify.themen(fach.id).filter(function (t) {
+    var offen = mkFachThemen.filter(function (t) {
       return t.id !== themaId && mkSelectedIds.indexOf(t.id) === -1;
     });
     mkThemaDd.innerHTML = '<option value="">' +
@@ -327,7 +354,10 @@ document.addEventListener('DOMContentLoaded', function () {
     mkThemaDd.disabled = !offen.length;
 
     var chips = '<span class="tp-item">' + thema.name + '</span>' +
-      mkSelectedIds.map(function (id) { var t = Lesify.getThema(id); return '<span class="tp-item">' + (t ? t.name : id) + '</span>'; }).join('') +
+      mkSelectedIds.map(function (id) {
+        var t = mkFachThemen.find(function (x) { return x.id === id; });
+        return '<span class="tp-item">' + (t ? t.name : id) + '</span>';
+      }).join('') +
       mkPending.map(function (name) { return '<span class="tp-item tp-new">' + name + '</span>'; }).join('');
     mkThemenBox.innerHTML = chips;
   }
@@ -346,39 +376,52 @@ document.addEventListener('DOMContentLoaded', function () {
   });
   document.getElementById('mk-thema-add').addEventListener('click', addMkPending);
   mkThemaNeu.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); addMkPending(); } });
+  mkFachThemen = await Lesify.themenFuerFach(fach.id);
   renderMkThemen();
 
-  document.getElementById('mk-form').addEventListener('submit', function (e) {
+  document.getElementById('mk-form').addEventListener('submit', async function (e) {
     e.preventDefault();
     var titel = document.getElementById('mk-titel').value.trim();
     var datum = document.getElementById('mk-datum').value;
     if (!titel || !datum) return;
-    var themaIds = [themaId].concat(mkSelectedIds);
-    mkPending.forEach(function (name) { themaIds.push(Lesify.addThema({ fachId: fach.id, name: name }).id); });
-    var k = Lesify.addKlausur({ fachId: fach.id, themaIds: themaIds, titel: titel, datum: datum });
-    // Jede neue Klausur startet sofort ihren 7-Tage-Lernplan (inkl. Testklausur 1).
-    var lp = Lesify.starteLernplan(k.id);
-    window.location.href = 'lernplan.html?id=' + lp.id;
+    var submitBtn = this.querySelector('button[type="submit"]');
+    try {
+      var themaIds = [themaId].concat(mkSelectedIds);
+      for (var i = 0; i < mkPending.length; i++) {
+        var neuesThema = await Lesify.addThema({ fachId: fach.id, name: mkPending[i] });
+        themaIds.push(neuesThema.id);
+      }
+      submitBtn.disabled = true;
+      // POST /klausuren legt Klausur + Testklausur 1 + Lernplan in einem Zug
+      // an (KI-Call) — kein separates Lesify.starteLernplan() mehr nötig.
+      var ergebnis = await Lesify.addKlausur({ fachId: fach.id, themaIds: themaIds, titel: titel, datum: datum });
+      window.location.href = 'lernplan.html?id=' + ergebnis.lernplan.id;
+    } catch (err) {
+      submitBtn.disabled = false;
+      LesifyUI.toast(Lesify.fehlerText ? Lesify.fehlerText(err) : 'Klausur konnte nicht angelegt werden.');
+    }
   });
 
-  document.getElementById('t-file-input').addEventListener('change', function (e) {
+  document.getElementById('t-file-input').addEventListener('change', async function (e) {
     if (!e.target.files.length) return;
     var file = e.target.files[0];
     if (file.size > 5 * 1024 * 1024) { LesifyUI.toast('„' + file.name + '" ist größer als 5 MB.'); e.target.value = ''; return; }
-    var ext = (file.name.split('.').pop() || '').toLowerCase();
-    var typ = ext === 'pdf' ? 'pdf' : (['png', 'jpg', 'jpeg', 'gif'].indexOf(ext) !== -1 ? 'img' : 'doc');
-    var sizeKb = file.size ? Math.max(1, Math.round(file.size / 1024)) : 240;
-    var groesse = sizeKb > 1024 ? (sizeKb / 1024).toFixed(1) + ' MB' : sizeKb + ' KB';
-    var d = Lesify.addDatei({ fachId: fach.id, themaId: themaId, name: file.name, typ: typ, groesse: groesse });
-    Lesify.incrementUsage('dateien', 1);
-    drawDateien(); drawTabs(); drawUebersicht(); drawHead();
-    LesifyUI.toast('„' + d.name + '" wird gelesen und zusammengefasst…');
-    setTimeout(function () {
-      Lesify.markDateiBereit(d.id, 'Automatisch erzeugte Zusammenfassung von ' + d.name + '.');
-      drawDateien(); drawUebersicht();
-      LesifyUI.toast('„' + d.name + '" ist bereit.');
-    }, 1600);
     e.target.value = '';
+    var d;
+    try {
+      d = await Lesify.uploadDatei(themaId, file);
+    } catch (err) {
+      LesifyUI.toast(Lesify.fehlerText ? Lesify.fehlerText(err) : 'Datei konnte nicht hochgeladen werden.');
+      return;
+    }
+    var c = await loadDaten();
+    drawDateien(c.dateien); drawTabs(c); drawUebersicht(c); drawHead();
+    LesifyUI.toast('„' + d.name + '" wird gelesen und zusammengefasst…');
+    Lesify.pollDateiStatus(d.id, function () {}).then(async function (updated) {
+      var c2 = await loadDaten();
+      drawDateien(c2.dateien); drawUebersicht(c2);
+      LesifyUI.toast(updated.status === 'bereit' ? '„' + updated.name + '" ist bereit.' : '„' + updated.name + '" konnte nicht verarbeitet werden.');
+    });
   });
 });
 </script>

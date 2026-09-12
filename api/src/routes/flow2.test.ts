@@ -319,6 +319,22 @@ describe.runIf(hatDb)('chats + klausuren/lernplan/testklausur — Flow (Supabase
       headers: auth(),
     });
     expect(klausurDetail.json().note).toEqual({ note: erwarteteNote, testNr: 1 });
+
+    // GET /lernplaene/:id bettet klausur/testklausur1 in der data.js-
+    // Prototyp-Form ein (app.js liest sie direkt, nicht nur `status`).
+    const body = res.json();
+    expect(body.klausur).toMatchObject({ id: body.klausurId, themaIds: expect.any(Array) });
+    expect(body.testklausur1.status).toBe('analysiert');
+    expect(body.testklausur1.aufgaben.length).toBeGreaterThan(0);
+    expect(body.testklausur1.ergebnis).toMatchObject({ note: erwarteteNote });
+    expect(body.testklausur1.ergebnis.proThema).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ themaId: themaA, erklaerung: 'seed-analyse' }),
+      ]),
+    );
+    expect(body.testklausur1.vorbereitung.proThema).toEqual(
+      expect.arrayContaining([expect.objectContaining({ themaId: themaA, ampel: 'rot' })]),
+    );
   });
 
   it('GET /lernplaene/<unbekannt> → 404', async () => {

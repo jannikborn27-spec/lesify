@@ -4,7 +4,12 @@ import { z } from 'zod';
 import { parse } from '../lib/validate.js';
 import { oder404 } from '../lib/scope.js';
 import { HttpError } from '../lib/http.js';
-import { berechneLernplanStatus, chatMapKey, setChatMapEintrag } from '../lib/lernplan.js';
+import {
+  berechneLernplanStatus,
+  chatMapKey,
+  setChatMapEintrag,
+  testklausurFuerLernplanUI,
+} from '../lib/lernplan.js';
 import { testklausurErstellen } from '../lib/testklausur.js';
 import { klassenstufeFuer, themaMaterial } from '../lib/ki/kontext.js';
 import { lernplanLernzettelErzeugen } from '../lib/ki/calls.js';
@@ -66,10 +71,32 @@ export async function lernplaeneRoutes(app: FastifyInstance): Promise<void> {
   const laden = async (userId: string, id: string) =>
     oder404(await prisma.lernplan.findFirst({ where: { id, userId } }));
 
-  const mitStatus = async (lp: Lernplan) => ({
-    ...lernplanDTO(lp),
-    status: await berechneLernplanStatus(prisma, lp),
-  });
+  // `klausur`/`testklausur1`/`testklausur2` als volle, verschachtelte Objekte
+  // (data.js-Prototyp-Form) dazu — das UI (app.js → lpTag1Body, lpChecklist,
+  // lpAufgabeUndErklaerung, …) liest sie direkt, nicht nur `status`.
+  const mitStatus = async (lp: Lernplan) => {
+    const [status, klausur, testklausur1, testklausur2] = await Promise.all([
+      berechneLernplanStatus(prisma, lp),
+      prisma.klausur.findUnique({ where: { id: lp.klausurId } }),
+      lp.testklausur1Id ? testklausurFuerLernplanUI(prisma, lp.testklausur1Id) : null,
+      lp.testklausur2Id ? testklausurFuerLernplanUI(prisma, lp.testklausur2Id) : null,
+    ]);
+    return {
+      ...lernplanDTO(lp),
+      status,
+      klausur: klausur
+        ? {
+            id: klausur.id,
+            titel: klausur.titel,
+            datum: klausur.datum.toISOString().slice(0, 10),
+            fachId: klausur.fachId,
+            themaIds: klausur.themaIds,
+          }
+        : null,
+      testklausur1,
+      testklausur2,
+    };
+  };
 
   // GET /lernplaene/:id — persistierte Felder + berechneter `status`
   app.get<{ Params: { id: string } }>('/lernplaene/:id', async (req) => {
@@ -155,7 +182,10 @@ export async function lernplaeneRoutes(app: FastifyInstance): Promise<void> {
       where: { id: lp.id },
       data: { testklausur2Id: testklausur2.id },
     });
-    return { ...(await mitStatus(updated)), testklausur2 };
+    // mitStatus() lädt testklausur2 jetzt selbst nach (testklausurFuerLernplanUI,
+    // reshaped) — das rohe testklausurErstellen()-Ergebnis hier nicht mehr
+    // zusätzlich anhängen, sonst überschreibt es die passende Form wieder.
+    return mitStatus(updated);
   });
 
   // POST /lernplaene/:id/lernzettel — Call 12 (Tag 3/4/6), angehängt statt

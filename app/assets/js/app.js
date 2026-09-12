@@ -1410,47 +1410,60 @@
   }
 
   function wireLernplan(root, lernplanId, onChange) {
-    function refresh() { if (onChange) onChange(); }
+    // `await` auf einem synchronen Rückgabewert (data.js) läuft einen
+    // Mikrotask später einfach durch — bei Klick-/Change-Events unmerklich.
+    // Unter api.js aktualisiert `Lesify.getLernplan()` dabei zusätzlich den
+    // Cache, aus dem `lernplanStatus()` synchron liest (siehe api.js).
+    async function refresh() {
+      await Lesify.getLernplan(lernplanId);
+      if (onChange) onChange();
+    }
 
     // Manuell „Tag abschließen" = alle Checklisten-Punkte des Tages setzen.
     qsa('[data-lp-done]', root).forEach(function (btn) {
-      btn.addEventListener('click', function () {
+      btn.addEventListener('click', async function () {
         var n = parseInt(btn.getAttribute('data-lp-done'), 10);
-        Lesify.setLernplanTagChecks(lernplanId, n, true);
+        await Lesify.setLernplanTagChecks(lernplanId, n, true);
         toast(n === 7 ? 'Lernplan abgeschlossen.' : ('Tag ' + n + ' abgeschlossen.'));
-        refresh();
+        await refresh();
       });
     });
     // Einzelne Checklisten-Punkte abhaken. Sind danach alle gesetzt, gilt der Tag
     // als erledigt (lernplanStatus) — Abwählen öffnet ihn wieder.
     qsa('[data-lp-check]', root).forEach(function (cb) {
-      cb.addEventListener('change', function () {
+      cb.addEventListener('change', async function () {
         var n = parseInt(cb.getAttribute('data-lp-day'), 10);
-        Lesify.setLernplanCheck(lernplanId, n, cb.getAttribute('data-lp-check'), cb.checked);
+        await Lesify.setLernplanCheck(lernplanId, n, cb.getAttribute('data-lp-check'), cb.checked);
+        await Lesify.getLernplan(lernplanId);
         var st = Lesify.lernplanStatus(lernplanId);
         if (cb.checked && st && st['tag' + n] && st['tag' + n].erledigt) {
           toast(n === 7 ? 'Lernplan abgeschlossen.' : ('Tag ' + n + ' abgehakt — alles erledigt.'));
         }
-        refresh();
+        if (onChange) onChange();
       });
     });
     qsa('[data-lp-lernzettel]', root).forEach(function (btn) {
-      btn.addEventListener('click', function () {
+      btn.addEventListener('click', async function () {
         var ids = btn.getAttribute('data-lp-lernzettel').split(',').filter(Boolean);
-        var vorher = Lesify.getLernplan(lernplanId).lernzettel;
-        Lesify.aktualisiereLernzettel(lernplanId, ids);
+        var lpVorher = await Lesify.getLernplan(lernplanId);
+        var vorher = lpVorher.lernzettel;
+        await Lesify.aktualisiereLernzettel(lernplanId, ids);
         toast(vorher ? 'Zum Lernzettel hinzugefügt.' : 'Lernzettel gestartet.');
-        refresh();
+        await refresh();
       });
     });
     qsa('[data-lp-start-tk2]', root).forEach(function (btn) {
-      btn.addEventListener('click', function () {
+      btn.addEventListener('click', async function () {
         btn.disabled = true;
         btn.innerHTML = '<span class="skeleton" style="width:14px;height:14px;border-radius:50%;display:inline-block"></span> Wird erstellt…';
-        setTimeout(function () {
-          var lp = Lesify.starteTestklausur2(lernplanId);
+        try {
+          var lp = await Lesify.starteTestklausur2(lernplanId);
           window.location.href = 'testklausur.html?id=' + lp.testklausur2Id;
-        }, 700);
+        } catch (err) {
+          btn.disabled = false;
+          btn.textContent = 'Testklausur 2 starten';
+          toast(Lesify.fehlerText ? Lesify.fehlerText(err) : 'Testklausur 2 konnte nicht gestartet werden.');
+        }
       });
     });
     // Split-Ansicht: angezeigten Tag umschalten.

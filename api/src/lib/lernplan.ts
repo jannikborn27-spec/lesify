@@ -98,3 +98,59 @@ export async function klausurNoteFuer(
     })),
   );
 }
+
+/**
+ * Volle Testklausur fürs Lernplan-UI (`app/assets/js/app.js` → `lpTag1Body`,
+ * `lpAufgabeUndErklaerung`, `lpTag5Body`, …) — anders als `testklausurEingabe`
+ * (nur die Zahlen für `lernplanStatus`) mit Aufgaben-Fragen und
+ * `ergebnis`/`vorbereitung` in der data.js-Prototyp-Form (`{note, prozent,
+ * proThema: [...]}` statt der flachen `ergebnisse`/`vorbereitung`-Arrays, die
+ * `GET /testklausuren/:id` liefert).
+ */
+export async function testklausurFuerLernplanUI(prisma: PrismaClient, tkId: string) {
+  const tk = await prisma.testklausur.findUnique({
+    where: { id: tkId },
+    include: {
+      aufgaben: { orderBy: { reihenfolge: 'asc' } },
+      ergebnisse: true,
+      vorbereitung: true,
+    },
+  });
+  if (!tk) return null;
+  const note = testklausurGesamtNote(tk.ergebnisse.map((e) => e.prozent));
+  return {
+    id: tk.id,
+    fachId: tk.fachId,
+    themaIds: tk.themaIds,
+    titel: tk.titel,
+    status: tk.status,
+    aufgaben: tk.aufgaben.map((a) => ({ themaId: a.themaId, frage: a.frage })),
+    ergebnis:
+      tk.ergebnisse.length && note !== null
+        ? {
+            note,
+            prozent: Math.round(
+              tk.ergebnisse.reduce((a, e) => a + e.prozent, 0) / tk.ergebnisse.length,
+            ),
+            proThema: tk.ergebnisse.map((e) => ({
+              themaId: e.themaId,
+              prozent: e.prozent,
+              note: Number(e.note),
+              erklaerung: e.erklaerung,
+            })),
+          }
+        : null,
+    vorbereitung:
+      tk.vorbereitung.length && note !== null
+        ? {
+            note,
+            proThema: tk.vorbereitung.map((v) => ({
+              themaId: v.themaId,
+              prozent: v.prozent,
+              note: Number(v.note),
+              ampel: v.ampel,
+            })),
+          }
+        : null,
+  };
+}

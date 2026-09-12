@@ -224,7 +224,7 @@
      Die Seite muss dafür einmal `Lesify.faecher()`/`Lesify.themen()` geawaitet
      haben (macht jede Seite ohnehin für ihre Haupt-Daten); danach beantworten
      `getFach`/`label` Lookups aus dem Cache, ohne einen weiteren Request. */
-  var _cache = { faecher: [], themen: [] };
+  var _cache = { faecher: [], themen: [], lernplaene: {} };
   /** Fügt/aktualisiert Einträge per `id`, statt den ganzen Cache zu ersetzen —
       wichtig für Teil-Listen wie `themenFuerFach()`, die sonst alles außer
       dem gerade abgefragten Fach aus dem Cache werfen würden. */
@@ -250,6 +250,40 @@
       if (t.id === themaId) return { fach: t.fachName || '—', thema: t.name, fachId: t.fachId, themaId: t.id };
     }
     return { fach: '—', thema: '—', fachId: '', themaId: themaId };
+  }
+
+  /* ---------- Lernplan-Status (sync Cache-Lookup, wie data.js) ----------
+     GET /lernplaene/:id liefert die persistierten Felder + `klausur`/
+     `testklausur1`/`testklausur2` (volle Objekte, data.js-Form) + `status`
+     (die reinen tag1..tag7-Berechnungen, siehe shared/src/lernplan.ts).
+     `lernplanStatus()` fügt das zur EINEN flachen Form zusammen, die
+     app.js' Lernplan-Renderer erwarten: `{lernplan, klausur, testklausur1,
+     testklausur2, tag1..tag7, aktuellerTag, letzteTestNote, letzteTestNr,
+     gesamtnoteAktuell}`. Braucht ein vorheriges `await Lesify.getLernplan(id)`
+     (oder `getLernplanFuerKlausur`/`starteTestklausur2`, die denselben Cache
+     füllen). */
+  function lernplanStatus(id) {
+    var r = _cache.lernplaene[id];
+    if (!r) return null;
+    var out = {
+      lernplan: {
+        id: r.id, klausurId: r.klausurId, testklausur1Id: r.testklausur1Id,
+        testklausur2Id: r.testklausur2Id, checklist: r.checklist, tageErledigt: r.tageErledigt,
+        lernzettel: r.lernzettel, chatMap: r.chatMap, erstelltAm: r.erstelltAm
+      },
+      klausur: r.klausur, testklausur1: r.testklausur1, testklausur2: r.testklausur2
+    };
+    for (var k in r.status) out[k] = r.status[k];
+    return out;
+  }
+  /** Wie `chatMapKey()`/`setChatMapEintrag()` im Backend (`api/src/lib/lernplan.ts`)
+      — NICHT das `String(modus)`-Format aus data.js, sonst passen die Keys
+      nicht zu dem, was der Server unter `chatMap` tatsächlich speichert. */
+  function lernplanChatKey(tag, modus, themaId) { return tag + '|' + (modus || '') + '|' + themaId; }
+  function getLernplanChatId(lernplanId, tag, modus, themaId) {
+    var r = _cache.lernplaene[lernplanId];
+    if (!r || !r.chatMap) return null;
+    return r.chatMap[lernplanChatKey(tag, modus, themaId)] || null;
   }
 
   /* ---------- relative Zeit (z. B. "vor 2 Stunden") ----------
@@ -448,17 +482,23 @@
     addKlausur: function (d) {
       return POST('/klausuren', d);
     },
+    /** Cached für den sync `lernplanStatus()`-Lookup weiter unten. */
     getLernplan: function (id) {
-      return GET('/lernplaene/' + id);
-    },
-    getLernplanFuerKlausur: function (klausurId) {
-      return GET('/klausuren/' + klausurId + '/lernplan');
-    },
-    lernplanStatus: function (id) {
-      return GET('/lernplaene/' + id).then(function (lp) {
-        return lp && lp.status ? lp.status : lp;
+      return GET('/lernplaene/' + id).then(function (r) {
+        _cache.lernplaene[r.id] = r;
+        return r;
       });
     },
+    getLernplanFuerKlausur: function (klausurId) {
+      return GET('/klausuren/' + klausurId + '/lernplan').then(function (r) {
+        _cache.lernplaene[r.id] = r;
+        return r;
+      });
+    },
+    /** Synchroner Cache-Lookup (wie data.js) — braucht ein vorheriges
+        `await Lesify.getLernplan(id)` (o. Ä.). */
+    lernplanStatus: lernplanStatus,
+    getLernplanChatId: getLernplanChatId,
     setLernplanCheck: function (id, tag, key, checked) {
       return PATCH('/lernplaene/' + id + '/checklist', { tag: tag, key: key, checked: checked });
     },
@@ -471,16 +511,25 @@
         modus: modus,
         themaId: themaId,
         chatId: chatId,
+      }).then(function (r) {
+        if (_cache.lernplaene[id]) _cache.lernplaene[id].chatMap = r.chatMap;
+        return r;
       });
     },
     aktualisiereLernzettel: function (id, themaIds) {
-      return POST('/lernplaene/' + id + '/lernzettel', { themaIds: themaIds });
+      return POST('/lernplaene/' + id + '/lernzettel', { themaIds: themaIds }).then(function (lz) {
+        if (_cache.lernplaene[id]) _cache.lernplaene[id].lernzettel = lz;
+        return lz;
+      });
     },
     lernzettelDokumentUrl: function (id) {
       return BASE + '/lernplaene/' + id + '/lernzettel/dokument';
     },
     starteTestklausur2: function (lernplanId) {
-      return POST('/lernplaene/' + lernplanId + '/testklausur2', {});
+      return POST('/lernplaene/' + lernplanId + '/testklausur2', {}).then(function (r) {
+        _cache.lernplaene[r.id] = r;
+        return r;
+      });
     },
 
     /* Testklausuren ------------------------------------------- */

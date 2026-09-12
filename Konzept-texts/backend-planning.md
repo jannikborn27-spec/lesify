@@ -853,8 +853,8 @@ Abweichungen von den Tabellen unten:
 | GET | `/faecher` | Liste aller Fächer des Users |
 | POST | `/faecher` | `{name, klasse?, farbe?, icon?}` → neues Fach; `farbe` optional (Server vergibt sonst reihum eine aus `FACH_COLORS`), `icon` optional (Schlüssel aus `FACH_PRESETS`/`FACH_ICONS`; weggelassen bei „eigenes Fach" ohne Vorlage → Avatar fällt auf `initial` zurück) |
 | PATCH | `/faecher/:id` | `{farbe}` — bislang einziges nachträglich editierbare Feld; Auslöser des Farbwählers: Klick auf das Fach-Logo (Avatar) auf `fach.html` bzw. den Swatch-Button auf `faecher.html`. `icon` wird nur bei Erstellung gesetzt, es gibt aktuell keine UI, ein Icon nachträglich zu ändern |
-| GET | `/faecher/:id/themen` | Themen eines Fachs, je Thema mit `anzahlChats`/`anzahlLernzettel`/`anzahlDateien` (2026-09-12, für `fach.html`s Themen-Karten) — **kein** `anzahlKlausuren`/`anzahlTestklausuren`: die hängen über `Klausur.themaIds`/`Testklausur.themaIds` (String-Array), keine echte Relation, `_count` geht dafür nicht |
-| GET | `/themen` | Fächerübergreifende Aggregat-Liste aller Themen (eigene Nav-Seite `themen.html`) |
+| GET | `/faecher/:id/themen` | Themen eines Fachs, je Thema mit `anzahlChats`/`anzahlLernzettel`/`anzahlDateien`/`anzahlKlausuren` (2026-09-12, für `fach.html`s Themen-Karten) — Chats/Lernzettel/Dateien per `_count`, Klausuren über den Batch-Helfer `klausurenAnzahlProThema()` (`Klausur.themaIds` ist ein String-Array, keine echte Relation, `_count` geht dafür nicht). **Kein** `anzahlTestklausuren` (bislang von keiner Seite gebraucht) |
+| GET | `/themen` | Fächerübergreifende Aggregat-Liste aller Themen (eigene Nav-Seite `themen.html`), je Thema mit denselben vier Zählwerten wie `/faecher/:id/themen` (2026-09-12) |
 | POST | `/themen` | `{fachId, name, beschreibung?}` → neues Thema |
 | GET | `/themen/:id` | Thema inkl. Stats (Anzahl Chats/Lernzettel/Dateien/Klausuren/Testklausuren) |
 
@@ -1510,6 +1510,17 @@ inkl. serverseitiger MIME-Prüfung statt Client-Extension-Heuristik. Neue
 `dateiCard()`/`dateiRow()` erwarten die formatierte `groesse`-Zeichenkette
 ("1.2 MB") wie im data.js-Seed — neue `formatBytes()`/`mitDateiForm()`,
 jetzt einheitlich in `dateien()`/`getDatei()`/`uploadDatei()`.
+
+**Nachtrag `themen.html` (2026-09-12) — kleinste Konvertierung bisher, aber
+Backend-Lücke aufgedeckt:** die Seite ruft `R.themaCard(t)` ohne `opts` auf,
+das nutzt den Default-`countKeys` inkl. `'klausuren'` — `GET /themen`
+(fächerübergreifend) hatte aber bisher keine eingebetteten Zählwerte. Fix
+serverseitig statt im Frontend: neue `klausurenAnzahlProThema(prisma, userId)`
+in `api/src/lib/themen.ts` (Batch-Read über `Klausur.themaIds`, da String-
+Array-Feld ohne `_count`-Unterstützung), `themaDTO()` um optionales
+`klausuren`-Feld erweitert. `GET /themen` und `GET /faecher/:id/themen`
+liefern jetzt beide vollständig `anzahlChats`/`anzahlLernzettel`/
+`anzahlDateien`/`anzahlKlausuren` eingebettet.
 
 **Nachtrag `klausur.html` (2026-09-12) — deutlich leichter als erwartet:**
 kein Backend-Change nötig — die komplette eingebettete Lernplan-Sektion

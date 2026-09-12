@@ -2857,6 +2857,27 @@ sonst unverändert.
 > `eltern-*.html`) bleibt offen. Grundbausteine (Cache inkl.
 > `mergeCache`/`_faecherCache`/`_cache.lernplaene` + CORS inkl. PATCH/DELETE)
 > stehen für alle bereit.
+>
+> _2026-09-12: **`themen.html` als neunte Seite umgestellt** — mit Abstand die
+> kleinste Konvertierung bisher (49 Zeilen, nur `R.fachFilterChips()` +
+> `Lesify.themen()` → `R.themaCard(t)` je Thema), aber sie deckte eine
+> Backend-Lücke auf: `R.themaCard(t)` ohne `opts` nutzt den Default-`countKeys`
+> mit `'klausuren'`, doch `GET /themen` (fächerübergreifend) hatte bisher gar
+> keine eingebetteten Zählwerte — hätte entweder gecrasht (unbekannte
+> `Lesify.countsForThema()`) oder eine falsche hartcodierte 0 gezeigt. Statt
+> eines Workarounds im Frontend echte serverseitige Zählung nachgezogen: neue
+> `klausurenAnzahlProThema(prisma, userId)` in `api/src/lib/themen.ts` (ein
+> Batch-Read über `Klausur.themaIds`, da das ein String-Array-Feld ist, kein
+> `_count` möglich), `themaDTO()` um optionales `klausuren`-Feld erweitert,
+> sowohl `GET /themen` als auch `GET /faecher/:id/themen` liefern jetzt
+> `anzahlChats`/`anzahlLernzettel`/`anzahlDateien`/`anzahlKlausuren`
+> vollständig eingebettet (`chats`/`lernzettel`/`dateien` per `_count`,
+> `klausuren` per neuem Helfer). `themaCard()` in `app.js` liest jetzt
+> `t.anzahlKlausuren || 0` statt der alten hartcodierten 0. Live verifiziert:
+> Testnutzer mit einem Fach/Thema, einem Chat und einer Klausur angelegt —
+> Themen-Übersicht zeigt korrekt "1 Chats · 0 Lernzettel · 0 Dateien ·
+> 1 Klausuren", Fach-Filter-Chip filtert richtig. Regressionstest in
+> `flow2.test.ts` (`GET /themen` → `anzahlKlausuren: 1`).
 
 - [x] **API-Client `assets/js/api.js`** — _`Lesify.*`-Namen wie `data.js`, aber
       Promise-basiert; `fetch`-Wrapper mit Bearer-Token
@@ -2869,8 +2890,8 @@ sonst unverändert.
       `Lesify.*`-Aufrufe `await`en, Renderer in `app.js` auf Promises anpassen.
       _(Teilfortschritt 2026-09-12: `dashboard.html` + `faecher.html` +
       `fach.html` + `klausuren.html` + `lernplan.html` + `klausur.html` +
-      `lernplan-lernzettel.html` + `thema.html` fertig + verifiziert, siehe
-      Progress-Notizen oben. 12 Seiten offen.)_
+      `lernplan-lernzettel.html` + `thema.html` + `themen.html` fertig +
+      verifiziert, siehe Progress-Notizen oben. 11 Seiten offen.)_
 - [x] **`assets/js/api.js` — Fächer-/Themen-Cache + reine Helfer nachgezogen**
       — _2026-09-12 (mit `dashboard.html`, siehe Progress-Notiz oben):
       `getFach`/`label` als sync Cache-Lookups, `prozentZuNote`/`noteAmpel`/

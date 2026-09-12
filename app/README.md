@@ -164,9 +164,22 @@ sauber. Neue `api.js`-Lücke: `GET /dateien` liefert `groesseBytes` (Zahl)
 statt der von `dateiCard()` erwarteten `groesse`-Zeichenkette — neue
 `formatBytes()`/`mitDateiForm()`. Details: `backend-planning.md` §9.
 
+**`themen.html` als neunte Seite umgestellt (2026-09-12) — kleinste
+Konvertierung bisher (49 Zeilen), deckte aber eine Backend-Lücke auf.**
+`R.themaCard(t)` wird ohne `opts` aufgerufen und nutzt darum den Default-
+`countKeys` inkl. `'klausuren'` — `GET /themen` (fächerübergreifend) hatte
+bisher keine eingebetteten Zählwerte. Fix serverseitig statt im Frontend:
+neue `klausurenAnzahlProThema(prisma, userId)` in `api/src/lib/themen.ts`
+(Batch-Read über `Klausur.themaIds`, String-Array-Feld ohne `_count`-
+Unterstützung), `themaDTO()` um optionales `klausuren`-Feld erweitert. `GET
+/themen` und `GET /faecher/:id/themen` liefern jetzt beide vollständig
+`anzahlChats`/`anzahlLernzettel`/`anzahlDateien`/`anzahlKlausuren`
+eingebettet. `themaCard()` in `app.js` liest `t.anzahlKlausuren || 0` statt
+der alten hartcodierten 0. Details: `backend-planning.md` §9.
+
 Nächste Seite: eigenes Ermessen. Cache inkl.
 `mergeCache`/`_faecherCache`/`_cache.lernplaene`, CORS inkl. PATCH/DELETE,
-echte Umgebung stehen jetzt für alle ~12 verbleibenden Seiten bereit.
+echte Umgebung stehen jetzt für alle ~11 verbleibenden Seiten bereit.
 
 Basis-URL: `window.LESIFY_API_BASE` (Default `http://localhost:3000`).
 Session-Token: `localStorage['lesify:token']`.

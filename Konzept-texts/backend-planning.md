@@ -1551,6 +1551,14 @@ echten Multipart-Pfad `POST /testklausuren/:id/loesung` (neue
 `uploadDatei`+`loeseTestklausur`. Download per `fetch`+Blob (kein
 `?token=`-Fallback am Dokument-Endpunkt).
 
+**Nachtrag `lernzettel.html` (2026-09-12) — kleinste Konvertierung seit
+`themen.html`:** der simulierte Revisions-Chat weicht dem echten `POST
+/lernzettel/:id/revisionen` (Call 09). Feldnamen-Anpassung: `revisionMessages`/
+`role` (data.js) → `revisionen`/`rolle` (Server). `getLernzettel()` in `api.js`
+bekam `mitUpdated()` nachgezogen (fehlte bisher). Kein `id`-Fallback über eine
+eigene Bulk-Route, sondern über die ungefilterte `GET /lernzettel` (schon
+sortiert) — `[0]` ist der zuletzt bearbeitete.
+
 **Nachtrag `klausur.html` (2026-09-12) — deutlich leichter als erwartet:**
 kein Backend-Change nötig — die komplette eingebettete Lernplan-Sektion
 läuft unverändert mit den Bausteinen aus `lernplan.html` weiter. Zwei

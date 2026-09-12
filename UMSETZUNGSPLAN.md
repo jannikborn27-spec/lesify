@@ -2940,6 +2940,24 @@ sonst unverändert.
 > zeigt Testklausurnote 2.5/"gut", Aufgabe-für-Aufgabe-Karten mit Ampelfarbe
 > und den echten Lernplan-Teaser ("Tag 7 von 7"), Reload über `?id=`
 > stellt den analysierten Zustand korrekt wieder her.
+>
+> _2026-09-12: **`lernzettel.html` als zwölfte Seite umgestellt — kleinste
+> Konvertierung seit `themen.html`.** Der simulierte Revisions-Chat (feste
+> `AI_REPLIES`-Textliste, `replyIndex`) weicht dem echten `POST
+> /lernzettel/:id/revisionen` (Call 09: Such-/Ersetzen-Patches statt
+> Vollersatz, inkl. Gratis-Kontingent-Zählung). Feldnamen-Anpassung:
+> `lz.revisionMessages`/`m.role` (data.js) → `lz.revisionen`/`m.rolle`
+> (Server). `getLernzettel()` in `api.js` bekam `mitUpdated()` nachgezogen
+> (fehlte bisher — `.updated` für die Kopfzeile). Kein `id`-Fallback über
+> eine Bulk-Route wie bei `klausuren.html`, sondern über die ungefilterte
+> `GET /lernzettel` (schon nach `aktualisiertAm desc` sortiert) — `[0]` ist
+> automatisch der zuletzt bearbeitete. Ungültige/fehlende id → zurück aufs
+> Dashboard (gleiches Muster wie `testklausur.html`). `send()` sperrt
+> Eingabefeld+Button während des echten KI-Calls (kein Duplicate-Submit),
+> Fehler landen als Toast. Live durchgespielt: Lernzettel per `POST
+> /themen/:id/lernzettel` erzeugt, Seite geladen (Titel/Inhalt/Fach-Badge
+> korrekt), eine echte Revision gesendet — Nutzernachricht + KI-Antwort im
+> Thread, Gratis-Zähler korrekt von "10 von 10" auf "9 von 10" runter.
 
 - [x] **API-Client `assets/js/api.js`** — _`Lesify.*`-Namen wie `data.js`, aber
       Promise-basiert; `fetch`-Wrapper mit Bearer-Token
@@ -2953,8 +2971,8 @@ sonst unverändert.
       _(Teilfortschritt 2026-09-12: `dashboard.html` + `faecher.html` +
       `fach.html` + `klausuren.html` + `lernplan.html` + `klausur.html` +
       `lernplan-lernzettel.html` + `thema.html` + `themen.html` + `chat.html` +
-      `testklausur.html` fertig + verifiziert, siehe Progress-Notizen oben.
-      9 Seiten offen.)_
+      `testklausur.html` + `lernzettel.html` fertig + verifiziert, siehe
+      Progress-Notizen oben. 8 Seiten offen.)_
 - [x] **`assets/js/api.js` — Fächer-/Themen-Cache + reine Helfer nachgezogen**
       — _2026-09-12 (mit `dashboard.html`, siehe Progress-Notiz oben):
       `getFach`/`label` als sync Cache-Lookups, `prozentZuNote`/`noteAmpel`/

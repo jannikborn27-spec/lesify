@@ -210,9 +210,18 @@ falschem MIME-Typ korrekt mit 400 abgefangen, echter Upload + Analyse mit
 Ergebnis (Note, Ampel-Karten, Lernplan-Teaser), Reload stellt den
 analysierten Zustand wieder her. Details: `backend-planning.md` §9.
 
+**`lernzettel.html` als zwölfte Seite umgestellt (2026-09-12) — kleinste
+Konvertierung seit `themen.html`.** Der simulierte Revisions-Chat weicht dem
+echten `POST /lernzettel/:id/revisionen` (Call 09). Feldnamen-Anpassung:
+`revisionMessages`/`role` → `revisionen`/`rolle`. `getLernzettel()` bekam
+`mitUpdated()` nachgezogen. `send()` sperrt Eingabe+Button während des
+echten KI-Calls. Live durchgespielt: Revision gesendet, Nutzer- + KI-
+Nachricht im Thread, Gratis-Zähler korrekt runtergezählt. Details:
+`backend-planning.md` §9.
+
 Nächste Seite: eigenes Ermessen. Cache inkl.
 `mergeCache`/`_faecherCache`/`_cache.lernplaene`, CORS inkl. PATCH/DELETE,
-echte Umgebung stehen jetzt für alle ~9 verbleibenden Seiten bereit.
+echte Umgebung stehen jetzt für alle ~8 verbleibenden Seiten bereit.
 
 Basis-URL: `window.LESIFY_API_BASE` (Default `http://localhost:3000`).
 Session-Token: `localStorage['lesify:token']`.

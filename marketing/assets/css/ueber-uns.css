@@ -45,7 +45,25 @@
    .au-group>[data-variant]{display:block} kollidieren (Spezifität).
    v1→v6 unterscheiden sich nur im Content-Umfang der rechten Spalte. */
 .au-hero-eyebrow { justify-content: center; margin-bottom: 1rem; }
-.au-hero { position: relative; text-align: center; padding-top: clamp(8.5rem, 6rem + 8vw, 12rem); padding-bottom: clamp(1rem, 0.6rem + 2vw, 2rem); }
+.au-hero { position: relative; z-index: 0; text-align: center; padding-top: clamp(8.5rem, 6rem + 8vw, 12rem); padding-bottom: clamp(1rem, 0.6rem + 2vw, 2rem); }
+
+/* Seiten-Wasserzeichen — dieselbe Komponente wie .page-watermark im
+   App-Dashboard (app/assets/css/style.css), 1:1 übernommen inkl. Maßen/
+   Opacity (Asset kopiert nach assets/img/lesify-watermark.svg). z-index:-1
+   im lokalen Stacking-Context von .au-hero (position+z-index oben) hält
+   es hinter dem Hero-Inhalt, aber vor dem Seitenhintergrund. */
+.au-watermark {
+  position: absolute;
+  top: -28px; right: -28px;
+  width: 250px; height: 250px;
+  color: var(--ink-900);
+  opacity: 0.045;
+  pointer-events: none;
+  z-index: -1;
+}
+.au-watermark img { width: 100%; height: 100%; display: block; }
+@media (max-width: 1180px) { .au-watermark { width: 190px; height: 190px; } }
+@media (max-width: 860px) { .au-watermark { display: none; } }
 
 .au-hero-portrait { text-align: left; min-height: clamp(360px, 38vw, 480px); }
 .au-hero-portrait .au-hero-eyebrow { justify-content: flex-start; }

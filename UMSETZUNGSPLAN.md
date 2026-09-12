@@ -1929,7 +1929,40 @@ Blockiert alles Weitere. Erst die offenen Produktfragen klären, dann bauen.
       `clamp(290px,33vw,430px)` nachgezogen, mobiles Foto von 150px auf
       220px. **Dashboard-Wasserzeichen** von `340px`/`opacity:0.12` auf
       `480px`/`opacity:0.28` (mobil-breakpoint 240px→340px) — jetzt
-      unübersehbar statt nur „technisch vorhanden".
+      unübersehbar statt nur „technisch vorhanden". Live auf
+      `lesify.de` per direktem Besuch + Pixel-Messung geprüft: Foto-
+      Unterkante deckt sich exakt mit `.au-hero`-Unterkante (Differenz
+      0 px), Wasserzeichen deutlich sichtbar — beides tatsächlich
+      korrekt deployed.
+
+      **Eigentliches Missverständnis geklärt (2026-09-12, gleicher Tag,
+      noch später):** Der Nutzer wollte gar keine Verstärkung auf dem
+      Dashboard — er wollte das (unveränderte, dezente) Dashboard-
+      Wasserzeichen zusätzlich auf `ueber-uns.html` sehen. Deshalb:
+      · **Dashboard-Verstärkung komplett zurückgerollt** —
+      `body[data-page="dashboard"] .page-watermark`-Override (beide
+      Anläufe, 340px/0.12 und 480px/0.28) aus `app/assets/css/style.css`
+      entfernt. `.page-watermark` ist wieder exakt der Ursprungszustand
+      (250px, -28px, `opacity:0.045`, 190px ab 1180px, ausgeblendet ab
+      860px) — auf allen App-Seiten inkl. Dashboard wieder einheitlich
+      dezent.
+      · **Dieselbe Komponente 1:1 auf `ueber-uns.html` ergänzt:**
+      `assets/img/lesify-watermark.svg` nach `marketing/assets/img/`
+      kopiert, neue Klasse `.au-watermark` in `ueber-uns.css` mit exakt
+      denselben Maßen/Opacity/Breakpoints wie `.page-watermark`
+      (250px/-28px/`opacity:0.045`, 190px ab 1180px, ausgeblendet ab
+      860px, `z-index:-1`). `.au-hero` bekommt zusätzlich `z-index:0`
+      (analog zu `.main`/`.main-inner` im Dashboard), damit der negative
+      z-index einen sauberen lokalen Stacking-Context hat statt hinter
+      den Seitenhintergrund zu rutschen. Markup: `<div class="au-watermark"
+      aria-hidden="true"><img src="/assets/img/lesify-watermark.svg"></div>`
+      als erstes Kind der Hero-Section, vor `.container`.
+      · Im Browser (lokale Server für marketing/ + app/ parallel)
+      geprüft: Dashboard zeigt wieder exakt `250px`/`0.045`/`-28px`
+      (Computed Style bestätigt), `ueber-uns.html` zeigt dieselben
+      Werte (Breite 190px statt 250px nur weil die Testbreite unter dem
+      1180px-Breakpoint lag — dieselbe Logik wie im Dashboard), keine
+      Konsolenfehler auf beiden Seiten.
 
 ---
 

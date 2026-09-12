@@ -445,10 +445,11 @@
   </div>
 </div>
 
-<script src="assets/js/data.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/auth-gate.js"></script>
 <script src="assets/js/app.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
   var I = LesifyUI.Icons, R = LesifyUI.Render;
 
   document.getElementById('new-chat-btn').innerHTML = I.plus + ' Neuer Chat';
@@ -462,14 +463,9 @@ document.addEventListener('DOMContentLoaded', function () {
   var MODE_LOOKUP = {}; MODES.forEach(function (m) { MODE_LOOKUP[m.key] = m; });
 
   /* Modus ist optional. Ohne gewählten Modus greifen diese neutralen
-     Fallbacks (Kopfzeile, Vorschläge, Platzhalter-Antworten). */
+     Fallbacks (Kopfzeile, Vorschläge, Eröffnungstext). */
   var GENERIC_MODE = { key: null, label: 'Freie Frage', sub: 'Alles rund um dein Thema', icon: 'chat' };
   var GENERIC_SUGGESTIONS = ['Erkläre mir das Grundprinzip', 'Gib mir eine Beispielaufgabe dazu', 'Was sind typische Fehler?'];
-  var GENERIC_REPLIES = [
-    'Klar, lass uns das zusammen angehen. Erzähl mir kurz, wo du gerade stehst.',
-    'Kein Problem — zeig mir am besten, was du schon hast oder wo es hakt.',
-    'Alles klar. Sollen wir beim Grundprinzip anfangen oder direkt an einer Beispielaufgabe?'
-  ];
 
   var SUGGESTIONS = {
     erklaeren: ['Erkläre anhand eines Beispiels', 'Gib mir dafür eine Beispielaufgabe', 'Was sind typische Fehler?'],
@@ -477,17 +473,26 @@ document.addEventListener('DOMContentLoaded', function () {
     ueben: ['Stell mir eine Frage dazu', 'Nochmal, etwas schwerer', 'Wie war meine Antwort?'],
     zusammenfassen: ['Fasse meine letzten Chats zusammen', 'Nur die wichtigsten 5 Punkte', 'Als Stichpunkte bitte']
   };
-  var REPLIES = {
-    erklaeren: ['Gute Frage — lass uns das Schritt für Schritt angehen. Was genau ist an dieser Stelle für dich unklar?', 'Versuch es doch mal an einem eigenen Beispiel — schreib mir deinen Ansatz, ich sage dir, ob er stimmt.', 'Genau richtig! Und wie würdest du das jetzt auf die nächste Teilaufgabe übertragen?'],
-    hausaufgaben: ['Zeig mir gerne deinen bisherigen Lösungsweg, dann schauen wir gemeinsam, wo es hakt.', 'Das sieht schon gut aus — einen Punkt würde ich nochmal prüfen. Magst du mir deinen Rechenweg zeigen?', 'Guter Ansatz. Was wäre aus deiner Sicht der nächste Schritt, um das abzuschließen?'],
-    ueben: ['Fast — überprüf nochmal den zweiten Schritt, da hat sich ein kleiner Fehler eingeschlichen.', 'Genau richtig! Nächste Frage: kannst du das auch in eigenen Worten erklären?', 'Guter Versuch. Ich stelle dir gleich eine ähnliche Frage, damit es sich festigt.'],
-    zusammenfassen: ['Hier ist eine kompakte Zusammenfassung der Kernpunkte — sag mir, wenn ich etwas vertiefen soll.', 'Ich habe das auf die wichtigsten Stichpunkte reduziert. Passt der Detailgrad so?', 'Zusammengefasst — möchtest du das zusätzlich als Lernzettel speichern?']
-  };
 
   var MAX_FILE_BYTES = 5 * 1024 * 1024;
-  var state = { chatId: null, fachId: null, themaId: null, mode: null, messages: [], replyIndex: 0 };
-  var pendingAttachment = null;
+  var state = { chatId: null, fachId: null, themaId: null, mode: null, messages: [] };
+  var pendingAttachmentFile = null;
   var verlaufFilter = '*'; // aktiver Fach-Filter im Verlauf ('*' = alle)
+  var chatList = []; // lokaler Sync-Cache von Lesify.chats() für Verlauf-Spalte + Fach-Filter
+
+  async function refreshChatsCache() { chatList = await Lesify.chats(); }
+
+  /** `nachrichten` vom Server (`{rolle,text,anhangDateiId}`) → dieselbe Form
+      wie im data.js-Prototyp (`{role,text,attachment}`) — Anhang-Dateiname
+      wird pro Nachricht mit `anhangDateiId` einmalig nachgeladen. */
+  function normalizeMessages(nachrichten) {
+    return Promise.all((nachrichten || []).map(function (n) {
+      var msg = { role: n.rolle, text: n.text };
+      if (!n.anhangDateiId) return msg;
+      return Lesify.getDatei(n.anhangDateiId).then(function (d) { msg.attachment = d.name; return msg; },
+        function () { msg.attachment = 'Angehängte Datei'; return msg; });
+    }));
+  }
 
   function qsp() { return new URLSearchParams(window.location.search); }
 
@@ -503,7 +508,7 @@ document.addEventListener('DOMContentLoaded', function () {
     history.pushState(null, '', 'chat.html' + (qs ? '?' + qs : ''));
   }
 
-  function loadFromUrl() {
+  async function loadFromUrl() {
     var p = qsp();
     // Lernplan-Kontext (nur bei Deep-Links aus dem Lernplan gesetzt) — wird an den
     // entstehenden/fortgesetzten Chat weitergereicht, damit chat.html die chatId
@@ -523,10 +528,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var chatId = p.get('chat');
     if (chatId) {
-      var c = Lesify.getChat(chatId);
+      var c = await Lesify.getChat(chatId).catch(function () { return null; });
       if (c) {
         state = { chatId: c.id, fachId: c.fachId, themaId: c.themaId, mode: c.modus,
-                  messages: c.messages.slice(), replyIndex: 0, lpLernplanId: lpLernplanId, lpTag: lpTag };
+                  messages: await normalizeMessages(c.nachrichten), lpLernplanId: lpLernplanId, lpTag: lpTag };
         render();
         applyPrefill();
         return;
@@ -534,19 +539,22 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     var fachId = p.get('fach'), themaId = p.get('thema'), mode = p.get('mode') || null;
     if (mode && !MODE_LOOKUP[mode]) mode = null;
-    if (fachId && themaId && Lesify.getFach(fachId) && Lesify.getThema(themaId)) {
+    if (fachId && themaId && Lesify.getFach(fachId) && Lesify.label(themaId).thema !== '—') {
       state = { chatId: null, fachId: fachId, themaId: themaId, mode: mode,
-                messages: [{ role: 'ai', text: openingMessage(mode, Lesify.getThema(themaId)) }],
-                replyIndex: 0, lpLernplanId: lpLernplanId, lpTag: lpTag };
+                messages: [{ role: 'ai', text: openingMessage(mode, { name: Lesify.label(themaId).thema }) }],
+                lpLernplanId: lpLernplanId, lpTag: lpTag };
       render();
       applyPrefill();
       return;
     }
-    state = { chatId: null, fachId: null, themaId: null, mode: null, messages: [], replyIndex: 0, lpLernplanId: null, lpTag: null };
+    state = { chatId: null, fachId: null, themaId: null, mode: null, messages: [], lpLernplanId: null, lpTag: null };
     render();
   }
 
   window.addEventListener('popstate', loadFromUrl);
+
+  await Promise.all([Lesify.faecher(), Lesify.themen()]);
+  await refreshChatsCache();
 
   function openingMessage(mode, thema) {
     if (mode === 'hausaufgaben') return 'Schick mir deine Aufgabe zu ' + thema.name + ' — am besten mit dem, was du schon probiert hast. Dann helfe ich dir Schritt für Schritt weiter.';
@@ -560,7 +568,7 @@ document.addEventListener('DOMContentLoaded', function () {
      --------------------------------------------------------- */
 
   function renderSidebar() {
-    var chats = Lesify.chats().slice().reverse();
+    var chats = chatList; // bereits neueste zuerst (`GET /chats` sortiert nach aktualisiertAm desc)
     if (verlaufFilter !== '*') chats = chats.filter(function (c) { return c.fachId === verlaufFilter; });
     var list = document.getElementById('chat-history-list');
     list.innerHTML = chats.map(function (c) {
@@ -603,8 +611,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function verlaufFaecher() {
     var seen = {};
-    Lesify.chats().forEach(function (c) { seen[c.fachId] = true; });
-    return Lesify.faecher().filter(function (f) { return seen[f.id]; });
+    chatList.forEach(function (c) { seen[c.fachId] = true; });
+    return Lesify._faecherCache().filter(function (f) { return seen[f.id]; });
   }
 
   function renderVerlaufFilter() {
@@ -658,15 +666,16 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   })();
 
-  function openChat(chatId) {
-    var c = Lesify.getChat(chatId);
+  async function openChat(chatId) {
+    var c = await Lesify.getChat(chatId).catch(function () { return null; });
     if (!c) return;
-    state = { chatId: c.id, fachId: c.fachId, themaId: c.themaId, mode: c.modus, messages: c.messages.slice(), replyIndex: 0, lpLernplanId: null, lpTag: null };
+    state = { chatId: c.id, fachId: c.fachId, themaId: c.themaId, mode: c.modus,
+              messages: await normalizeMessages(c.nachrichten), lpLernplanId: null, lpTag: null };
     pushUrl(); render();
   }
 
   document.getElementById('new-chat-btn').addEventListener('click', function () {
-    state = { chatId: null, fachId: null, themaId: null, mode: null, messages: [], replyIndex: 0, lpLernplanId: null, lpTag: null };
+    state = { chatId: null, fachId: null, themaId: null, mode: null, messages: [], lpLernplanId: null, lpTag: null };
     pushUrl(); render();
   });
 
@@ -691,7 +700,7 @@ document.addEventListener('DOMContentLoaded', function () {
      --------------------------------------------------------- */
 
   function renderEmpty() {
-    pendingAttachment = null;
+    pendingAttachmentFile = null;
     var chosenMode = null;
     var eInput = null;
 
@@ -756,10 +765,10 @@ document.addEventListener('DOMContentLoaded', function () {
     function markPlaceholder(sel) { sel.classList.toggle('is-placeholder', !sel.value); }
 
     eFach.innerHTML = FACH_PLACEHOLDER +
-      Lesify.faecher().map(function (f) { return '<option value="' + f.id + '">' + f.name + '</option>'; }).join('') +
+      Lesify._faecherCache().map(function (f) { return '<option value="' + f.id + '">' + f.name + '</option>'; }).join('') +
       '<option value="__new__">+ Neues Fach erstellen</option>';
 
-    function populateThemen() {
+    async function populateThemen() {
       markPlaceholder(eFach);
       var fid = eFach.value;
       if (!fid) {
@@ -777,8 +786,12 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
       }
       eNewFachRow.style.display = 'none';
+      eThema.innerHTML = THEMA_PLACEHOLDER + '<option value="__new__">+ Neues Thema erstellen</option>';
+      markPlaceholder(eThema);
+      var themenListe = await Lesify.themenFuerFach(fid);
+      if (eFach.value !== fid) return; // Fach wurde inzwischen gewechselt
       eThema.innerHTML = THEMA_PLACEHOLDER +
-        Lesify.themen(fid).map(function (t) { return '<option value="' + t.id + '">' + t.name + '</option>'; }).join('') +
+        themenListe.map(function (t) { return '<option value="' + t.id + '">' + t.name + '</option>'; }).join('') +
         '<option value="__new__">+ Neues Thema erstellen</option>';
       eNewThemaRow.style.display = 'none';
       markPlaceholder(eThema);
@@ -797,41 +810,44 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!e.target.files.length) return;
       var file = e.target.files[0];
       if (file.size > MAX_FILE_BYTES) { LesifyUI.toast('„' + file.name + '" ist größer als 5 MB — bitte kleinere Datei wählen.'); e.target.value = ''; return; }
-      pendingAttachment = file.name;
-      document.getElementById('e-attach-preview').innerHTML = '<span class="attach-chip">' + pendingAttachment + '<span style="cursor:pointer" id="e-attach-remove">' + I.x + '</span></span>';
-      document.getElementById('e-attach-remove').addEventListener('click', function () { pendingAttachment = null; document.getElementById('e-attach-preview').innerHTML = ''; });
+      pendingAttachmentFile = file;
+      document.getElementById('e-attach-preview').innerHTML = '<span class="attach-chip">' + file.name + '<span style="cursor:pointer" id="e-attach-remove">' + I.x + '</span></span>';
+      document.getElementById('e-attach-remove').addEventListener('click', function () { pendingAttachmentFile = null; document.getElementById('e-attach-preview').innerHTML = ''; });
       e.target.value = '';
     });
     eInput.addEventListener('input', function () { this.style.height = 'auto'; this.style.height = Math.min(170, this.scrollHeight) + 'px'; });
     eInput.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); trySend(); } });
     document.getElementById('e-send').addEventListener('click', trySend);
 
-    function trySend() {
+    async function trySend() {
       var text = (eInput && eInput.value.trim()) || '';
-      if (!text && !pendingAttachment) { if (eInput) eInput.focus(); return; }
+      if (!text && !pendingAttachmentFile) { if (eInput) eInput.focus(); return; }
       var fSel = document.getElementById('e-fach'), tSel = document.getElementById('e-thema');
       var fid = fSel ? fSel.value : null;
       if (fid === '__new__') {
         var fn = (document.getElementById('e-fach-neu').value || '').trim();
         if (!fn) { document.getElementById('e-fach-neu').focus(); return; }
-        fid = Lesify.addFach({ name: fn }).id;
+        fid = (await Lesify.addFach({ name: fn })).id;
       }
       var tid = tSel ? tSel.value : null;
+      var themaName = tSel && tSel.selectedOptions[0] ? tSel.selectedOptions[0].textContent : '—';
       if (tid === '__new__') {
         var tn = (document.getElementById('e-thema-neu').value || '').trim();
         if (!tn) { document.getElementById('e-thema-neu').focus(); return; }
-        tid = Lesify.addThema({ fachId: fid, name: tn }).id;
+        tid = (await Lesify.addThema({ fachId: fid, name: tn })).id;
+        themaName = tn;
       }
       if (!fid || !tid) { if (fSel && !fid) fSel.focus(); else if (tSel) tSel.focus(); return; }
 
-      var titel = text ? R.truncate(text, 48) : 'Neuer Chat';
-      var chat = Lesify.addChat({ fachId: fid, themaId: tid, modus: chosenMode, titel: titel, messages: [{ role: 'ai', text: openingMessage(chosenMode, Lesify.getThema(tid)) }] });
-      state = { chatId: chat.id, fachId: fid, themaId: tid, mode: chosenMode, messages: chat.messages.slice(), replyIndex: 0 };
+      var chat = await Lesify.addChat({ fachId: fid, themaId: tid, modus: chosenMode });
+      state = { chatId: chat.id, fachId: fid, themaId: tid, mode: chosenMode,
+                messages: [{ role: 'ai', text: openingMessage(chosenMode, { name: themaName }) }] };
       pushUrl();
+      await refreshChatsCache();
       renderVerlaufFilter();
       renderSidebar();
       renderActive();
-      sendMessage(text, pendingAttachment);
+      sendMessage(text, pendingAttachmentFile);
     }
   }
 
@@ -840,7 +856,7 @@ document.addEventListener('DOMContentLoaded', function () {
      --------------------------------------------------------- */
 
   function renderActive() {
-    pendingAttachment = null;
+    pendingAttachmentFile = null;
     var modeInfo = MODE_LOOKUP[state.mode] || GENERIC_MODE;
     var ccLbl = Lesify.label(state.themaId);
     var ccFach = Lesify.getFach(state.fachId);
@@ -858,7 +874,7 @@ document.addEventListener('DOMContentLoaded', function () {
           '<span class="cc-eyebrow">' + modeInfo.label + '</span>' +
           '<span class="cc-thema2">' + ccLbl.fach + ' · ' + ccLbl.thema + '</span>' +
         '</div>' +
-        '<div style="margin-left:auto" id="cc-usage">' + renderUsage() + '</div>' +
+        '<div style="margin-left:auto" id="cc-usage"></div>' +
       '</div>' +
       '<div class="thread" id="thread"></div>' +
       '<div class="composer-wrap">' +
@@ -871,13 +887,14 @@ document.addEventListener('DOMContentLoaded', function () {
             '<textarea id="chat-input" rows="1" placeholder="Antwort schreiben…"></textarea>' +
             '<button class="btn btn-primary btn-sm" id="send-btn" style="width:38px;height:38px;padding:0;border-radius:10px" aria-label="Senden">' + I.send + '</button>' +
           '</div>' +
-          '<div class="cc-usage-dock" id="cc-usage-dock">' + renderUsage() + '</div>' +
+          '<div class="cc-usage-dock" id="cc-usage-dock"></div>' +
         '</div>' +
         '<p class="composer-hint">Lesify kann Fehler machen — prüfe wichtige Angaben nach.</p>' +
       '</div>';
 
-    if (!state.messages.length) state.messages = [{ role: 'ai', text: openingMessage(state.mode, Lesify.getThema(state.themaId)) }];
+    if (!state.messages.length) state.messages = [{ role: 'ai', text: openingMessage(state.mode, { name: Lesify.label(state.themaId).thema }) }];
     renderThread(); renderSuggestions();
+    refreshUsage();
 
     var input = document.getElementById('chat-input');
     input.addEventListener('input', function () { this.style.height = 'auto'; this.style.height = Math.min(140, this.scrollHeight) + 'px'; });
@@ -889,27 +906,25 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!e.target.files.length) return;
       var file = e.target.files[0];
       if (file.size > MAX_FILE_BYTES) { LesifyUI.toast('„' + file.name + '" ist größer als 5 MB — bitte kleinere Datei wählen.'); e.target.value = ''; return; }
-      pendingAttachment = file.name;
-      document.getElementById('attach-preview').innerHTML = '<span class="attach-chip">' + pendingAttachment + '<span style="cursor:pointer" id="attach-remove">' + I.x + '</span></span>';
-      document.getElementById('attach-remove').addEventListener('click', function () { pendingAttachment = null; document.getElementById('attach-preview').innerHTML = ''; });
+      pendingAttachmentFile = file;
+      document.getElementById('attach-preview').innerHTML = '<span class="attach-chip">' + file.name + '<span style="cursor:pointer" id="attach-remove">' + I.x + '</span></span>';
+      document.getElementById('attach-remove').addEventListener('click', function () { pendingAttachmentFile = null; document.getElementById('attach-preview').innerHTML = ''; });
       e.target.value = '';
     });
 
-    function submit() {
+    async function submit() {
       var text = input.value.trim();
-      if (!text && !pendingAttachment) return;
-      var att = pendingAttachment;
+      if (!text && !pendingAttachmentFile) return;
+      var att = pendingAttachmentFile;
       input.value = ''; input.style.height = 'auto';
       // Deep-Link-Zustand (chatId === null): beim allerersten Absenden einen Chat
       // anlegen — sonst lebt der Verlauf nur in state.messages und ist nach Reload
       // oder Chip-Wechsel weg. Gleiche addChat-Signatur wie trySend() im leeren Zustand.
       if (!state.chatId) {
-        var chat = Lesify.addChat({
-          fachId: state.fachId, themaId: state.themaId, modus: state.mode,
-          titel: (text ? R.truncate(text, 48) : 'Neuer Chat'), messages: state.messages.slice()
-        });
+        var chat = await Lesify.addChat({ fachId: state.fachId, themaId: state.themaId, modus: state.mode });
         state.chatId = chat.id;
         pushUrl();
+        await refreshChatsCache();
         renderVerlaufFilter();
       }
       sendMessage(text, att);
@@ -989,9 +1004,10 @@ document.addEventListener('DOMContentLoaded', function () {
     '</svg>';
   }
 
-  function renderUsage() {
+  async function renderUsage() {
     if (typeof Lesify === 'undefined') return '';
-    var u = Lesify.usage();
+    var u = await Lesify.usage().catch(function () { return null; });
+    if (!u) return '';
     var overall = Math.max(
       uwRatioOf(u.nachrichten), uwRatioOf(u.dateien),
       uwRatioOf(u.lernzettel), uwRatioOf(u.testklausuren)
@@ -1010,45 +1026,71 @@ document.addEventListener('DOMContentLoaded', function () {
     '</div>';
   }
 
-  function refreshUsage() {
+  async function refreshUsage() {
+    var html = await renderUsage();
     ['cc-usage', 'cc-usage-dock'].forEach(function (id) {
       var el = document.getElementById(id);
-      if (el) el.innerHTML = renderUsage();
+      if (el) el.innerHTML = html;
     });
   }
 
-  function sendMessage(text, attachment) {
-    var msg = { role: 'user', text: text || 'Angehängte Datei' };
-    if (attachment) { msg.attachment = attachment; Lesify.incrementUsage('dateien', 1); }
-    state.messages.push(msg);
-    if (state.chatId) Lesify.appendChatMessages(state.chatId, [msg]);
-    pendingAttachment = null;
+  /** Lädt einen ausgewählten Anhang hoch und wartet auf die Verarbeitung
+      (Text-Extraktion + Zusammenfassung), bevor die Nachricht abgeschickt
+      wird — der Server braucht `anhangDateiId` einer bereits `bereit`en
+      Datei, um sie dem KI-Kontext beizulegen (§3/§6). */
+  async function hochladenFuerNachricht(file) {
+    var datei = await Lesify.uploadDatei(state.themaId, file);
+    datei = await Lesify.pollDateiStatus(datei.id);
+    if (datei.status !== 'bereit') {
+      LesifyUI.toast('„' + file.name + '" konnte nicht verarbeitet werden — die Nachricht wird ohne Anhang gesendet.');
+      return null;
+    }
+    return datei.id;
+  }
+
+  async function sendMessage(text, attachmentFile) {
+    var anhangDateiId = null;
+    if (attachmentFile) {
+      anhangDateiId = await hochladenFuerNachricht(attachmentFile).catch(function (err) {
+        LesifyUI.toast(Lesify.fehlerText(err));
+        return null;
+      });
+    }
+
+    var displayText = text || 'Schau dir bitte die angehängte Datei an.';
+    state.messages.push({ role: 'user', text: displayText, attachment: attachmentFile ? attachmentFile.name : null });
+    pendingAttachmentFile = null;
     var preview = document.getElementById('attach-preview'); if (preview) preview.innerHTML = '';
-    Lesify.incrementUsage('nachrichten', 1);
-    refreshUsage();
     renderSidebar();
     renderThread(); renderSuggestions();
     showTyping();
-    setTimeout(function () {
+
+    var extra = {};
+    if (anhangDateiId) extra.anhangDateiId = anhangDateiId;
+    // Lernplan-Deep-Link: der Server schreibt die chatId serverseitig in die
+    // chatMap des Lernplans, sobald `lernplanKontext` mitgeschickt wird —
+    // kein separater Client-Call mehr nötig (anders als im data.js-Prototyp).
+    if (state.lpLernplanId && state.lpTag) {
+      extra.lernplanKontext = { lernplanId: state.lpLernplanId, tag: Number(state.lpTag) };
+    }
+
+    try {
+      var res = await Lesify.appendChatMessages(state.chatId, displayText, extra);
       hideTyping();
-      var pool = REPLIES[state.mode] || GENERIC_REPLIES;
-      var aiMsg = { role: 'ai', text: pool[state.replyIndex % pool.length] };
-      state.messages.push(aiMsg);
-      state.replyIndex++;
-      if (state.chatId) Lesify.appendChatMessages(state.chatId, [aiMsg]);
-      // Lernplan-Deep-Link: die (evtl. gerade erst angelegte) chatId in die chatMap
-      // des Lernplans schreiben, damit ein zweiter Chip zu Tag+Modus+Thema in
-      // denselben Chat führt. Bewusst idempotent — schreibt bei jeder Nachricht
-      // denselben Eintrag, das ist unschädlich.
-      if (state.lpLernplanId && state.lpTag && state.chatId && typeof Lesify.setLernplanChatId === 'function') {
-        Lesify.setLernplanChatId(state.lpLernplanId, state.lpTag, state.mode, state.themaId, state.chatId);
-      }
+      var aiEntry = res.nachrichten.filter(function (n) { return n.rolle === 'ai'; })[0];
+      if (aiEntry) state.messages.push({ role: 'ai', text: aiEntry.text });
+      await refreshChatsCache();
+      refreshUsage();
       renderSidebar();
       renderThread(); renderSuggestions();
-    }, 900 + Math.random() * 500);
+    } catch (err) {
+      hideTyping();
+      LesifyUI.toast(Lesify.fehlerText(err));
+      renderThread(); renderSuggestions();
+    }
   }
 
-  loadFromUrl();
+  await loadFromUrl();
 });
 </script>
 </body>

@@ -575,8 +575,14 @@
     },
 
     /* Usage / Abo ------------------------------------------- */
+    /** `resetDatum` kommt vom Server als volles ISO-Datetime (Prisma `Date`),
+        `formatDatum()` (app.js) erwartet aber ein reines "YYYY-MM-DD" wie bei
+        `Klausur.datum` — hier auf den Datumsteil gekürzt. */
     usage: function () {
-      return GET('/usage');
+      return GET('/usage').then(function (u) {
+        if (u.resetDatum) u.resetDatum = String(u.resetDatum).slice(0, 10);
+        return u;
+      });
     },
     getAbo: function () {
       return GET('/abo');

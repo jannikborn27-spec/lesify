@@ -661,8 +661,12 @@
   // siehe .chip--fach.is-active in style.css).
   function fachFilterChips() {
     if (typeof Lesify === 'undefined') return '';
+    // api.js: Lesify.faecher() ist async (Promise) — sync-Snapshot aus dem
+    // Cache nehmen (braucht ein vorheriges `await Lesify.faecher()` auf der
+    // Seite, wie jeder andere Cache-Lookup hier).
+    var alle = Lesify._faecherCache ? Lesify._faecherCache() : Lesify.faecher();
     return '<button class="chip is-active" data-filter-value="*">Alle</button>' +
-      Lesify.faecher().map(function (f) {
+      alle.map(function (f) {
         return '<button class="chip chip--fach" data-filter-value="' + f.id + '" style="' + fachColorVars(f.id) + '">' + f.name + '</button>';
       }).join('');
   }

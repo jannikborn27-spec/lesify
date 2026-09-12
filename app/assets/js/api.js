@@ -576,6 +576,10 @@
     _setToken: setToken,
     _getToken: getToken,
     _base: BASE,
+    /** Sync-Snapshot des Fächer-Caches — für geteilte Renderer wie
+        `fachFilterChips()`, die (wie im data.js-Prototyp) eine synchrone
+        Liste erwarten. Braucht ein vorheriges `await Lesify.faecher()`. */
+    _faecherCache: function () { return _cache.faecher.slice(); },
 
     /* Notenlogik + Klausur-Status (reine Formeln, 1:1 aus data.js) ------- */
     prozentZuNote: prozentZuNote,

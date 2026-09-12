@@ -74,23 +74,30 @@
   </div>
 </div>
 
-<script src="assets/js/data.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/auth-gate.js"></script>
 <script src="assets/js/app.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
   var R = LesifyUI.Render, I = LesifyUI.Icons;
+
+  // Fächer + Themen zuerst laden (füllt die Caches, die fachFilterChips()
+  // und Klausur-Karten-Badges synchron lesen) — erst danach rendern, siehe
+  // Race-Condition-Lehre aus fach.html. Themen fächerübergreifend, weil die
+  // Klausur-Liste hier über alle Fächer geht.
+  await Promise.all([Lesify.faecher(), Lesify.themen()]);
 
   function drawFilters() {
     document.getElementById('klausur-filters').innerHTML = R.fachFilterChips();
   }
 
-  function drawList() {
-    var klausuren = Lesify.klausuren();
+  async function drawList() {
+    var klausuren = await Lesify.klausuren();
     var html = klausuren.length ? R.klausurListe(klausuren) : '';
     document.getElementById('klausuren-list').innerHTML = html || ('<div class="empty-state"><div class="es-icon">' + I.docCheck + '</div><h4>Noch keine Klausuren</h4><p>Lege deine erste Klausur an.</p></div>');
   }
 
-  drawFilters(); drawList();
+  drawFilters(); await drawList();
 
   /* =========================================================
      create-klausur modal — Themenauswahl als fach-gefärbtes
@@ -105,14 +112,21 @@ document.addEventListener('DOMContentLoaded', function () {
   var selectedThemaIds = [];
   var pendingThemen = [];
 
-  function populateFaecher() {
-    fachSelect.innerHTML = Lesify.faecher().map(function (f) { return '<option value="' + f.id + '">' + f.name + '</option>'; }).join('') +
+  async function populateFaecher() {
+    var faecher = await Lesify.faecher();
+    fachSelect.innerHTML = faecher.map(function (f) { return '<option value="' + f.id + '">' + f.name + '</option>'; }).join('') +
       '<option value="__new__">+ Neues Fach erstellen</option>';
   }
 
-  function curThemen() {
-    return fachSelect.value === '__new__' ? [] : Lesify.themen(fachSelect.value);
+  // Lesify.themen(fachId) gibt es unter api.js nicht (nur die volle Liste
+  // ohne Filter) — themenFuerFach(fachId) ist async, darum hier einmal pro
+  // Fach-Wechsel geladen und lokal zwischengespeichert; renderWidget() bleibt
+  // dadurch synchron.
+  var curThemenList = [];
+  async function loadCurThemen() {
+    curThemenList = fachSelect.value === '__new__' ? [] : await Lesify.themenFuerFach(fachSelect.value);
   }
+  function curThemen() { return curThemenList; }
   function isSel(id) { return selectedThemaIds.indexOf(id) !== -1; }
   function toggleSel(id, on) {
     var i = selectedThemaIds.indexOf(id);
@@ -172,34 +186,49 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 
-  fachSelect.addEventListener('change', function () {
+  fachSelect.addEventListener('change', async function () {
     selectedThemaIds = [];
+    await loadCurThemen();
     renderWidget();
   });
 
-  populateFaecher(); renderWidget();
+  await populateFaecher();
+  await loadCurThemen();
+  renderWidget();
 
-  document.getElementById('nk-form').addEventListener('submit', function (e) {
+  document.getElementById('nk-form').addEventListener('submit', async function (e) {
     e.preventDefault();
     var titel = document.getElementById('nk-titel').value.trim();
     var datum = document.getElementById('nk-datum').value;
     if (!titel || !datum) return;
 
-    var fachId = fachSelect.value;
-    if (fachId === '__new__') {
-      var fachName = document.getElementById('nk-fach-neu').value.trim();
-      if (!fachName) { document.getElementById('nk-fach-neu').focus(); return; }
-      fachId = Lesify.addFach({ name: fachName }).id;
+    var submitBtn = this.querySelector('button[type="submit"]');
+    try {
+      var fachId = fachSelect.value;
+      if (fachId === '__new__') {
+        var fachName = document.getElementById('nk-fach-neu').value.trim();
+        if (!fachName) { document.getElementById('nk-fach-neu').focus(); return; }
+        var neuesFach = await Lesify.addFach({ name: fachName });
+        fachId = neuesFach.id;
+      }
+
+      var themaIds = selectedThemaIds.slice();
+      for (var i = 0; i < pendingThemen.length; i++) {
+        var neuesThema = await Lesify.addThema({ fachId: fachId, name: pendingThemen[i] });
+        themaIds.push(neuesThema.id);
+      }
+      if (!themaIds.length) { LesifyUI.toast('Wähle mindestens ein Thema aus oder lege eines an.'); return; }
+
+      submitBtn.disabled = true;
+      // POST /klausuren legt Klausur + Testklausur 1 + Lernplan in einem Zug
+      // an (KI-Call) — anders als data.js braucht es kein separates
+      // Lesify.starteLernplan() mehr.
+      var ergebnis = await Lesify.addKlausur({ fachId: fachId, themaIds: themaIds, titel: titel, datum: datum });
+      window.location.href = 'lernplan.html?id=' + ergebnis.lernplan.id;
+    } catch (err) {
+      submitBtn.disabled = false;
+      LesifyUI.toast(Lesify.fehlerText ? Lesify.fehlerText(err) : 'Klausur konnte nicht angelegt werden.');
     }
-
-    var themaIds = selectedThemaIds.slice();
-    pendingThemen.forEach(function (name) { themaIds.push(Lesify.addThema({ fachId: fachId, name: name }).id); });
-    if (!themaIds.length) { LesifyUI.toast('Wähle mindestens ein Thema aus oder lege eines an.'); return; }
-
-    var k = Lesify.addKlausur({ fachId: fachId, themaIds: themaIds, titel: titel, datum: datum });
-    // Jede neue Klausur startet sofort ihren 7-Tage-Lernplan (inkl. Testklausur 1).
-    var lp = Lesify.starteLernplan(k.id);
-    window.location.href = 'lernplan.html?id=' + lp.id;
   });
 });
 </script>

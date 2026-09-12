@@ -16,146 +16,22 @@
 <main class="overflow-x-hidden">
 
   <!-- ============================================================
-       1) HERO (weiß) — 10 Design-Varianten, jede mit großem Gründer-Foto
-          (kein Rahmen/Karte — das Foto-Backdrop trifft den Seitenhintergrund,
-          wirkt dadurch wie ein freigestelltes PNG). Dev-Panel unten rechts.
-          Rundungs-/Zwickel-Übergang zwischen den Abschnitten läuft wie
-          überall sonst auf der Seite über .mkt-cut/.mkt-dark — kein
-          zusätzlicher Rahmen-Effekt hier.
+       1) HERO (weiß) — 6 Design-Varianten, alle auf derselben
+          Basis-Geometrie (Foto links, freigestellt, absolut
+          positioniert an .au-hero; Text rechts) — Varianten
+          unterscheiden sich nur im Content-Umfang der rechten Spalte.
+          Dev-Panel unten rechts.
        ============================================================ -->
   <section class="page-hero au-hero mkt-cut mkt-cut--bottom">
     <div class="container container--narrow">
       <div class="au-group" data-group="hero" data-active="1" data-reveal>
 
-        <!-- v1 — Diagonaler Split: Foto rechts mit Schrägkante -->
-        <div class="au-hero-1" data-variant="1">
-          <div class="au-hero-1__grid">
-            <div class="au-hero-1__text">
-              <span class="eyebrow au-hero-eyebrow">Über uns</span>
-              <h1>Angefangen hat alles mit einem Lernzettel für mich selbst.</h1>
-              <p>Lesify ist kein Konzern-Produkt. Es ist aus einem Lernsystem entstanden, das ich
-              fürs eigene Abitur gebaut, im Studium weitergedacht und irgendwann für meine
-              Schwester zu einer echten App gemacht habe.</p>
-              <div class="au-signature">Jannik Born<span>Gründer von Lesify</span></div>
-            </div>
-            <div class="au-hero-1__photo">
-              <img src="/assets/img/jborn-uberuns.jpg" alt="Jannik Born, Gründer von Lesify" onerror="this.remove()">
-            </div>
+        <!-- v1 — Minimal: Eyebrow + Headline + Absatz -->
+        <div class="au-hero-portrait" data-variant="1">
+          <div class="au-hero-portrait__photo" aria-hidden="true">
+            <img src="/assets/img/jborn-ptrt-nw.png" alt="">
           </div>
-        </div>
-
-        <!-- v2 — Vollflächiges Foto rechts, bis an den Viewport-Rand -->
-        <div class="au-hero-2" data-variant="2">
-          <div class="au-hero-2__grid">
-            <div class="au-hero-2__text">
-              <span class="eyebrow au-hero-eyebrow">Über uns</span>
-              <h1>Angefangen hat alles mit einem Lernzettel für mich selbst.</h1>
-              <p>Lesify ist kein Konzern-Produkt. Es ist aus einem Lernsystem entstanden, das ich
-              fürs eigene Abitur gebaut, im Studium weitergedacht und irgendwann für meine
-              Schwester zu einer echten App gemacht habe.</p>
-              <div class="au-signature">Jannik Born<span>Gründer von Lesify</span></div>
-            </div>
-            <div class="au-hero-2__photo">
-              <img src="/assets/img/jborn-uberuns.jpg" alt="Jannik Born, Gründer von Lesify" onerror="this.remove()">
-            </div>
-          </div>
-        </div>
-
-        <!-- v3 — Riesige Figur zentriert, Headline oben + unten -->
-        <div class="au-hero-3" data-variant="3">
-          <span class="eyebrow au-hero-eyebrow">Über uns</span>
-          <h1>Angefangen hat alles mit einem Lernzettel für mich selbst.</h1>
-          <div class="au-hero-3__photo">
-            <img src="/assets/img/jborn-uberuns.jpg" alt="Jannik Born, Gründer von Lesify" onerror="this.remove()">
-          </div>
-          <p>Lesify ist kein Konzern-Produkt. Es ist aus einem Lernsystem entstanden, das ich
-          fürs eigene Abitur gebaut, im Studium weitergedacht und irgendwann für meine
-          Schwester zu einer echten App gemacht habe.</p>
-        </div>
-
-        <!-- v4 — Split mit überformatierter Headline + großem Foto -->
-        <div class="au-hero-4" data-variant="4">
-          <div class="au-hero-4__grid">
-            <div class="au-hero-4__text">
-              <span class="eyebrow au-hero-eyebrow">Über uns</span>
-              <h1>Angefangen hat alles mit einem Lernzettel für mich selbst.</h1>
-              <p>Lesify ist kein Konzern-Produkt. Es ist aus einem Lernsystem entstanden, das ich
-              fürs eigene Abitur gebaut, im Studium weitergedacht und irgendwann für meine
-              Schwester zu einer echten App gemacht habe.</p>
-            </div>
-            <div class="au-hero-4__photo">
-              <img src="/assets/img/jborn-uberuns.jpg" alt="Jannik Born, Gründer von Lesify" onerror="this.remove()">
-            </div>
-          </div>
-        </div>
-
-        <!-- v5 — Weicher Farbfleck hinter dem großen Foto -->
-        <div class="au-hero-5" data-variant="5">
-          <div class="au-hero-5__grid">
-            <div class="au-hero-5__text">
-              <span class="eyebrow au-hero-eyebrow">Über uns</span>
-              <h1>Angefangen hat alles mit einem Lernzettel für mich selbst.</h1>
-              <p>Lesify ist kein Konzern-Produkt. Es ist aus einem Lernsystem entstanden, das ich
-              fürs eigene Abitur gebaut, im Studium weitergedacht und irgendwann für meine
-              Schwester zu einer echten App gemacht habe.</p>
-            </div>
-            <div class="au-hero-5__stage">
-              <span class="au-hero-5__blob" aria-hidden="true"></span>
-              <div class="au-hero-5__photo">
-                <img src="/assets/img/jborn-uberuns.jpg" alt="Jannik Born, Gründer von Lesify" onerror="this.remove()">
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- v6 — Enger Bild-Crop, Headline knapp daneben -->
-        <div class="au-hero-6" data-variant="6">
-          <div class="au-hero-6__grid">
-            <div class="au-hero-6__photo">
-              <img src="/assets/img/jborn-uberuns.jpg" alt="Jannik Born, Gründer von Lesify" onerror="this.remove()">
-            </div>
-            <div class="au-hero-6__text">
-              <span class="eyebrow au-hero-eyebrow">Über uns</span>
-              <h1>Angefangen hat alles mit einem Lernzettel für mich selbst.</h1>
-              <p>Lesify ist kein Konzern-Produkt. Es ist aus einem Lernsystem entstanden, das ich
-              fürs eigene Abitur gebaut, im Studium weitergedacht und irgendwann für meine
-              Schwester zu einer echten App gemacht habe.</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- v7 — Großes, leicht gedrehtes Foto überlappt die Headline -->
-        <div class="au-hero-7" data-variant="7">
-          <span class="eyebrow au-hero-eyebrow">Über uns</span>
-          <div class="au-hero-7__row">
-            <h1>Angefangen hat alles mit einem Lernzettel für mich selbst.</h1>
-            <div class="au-hero-7__photo">
-              <img src="/assets/img/jborn-uberuns.jpg" alt="Jannik Born, Gründer von Lesify" onerror="this.remove()">
-            </div>
-          </div>
-          <p>Lesify ist kein Konzern-Produkt. Es ist aus einem Lernsystem entstanden, das ich
-          fürs eigene Abitur gebaut, im Studium weitergedacht und irgendwann für meine
-          Schwester zu einer echten App gemacht habe.</p>
-        </div>
-
-        <!-- v8 — Foto am unteren Rand angeschnitten -->
-        <div class="au-hero-8" data-variant="8">
-          <span class="eyebrow au-hero-eyebrow">Über uns</span>
-          <h1>Angefangen hat alles mit einem Lernzettel für mich selbst.</h1>
-          <p>Lesify ist kein Konzern-Produkt. Es ist aus einem Lernsystem entstanden, das ich
-          fürs eigene Abitur gebaut, im Studium weitergedacht und irgendwann für meine
-          Schwester zu einer echten App gemacht habe.</p>
-          <div class="au-hero-8__photo">
-            <img src="/assets/img/jborn-uberuns.jpg" alt="Jannik Born, Gründer von Lesify" onerror="this.remove()">
-          </div>
-        </div>
-
-        <!-- v9 — Foto als Vollbild-Backdrop der ganzen Hero, Headline darüber -->
-        <div class="au-hero-9" data-variant="9">
-          <div class="au-hero-9__backdrop" aria-hidden="true">
-            <img src="/assets/img/jborn-uberuns.jpg" alt="" onerror="this.remove()">
-          </div>
-          <div class="au-hero-9__body">
+          <div class="au-hero-portrait__body">
             <span class="eyebrow au-hero-eyebrow">Über uns</span>
             <h1>Angefangen hat alles mit einem Lernzettel für mich selbst.</h1>
             <p>Lesify ist kein Konzern-Produkt. Es ist aus einem Lernsystem entstanden, das ich
@@ -164,19 +40,92 @@
           </div>
         </div>
 
-        <!-- v10 — Foto zum Großteil außerhalb des Viewports -->
-        <div class="au-hero-10" data-variant="10">
-          <div class="au-hero-10__grid">
-            <div class="au-hero-10__text">
-              <span class="eyebrow au-hero-eyebrow">Über uns</span>
-              <h1>Angefangen hat alles mit einem Lernzettel für mich selbst.</h1>
-              <p>Lesify ist kein Konzern-Produkt. Es ist aus einem Lernsystem entstanden, das ich
-              fürs eigene Abitur gebaut, im Studium weitergedacht und irgendwann für meine
-              Schwester zu einer echten App gemacht habe.</p>
+        <!-- v2 — + Signatur -->
+        <div class="au-hero-portrait" data-variant="2">
+          <div class="au-hero-portrait__photo" aria-hidden="true">
+            <img src="/assets/img/jborn-ptrt-nw.png" alt="">
+          </div>
+          <div class="au-hero-portrait__body">
+            <span class="eyebrow au-hero-eyebrow">Über uns</span>
+            <h1>Angefangen hat alles mit einem Lernzettel für mich selbst.</h1>
+            <p>Lesify ist kein Konzern-Produkt. Es ist aus einem Lernsystem entstanden, das ich
+            fürs eigene Abitur gebaut, im Studium weitergedacht und irgendwann für meine
+            Schwester zu einer echten App gemacht habe.</p>
+            <div class="au-signature">Jannik Born<span>Gründer von Lesify</span></div>
+          </div>
+        </div>
+
+        <!-- v3 — + Faktenleiste -->
+        <div class="au-hero-portrait" data-variant="3">
+          <div class="au-hero-portrait__photo" aria-hidden="true">
+            <img src="/assets/img/jborn-ptrt-nw.png" alt="">
+          </div>
+          <div class="au-hero-portrait__body">
+            <span class="eyebrow au-hero-eyebrow">Über uns</span>
+            <h1>Angefangen hat alles mit einem Lernzettel für mich selbst.</h1>
+            <p>Lesify ist kein Konzern-Produkt. Es ist aus einem Lernsystem entstanden, das ich
+            fürs eigene Abitur gebaut, im Studium weitergedacht und irgendwann für meine
+            Schwester zu einer echten App gemacht habe.</p>
+            <div class="au-hero-portrait__facts">
+              <span>Seit 2023</span><span>9 Fächer</span><span>EU-Server</span>
             </div>
-            <div class="au-hero-10__photo">
-              <img src="/assets/img/jborn-uberuns.jpg" alt="Jannik Born, Gründer von Lesify" onerror="this.remove()">
+          </div>
+        </div>
+
+        <!-- v4 — + Chip-Reihe über der Headline -->
+        <div class="au-hero-portrait" data-variant="4">
+          <div class="au-hero-portrait__photo" aria-hidden="true">
+            <img src="/assets/img/jborn-ptrt-nw.png" alt="">
+          </div>
+          <div class="au-hero-portrait__body">
+            <div class="au-hero-portrait__chips">
+              <span class="au-hero-portrait__chip">Gegründet 2023</span>
+              <span class="au-hero-portrait__chip">Von Schülern für Schüler</span>
             </div>
+            <span class="eyebrow au-hero-eyebrow">Über uns</span>
+            <h1>Angefangen hat alles mit einem Lernzettel für mich selbst.</h1>
+            <p>Lesify ist kein Konzern-Produkt. Es ist aus einem Lernsystem entstanden, das ich
+            fürs eigene Abitur gebaut, im Studium weitergedacht und irgendwann für meine
+            Schwester zu einer echten App gemacht habe.</p>
+          </div>
+        </div>
+
+        <!-- v5 — + Zitat-Zeile + Signatur -->
+        <div class="au-hero-portrait" data-variant="5">
+          <div class="au-hero-portrait__photo" aria-hidden="true">
+            <img src="/assets/img/jborn-ptrt-nw.png" alt="">
+          </div>
+          <div class="au-hero-portrait__body">
+            <span class="eyebrow au-hero-eyebrow">Über uns</span>
+            <h1>Angefangen hat alles mit einem Lernzettel für mich selbst.</h1>
+            <p class="au-hero-portrait__quote">„Verstehen soll man selbst — nicht nur eine Antwort bekommen.“</p>
+            <p>Lesify ist kein Konzern-Produkt. Es ist aus einem Lernsystem entstanden, das ich
+            fürs eigene Abitur gebaut, im Studium weitergedacht und irgendwann für meine
+            Schwester zu einer echten App gemacht habe.</p>
+            <div class="au-signature">Jannik Born<span>Gründer von Lesify</span></div>
+          </div>
+        </div>
+
+        <!-- v6 — Maximal: Chips + Zitat + Faktenleiste + Signatur -->
+        <div class="au-hero-portrait" data-variant="6">
+          <div class="au-hero-portrait__photo" aria-hidden="true">
+            <img src="/assets/img/jborn-ptrt-nw.png" alt="">
+          </div>
+          <div class="au-hero-portrait__body">
+            <div class="au-hero-portrait__chips">
+              <span class="au-hero-portrait__chip">Gegründet 2023</span>
+              <span class="au-hero-portrait__chip">Von Schülern für Schüler</span>
+            </div>
+            <span class="eyebrow au-hero-eyebrow">Über uns</span>
+            <h1>Angefangen hat alles mit einem Lernzettel für mich selbst.</h1>
+            <p class="au-hero-portrait__quote">„Verstehen soll man selbst — nicht nur eine Antwort bekommen.“</p>
+            <p>Lesify ist kein Konzern-Produkt. Es ist aus einem Lernsystem entstanden, das ich
+            fürs eigene Abitur gebaut, im Studium weitergedacht und irgendwann für meine
+            Schwester zu einer echten App gemacht habe.</p>
+            <div class="au-hero-portrait__facts">
+              <span>Seit 2023</span><span>9 Fächer</span><span>EU-Server</span>
+            </div>
+            <div class="au-signature">Jannik Born<span>Gründer von Lesify</span></div>
           </div>
         </div>
 
@@ -272,10 +221,10 @@
      (Hero — Timeline und Stand sind final, kein Umschalter mehr).
      Gleiches Muster wie mountSearchDev in app/assets/js/app.js bzw.
      mountLabDev in marketing.js — eigenes, seitengebundenes Panel statt
-     Erweiterung von LAB_API, da die Achse hier fest 10 Varianten hat und
+     Erweiterung von LAB_API, da die Achse hier fest 6 Varianten hat und
      nichts mit der Startseiten-Lab-Logik teilt. */
   var AXES = [
-    { key: 'hero', label: 'Hero', group: 'hero', max: 10 }
+    { key: 'hero', label: 'Hero', group: 'hero', max: 6 }
   ];
 
   function getVariant(ax) {

@@ -1221,9 +1221,11 @@ body[data-header="2"] .hv9[data-hero-bg="9"] .hv9__panel::after {
     radial-gradient(circle var(--section-radius) at 0 0, transparent 0 var(--section-radius), var(--ink-950) var(--section-radius)) right bottom / var(--section-radius) var(--section-radius) no-repeat;
 }
 /* Footer schließt direkt an die schwarze CTA-Section an: obere Ecken rund
-   + Zwickel, keine Marge (nur auf der Startseite — landing-lab.css wird
-   sonst nirgends geladen). */
-body[data-page="index"] .site-footer {
+   + Zwickel, keine Marge. Gilt auf jeder Seite, die landing-lab.css lädt
+   und mit einer schwarzen Section (.mkt-dark) endet — aktuell Startseite
+   und ueber-uns.html. */
+body[data-page="index"] .site-footer,
+body[data-page="ueber-uns"] .site-footer {
   position: relative;
   isolation: isolate;
   overflow: visible;
@@ -1233,7 +1235,8 @@ body[data-page="index"] .site-footer {
   border-top-left-radius: var(--section-radius);
   border-top-right-radius: var(--section-radius);
 }
-body[data-page="index"] .site-footer::before {
+body[data-page="index"] .site-footer::before,
+body[data-page="ueber-uns"] .site-footer::before {
   content: "";
   position: absolute;
   inset: 0;

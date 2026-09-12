@@ -1865,6 +1865,59 @@ Blockiert alles Weitere. Erst die offenen Produktfragen klären, dann bauen.
       Formular scrollt sichtbar unabhängig von der fixierten linken
       Spalte.
 
+- [x] **Vierte Nachjustierung `ueber-uns.html`: Footer-Rundung, Hero auf
+      6 Content-Varianten reduziert, neues Freisteller-Foto, App-
+      Dashboard-Wasserzeichen (2026-09-12, gleicher Tag):**
+      · **Footer-Rundung war nicht „geerbt":** die `.mkt-cut`-Rundung/
+      Zwickel-Technik lief auf `ueber-uns.html` zwar schon für die
+      Sections, aber der Footer selbst hatte die abgerundete Ecken-Optik
+      der Startseite nie bekommen — die Regel in `landing-lab.css` war
+      hart auf `body[data-page="index"]` gescoped, obwohl
+      `ueber-uns.html` `landing-lab.css` längst mitlädt. Selektor auf
+      `body[data-page="index"], body[data-page="ueber-uns"]` erweitert
+      (Regel + `::before`-Zwickel) — Footer sitzt jetzt randlos (kein
+      `margin-top`) mit runden oberen Ecken direkt an der schwarzen
+      CTA-Section, exakt wie auf der Startseite.
+      · **Neues Foto `assets/img/jborn-ptrt-nw.png`:** im Gegensatz zum
+      bisherigen `jborn-uberuns.jpg` ein echter Freisteller mit Alpha-
+      Kanal (1500×1500, transparenter Hintergrund) — dadurch
+      `object-fit:contain` statt `cover` möglich, kein Zuschneiden, der
+      transparente Rand verschmilzt direkt mit `--bg-canvas`. Alle
+      Hero-Vorkommen von `jborn-uberuns.jpg` ersetzt; keine anderen
+      Fundstellen im Repo (geprüft per Grep).
+      · **Hero radikal eingedampft:** von 10 Layout-Varianten auf 6
+      Content-Varianten derselben Basis-Geometrie. Grund: v9 („großer
+      Bildstreifen rechts") gefiel im Prinzip, aber zu groß und
+      seitenverkehrt. Neue gemeinsame Komponente `.au-hero-portrait`
+      (ersetzt alle vorherigen `.au-hero-1…10`-Einzelkompositionen):
+      kleines freigestelltes Foto links (`clamp(150px,16vw,210px)`,
+      1:1, `position:absolute` an `.au-hero` verankert — bewusst NICHT
+      an `.au-hero-portrait` selbst, sonst nur bis zur schmalen
+      `.container--narrow`-Spalte statt bis zur vollen Section, plus
+      Kollision mit der generischen Sichtbarkeits-Regel), Text rechts
+      (`padding-left` reserviert den Bildplatz). v1 minimal (Eyebrow +
+      Headline + Absatz) → v2 (+Signatur) → v3 (+Faktenleiste) → v4
+      (+Chip-Reihe) → v5 (+Zitat-Zeile +Signatur) → v6 maximal (Chips +
+      Zitat + Faktenleiste + Signatur zusammen). Dev-Panel-Achse
+      „Hero" jetzt `max:6` statt `max:10`.
+      · **App-Dashboard-Wasserzeichen:** existierte technisch schon
+      (`renderPageWatermark()` in `app/assets/js/app.js`, mountet
+      `#page-watermark` mit `assets/img/lesify-watermark.svg` in
+      `.main`), lief aber mit `opacity:0.045` — praktisch unsichtbar,
+      daher wirkte es, als fehle es ganz. Dashboard-spezifische
+      Verstärkung ergänzt: `body[data-page="dashboard"] .page-watermark`
+      auf `340px`/`opacity:0.12` (vorher `250px`/`0.045`), restliche
+      Seiten (Fächer/Themen/Klausuren/Dateien/Chat/Suchen/Einstellungen)
+      unverändert dezent, da deren Icon-Wasserzeichen bewusst kaum
+      wahrnehmbar bleiben sollen.
+      · Im Browser (temporärer lokaler Server) geprüft: alle 6 Hero-
+      Varianten je genau 1 sichtbares Kind, Foto sitzt nahtlos auf dem
+      Seitenhintergrund (kein sichtbarer Bildrand mehr), Footer-Radius
+      + Zwickel greifen (`border-top-left-radius:48px`,
+      `margin-top:0px` per Computed Style bestätigt), Dashboard-
+      Wasserzeichen oben rechts deutlich sichtbar, keine Konsolenfehler
+      auf `ueber-uns/`, `index.html` oder `dashboard.html`.
+
 ---
 
 ## Phase 1 — Stack-Entscheidung & Projekt-Setup

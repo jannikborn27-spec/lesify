@@ -230,9 +230,19 @@ Blob-Download. Live durchgespielt: Upload mit frei gewähltem Fach/Thema,
 Polling bis "bereit", Datei-Modal + Download ohne Fehler, Grid-/Listenansicht
 geprüft. Details: `backend-planning.md` §9.
 
+**`suche.html` als vierzehnte Seite umgestellt (2026-09-12).** Die
+client-seitige `searchAll()` geht unter `api.js` nicht mehr — übernimmt
+`dashboard.html`s bereits gelöstes Muster (`Lesify.suche(q)` → echtes
+`GET /suche`, Race-Guard). `searchAll()` danach ungenutzt, aus `app.js`
+entfernt. **Seitenübergreifender Bug gefunden (betraf auch
+`dashboard.html`s Schnellsuche):** die Gruppen-`icon`-Werte vom Server sind
+Entity-Namen, keine `Icons`-Schlüssel — fiel für alles außer „chat" auf die
+generische Lupe zurück. Neue `SEARCH_ICON_MAP` behebt das für beide Seiten
+gleichzeitig. Details: `backend-planning.md` §9.
+
 Nächste Seite: eigenes Ermessen. Cache inkl.
 `mergeCache`/`_faecherCache`/`_cache.lernplaene`, CORS inkl. PATCH/DELETE,
-echte Umgebung stehen jetzt für alle ~7 verbleibenden Seiten bereit.
+echte Umgebung stehen jetzt für alle ~6 verbleibenden Seiten bereit.
 
 Basis-URL: `window.LESIFY_API_BASE` (Default `http://localhost:3000`).
 Session-Token: `localStorage['lesify:token']`.

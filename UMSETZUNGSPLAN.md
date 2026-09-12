@@ -2983,6 +2983,26 @@ sonst unverändert.
 > Fach/Thema, Polling bis "bereit", Datei-Modal geöffnet (zeigt jetzt
 > korrekt Fach/Thema/Größe/Status/Zusammenfassung), Download-Button ohne
 > Fehler ausgelöst, Grid-/Listenansicht-Umschalter geprüft.
+>
+> _2026-09-12: **`suche.html` als vierzehnte Seite umgestellt.** Die
+> client-seitige `searchAll()` (app.js) durchsuchte sechs `Lesify.*`-Listen
+> synchron — unter `api.js` alles Promises, ein sync-Reindex ist nicht mehr
+> möglich. `dashboard.html` hatte das bei seiner eigenen Umstellung bereits
+> gelöst: `Lesify.suche(q)` ruft echt `GET /suche` (serverseitiges
+> ILIKE über alle Typen, dieselbe `{type,label,icon,items}`-Form)
+> — `suche.html` übernimmt jetzt dasselbe Muster (inkl. `anfrageN`-
+> Race-Guard gegen veraltete Antworten bei schnellem Tippen). Da
+> `searchAll()` danach von KEINER Seite mehr aufgerufen wurde, komplett
+> aus `app.js` entfernt (toter Code). **Nebenbei gefundener,
+> seitenübergreifender Bug (betraf `dashboard.html`s bereits laufende
+> Schnellsuche mit):** `GET /suche`s Gruppen-`icon`-Werte
+> (`fach`/`thema`/`chat`/`lernzettel`/`datei`/`klausur`/`testklausur`) sind
+> Entity-Namen, keine `Icons`-Schlüssel — `searchRow()` fiel für alles außer
+> „chat" auf das generische Lupen-Icon zurück. Neue `SEARCH_ICON_MAP` in
+> `app.js` übersetzt korrekt. Live geprüft: `suche.html?q=Bruch` zeigt drei
+> Gruppen (Themen/Klausuren/Testklausuren) mit korrekten, unterscheidbaren
+> Icons; dieselbe Prüfung auf `dashboard.html`s Dropdown-Schnellsuche zeigt
+> jetzt ebenfalls die richtigen Icons statt durchgehend der Lupe.
 
 - [x] **API-Client `assets/js/api.js`** — _`Lesify.*`-Namen wie `data.js`, aber
       Promise-basiert; `fetch`-Wrapper mit Bearer-Token
@@ -2996,8 +3016,8 @@ sonst unverändert.
       _(Teilfortschritt 2026-09-12: `dashboard.html` + `faecher.html` +
       `fach.html` + `klausuren.html` + `lernplan.html` + `klausur.html` +
       `lernplan-lernzettel.html` + `thema.html` + `themen.html` + `chat.html` +
-      `testklausur.html` + `lernzettel.html` + `dateien.html` fertig +
-      verifiziert, siehe Progress-Notizen oben. 7 Seiten offen.)_
+      `testklausur.html` + `lernzettel.html` + `dateien.html` + `suche.html`
+      fertig + verifiziert, siehe Progress-Notizen oben. 6 Seiten offen.)_
 - [x] **`assets/js/api.js` — Fächer-/Themen-Cache + reine Helfer nachgezogen**
       — _2026-09-12 (mit `dashboard.html`, siehe Progress-Notiz oben):
       `getFach`/`label` als sync Cache-Lookups, `prozentZuNote`/`noteAmpel`/

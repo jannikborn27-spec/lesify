@@ -1568,6 +1568,16 @@ das unter `api.js` ein Promise ist. Fix: Thenable-Check, Rendering in neue
 nur in `data.js` existierende `Lesify.downloadText()` — Fallback auf lokalen
 Blob-Download, wenn die Funktion fehlt.
 
+**Nachtrag `suche.html` (2026-09-12):** die client-seitige `searchAll()`
+(sechs sync `Lesify.*`-Listen) geht unter `api.js` nicht mehr —
+`dashboard.html` hatte das bei seiner eigenen Umstellung bereits mit
+`Lesify.suche(q)` (echtes `GET /suche`) gelöst, `suche.html` übernimmt
+dasselbe Muster inkl. Race-Guard. `searchAll()` danach ungenutzt, aus
+`app.js` entfernt. **Seitenübergreifender Bug (betraf auch `dashboard.html`s
+schon laufende Schnellsuche):** `GET /suche`s Gruppen-`icon`-Werte sind
+Entity-Namen, keine `Icons`-Schlüssel — fiel für alles außer „chat" auf die
+generische Lupe zurück. Neue `SEARCH_ICON_MAP` in `app.js` übersetzt korrekt.
+
 **Nachtrag `klausur.html` (2026-09-12) — deutlich leichter als erwartet:**
 kein Backend-Change nötig — die komplette eingebettete Lernplan-Sektion
 läuft unverändert mit den Bausteinen aus `lernplan.html` weiter. Zwei

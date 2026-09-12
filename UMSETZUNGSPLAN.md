@@ -3003,6 +3003,47 @@ sonst unverändert.
 > Gruppen (Themen/Klausuren/Testklausuren) mit korrekten, unterscheidbaren
 > Icons; dieselbe Prüfung auf `dashboard.html`s Dropdown-Schnellsuche zeigt
 > jetzt ebenfalls die richtigen Icons statt durchgehend der Lupe.
+>
+> _2026-09-12: **`einstellungen.html` als fünfzehnte Seite umgestellt —
+> mehrere Konzept-Differenzen zwischen Prototyp und echtem Backend
+> aufgedeckt.** (1) Feldnamen: `settings.ki_tonfall` → `kiTonfall`
+> (camelCase, Server-Konvention). (2) **„Dunkles Design" hat serverseitig
+> gar kein Feld** — `Einstellungen`-Zod-Schema kennt nur
+> `erinnerungVorKlausuren`/`woechentlicheZusammenfassung`/`kiTonfall`; ein
+> `darkMode`-Patch wäre serverseitig verworfen worden (oder hätte bei
+> alleinigem Feld die „nichts zu ändern"-Validierung ausgelöst). Als reine
+> Geräte-Einstellung neu gelöst: eigener `localStorage`-Key
+> `lesify:darkmode` (`'1'`/`'0'`), unabhängig vom Account — dafür das
+> Boot-Skript im `<head>` **aller 20 `app/*.html`-Seiten** (nicht nur
+> konvertierte) von `localStorage['lesify_db_v2'].settingsOverride.darkMode`
+> (data.js-Store, unter api.js nie befüllt) auf den neuen Key umgestellt.
+> **Dabei zweiten, gravierenderen Bug gefunden:** `applyTheme()` (app.js,
+> läuft auf JEDER Seite beim Boot) rief `Lesify.getSettings().darkMode`
+> **synchron** auf — unter `api.js` ein Promise, `.darkMode` also immer
+> `undefined` → `applyTheme()` hat das dunkle Design auf **jeder bereits
+> umgestellten Seite** beim Laden automatisch wieder abgeschaltet, ohne
+> Fehler (stiller Bug seit `dashboard.html`s Umstellung, nie aufgefallen,
+> weil Dark Mode nie visuell geprüft wurde). Fix: `applyTheme()` liest jetzt
+> direkt aus `localStorage['lesify:darkmode']`, unabhängig von `Lesify.*`.
+> (3) **„Ansicht" (Schüler ⇄ Eltern-Bereich) komplett entfernt** — hatte im
+> Prototyp einen freien Rollen-Umschalter, aber es gibt keinen echten
+> Endpunkt, mit dem ein Schüler-Konto sich selbst zum Elternteil macht (das
+> ist bei der Registrierung fest und ändert sich nur über echte
+> Eltern-Kind-Konten, siehe `abo/kinder`); die Sidebar/Chip-Verzweigung
+> (`user.rolle === 'elternteil'`) in `renderChrome()` liest ohnehin schon
+> direkt vom Account, unabhängig von diesem Schalter — bestätigt, dass der
+> Schalter für „Live-Betrieb" nie gebraucht wurde. (4) **Tarif ist jetzt
+> echt**: `Lesify.getAbo()`/`Lesify.aendernAbo({paket})` statt
+> Prototyp-`Lesify.plan()`/`setPlan()` — Karte blendet sich aus, wenn der
+> User (noch) kein Abo hat (`GET /abo` 404, z. B. vor Checkout-Abschluss).
+> `updateUser()` in `api.js` übersetzt `{name, klasse}` → `{name,
+> klassenstufe}` fürs Backend und spiegelt `.klasse`/`.initials` in der
+> Antwort zurück (fehlte bisher). Live durchgespielt: Profil gespeichert,
+> Erinnerung/Zusammenfassung/Tonfall-Toggles persistiert (`PATCH
+> /user/einstellungen` mit korrekten Feldnamen bestätigt), Dark Mode An/Aus
+> geprüft — hält jetzt tatsächlich über einen Seitenwechsel (`dashboard.html`
+> lädt dunkel), Tarifwechsel Starter → Premium mit echtem `PATCH /abo`
+> aktualisiert sowohl Kontingent-Text als auch die Nutzungsbalken sofort.
 
 - [x] **API-Client `assets/js/api.js`** — _`Lesify.*`-Namen wie `data.js`, aber
       Promise-basiert; `fetch`-Wrapper mit Bearer-Token
@@ -3016,8 +3057,10 @@ sonst unverändert.
       _(Teilfortschritt 2026-09-12: `dashboard.html` + `faecher.html` +
       `fach.html` + `klausuren.html` + `lernplan.html` + `klausur.html` +
       `lernplan-lernzettel.html` + `thema.html` + `themen.html` + `chat.html` +
-      `testklausur.html` + `lernzettel.html` + `dateien.html` + `suche.html`
-      fertig + verifiziert, siehe Progress-Notizen oben. 6 Seiten offen.)_
+      `testklausur.html` + `lernzettel.html` + `dateien.html` + `suche.html` +
+      `einstellungen.html` fertig + verifiziert, siehe Progress-Notizen oben.
+      Verbleibend: die vier `eltern-*.html`-Seiten (separates Subsystem,
+      siehe Hinweis unten).)_
 - [x] **`assets/js/api.js` — Fächer-/Themen-Cache + reine Helfer nachgezogen**
       — _2026-09-12 (mit `dashboard.html`, siehe Progress-Notiz oben):
       `getFach`/`label` als sync Cache-Lookups, `prozentZuNote`/`noteAmpel`/

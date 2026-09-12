@@ -240,9 +240,29 @@ Entity-Namen, keine `Icons`-Schlüssel — fiel für alles außer „chat" auf d
 generische Lupe zurück. Neue `SEARCH_ICON_MAP` behebt das für beide Seiten
 gleichzeitig. Details: `backend-planning.md` §9.
 
-Nächste Seite: eigenes Ermessen. Cache inkl.
-`mergeCache`/`_faecherCache`/`_cache.lernplaene`, CORS inkl. PATCH/DELETE,
-echte Umgebung stehen jetzt für alle ~6 verbleibenden Seiten bereit.
+**`einstellungen.html` als fünfzehnte Seite umgestellt (2026-09-12) — die
+letzte reguläre Phase-11-Seite, nur die vier `eltern-*.html`-Seiten bleiben
+(separates Subsystem).** Mehrere Konzept-Differenzen zum echten Backend:
+`ki_tonfall` → `kiTonfall`. **„Dunkles Design" hat kein Backend-Feld** — als
+reine Geräte-Einstellung gelöst (`localStorage['lesify:darkmode']`), Boot-
+Skript in **allen 20** `app/*.html`-Köpfen entsprechend umgestellt (weg vom
+data.js-Store `lesify_db_v2`, der unter `api.js` nie befüllt wird).
+**Gravierenderer Bug dabei gefunden:** `applyTheme()` (app.js, läuft auf
+jeder Seite beim Boot) rief `Lesify.getSettings().darkMode` synchron auf —
+unter `api.js` ein Promise, `.darkMode` also immer `undefined` → hat Dark
+Mode auf jeder bereits umgestellten Seite automatisch wieder abgeschaltet,
+seit `dashboard.html`s Umstellung unbemerkt. Fix: liest jetzt direkt aus
+demselben `localStorage`-Key. **„Ansicht" (Schüler ⇄ Eltern) entfernt** —
+kein echter Endpunkt dafür, `renderChrome()` liest die Rolle ohnehin direkt
+vom Account. **Tarif ist jetzt echt** (`Lesify.getAbo()`/`aendernAbo()`
+statt Prototyp-Toggle). Live durchgespielt: Profil/Toggles/Tonfall
+persistiert, Dark Mode hält jetzt über einen Seitenwechsel, Tarifwechsel mit
+echtem `PATCH /abo` aktualisiert Kontingent + Nutzungsbalken sofort.
+Details: `backend-planning.md` §9.
+
+Die vier `eltern-*.html`-Seiten (eigenes Subsystem für Familien-Abos,
+Kind-Profile, Eltern-Zusammenfassungen) bleiben offen — nicht Teil der
+regulären Schüler-App-Seiten dieser Phase.
 
 Basis-URL: `window.LESIFY_API_BASE` (Default `http://localhost:3000`).
 Session-Token: `localStorage['lesify:token']`.

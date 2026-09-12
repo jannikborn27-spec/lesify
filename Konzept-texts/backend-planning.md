@@ -193,7 +193,7 @@ KI-Tonfall und das App-Erscheinungsbild — Kandidat für spätere Erweiterung
 | erinnerungVorKlausuren | bool | Hinweis ein paar Tage vor einem eingetragenen Klausurtermin — Versandmechanismus (E-Mail/Push) offen, siehe §8 |
 | woechentlicheZusammenfassung | bool | wöchentlicher Report zu Fortschritt/offenen Lerntagen — Versandmechanismus offen, siehe §8 |
 | kiTonfall | enum | `freundlich` \| `direkt` \| `motivierend` — fließt in den System-Prompt für Chat/Lernzettel/Erklärungen ein |
-| darkMode | bool | dunkles Design, **nur eingeloggter Bereich** (`app/`). Reine Client-Darstellung: setzt beim Seitenaufbau `data-theme="dark"` an `<html>` (Anti-Flash-Snippet im `<head>` jeder App-Seite + `applyTheme()` in `app.js`); CSS-Override-Block am Ende von `app/assets/css/style.css`. Marketing-Seiten sind ausgenommen. |
+| _(kein DB-Feld)_ darkMode | — | dunkles Design, **nur eingeloggter Bereich** (`app/`). **Entscheidung Phase 11 (2026-09-12):** bewusst KEIN Backend-Feld — reine Geräte-Einstellung in `localStorage['lesify:darkmode']` (`'1'`/`'0'`), unabhängig vom Account/Gerät. Setzt beim Seitenaufbau `data-theme="dark"` an `<html>` (Anti-Flash-Snippet im `<head>` jeder App-Seite + `applyTheme()` in `app.js`, beide lesen denselben Key); CSS-Override-Block am Ende von `app/assets/css/style.css`. Marketing-Seiten sind ausgenommen. |
 
 ### Fach
 | Feld | Typ | Hinweis |
@@ -1578,6 +1578,26 @@ schon laufende Schnellsuche):** `GET /suche`s Gruppen-`icon`-Werte sind
 Entity-Namen, keine `Icons`-Schlüssel — fiel für alles außer „chat" auf die
 generische Lupe zurück. Neue `SEARCH_ICON_MAP` in `app.js` übersetzt korrekt.
 
+**Nachtrag `einstellungen.html` (2026-09-12) — mehrere Konzept-Differenzen
+zum echten Backend aufgedeckt:** `ki_tonfall` → `kiTonfall` (camelCase).
+**„Dunkles Design" hat kein Backend-Feld** (`Einstellungen`-Schema kennt nur
+`erinnerungVorKlausuren`/`woechentlicheZusammenfassung`/`kiTonfall`) — als
+reine Geräte-Einstellung gelöst: `localStorage['lesify:darkmode']`,
+unabhängig vom Account. Boot-Skript in **allen 20** `app/*.html`-Köpfen von
+`lesify_db_v2`(data.js-Store) auf den neuen Key umgestellt. **Zweiter,
+gravierenderer Bug dabei gefunden:** `applyTheme()` (app.js, läuft auf jeder
+Seite beim Boot) rief `Lesify.getSettings().darkMode` synchron auf — unter
+`api.js` ein Promise, `.darkMode` immer `undefined` → hat Dark Mode auf
+jeder bereits umgestellten Seite beim Laden automatisch wieder
+abgeschaltet, seit `dashboard.html`s Umstellung, nie aufgefallen. Fix:
+liest jetzt direkt aus demselben `localStorage`-Key. **„Ansicht"
+(Schüler ⇄ Eltern) komplett entfernt** — kein echter Endpunkt, mit dem ein
+Schüler-Konto sich selbst zum Elternteil macht; `renderChrome()`s
+Sidebar-Verzweigung liest ohnehin direkt `user.rolle`. **Tarif ist jetzt
+echt** (`Lesify.getAbo()`/`aendernAbo({paket})` statt Prototyp-Toggle),
+Karte blendet sich aus ohne aktives Abo. `updateUser()` übersetzt
+`{name,klasse}` → `{name,klassenstufe}` und spiegelt `.klasse`/`.initials`.
+
 **Nachtrag `klausur.html` (2026-09-12) — deutlich leichter als erwartet:**
 kein Backend-Change nötig — die komplette eingebettete Lernplan-Sektion
 läuft unverändert mit den Bausteinen aus `lernplan.html` weiter. Zwei
@@ -1682,10 +1702,12 @@ erstellt/geloest/analysiert/leer) — überschreibt nur die angezeigte Phase
 (`effStatus()`), nicht den Store, fehlende Daten werden lokal synthetisiert
 (`previewErgebnis()`); und der **Pill-Style-Umschalter** im Neue-Klausur-Modal auf
 `klausuren.html` (`lesify:themepick:pill` = 1–5: Solid / Soft / Outline / Dot / Bar,
-alle fach-gefärbt); und der **Ansicht-Umschalter** auf `einstellungen.html`
-(Karte „Ansicht", `Lesify.setRolle` → `store.rolleOverride`) schaltet zwischen
-Schüler-App und Eltern-Bereich (`app/eltern.html`) — im Live-Betrieb ergibt sich
-die Rolle aus dem Konto. Fach-Färbung auf `testklausur.html` (Step-Nummern bleiben als
+alle fach-gefärbt). Der frühere **Ansicht-Umschalter** auf `einstellungen.html`
+(Karte „Ansicht", `Lesify.setRolle` → `store.rolleOverride`, Schüler-App ⇄
+Eltern-Bereich) ist mit der Phase-11-Umstellung dieser Seite (2026-09-12)
+entfallen — es gibt keinen echten Endpunkt, mit dem ein Schüler-Konto sich
+selbst zum Elternteil macht; die Sidebar-Verzweigung (`renderChrome()`)
+liest die Rolle ohnehin direkt vom Account (`user.rolle`). Fach-Färbung auf `testklausur.html` (Step-Nummern bleiben als
 Zahl sichtbar, weiß auf `--fach-color`; fach-getönte Kartenränder + Panel-Wash bei
 Lösen/Analyse; `vb-note-<ampel>` auf der Testklausurnote) ist rein kosmetisch.
 

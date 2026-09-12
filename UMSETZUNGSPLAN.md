@@ -2878,6 +2878,45 @@ sonst unverändert.
 > Themen-Übersicht zeigt korrekt "1 Chats · 0 Lernzettel · 0 Dateien ·
 > 1 Klausuren", Fach-Filter-Chip filtert richtig. Regressionstest in
 > `flow2.test.ts` (`GET /themen` → `anzahlKlausuren: 1`).
+>
+> _2026-09-12: **`chat.html` als zehnte Seite umgestellt — größter Umbau der
+> gesamten Phase-11-Cutover-Reihe.** Die Seite simulierte im Prototyp den
+> gesamten KI-Chat client-seitig (Platzhalter-Antworten aus festen Textpools,
+> `Lesify.incrementUsage()` fürs Kontingent, `Lesify.setLernplanChatId()` als
+> separater Zweitschritt) — all das ersetzt jetzt der **eine** echte Endpunkt
+> `POST /chats/:id/nachrichten`, der Guard-Prüfung + Limit-Durchsetzung +
+> echten KI-Call + Titel-Generierung + Usage-Inkrement + (bei Lernplan-Kontext)
+> das chatMap-Update atomar in einem Request erledigt — der separate
+> `Lesify.setLernplanChatId()`-Aufruf aus data.js entfällt dadurch komplett,
+> `lernplanKontext: {lernplanId, tag}` im Request genügt. Architektur: ein
+> lokaler `chatList`-Cache (`await Lesify.chats()`) ersetzt data.js' synchrones
+> `Lesify.chats()` für die Verlauf-Spalte + den Fach-Filter (`GET /chats`
+> liefert bereits neueste zuerst — das alte `.reverse()` musste weg, sonst
+> falsche Reihenfolge). Die client-seitige „Eröffnungsnachricht" (freundlicher
+> Begrüßungstext vor der ersten echten Nachricht) bleibt rein lokal/UI —
+> wird nie ans Backend gesendet, genau wie im Prototyp. Datei-Anhänge laufen
+> jetzt über den echten Upload-Pfad: `Lesify.uploadDatei()` +
+> `Lesify.pollDateiStatus()` vor dem Senden, `anhangDateiId` der bereiten
+> Datei geht in den `nachrichten`-Request; beim Laden eines bestehenden Chats
+> wird der Dateiname pro `anhangDateiId` einmalig nachgeladen
+> (`normalizeMessages()`). Guard-Fehler (`nicht_schulrelevant`/
+> `anfrage_zu_gross`/`spam_erkannt`) und Limit-Fehler (`limit_erreicht`)
+> landen als Toast (`Lesify.fehlerText()`) statt die Seite zu blockieren.
+> **Nebenbei entdeckter Bug (nicht durch diese Seite verursacht, aber hier
+> zum ersten Mal sichtbar, weil `chat.html` die erste Seite ist, die den
+> Nutzungs-Ring tatsächlich rendert):** `GET /usage` liefert `resetDatum` als
+> volles ISO-Datetime (Prisma `Date` → `toJSON()`), `formatDatum()` (app.js)
+> erwartet aber ein reines "YYYY-MM-DD" wie bei `Klausur.datum` — Ergebnis war
+> "Setzt sich zurück am NaN. undefined NaN". Fix in `api.js`s `usage()`:
+> `resetDatum` auf die ersten 10 Zeichen gekürzt. Live mit einem Testnutzer
+> (echtem Fach/Thema) durchgespielt: neuen Chat per Fach/Thema-Picker
+> gestartet, echte Nachricht gesendet (Server ohne `ANTHROPIC_API_KEY` in
+> dieser Dev-Server-Instanz — lief über den deterministischen
+> `FakeKiClient`, das bestätigt aber genau denselben Endpunkt-Pfad wie ein
+> echter Call), Sidebar-Titel kam per `chatTitelErzeugen` zurück, Reload über
+> `?chat=<id>` stellte den vollen Verlauf wieder her, „Neuer Chat" setzte
+> sauber zurück, zweite Nachricht im selben Chat fortgesetzt, Nutzungs-Ring
+> zeigte nach Fix korrekt "2 / 250" Nachrichten + richtiges Reset-Datum.
 
 - [x] **API-Client `assets/js/api.js`** — _`Lesify.*`-Namen wie `data.js`, aber
       Promise-basiert; `fetch`-Wrapper mit Bearer-Token
@@ -2890,8 +2929,8 @@ sonst unverändert.
       `Lesify.*`-Aufrufe `await`en, Renderer in `app.js` auf Promises anpassen.
       _(Teilfortschritt 2026-09-12: `dashboard.html` + `faecher.html` +
       `fach.html` + `klausuren.html` + `lernplan.html` + `klausur.html` +
-      `lernplan-lernzettel.html` + `thema.html` + `themen.html` fertig +
-      verifiziert, siehe Progress-Notizen oben. 11 Seiten offen.)_
+      `lernplan-lernzettel.html` + `thema.html` + `themen.html` + `chat.html`
+      fertig + verifiziert, siehe Progress-Notizen oben. 10 Seiten offen.)_
 - [x] **`assets/js/api.js` — Fächer-/Themen-Cache + reine Helfer nachgezogen**
       — _2026-09-12 (mit `dashboard.html`, siehe Progress-Notiz oben):
       `getFach`/`label` als sync Cache-Lookups, `prozentZuNote`/`noteAmpel`/

@@ -177,9 +177,29 @@ Unterstützung), `themaDTO()` um optionales `klausuren`-Feld erweitert. `GET
 eingebettet. `themaCard()` in `app.js` liest `t.anzahlKlausuren || 0` statt
 der alten hartcodierten 0. Details: `backend-planning.md` §9.
 
+**`chat.html` als zehnte Seite umgestellt (2026-09-12) — größter Umbau der
+Reihe.** Der komplette simulierte KI-Chat (Platzhalter-Antwortpools,
+`Lesify.incrementUsage()`, separates `setLernplanChatId()`) weicht dem einen
+echten `POST /chats/:id/nachrichten` (Guard + Limit + KI-Call + Titel + Usage
++ chatMap-Update atomar). `lernplanKontext: {lernplanId, tag}` im Request
+ersetzt den separaten Lernplan-Client-Call komplett. Lokaler `chatList`-Cache
+(`await Lesify.chats()`) ersetzt das synchrone `Lesify.chats()` für Verlauf +
+Fach-Filter — `GET /chats` liefert bereits neueste zuerst, data.js'
+`.reverse()` musste weg. Datei-Anhänge laufen über den echten
+Upload+Polling-Pfad (`anhangDateiId` im Request); beim Laden eines
+bestehenden Chats wird der Anhang-Dateiname einmalig nachgeladen. Guard-/
+Limit-Fehler landen als Toast statt die Seite zu blockieren. Nebenbei
+gefundener Bug (zum ersten Mal sichtbar, weil diese Seite als erste den
+Nutzungs-Ring rendert): `GET /usage`s `resetDatum` ist ein volles
+ISO-Datetime statt "YYYY-MM-DD" — Fix in `api.js`s `usage()`. Live
+durchgespielt: neuer Chat per Fach/Thema-Picker, echte Nachricht gesendet,
+Titel per `chatTitelErzeugen` gesetzt, Reload über `?chat=<id>` stellt den
+vollen Verlauf wieder her, „Neuer Chat" setzt sauber zurück, Nutzungs-Ring
+zeigt nach Fix das richtige Reset-Datum. Details: `backend-planning.md` §9.
+
 Nächste Seite: eigenes Ermessen. Cache inkl.
 `mergeCache`/`_faecherCache`/`_cache.lernplaene`, CORS inkl. PATCH/DELETE,
-echte Umgebung stehen jetzt für alle ~11 verbleibenden Seiten bereit.
+echte Umgebung stehen jetzt für alle ~10 verbleibenden Seiten bereit.
 
 Basis-URL: `window.LESIFY_API_BASE` (Default `http://localhost:3000`).
 Session-Token: `localStorage['lesify:token']`.

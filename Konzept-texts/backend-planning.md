@@ -1522,6 +1522,23 @@ Array-Feld ohne `_count`-Unterstützung), `themaDTO()` um optionales
 liefern jetzt beide vollständig `anzahlChats`/`anzahlLernzettel`/
 `anzahlDateien`/`anzahlKlausuren` eingebettet.
 
+**Nachtrag `chat.html` (2026-09-12) — größter Umbau der Cutover-Reihe:** der
+gesamte simulierte KI-Chat (Platzhalter-Antwortpools, client-seitiges
+`incrementUsage`, separates `setLernplanChatId`) weicht dem einen echten
+`POST /chats/:id/nachrichten`, der Guard + Limit + KI-Call + Titel + Usage +
+(bei Lernplan-Kontext) chatMap-Update atomar erledigt — `lernplanKontext:
+{lernplanId, tag}` im Request ersetzt den separaten Client-Call komplett.
+Lokaler `chatList`-Cache (`await Lesify.chats()`) ersetzt das synchrone
+`Lesify.chats()` für Verlauf-Spalte/Fach-Filter; `GET /chats` liefert bereits
+neueste zuerst (data.js' `.reverse()` musste weg). Datei-Anhänge laufen über
+den echten Upload+Polling-Pfad, `anhangDateiId` geht in den Request; beim
+Laden eines bestehenden Chats wird der Dateiname pro Anhang einmalig
+nachgeladen. Guard-/Limit-Fehler landen als Toast statt die Seite zu
+blockieren. **Bug gefunden (nicht durch diese Seite verursacht, hier zum
+ersten Mal sichtbar):** `GET /usage`s `resetDatum` ist ein volles
+ISO-Datetime, `formatDatum()` erwartet "YYYY-MM-DD" — Fix in `api.js`s
+`usage()`, kürzt auf die ersten 10 Zeichen.
+
 **Nachtrag `klausur.html` (2026-09-12) — deutlich leichter als erwartet:**
 kein Backend-Change nötig — die komplette eingebettete Lernplan-Sektion
 läuft unverändert mit den Bausteinen aus `lernplan.html` weiter. Zwei

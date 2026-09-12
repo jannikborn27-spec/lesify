@@ -2137,13 +2137,13 @@ Grundlage: `backend-planning.md` §1. Reihenfolge so, dass FKs immer schon exist
 - [x] **Indizes** — _2026-09-04: `@@index` auf allen FK-Spalten,
       `Chat.aktualisiertAm`, `Datei.status`, `Klausur.datum`;
       `@@unique([userId, monat])` auf `Usage`._
-- [ ] **Seed-Skript** — _2026-09-04 (teilweise, ausgeführt): `api/prisma/seed.ts`
-      gegen Supabase gelaufen — Demo-User + Einstellungen + Abo + Usage, alle
-      5 Fächer / 15 Themen, 6 Chats (+14 Nachrichten), 5 Lernzettel
-      (+4 Revisionen), 6 Dateien, 11 Klausuren.
-      **Fehlt noch:** Testklausuren + Aufgaben + TestklausurErgebnis +
-      Vorbereitungsstand + Lernpläne — werden zusammen mit Phase 7 (Noten-/
-      Ampel-/lernplanStatus-Logik) portiert._
+- [x] **Seed-Skript** — _2026-09-04: `api/prisma/seed.ts` gegen Supabase
+      gelaufen — Demo-User + Einstellungen + Abo + Usage, alle 5 Fächer /
+      15 Themen, 6 Chats (+14 Nachrichten), 5 Lernzettel (+4 Revisionen),
+      6 Dateien, 11 Klausuren, Testklausuren (+Aufgaben/Ergebnis/
+      Vorbereitungsstand) und Lernpläne — Rest kam mit `2ba8c35` (Phase 7).
+      Checkbox war stehen geblieben, obwohl der Code seit Phase 7 vollständig
+      ist — 2026-09-12 beim Doku-Abgleich aufgefallen und nachgezogen._
 - [x] **backend-planning.md aktualisieren** — _2026-09-04: §1 um „Umsetzung:
       Prisma-Schema" ergänzt (userId-Denormalisierung, `email` nullable+unique,
       1:1-`unique` auf Lernplan-Testklausur-FKs, Enum-Namen, Löschverhalten,
@@ -2593,6 +2593,19 @@ sonst unverändert.
 > (sync → async, Formulare verdrahten, Dev-Switcher entfernen) bleibt offen —
 > er braucht das laufende Backend auf `staging` zum Prüfen und geht Seite für
 > Seite, siehe `app/README.md` → „Phase 11"._
+>
+> _2026-09-12: **Marketing-Formulare verdrahtet** (siehe unten) — dabei fiel
+> auf, dass die API noch **kein CORS** hatte (Marketing/App laufen lokal auf
+> anderem Port als `api/`, produktiv auf anderer Domain); ohne das wäre auch
+> der `app/`-Seiten-Cut-over später am selben Problem gescheitert. Jetzt
+> nachgerüstet (`@fastify/cors`). Der `app/*.html`-Seiten-Cut-over selbst
+> (`dashboard.html`, `chat.html`, `thema.html`, …) ist bewusst **nicht**
+> angefasst — das sind ~20 Seiten mit synchron schreibenden Renderern in
+> `app.js`, die einzeln auf `await`/Promises umgestellt und im Browser
+> durchgeklickt werden müssen, um kein halbfertiges Zwischenergebnis zu
+> riskieren. Lokal jetzt aber ohne Blocker möglich (`api/.env` mit echten
+> Supabase-/Stripe-Werten liegt bereits vor Ort, CORS steht) — nächster
+> sinnvoller Schnitt Seite für Seite, z. B. beginnend mit `dashboard.html`._
 
 - [x] **API-Client `assets/js/api.js`** — _`Lesify.*`-Namen wie `data.js`, aber
       Promise-basiert; `fetch`-Wrapper mit Bearer-Token
@@ -2603,8 +2616,23 @@ sonst unverändert.
       `GET /auth/me` → `location.replace('../marketing/login.html?weiter=…')`._
 - [ ] **Seiten umstellen (pro Seite):** `data.js`→`api.js`+`auth-gate.js`,
       `Lesify.*`-Aufrufe `await`en, Renderer in `app.js` auf Promises anpassen.
-- [ ] **Marketing-Formulare verdrahten:** Login, Registrierung (Rolle), Passwort-
-      Reset, Kontakt an `Lesify.login`/`registrieren`/`passwortZuruecksetzen`/`kontakt`.
+- [x] **Marketing-Formulare verdrahten** — _2026-09-12: `login/`, `registrieren/`,
+      `passwort-vergessen/` (+ neue Seite `passwort-zuruecksetzen/`) und `kontakt/`
+      rufen jetzt echt `POST /auth/login`/`registrieren`/`passwort-vergessen`/
+      `passwort-zuruecksetzen`/`POST /kontakt` (neues, eigenständiges
+      `marketing/assets/js/auth-forms.js`, gleicher Ansatz wie `checkout.js`).
+      Registrieren loggt danach automatisch ein und leitet zu `checkout/`
+      weiter (Registrierung selbst liefert kein Token). Kontakt hat jetzt ein
+      Honeypot-Feld. Dabei **CORS in der API nachgerüstet** (`@fastify/cors`,
+      `api/src/lib/cors.ts`) — ohne die fehlte das komplett und jeder
+      Cross-Origin-Request (Marketing ≠ API-Origin) wäre im Browser
+      gescheitert; dev/test erlauben jeden Origin, production nur
+      `CORS_ORIGINS` (fail-closed ohne die Variable → **Phase 16: setzen**).
+      End-to-End gegen die echte Supabase-DB durchgeklickt (Registrieren →
+      Auto-Login → Checkout-Redirect, Login-Rollen-Weiche, Kontakt, Passwort
+      vergessen → Dev-Reset-Link → neues Passwort → Login damit — alles
+      geprüft, Test-User danach wieder gelöscht). Tests: `api/src/lib/
+      cors.test.ts` (5) + `api/src/app.test.ts` (2)._
 - [ ] **Fehler-/Ladezustände + Guard-Popups:** `Lesify.fehlerText(err)` als
       Toast (Limit, Datei zu groß, nicht schulrelevant, zu groß, Spam, Rate-Limit,
       Offline).
@@ -2687,9 +2715,11 @@ sonst unverändert.
         nach `style.css` verschoben (mehrere Seiten brauchen es jetzt).
         `Konzept-texts/eltern-zugang-plan.md` (§1/§3/§5) und
         `backend-planning.md` §4/§8 nachgezogen.
-  - [ ] `marketing/login.html`: Redirect-Weiche nach Rolle/Familie — offen,
-        gehört zum Phase-11-Cut-over (die Prototyp-Login-Seite redirectet
-        aktuell nirgendwohin; die Weiche steht in `auth-gate.js` bereit).
+  - [x] `marketing/login.html`: Redirect-Weiche nach Rolle/Familie — _2026-09-12:
+        mit der echten Login-Anbindung (Phase 11) erledigt. Spiegelt
+        `auth-gate.js` 1:1 (`GET /abo/kinder` nach Login → Elternteil mit
+        Kind-Profilen zu `/app/eltern.html`, sonst `/app/dashboard.html`;
+        respektiert `?weiter=<seite>.html`, falls vorhanden)._
 
 ---
 
@@ -2748,8 +2778,9 @@ Kritisch, weil Zielgruppe minderjährig ist.
 - [ ] **Lasttest** der teuren Pfade — _Ziele in `docs/QS-CHECKLISTE.md` §4;
       braucht `staging` + echte KI._
 - [x] **Sicherheitsreview (Stand-Tabelle)** — _`docs/QS-CHECKLISTE.md` §3: Auth,
-      Scoping (getestet), Injection, Secrets ✅; signierte URLs/Upload-Validierung
-      (P5), KI-Guard (P6), Webhook-HMAC + CORS + Security-Header (P16) offen._
+      Scoping (getestet), Injection, Secrets, Webhook-HMAC (Phase 9,
+      2026-09-12), CORS (Phase 11, 2026-09-12) ✅; signierte URLs/Upload-
+      Validierung (P5), KI-Guard (P6), Security-Header (P16) offen._
 - [ ] **Barrierefreiheit & Responsiveness** — _Checkliste `docs/QS-CHECKLISTE.md`
       §5; manueller Durchgang mit dem Frontend-Cut-over (Phase 11)._
 - [x] **Fehler-Budget definiert** — _`docs/QS-CHECKLISTE.md` §6 (Launch-Blocker

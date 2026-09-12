@@ -50,20 +50,20 @@ Vorlage für den QS-Durchlauf vor dem Launch (Phase 16).
 
 ## 3. Sicherheitsreview
 
-| Punkt                                                                              | Stand                                                                         |
-| ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| Auth: argon2id, opake DB-Sessions, Logout/Reset invalidieren wirklich              | ✅ Phase 3                                                                    |
-| `userId`-Scoping auf allen Ressourcen-Endpunkten, fremde IDs → 404                 | ✅ Phase 4 + `scoping.test.ts`                                                |
-| Passwort/Token nie im Log, Timing-Angleich bei unbekannter E-Mail                  | ✅ Phase 3                                                                    |
-| Webhook-Signaturprüfung (`stripe-signature`)                                       | ⚠️ Platzhalter — echte HMAC in Phase 16                                       |
-| Upload-Validierung (MIME, 5 MB hart serverseitig)                                  | ⬜ Phase 5                                                                    |
-| Signierte, ablaufende Objektspeicher-URLs statt öffentlicher Links                 | ⬜ Phase 5                                                                    |
-| Rate-Limiting (Auth streng, KI moderat, `/kontakt` sehr streng)                    | ✅ Phase 15 (`rateLimit`-Plugin) — Startwerte nach echtem Traffic kalibrieren |
-| KI-Vorab-Filter (Themen-/Größen-/Spam-Guard)                                       | ⬜ Phase 6                                                                    |
-| Secrets nur serverseitig, `.env` in `.gitignore`                                   | ✅                                                                            |
-| SQL-Injection: ausschließlich Prisma-Query-Builder, kein Roh-SQL mit Nutzereingabe | ✅                                                                            |
-| CORS/Origin-Politik für die API festlegen                                          | ⬜ Phase 16                                                                   |
-| Security-Header (HSTS, CSP für `app/`+`marketing/`)                                | ⬜ Phase 16                                                                   |
+| Punkt                                                                              | Stand                                                                                                                                                              |
+| ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Auth: argon2id, opake DB-Sessions, Logout/Reset invalidieren wirklich              | ✅ Phase 3                                                                                                                                                         |
+| `userId`-Scoping auf allen Ressourcen-Endpunkten, fremde IDs → 404                 | ✅ Phase 4 + `scoping.test.ts`                                                                                                                                     |
+| Passwort/Token nie im Log, Timing-Angleich bei unbekannter E-Mail                  | ✅ Phase 3                                                                                                                                                         |
+| Webhook-Signaturprüfung (`stripe-signature`)                                       | ✅ Phase 9 (2026-09-12) — echte HMAC via `stripe.webhooks.constructEvent`                                                                                          |
+| Upload-Validierung (MIME, 5 MB hart serverseitig)                                  | ✅ Phase 5                                                                                                                                                         |
+| Signierte, ablaufende Objektspeicher-URLs statt öffentlicher Links                 | ✅ Phase 5                                                                                                                                                         |
+| Rate-Limiting (Auth streng, KI moderat, `/kontakt` sehr streng)                    | ✅ Phase 15 (`rateLimit`-Plugin) — Startwerte nach echtem Traffic kalibrieren                                                                                      |
+| KI-Vorab-Filter (Themen-/Größen-/Spam-Guard)                                       | ✅ Phase 6                                                                                                                                                         |
+| Secrets nur serverseitig, `.env` in `.gitignore`                                   | ✅                                                                                                                                                                 |
+| SQL-Injection: ausschließlich Prisma-Query-Builder, kein Roh-SQL mit Nutzereingabe | ✅                                                                                                                                                                 |
+| CORS/Origin-Politik für die API festlegen                                          | ✅ Phase 11 (2026-09-12) — `@fastify/cors`, dev/test offen, `CORS_ORIGINS` in production (fail-closed ohne die Variable — echte Domain noch in Phase 16 zu setzen) |
+| Security-Header (HSTS, CSP für `app/`+`marketing/`)                                | ⬜ Phase 16                                                                                                                                                        |
 
 ## 4. Lasttest (teure Pfade)
 

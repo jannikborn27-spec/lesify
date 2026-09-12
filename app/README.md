@@ -30,7 +30,9 @@ Lokal ausliefern: `pnpm dev` (Projekt-Root) → http://localhost:4001, oder dire
 `Lesify.*`-Namen, aber **asynchron** (Promises). `assets/js/auth-gate.js`
 schützt eine eingeloggte Seite (Redirect ohne Session).
 
-Cut-over **pro Seite** (noch offen, braucht laufendes Backend auf `staging`):
+Cut-over **pro Seite** (noch offen — kann inzwischen lokal geprüft werden,
+`api/.env` mit echten Supabase-/Stripe-Werten liegt vor Ort, CORS steht seit
+2026-09-12, kein `staging` mehr nötig zum Testen):
 
 1. `<script src="assets/js/data.js">` → `assets/js/api.js`, davor
    `assets/js/auth-gate.js` einbinden.
@@ -41,9 +43,15 @@ Cut-over **pro Seite** (noch offen, braucht laufendes Backend auf `staging`):
 4. Datei-Viewer auf `Lesify.dateiInhaltUrl(id)` + `Lesify.pollDateiStatus(id, cb)`
    umstellen, Dev-Switcher (Suche-Varianten, Pill-Style, Testklausur-Phasen)
    hinter einen Dev-Flag legen oder entfernen.
-5. Marketing-Formulare (`marketing/login/`, `registrieren/`,
-   `passwort-vergessen/`, `kontakt/`) an `Lesify.login` / `registrieren`
-   / `passwortVergessen` / `kontakt` hängen.
+
+**Erledigt (2026-09-12):** Marketing-Formulare (`marketing/login/`,
+`registrieren/`, `passwort-vergessen/` + neu `passwort-zuruecksetzen/`,
+`kontakt/`) rufen jetzt echt `POST /auth/login`/`registrieren`/
+`passwort-vergessen`/`passwort-zuruecksetzen`/`POST /kontakt` auf
+(`marketing/assets/js/auth-forms.js`, eigenständig statt `api.js` zu laden —
+gleicher Ansatz wie `checkout.js`). `login/` enthält auch die Rollen-/
+Familien-Weiche (Schritt oben unter „App-Seiten" bezieht sich nur noch auf
+die eingeloggten `app/*.html`-Seiten selbst).
 
 Basis-URL: `window.LESIFY_API_BASE` (Default `http://localhost:3000`).
 Session-Token: `localStorage['lesify:token']`.

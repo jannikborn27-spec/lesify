@@ -108,7 +108,9 @@ eigene Secrets. `.env.example` (alle Variablennamen, **ohne Werte**) liegt im Re
 echte Werte nur im Secret-Store der jeweiligen Umgebung. Benötigte Secrets:
 `ANTHROPIC_API_KEY`, `DATABASE_URL`, `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`,
 `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `SESSION_SECRET` (E-Mail-Keys
-später).
+später). Kein Secret, aber Pflicht-Config in `production`: `CORS_ORIGINS`
+(kommagetrennte Liste erlaubter Origins für Marketing/App — siehe §11,
+2026-09-12) — ohne sie bleibt CORS dort zu.
 
 ---
 
@@ -1015,20 +1017,21 @@ Stripe-Calls auslösen.
 - **`marketing/assets/js/checkout.js`:** ruft jetzt wirklich `POST /abo` auf
   `LESIFY_API_BASE` (Default `http://localhost:3000`) mit
   `Authorization: Bearer <lesify:token>`. Ohne Token → Hinweis, sich zuerst zu
-  registrieren/anmelden (die Registrierungs-/Login-Anbindung der Marketing-
-  Seite selbst ist **nicht** Teil dieser Änderung, siehe unten). `mode: 'demo'`
-  in `stripe-config.js` gilt nur noch auf der öffentlich deployten Seite
-  (kein `api/` dort gehostet) — lokal (`localhost`) läuft immer der echte
-  Fluss, unabhängig vom gesetzten `mode`.
+  registrieren/anmelden. `mode: 'demo'` in `stripe-config.js` gilt nur noch auf
+  der öffentlich deployten Seite (kein `api/` dort gehostet) — lokal
+  (`localhost`) läuft immer der echte Fluss, unabhängig vom gesetzten `mode`.
 - **Neu:** `marketing/checkout-erfolg.html` (Erfolgsseite für
   `confirmSetup`/`confirmPayment`-`return_url`, existierte vorher nicht).
-- **Weiterhin offen / nicht Teil dieser Änderung:** `marketing/registrieren.html`
-  und `login.html` sind noch reine Demo-Formulare ohne echten `POST
-  /auth/registrieren`/`/auth/login`-Aufruf — die Kasse braucht also aktuell
-  einen Token, der von Hand (z. B. per `curl`) besorgt wurde. Produktions-
-  Hosting für `api/` (öffentliche HTTPS-URL fürs Stripe-Webhook-Endpoint) fehlt
-  weiterhin, siehe Phase 16 in `UMSETZUNGSPLAN.md`. Rechnungsstellung / Umgang
-  mit wiederholt fehlgeschlagenen Zahlungen (Retry, Mahnlogik) ebenfalls offen.
+- **2026-09-12 (Nachtrag):** `marketing/registrieren.html` und `login.html`
+  sind jetzt ebenfalls echt verdrahtet (Registrieren → Auto-Login → `checkout/`,
+  siehe §11 „Formulare echt verdrahtet") — die Kasse bekommt ihr Token jetzt
+  aus dem echten Flow statt von Hand besorgt. Ohne CORS-Freischaltung
+  (ebenfalls 2026-09-12, siehe §11) hätte das nicht funktioniert, da Marketing
+  und API auf verschiedenen Origins laufen. **Weiterhin offen:**
+  Produktions-Hosting für `api/` (öffentliche HTTPS-URL fürs Stripe-Webhook-
+  Endpoint) fehlt weiterhin, siehe Phase 16 in `UMSETZUNGSPLAN.md`.
+  Rechnungsstellung / Umgang mit wiederholt fehlgeschlagenen Zahlungen (Retry,
+  Mahnlogik) ebenfalls offen.
 
 - **Preise/Regeln als Code:** `shared/src/abo.ts` spiegelt `stripe-config.js`
   (`EINZEL_PREISE`, `FAMILIE_PREISE` in Cent, `ABO_ANGEBOT`, `ABO_TRIAL_TAGE = 14`,
@@ -1379,10 +1382,10 @@ Themen-Guard-Treffer, viele fehlgeschlagene Logins, Upload-Flooding.
       Kündigung/Pause/Webhook-HMAC-Prüfung), aktiv sobald `STRIPE_SECRET_KEY`
       gesetzt ist — siehe „Umsetzungsstand" oben.
 - [ ] **Abrechnung produktiv (Phase 16, Rest):** `api/` öffentlich hosten
-      (Stripe-Webhook-Endpoint braucht eine erreichbare HTTPS-URL), echte
-      Registrierungs-/Login-Anbindung von `marketing/registrieren.html` +
-      `login.html`, Live-Mode-Keys, Rechnungsstellung, Retry-/Mahnlogik bei
-      `zahlung_offen`.
+      (Stripe-Webhook-Endpoint braucht eine erreichbare HTTPS-URL) inkl.
+      `CORS_ORIGINS` auf die echte Domain setzen (siehe §11), Live-Mode-Keys,
+      Rechnungsstellung, Retry-/Mahnlogik bei `zahlung_offen`. Registrierungs-/
+      Login-Anbindung der Marketing-Seite ist seit 2026-09-12 erledigt (§11).
 - [ ] **Eltern-/Minderjährigen-Einwilligung**: Ablauf/Erneuerung der Einwilligung bei der Schüler:in-Rolle (das Eltern-Kind-Modell selbst ist entschieden, siehe oben).
 - [ ] **Familien-Paket-Mechanik (produktiv)**: Sitz nachträglich hinzufügen/entfernen mit echter Proration/Downgrade zum Zeitraumende. Backend-Grundlage (`PATCH /abo` + `geplanteSitze` + Job `abo-geplante-aenderungen`) steht; offen ist nur das echte Stripe-Adapter.
 - [ ] **Kontaktformular** (`marketing/kontakt.html`): Zielsystem (Support-Postfach/Ticketsystem). Spam-Schutz = IP-Rate-Limit + Honeypot-Feld (kein Captcha), Feinheiten offen.
@@ -1575,7 +1578,10 @@ Hanken Grotesk, Ampel-Farben, „Fog Blue"-Tonleiter). Kein Build, Vanilla JS.
   Startseite (`index.html#price`, `index.html#faq`) statt auf eigene Seiten.
   Ohne Nav-Eintrag, aber vorhanden: `kontakt.html`, `checkout.html`,
   `login.html`, `registrieren.html`, `passwort-vergessen.html`,
-  `impressum.html`, `datenschutz.html`, `agb.html`. Eingestellt:
+  `passwort-zuruecksetzen.html` (**neu, 2026-09-12** — nimmt `?token=` aus dem
+  Link entgegen, den `passwort-vergessen.html` im Dev-Modus direkt anzeigt, und
+  ruft `POST /auth/passwort-zuruecksetzen`), `impressum.html`, `datenschutz.html`,
+  `agb.html`. Eingestellt:
   `funktionen.html` + `feature-*.html` (Funktions-Unterseiten), `vergleich.html`
   (lebt als Abschnitt `index.html#cmp`), sowie `preise.html` + `faq.html`
   (leben als Abschnitte `index.html#price` / `index.html#faq`).
@@ -1593,11 +1599,34 @@ Hanken Grotesk, Ampel-Farben, „Fog Blue"-Tonleiter). Kein Build, Vanilla JS.
   Unternehmen; Leitsatz „KI als Helfer, nicht als Löser". Foto unter
   `assets/img/ueber-uns/jannik.jpg`, mit Initialen-Fallback im Markup, falls die
   Datei fehlt.
-- **Kein Backend:** Alle Formulare (Login, Registrierung, Passwort-Reset,
-  Kontakt) verhindern das Submit und zeigen nur einen Toast. Preise/Limits sind
-  Design-Platzhalter. Die daraus abgeleiteten echten Anforderungen stehen in
-  §1 (User, Abo, KindProfil, Usage-Limits pro Paket), §4 (Auth-, Abo-, Kontakt-
-  Endpunkte), §5 (Auth) und §7 (Limits).
+- **Formulare echt verdrahtet (2026-09-12):** `login.html`, `registrieren.html`,
+  `passwort-vergessen.html` (+ neu `passwort-zuruecksetzen.html`) und
+  `kontakt.html` rufen jetzt wirklich die API (`marketing/assets/js/
+  auth-forms.js`, gleicher eigenständiger Ansatz wie `checkout.js` — kein
+  Laden von `app/assets/js/api.js`, gleicher `localStorage['lesify:token']`-
+  Schlüssel). `registrieren.html` legt den `User` an und loggt danach direkt
+  ein (Registrierung selbst liefert kein Token, §5), damit die Kasse
+  (`checkout/`) sofort ein Konto hat; Ziel ist `checkout/` (Plan-/Intervall-
+  Query-Parameter durchgereicht). `login.html` spiegelt die Rollen-/Familien-
+  Weiche aus `app/assets/js/auth-gate.js` (`GET /abo/kinder` → Eltern mit
+  Kind-Profilen nach `/app/eltern.html`, sonst `/app/dashboard.html`; `?weiter=`
+  wird respektiert, wenn vorhanden). `kontakt.html` hat jetzt ein Honeypot-Feld
+  (`name="website"`, `.visually-hidden`) für den Server-Filter. Preise/Limits
+  bleiben Design-Platzhalter. Die daraus abgeleiteten echten Anforderungen
+  stehen in §1 (User, Abo, KindProfil, Usage-Limits pro Paket), §4 (Auth-,
+  Abo-, Kontakt-Endpunkte), §5 (Auth) und §7 (Limits).
+- **CORS (2026-09-12, neu):** Marketing/App liefen bisher auf anderem Origin
+  als die API (lokal andere Ports, produktiv andere Domain, Phase 16) — ohne
+  CORS scheiterten Browser-Requests von dort an den Server stumm (Preflight-
+  `OPTIONS` lief ins Leere). `@fastify/cors` registriert in `api/src/app.ts`
+  (`corsOriginOption()` in `api/src/lib/cors.ts`): `development`/`test`
+  erlauben jeden Origin (lokale Ports variieren je nach Tooling —
+  `pnpm dev` nutzt 4001/4002, andere Tools andere Ports); `production` nur die
+  in `CORS_ORIGINS` gelisteten Origins (kommagetrennt) — **fail-closed** ohne
+  die Variable. Neue Env-Var `CORS_ORIGINS` in `.env.example`/`api/.env.example`;
+  muss in Phase 16 mit der echten Domain gesetzt werden. Tests:
+  `api/src/lib/cors.test.ts` (5) + `api/src/app.test.ts` (2, Preflight +
+  echte Antwort tragen den Header).
 - **Backend-Pflege:** Ändern sich im `PRICE`-Objekt (`marketing/assets/js/
   marketing.js`) die Pakete, Limits oder Preise, müssen die Tabelle in §1
   „Usage / Limits", §7 und die offenen Punkte in §8 mitgezogen werden.

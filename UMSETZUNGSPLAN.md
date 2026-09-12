@@ -2917,6 +2917,29 @@ sonst unverändert.
 > `?chat=<id>` stellte den vollen Verlauf wieder her, „Neuer Chat" setzte
 > sauber zurück, zweite Nachricht im selben Chat fortgesetzt, Nutzungs-Ring
 > zeigte nach Fix korrekt "2 / 250" Nachrichten + richtiges Reset-Datum.
+>
+> _2026-09-12: **`testklausur.html` als elfte Seite umgestellt.** Kein
+> `GET /testklausuren`-Bulk-Endpunkt (anders als `/klausuren`) — die Seite
+> erwartet immer `?id=`, ohne gültige id geht's zurück aufs Dashboard.
+> `GET /testklausuren/:id` liefert flache `ergebnisse`-Zeilen
+> (`TestklausurErgebnis`), aber die UI erwartet ein genestetes
+> `t.ergebnis = {note, prozent, proThema}` — neue `reshapeTestklausur()` in
+> `api.js` baut das 1:1 wie `testklausurFuerLernplanUI()` im Backend (gleiche
+> Formel: `prozentZuNote(round(avg(prozent)))`, siehe `testklausurGesamtNote`
+> in `shared/`). Datei-Anhänge (Lösungs-Upload) laufen jetzt über den
+> echten Multipart-Pfad `POST /testklausuren/:id/loesung` (neue
+> `Lesify.ladeTestklausurLoesungHoch()`), der serverseitig synchron
+> Text extrahiert und `status: 'geloest'` setzt — kein Zwei-Schritt
+> `uploadDatei`+`loeseTestklausur` nötig. Download läuft wie bei
+> `lernplan-lernzettel.html` per `fetch` + Blob (`GET
+> /testklausuren/:id/dokument` hat keinen `?token=`-Fallback). Live komplett
+> durchgespielt: Testklausur 1 einer echten Klausur erstellt, Download
+> geprüft (200 OK), Lösungs-Upload mit falschem MIME-Typ korrekt mit 400
+> abgefangen (Toast, Zone zurückgesetzt), echter PNG-Upload erfolgreich
+> (Status → "geloest", Dateiname angezeigt), Analyse gestartet — Ergebnis
+> zeigt Testklausurnote 2.5/"gut", Aufgabe-für-Aufgabe-Karten mit Ampelfarbe
+> und den echten Lernplan-Teaser ("Tag 7 von 7"), Reload über `?id=`
+> stellt den analysierten Zustand korrekt wieder her.
 
 - [x] **API-Client `assets/js/api.js`** — _`Lesify.*`-Namen wie `data.js`, aber
       Promise-basiert; `fetch`-Wrapper mit Bearer-Token
@@ -2929,8 +2952,9 @@ sonst unverändert.
       `Lesify.*`-Aufrufe `await`en, Renderer in `app.js` auf Promises anpassen.
       _(Teilfortschritt 2026-09-12: `dashboard.html` + `faecher.html` +
       `fach.html` + `klausuren.html` + `lernplan.html` + `klausur.html` +
-      `lernplan-lernzettel.html` + `thema.html` + `themen.html` + `chat.html`
-      fertig + verifiziert, siehe Progress-Notizen oben. 10 Seiten offen.)_
+      `lernplan-lernzettel.html` + `thema.html` + `themen.html` + `chat.html` +
+      `testklausur.html` fertig + verifiziert, siehe Progress-Notizen oben.
+      9 Seiten offen.)_
 - [x] **`assets/js/api.js` — Fächer-/Themen-Cache + reine Helfer nachgezogen**
       — _2026-09-12 (mit `dashboard.html`, siehe Progress-Notiz oben):
       `getFach`/`label` als sync Cache-Lookups, `prozentZuNote`/`noteAmpel`/

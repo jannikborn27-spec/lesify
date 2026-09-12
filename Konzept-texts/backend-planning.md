@@ -1539,6 +1539,18 @@ ersten Mal sichtbar):** `GET /usage`s `resetDatum` ist ein volles
 ISO-Datetime, `formatDatum()` erwartet "YYYY-MM-DD" — Fix in `api.js`s
 `usage()`, kürzt auf die ersten 10 Zeichen.
 
+**Nachtrag `testklausur.html` (2026-09-12):** kein `GET /testklausuren`-Bulk-
+Endpunkt (anders als `/klausuren`) — die Seite braucht immer `?id=`, sonst
+zurück aufs Dashboard. `GET /testklausuren/:id` liefert flache `ergebnisse`-
+Zeilen, die UI erwartet ein genestetes `t.ergebnis = {note, prozent,
+proThema}` — neue `reshapeTestklausur()` in `api.js` baut das wie
+`testklausurFuerLernplanUI()` im Backend (`prozentZuNote(round(avg(prozent)))`,
+siehe `testklausurGesamtNote` in `shared/`). Lösungs-Upload läuft über den
+echten Multipart-Pfad `POST /testklausuren/:id/loesung` (neue
+`Lesify.ladeTestklausurLoesungHoch()`) statt dem alten Zwei-Schritt
+`uploadDatei`+`loeseTestklausur`. Download per `fetch`+Blob (kein
+`?token=`-Fallback am Dokument-Endpunkt).
+
 **Nachtrag `klausur.html` (2026-09-12) — deutlich leichter als erwartet:**
 kein Backend-Change nötig — die komplette eingebettete Lernplan-Sektion
 läuft unverändert mit den Bausteinen aus `lernplan.html` weiter. Zwei

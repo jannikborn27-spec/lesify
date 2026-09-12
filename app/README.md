@@ -197,9 +197,22 @@ Titel per `chatTitelErzeugen` gesetzt, Reload über `?chat=<id>` stellt den
 vollen Verlauf wieder her, „Neuer Chat" setzt sauber zurück, Nutzungs-Ring
 zeigt nach Fix das richtige Reset-Datum. Details: `backend-planning.md` §9.
 
+**`testklausur.html` als elfte Seite umgestellt (2026-09-12).** Kein
+`GET /testklausuren`-Bulk-Endpunkt — die Seite braucht immer `?id=`, sonst
+zurück aufs Dashboard. `GET /testklausuren/:id` liefert flache `ergebnisse`-
+Zeilen; neue `reshapeTestklausur()` in `api.js` nestet sie zu
+`t.ergebnis = {note, prozent, proThema}` (gleiche Formel wie
+`testklausurFuerLernplanUI()` im Backend). Lösungs-Upload läuft über den
+echten Multipart-Pfad `POST /testklausuren/:id/loesung` (neue
+`Lesify.ladeTestklausurLoesungHoch()`), Download per `fetch`+Blob wie bei
+`lernplan-lernzettel.html`. Live durchgespielt: Download geprüft, Upload mit
+falschem MIME-Typ korrekt mit 400 abgefangen, echter Upload + Analyse mit
+Ergebnis (Note, Ampel-Karten, Lernplan-Teaser), Reload stellt den
+analysierten Zustand wieder her. Details: `backend-planning.md` §9.
+
 Nächste Seite: eigenes Ermessen. Cache inkl.
 `mergeCache`/`_faecherCache`/`_cache.lernplaene`, CORS inkl. PATCH/DELETE,
-echte Umgebung stehen jetzt für alle ~10 verbleibenden Seiten bereit.
+echte Umgebung stehen jetzt für alle ~9 verbleibenden Seiten bereit.
 
 Basis-URL: `window.LESIFY_API_BASE` (Default `http://localhost:3000`).
 Session-Token: `localStorage['lesify:token']`.

@@ -1592,64 +1592,6 @@
   };
 
   /* ---------------------------------------------------------
-     Globale Suche — durchsucht alle Inhaltstypen, gruppiert
-     nach Typ. Wird von dashboard.html (Schnellsuche) und
-     suche.html (volle Ergebnisseite) gemeinsam genutzt.
-     --------------------------------------------------------- */
-
-  function searchAll(query) {
-    var q = (query || '').trim().toLowerCase();
-    if (!q || typeof Lesify === 'undefined') return [];
-
-    function has(text) { return !!text && text.toLowerCase().indexOf(q) !== -1; }
-
-    // Fach-Name zu einer fachId (für die Fach-Einfärbung der Ergebnisse).
-    function fachNameOf(fachId) {
-      var f = fachId ? Lesify.getFach(fachId) : null;
-      return f ? f.name : '';
-    }
-
-    var groups = [];
-    function addGroup(type, label, icon, items) {
-      if (items.length) groups.push({ type: type, label: label, icon: icon, items: items });
-    }
-
-    addGroup('faecher', 'Fächer', 'layers', Lesify.faecher().filter(function (f) { return has(f.name); }).map(function (f) {
-      return { title: f.name, sub: f.klasse || '', href: 'fach.html?id=' + f.id, fachId: f.id, fachName: f.name };
-    }));
-
-    addGroup('themen', 'Themen', 'target', Lesify.themen().filter(function (t) { return has(t.name) || has(t.beschreibung); }).map(function (t) {
-      var l = Lesify.label(t.id);
-      return { title: t.name, sub: l.fach, href: 'thema.html?id=' + t.id, fachId: l.fachId, fachName: l.fach };
-    }));
-
-    addGroup('chats', 'Chats', 'chat', Lesify.chats().filter(function (c) { return has(c.titel); }).map(function (c) {
-      var l = Lesify.label(c.themaId);
-      return { title: c.titel, sub: l.fach + ' · ' + l.thema, href: 'chat.html?fach=' + c.fachId + '&thema=' + c.themaId + '&chat=' + c.id, fachId: c.fachId, fachName: l.fach };
-    }));
-
-    addGroup('lernzettel', 'Lernzettel', 'book', Lesify.lernzettel().filter(function (l) { return has(l.titel); }).map(function (l) {
-      var lb = Lesify.label(l.themaId);
-      return { title: l.titel, sub: lb.fach + ' · ' + lb.thema, href: 'lernzettel.html?id=' + l.id, fachId: lb.fachId, fachName: lb.fach };
-    }));
-
-    addGroup('dateien', 'Dateien', 'file', Lesify.dateien().filter(function (d) { return has(d.name); }).map(function (d) {
-      var lb = Lesify.label(d.themaId);
-      return { title: d.name, sub: lb.fach + ' · ' + lb.thema, href: 'thema.html?id=' + d.themaId + '&tab=dateien', fachId: lb.fachId, fachName: lb.fach };
-    }));
-
-    addGroup('klausuren', 'Klausuren', 'docCheck', Lesify.klausuren().filter(function (k) { return has(k.titel); }).map(function (k) {
-      return { title: k.titel, sub: formatDatum(k.datum), href: 'klausur.html?id=' + k.id, fachId: k.fachId, fachName: fachNameOf(k.fachId) };
-    }));
-
-    addGroup('testklausuren', 'Testklausuren', 'target', Lesify.testklausuren().filter(function (t) { return has(t.titel); }).map(function (t) {
-      return { title: t.titel, sub: t.erstelltAm, href: 'testklausur.html?id=' + t.id, fachId: t.fachId, fachName: fachNameOf(t.fachId) };
-    }));
-
-    return groups;
-  }
-
-  /* ---------------------------------------------------------
      Such-Ergebnis-Darstellung — gemeinsam für die Dropdown-
      Schnellsuche (dashboard.html) und die volle Ergebnisseite
      (suche.html). 5 Design-Varianten, umschaltbar über den
@@ -1679,11 +1621,19 @@
       '<span class="dot"></span><span class="badge-label">' + name + '</span></span>';
   }
 
+  // `GET /suche` (api.js) liefert Gruppen-Icon-Keys, die zu den Entity-Namen
+  // passen (fach/thema/chat/lernzettel/datei/klausur/testklausur) statt zu
+  // den tatsächlichen `Icons`-Schlüsseln — hier auf die echten SVGs gemappt.
+  var SEARCH_ICON_MAP = {
+    fach: 'layers', thema: 'target', chat: 'chat', lernzettel: 'book',
+    datei: 'file', klausur: 'docCheck', testklausur: 'target'
+  };
   function searchRow(item, groupIcon, variant, compact) {
+    var iconKey = SEARCH_ICON_MAP[groupIcon] || groupIcon;
     var vars = item.fachId ? fachColorVars(item.fachId) : '';
     var lead = (variant === '4' && item.fachId)
       ? fachBadgeStatic(item.fachId)
-      : '<span class="search-ico">' + (Icons[groupIcon] || Icons.search) + '</span>';
+      : '<span class="search-ico">' + (Icons[iconKey] || Icons.search) + '</span>';
     return '<a class="search-row' + (compact ? ' is-compact' : '') + '" href="' + item.href + '"' +
         (vars ? ' style="' + vars + '"' : '') + '>' +
       lead +
@@ -1833,5 +1783,5 @@
     initUsageWidget();
   });
 
-  window.LesifyUI = { toast: toast, openModal: openModal, closeModal: closeModal, Icons: Icons, Render: Render, search: searchAll, searchResultsHtml: searchResultsHtml, searchDropdownHtml: searchDropdownHtml, mountSearchDev: mountSearchDev, searchVariant: searchVariant, qs: qs, qsa: qsa, openFachColorPicker: openFachColorPicker, openDateiModal: openDateiModal, setPageWatermark: setPageWatermark };
+  window.LesifyUI = { toast: toast, openModal: openModal, closeModal: closeModal, Icons: Icons, Render: Render, searchResultsHtml: searchResultsHtml, searchDropdownHtml: searchDropdownHtml, mountSearchDev: mountSearchDev, searchVariant: searchVariant, qs: qs, qsa: qsa, openFachColorPicker: openFachColorPicker, openDateiModal: openDateiModal, setPageWatermark: setPageWatermark };
 })();

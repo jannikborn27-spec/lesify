@@ -34,7 +34,8 @@
   </div>
 </div>
 
-<script src="assets/js/data.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/auth-gate.js"></script>
 <script src="assets/js/app.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -45,6 +46,11 @@ document.addEventListener('DOMContentLoaded', function () {
   var input = document.getElementById('search-input');
   input.value = params.get('q') || '';
 
+  // api.js hat keinen sync client-seitigen Suchindex (anders als data.js) —
+  // GET /suche übernimmt das serverseitig, gleiche Gruppen-Form wie zuvor
+  // LesifyUI.search() ({type,label,icon,items}) — Rendering unverändert.
+  // `anfrageN` verwirft veraltete Antworten bei schnellem Tippen.
+  var anfrageN = 0;
   function render() {
     var q = input.value.trim();
     var results = document.getElementById('search-results');
@@ -52,12 +58,18 @@ document.addEventListener('DOMContentLoaded', function () {
       results.innerHTML = '<div class="empty-state"><div class="es-icon">' + I.search + '</div><h4>Womit soll ich dir helfen zu finden?</h4><p>Tipp einfach los — die Ergebnisse erscheinen live.</p></div>';
       return;
     }
-    var groups = LesifyUI.search(q);
-    if (!groups.length) {
-      results.innerHTML = '<div class="empty-state"><div class="es-icon">' + I.search + '</div><h4>Keine Ergebnisse für „' + q + '"</h4><p>Versuch einen anderen Begriff oder prüfe die Schreibweise.</p></div>';
-      return;
-    }
-    results.innerHTML = LesifyUI.searchResultsHtml(groups);
+    var anfrage = ++anfrageN;
+    Lesify.suche(q).then(function (groups) {
+      if (anfrage !== anfrageN) return;
+      if (!groups.length) {
+        results.innerHTML = '<div class="empty-state"><div class="es-icon">' + I.search + '</div><h4>Keine Ergebnisse für „' + q + '"</h4><p>Versuch einen anderen Begriff oder prüfe die Schreibweise.</p></div>';
+        return;
+      }
+      results.innerHTML = LesifyUI.searchResultsHtml(groups);
+    }).catch(function (err) {
+      if (anfrage !== anfrageN) return;
+      LesifyUI.toast(Lesify.fehlerText(err));
+    });
   }
 
   input.addEventListener('input', render);

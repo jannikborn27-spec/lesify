@@ -141,10 +141,19 @@ lieferte Zählwerte unter `.stats.chats` statt der `anzahlChats`-Konvention —
 `renderAll()` awaitet `drawThemen()` zuerst (füllt den Themen-Cache), bevor
 die Lernplan-Sektion ihre Diagnose-Chips rendert.
 
-Nächste Seite: eigenes Ermessen. `lernplan-lernzettel.html` sollte ebenfalls
-leichter fallen (nutzt dieselben Lernplan-Grundbausteine). Cache inkl.
+**`lernplan-lernzettel.html` als siebte Seite umgestellt (2026-09-12) —
+ebenfalls kein Backend-Change nötig.** `lp.klausur` kommt eingebettet,
+`R.lernzettelSeite()` bekam denselben Thenable-Check wie andere geteilte
+Funktionen (weicht auf `Lesify.lernplanStatus(id).lernplan` aus). Der
+Download-Button brauchte einen echten Rewrite: `GET /lernplaene/:id/
+lernzettel/dokument` hat **keinen** `?token=`-Fallback wie
+`dateiInhaltUrl()` — eine simple `<a href>` hätte 401 bekommen. Jetzt holt
+der Button den Text per `fetch()` + Bearer-Header und baut daraus einen
+Blob-Download. Details: `backend-planning.md` §9.
+
+Nächste Seite: eigenes Ermessen. Cache inkl.
 `mergeCache`/`_faecherCache`/`_cache.lernplaene`, CORS inkl. PATCH/DELETE,
-echte Umgebung stehen jetzt für alle ~14 verbleibenden Seiten bereit.
+echte Umgebung stehen jetzt für alle ~13 verbleibenden Seiten bereit.
 
 Basis-URL: `window.LESIFY_API_BASE` (Default `http://localhost:3000`).
 Session-Token: `localStorage['lesify:token']`.

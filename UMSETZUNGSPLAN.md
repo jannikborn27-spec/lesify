@@ -2791,13 +2791,36 @@ sonst unverändert.
 > („Nächste Lernplan-Aufgabe" korrekt verlinkt), eingebettete Lernplan-
 > Sektion inkl. Tag-Fokus-Wechsel — alles wie auf `lernplan.html`.
 >
+> _2026-09-12: **`lernplan-lernzettel.html` als siebte Seite umgestellt —
+> ebenfalls kein Backend-Change nötig.** `lp.klausur` kommt mit
+> `Lesify.getLernplan()`/`getLernplanFuerKlausur()` bereits eingebettet, kein
+> eigener `Lesify.getKlausur()`-Aufruf mehr. Ein neuer Bug im selben
+> Cache-Muster: `R.lernzettelSeite(lernplanId)` (app.js) rief
+> `Lesify.getLernplan(lernplanId)` synchron auf — unter api.js ein Promise;
+> jetzt Thenable-Check, der bei einem Promise auf `Lesify.lernplanStatus(id)
+> .lernplan` ausweicht (sync, Cache-basiert), data.js-Pfad unverändert.
+> **Der Download-Button brauchte einen echten Rewrite, kein reines
+> `await`:** data.js erzeugt den Markdown-Text clientseitig
+> (`Lesify.lernzettelDokument`) und triggert `Lesify.downloadText` (Blob aus
+> einem String); api.js hat stattdessen `GET /lernplaene/:id/lernzettel/
+> dokument` — der Endpunkt sitzt aber **hinter dem normalen
+> `requireAuth`-Hook ohne `?token=`-Fallback** (anders als
+> `dateiInhaltUrl()`/`testklausurDokumentUrl()`, die einen eigenen Plugin-
+> Scope mit Query-Token haben) — eine einfache `<a href>`-Navigation hätte
+> also ohne Authorization-Header eine 401 bekommen. Lösung: der Button holt
+> den Text jetzt selbst per `fetch()` mit Bearer-Header (`Lesify._base`/
+> `Lesify._getToken()`), baut daraus einen Blob + eine
+> `URL.createObjectURL`-basierte Download-`<a>`. Live verifiziert: leerer
+> Zustand („Noch kein Lernzettel"), nach `POST /lernplaene/:id/lernzettel`
+> echter Inhalt gerendert, Download-Button lädt den exakten
+> Server-Markdown-Text (per Netzwerk-Log geprüft).
+>
 > Der Rest des `app/*.html`-Seiten-Cut-overs (`chat.html`, `thema.html`,
-> `testklausur.html`, `lernplan-lernzettel.html`, `lernzettel.html`,
+> `testklausur.html`, `lernzettel.html`,
 > `themen.html`, `dateien.html`, `suche.html`, `einstellungen.html`, die vier
-> `eltern-*.html`) bleibt offen. `lernplan-lernzettel.html` sollte jetzt
-> ebenfalls leichter fallen — nutzt dieselben Lernplan-Grundbausteine.
-> Grundbausteine (Cache inkl. `mergeCache`/`_faecherCache`/
-> `_cache.lernplaene` + CORS inkl. PATCH/DELETE) stehen für alle bereit.
+> `eltern-*.html`) bleibt offen. Grundbausteine (Cache inkl.
+> `mergeCache`/`_faecherCache`/`_cache.lernplaene` + CORS inkl. PATCH/DELETE)
+> stehen für alle bereit.
 
 - [x] **API-Client `assets/js/api.js`** — _`Lesify.*`-Namen wie `data.js`, aber
       Promise-basiert; `fetch`-Wrapper mit Bearer-Token
@@ -2809,8 +2832,9 @@ sonst unverändert.
 - [ ] **Seiten umstellen (pro Seite):** `data.js`→`api.js`+`auth-gate.js`,
       `Lesify.*`-Aufrufe `await`en, Renderer in `app.js` auf Promises anpassen.
       _(Teilfortschritt 2026-09-12: `dashboard.html` + `faecher.html` +
-      `fach.html` + `klausuren.html` + `lernplan.html` + `klausur.html`
-      fertig + verifiziert, siehe Progress-Notizen oben. 14 Seiten offen.)_
+      `fach.html` + `klausuren.html` + `lernplan.html` + `klausur.html` +
+      `lernplan-lernzettel.html` fertig + verifiziert, siehe
+      Progress-Notizen oben. 13 Seiten offen.)_
 - [x] **`assets/js/api.js` — Fächer-/Themen-Cache + reine Helfer nachgezogen**
       — _2026-09-12 (mit `dashboard.html`, siehe Progress-Notiz oben):
       `getFach`/`label` als sync Cache-Lookups, `prozentZuNote`/`noteAmpel`/

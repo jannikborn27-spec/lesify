@@ -1484,6 +1484,17 @@ Race Condition in `fach.html` selbst (nicht im Cache-Layer): mehrere
 Draw-Funktionen liefen per `Promise.all([…])` parallel, aber eine liest
 synchron aus einem Cache, den eine andere erst füllt — ohne Sequenzierung
 (die cache-füllende Funktion zuerst einzeln awaiten) manchmal noch leer.
+**Nachtrag `lernplan-lernzettel.html` (2026-09-12):** `R.lernzettelSeite()`
+(app.js) rief `Lesify.getLernplan()` synchron auf — Thenable-Check weicht auf
+`Lesify.lernplanStatus(id).lernplan` aus. Der Download-Button brauchte einen
+echten Rewrite (nicht nur `await`): `GET /lernplaene/:id/lernzettel/
+dokument` sitzt hinter dem normalen `requireAuth`-Hook **ohne** `?token=`-
+Fallback (anders als `dateiInhaltUrl()`/`testklausurDokumentUrl()`, die
+einen eigenen Plugin-Scope mit Query-Token haben) — eine simple `<a href>`-
+Navigation hätte ohne Authorization-Header eine 401 bekommen. Fix: Button
+holt den Text per `fetch()` + Bearer-Header, baut daraus einen Blob +
+`URL.createObjectURL`-Download.
+
 **Nachtrag `klausur.html` (2026-09-12) — deutlich leichter als erwartet:**
 kein Backend-Change nötig — die komplette eingebettete Lernplan-Sektion
 läuft unverändert mit den Bausteinen aus `lernplan.html` weiter. Zwei

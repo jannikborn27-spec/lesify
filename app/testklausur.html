@@ -113,15 +113,31 @@
   </div>
 </div>
 
-<script src="assets/js/data.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/auth-gate.js"></script>
 <script src="assets/js/app.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
   var R = LesifyUI.Render, I = LesifyUI.Icons;
   var params = new URLSearchParams(window.location.search);
-  var tkId = params.get('id') || Lesify.testklausuren()[0].id;
-  var t = Lesify.getTestklausur(tkId) || Lesify.testklausuren()[0];
+  await Promise.all([Lesify.faecher(), Lesify.themen()]);
+
+  // Anders als klausuren.html/lernplan.html gibt es kein `GET /testklausuren`
+  // (Bulk-Liste) — die Seite wird immer mit `?id=` verlinkt (aus
+  // klausur.html/lernplan.html/thema.html); ohne gültige id zurück ans Dashboard.
+  var tkId = params.get('id');
+  var t;
+  try {
+    if (!tkId) throw new Error('kein id-Parameter');
+    t = await Lesify.getTestklausur(tkId);
+  } catch (err) {
+    window.location.href = 'dashboard.html';
+    return;
+  }
   tkId = t.id;
+  if (t.geloesteDateiId) {
+    t.geloesteDateiName = await Lesify.getDatei(t.geloesteDateiId).then(function (d) { return d.name; }, function () { return null; });
+  }
   var fach = Lesify.getFach(t.fachId);
   var fachCol = fach ? Lesify.getFachColor(fach.farbe) : null;
   LesifyUI.setPageWatermark(Lesify.getFachIcon(t.fachId) || '', fachCol ? fachCol.base : null);
@@ -170,7 +186,7 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('tk-head').innerHTML =
       '<div>' + t.themaIds.map(R.badge).join(' ') +
         '<h1 class="page-title" style="margin-top:14px">' + t.titel + '</h1>' +
-        '<p class="page-sub">Erstellt ' + t.erstelltAm + '</p>' +
+        '<p class="page-sub">Erstellt ' + t.updated + '</p>' +
       '</div>';
   }
 
@@ -193,7 +209,23 @@ document.addEventListener('DOMContentLoaded', function () {
     }).join('') + '</div>';
   }
 
-  function downloadTestklausur() { Lesify.downloadText(Lesify.slugify(t.titel) + '.txt', Lesify.testklausurDokument(t)); }
+  // `GET /testklausuren/:id/dokument` braucht den Authorization-Header (kein
+  // `?token=`-Fallback) — darum per fetch + Blob statt `<a href>` (wie beim
+  // Lernzettel-Download in lernplan-lernzettel.html).
+  async function downloadTestklausur() {
+    var text = await fetch(Lesify._base + '/testklausuren/' + tkId + '/dokument', {
+      headers: { Authorization: 'Bearer ' + Lesify._getToken() }
+    }).then(function (r) { return r.text(); });
+    var blob = new Blob([text], { type: 'text/plain' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = Lesify.slugify(t.titel) + '.txt';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
 
   function drawErstelltPanel() {
     var aufgabenHtml = t.aufgaben.map(function (a, i) {
@@ -240,7 +272,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (dl) dl.addEventListener('click', downloadTestklausur);
 
     var solveInput = document.getElementById('solve-upload-input');
-    if (solveInput) solveInput.addEventListener('change', function (e) {
+    if (solveInput) solveInput.addEventListener('change', async function (e) {
       if (!e.target.files.length) return;
       var file = e.target.files[0];
       if (file.size > 5 * 1024 * 1024) { LesifyUI.toast('Datei größer als 5 MB.'); e.target.value = ''; return; }
@@ -248,24 +280,35 @@ document.addEventListener('DOMContentLoaded', function () {
       zone.style.pointerEvents = 'none';
       zone.style.opacity = '0.6';
       LesifyUI.toast('„' + file.name + '" wird hochgeladen…');
-      setTimeout(function () {
-        t = Lesify.markTestklausurGeloest(tkId, file.name);
+      try {
+        var res = await Lesify.ladeTestklausurLoesungHoch(tkId, file);
+        t.status = res.status;
+        t.geloesteDateiId = res.geloesteDateiId;
+        t.geloesteDateiName = file.name;
         stageOverride = null; saveStage();
         drawAll();
-        LesifyUI.toast('Lösung hochgeladen — bereit zur Analyse.');
-      }, 1000);
+        LesifyUI.toast(res.hatLoesungsText ? 'Lösung hochgeladen — bereit zur Analyse.' : 'Lösung hochgeladen, aber kein Text erkannt.');
+      } catch (err) {
+        zone.style.pointerEvents = ''; zone.style.opacity = '';
+        LesifyUI.toast(Lesify.fehlerText(err));
+      }
+      e.target.value = '';
     });
 
     var analyseBtn = document.getElementById('analyse-btn');
-    if (analyseBtn) analyseBtn.addEventListener('click', function () {
+    if (analyseBtn) analyseBtn.addEventListener('click', async function () {
       analyseBtn.disabled = true;
       analyseBtn.innerHTML = '<span class="skeleton" style="width:16px;height:16px;border-radius:50%;display:inline-block"></span>Wird ausgewertet…';
-      setTimeout(function () {
-        t = Lesify.analysiereTestklausur(tkId);
+      try {
+        t = await Lesify.analysiereTestklausur(tkId);
         stageOverride = null; saveStage();
         drawAll();
         LesifyUI.toast('Analyse abgeschlossen.');
-      }, 1500);
+      } catch (err) {
+        analyseBtn.disabled = false;
+        analyseBtn.innerHTML = '<span class="spark spark-live" style="width:15px;height:15px">' + I.spark + '</span>Analyse starten';
+        LesifyUI.toast(Lesify.fehlerText(err));
+      }
     });
   }
 
@@ -275,7 +318,7 @@ document.addEventListener('DOMContentLoaded', function () {
       '<span class="vb-note-lbl">Eingefroren · ' + erg.prozent + '% · ' + Lesify.noteLabel(erg.note) + '</span></span></div>';
   }
 
-  function drawErgebnis() {
+  async function drawErgebnis() {
     var el = document.getElementById('tk-ergebnis');
     if (effStatus() !== 'analysiert') { el.innerHTML = ''; return; }
     var erg = t.ergebnis || previewErgebnis();
@@ -298,7 +341,7 @@ document.addEventListener('DOMContentLoaded', function () {
         '</div>';
       }).join('') + '<div style="margin-bottom:var(--sp-10)"></div>';
 
-    var lp = t.klausurId ? Lesify.getLernplanFuerKlausur(t.klausurId) : null;
+    var lp = t.klausurId ? await Lesify.getLernplanFuerKlausur(t.klausurId).catch(function () { return null; }) : null;
     var lernplanHtml = lp
       ? '<div class="section-head"><span class="section-title">Lernplan</span></div>' + R.lernplanTeaser(lp.id)
       : '';
@@ -306,7 +349,7 @@ document.addEventListener('DOMContentLoaded', function () {
     el.innerHTML = hint + notePair + aufgabenHtml + lernplanHtml;
   }
 
-  function drawAll() { drawHead(); drawSteps(); drawPanel(); drawErgebnis(); }
+  async function drawAll() { drawHead(); drawSteps(); drawPanel(); await drawErgebnis(); }
 
   function initStageDev() {
     var panel = document.createElement('div');
@@ -333,7 +376,7 @@ document.addEventListener('DOMContentLoaded', function () {
     document.body.appendChild(panel);
   }
 
-  drawAll();
+  await drawAll();
   initStageDev();
 });
 </script>

@@ -323,6 +323,27 @@
   function initialen(name) {
     return String(name || '').split(/\s+/).map(function (p) { return p.charAt(0); }).join('').slice(0, 2).toUpperCase();
   }
+  /** `GET /testklausuren/:id` liefert flache `ergebnisse`-Zeilen
+      (`TestklausurErgebnis`), data.js' UI erwartet aber ein genestetes
+      `t.ergebnis = {note, prozent, proThema}` (wie `testklausurFuerLernplanUI`
+      im Backend für die Lernplan-Einbettung baut — 1:1 hier gespiegelt, da
+      `GET /testklausuren/:id` selbst nicht nestet). */
+  function reshapeTestklausur(t) {
+    var proz = t.ergebnisse.map(function (e) { return e.prozent; });
+    if (proz.length) {
+      var gesamtProzent = Math.round(proz.reduce(function (a, b) { return a + b; }, 0) / proz.length);
+      t.ergebnis = {
+        note: prozentZuNote(gesamtProzent),
+        prozent: gesamtProzent,
+        proThema: t.ergebnisse.map(function (e) {
+          return { themaId: e.themaId, prozent: e.prozent, note: Number(e.note), erklaerung: e.erklaerung };
+        })
+      };
+    } else {
+      t.ergebnis = null;
+    }
+    return mitUpdated(t, 'erstelltAm');
+  }
 
   var Lesify = {
     /* Auth / Session -------------------------------------------------- */
@@ -559,16 +580,25 @@
 
     /* Testklausuren ------------------------------------------- */
     getTestklausur: function (id) {
-      return GET('/testklausuren/' + id);
+      return GET('/testklausuren/' + id).then(reshapeTestklausur);
     },
     addTestklausur: function (d) {
       return POST('/testklausuren', d);
     },
     analysiereTestklausur: function (id) {
-      return POST('/testklausuren/' + id + '/analyse', {});
+      return POST('/testklausuren/' + id + '/analyse', {}).then(reshapeTestklausur);
     },
     loeseTestklausur: function (id, geloesteDateiId) {
       return POST('/testklausuren/' + id + '/loesung', { geloesteDateiId: geloesteDateiId });
+    },
+    /** Multipart-Upload der Lösung (Foto/Scan/Dokument) — Server extrahiert
+        den Text serverseitig synchron und setzt `status: 'geloest'` direkt
+        (anders als `loeseTestklausur`, das eine bereits hochgeladene
+        `geloesteDateiId` voraussetzt). */
+    ladeTestklausurLoesungHoch: function (id, file) {
+      var fd = new FormData();
+      fd.append('datei', file);
+      return POST('/testklausuren/' + id + '/loesung', fd);
     },
     testklausurDokumentUrl: function (id) {
       return BASE + '/testklausuren/' + id + '/dokument';

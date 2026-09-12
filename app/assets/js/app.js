@@ -80,10 +80,13 @@
      Ein Inline-Snippet im <head> jeder Seite setzt data-theme schon vor dem
      ersten Paint (kein Flash); dieser Aufruf zieht nur nach, falls das
      Snippet fehlt oder die Einstellung in einem anderen Tab geändert wurde. */
+  // Dunkles Design ist eine reine Geräte-Einstellung (`localStorage`, siehe
+  // einstellungen.html) — kein Backend-Feld, gilt für data.js- wie
+  // api.js-Seiten gleich. Das Kopf-Boot-Skript setzt das Attribut schon vor
+  // dem ersten Render; hier nur zur Sicherheit erneut angewandt (idempotent).
   function applyTheme() {
-    if (typeof Lesify === 'undefined' || !Lesify.getSettings) return;
     var dark = false;
-    try { dark = !!Lesify.getSettings().darkMode; } catch (e) { /* noop */ }
+    try { dark = localStorage.getItem('lesify:darkmode') === '1'; } catch (e) { /* noop */ }
     if (dark) document.documentElement.setAttribute('data-theme', 'dark');
     else document.documentElement.removeAttribute('data-theme');
   }

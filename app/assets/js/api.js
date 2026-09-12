@@ -660,8 +660,17 @@
         return u;
       });
     },
+    /** Nimmt wie data.js `{name, klasse}` entgegen (übersetzt zu `klassenstufe`
+        fürs Backend) und spiegelt die Antwort wie `getUser()` (`.klasse`/`.initials`). */
     updateUser: function (patch) {
-      return PATCH('/user', patch);
+      var body = {};
+      if (patch.name !== undefined) body.name = patch.name;
+      if (patch.klasse !== undefined) body.klassenstufe = patch.klasse;
+      return PATCH('/user', body).then(function (u) {
+        u.klasse = u.klassenstufe;
+        u.initials = initialen(u.name);
+        return u;
+      });
     },
     getSettings: function () {
       return GET('/user/einstellungen');

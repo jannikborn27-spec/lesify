@@ -172,6 +172,16 @@ describe.runIf(hatDb)('chats + klausuren/lernplan/testklausur — Flow (Supabase
     });
     expect(detail.json().lernplan.id).toBe(lernplanId);
     expect(detail.json().testklausuren).toHaveLength(1);
+
+    // GET /themen (fächerübergreifend, für themen.html) zählt Klausuren je
+    // Thema über Klausur.themaIds mit (kein `_count` möglich, siehe
+    // klausurenAnzahlProThema()).
+    const alleThemen = await app.inject({ method: 'GET', url: '/themen', headers: auth() });
+    const themaAEintrag = alleThemen.json().find((t: { id: string }) => t.id === themaA) as Record<
+      string,
+      unknown
+    >;
+    expect(themaAEintrag.anzahlKlausuren).toBe(1);
   });
 
   it('POST /klausuren mit fremdem themaId → 404', async () => {

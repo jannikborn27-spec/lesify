@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { parse } from '../lib/validate.js';
 import { oder404 } from '../lib/scope.js';
 import { themaDTO } from '../lib/dto.js';
+import { klausurenAnzahlProThema } from '../lib/themen.js';
 
 const erstellen = z.object({
   fachId: z.string().uuid(),
@@ -14,14 +15,28 @@ export async function themenRoutes(app: FastifyInstance): Promise<void> {
   const { prisma } = app;
   app.addHook('preHandler', app.requireAuth);
 
-  // GET /themen — fächerübergreifende Aggregat-Liste
+  // GET /themen — fächerübergreifende Aggregat-Liste, mit Zählwerten
+  // (für themen.html — themaCard() zeigt dort standardmäßig alle vier).
   app.get('/themen', async (req) => {
-    const themen = await prisma.thema.findMany({
-      where: { userId: req.userId },
-      orderBy: [{ fach: { name: 'asc' } }, { name: 'asc' }],
-      include: { fach: true },
-    });
-    return themen.map((t) => themaDTO(t));
+    const [themen, klausurenProThema] = await Promise.all([
+      prisma.thema.findMany({
+        where: { userId: req.userId },
+        orderBy: [{ fach: { name: 'asc' } }, { name: 'asc' }],
+        include: {
+          fach: true,
+          _count: { select: { chats: true, lernzettel: true, dateien: true } },
+        },
+      }),
+      klausurenAnzahlProThema(prisma, req.userId),
+    ]);
+    return themen.map((t) =>
+      themaDTO(t, {
+        chats: t._count.chats,
+        lernzettel: t._count.lernzettel,
+        dateien: t._count.dateien,
+        klausuren: klausurenProThema.get(t.id) ?? 0,
+      }),
+    );
   });
 
   // POST /themen

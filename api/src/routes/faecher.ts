@@ -4,6 +4,7 @@ import { FACH_COLOR_DEFAULT, FACH_COLOR_KEYS, FACH_ICON_KEYS } from '@lesify/sha
 import { parse } from '../lib/validate.js';
 import { oder404 } from '../lib/scope.js';
 import { fachDTO, themaDTO } from '../lib/dto.js';
+import { klausurenAnzahlProThema } from '../lib/themen.js';
 
 const farbeSchema = z.enum(FACH_COLOR_KEYS);
 
@@ -63,22 +64,25 @@ export async function faecherRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // GET /faecher/:id/themen
-  // Mit Zählwerten (Chats/Lernzettel/Dateien) — Klausuren/Testklausuren
-  // hängen über `themaIds` (String-Array) statt einer echten Relation und
-  // lassen sich darum nicht über `_count` mitziehen (siehe GET /themen/:id
-  // für den vollen, teureren Weg per Thema).
+  // Mit Zählwerten (Chats/Lernzettel/Dateien via `_count`; Klausuren über
+  // `klausurenAnzahlProThema` — `Klausur.themaIds` ist ein String-Array,
+  // keine echte Relation, `_count` geht dafür nicht).
   app.get<{ Params: { id: string } }>('/faecher/:id/themen', async (req) => {
     oder404(await prisma.fach.findFirst({ where: { id: req.params.id, userId: req.userId } }));
-    const themen = await prisma.thema.findMany({
-      where: { fachId: req.params.id, userId: req.userId },
-      orderBy: { name: 'asc' },
-      include: { _count: { select: { chats: true, lernzettel: true, dateien: true } } },
-    });
+    const [themen, klausurenProThema] = await Promise.all([
+      prisma.thema.findMany({
+        where: { fachId: req.params.id, userId: req.userId },
+        orderBy: { name: 'asc' },
+        include: { _count: { select: { chats: true, lernzettel: true, dateien: true } } },
+      }),
+      klausurenAnzahlProThema(prisma, req.userId),
+    ]);
     return themen.map((t) =>
       themaDTO(t, {
         chats: t._count.chats,
         lernzettel: t._count.lernzettel,
         dateien: t._count.dateien,
+        klausuren: klausurenProThema.get(t.id) ?? 0,
       }),
     );
   });

@@ -31,15 +31,19 @@
   </div>
 </div>
 
-<script src="assets/js/data.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/auth-gate.js"></script>
 <script src="assets/js/app.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
   var R = LesifyUI.Render, I = LesifyUI.Icons;
 
+  // Fächer zuerst laden (füllt den Cache, den fachFilterChips()/badge()
+  // synchron lesen), dann die Themen — GET /themen bringt Chats-/Lernzettel-/
+  // Dateien-/Klausuren-Zähler schon eingebettet mit.
+  await Lesify.faecher();
+  var themen = await Lesify.themen();
   document.getElementById('thema-filters').innerHTML = R.fachFilterChips();
-
-  var themen = Lesify.themen();
   document.getElementById('themen-grid').innerHTML = themen.map(function (t) {
     return R.themaCard(t);
   }).join('') || ('<div class="empty-state" style="grid-column:1/-1"><div class="es-icon">' + I.layers + '</div><h4>Noch keine Themen</h4><p>Lege in einem Fach dein erstes Thema an.</p></div>');

@@ -26,7 +26,7 @@ export function fachDTO(f: Fach, counts?: { themen: number; klausuren: number })
 
 export function themaDTO(
   t: Thema & { fach?: Fach | null },
-  counts?: { chats: number; lernzettel: number; dateien: number },
+  counts?: { chats: number; lernzettel: number; dateien: number; klausuren?: number },
 ) {
   return {
     id: t.id,
@@ -39,6 +39,7 @@ export function themaDTO(
           anzahlChats: counts.chats,
           anzahlLernzettel: counts.lernzettel,
           anzahlDateien: counts.dateien,
+          ...(counts.klausuren !== undefined ? { anzahlKlausuren: counts.klausuren } : {}),
         }
       : {}),
   };

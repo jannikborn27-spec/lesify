@@ -853,7 +853,7 @@ Abweichungen von den Tabellen unten:
 | GET | `/faecher` | Liste aller Fächer des Users |
 | POST | `/faecher` | `{name, klasse?, farbe?, icon?}` → neues Fach; `farbe` optional (Server vergibt sonst reihum eine aus `FACH_COLORS`), `icon` optional (Schlüssel aus `FACH_PRESETS`/`FACH_ICONS`; weggelassen bei „eigenes Fach" ohne Vorlage → Avatar fällt auf `initial` zurück) |
 | PATCH | `/faecher/:id` | `{farbe}` — bislang einziges nachträglich editierbare Feld; Auslöser des Farbwählers: Klick auf das Fach-Logo (Avatar) auf `fach.html` bzw. den Swatch-Button auf `faecher.html`. `icon` wird nur bei Erstellung gesetzt, es gibt aktuell keine UI, ein Icon nachträglich zu ändern |
-| GET | `/faecher/:id/themen` | Themen eines Fachs |
+| GET | `/faecher/:id/themen` | Themen eines Fachs, je Thema mit `anzahlChats`/`anzahlLernzettel`/`anzahlDateien` (2026-09-12, für `fach.html`s Themen-Karten) — **kein** `anzahlKlausuren`/`anzahlTestklausuren`: die hängen über `Klausur.themaIds`/`Testklausur.themaIds` (String-Array), keine echte Relation, `_count` geht dafür nicht |
 | GET | `/themen` | Fächerübergreifende Aggregat-Liste aller Themen (eigene Nav-Seite `themen.html`) |
 | POST | `/themen` | `{fachId, name, beschreibung?}` → neues Thema |
 | GET | `/themen/:id` | Thema inkl. Stats (Anzahl Chats/Lernzettel/Dateien/Klausuren/Testklausuren) |
@@ -1471,6 +1471,19 @@ Pfade bleiben nebeneinander bestehen (Unterscheidung: trägt das übergebene
 Objekt ein `note`-Feld, auch `null`). Gilt für **jede** künftige Seite im
 Cut-over, nicht nur `dashboard.html`.
 
+**Nachtrag `fach.html` (2026-09-12):** zwei Cache-Layer-Lücken, die **jede**
+künftige Seite treffen können, gefunden und gefixt. (1) Teil-Listen wie
+`themenFuerFach(fachId)` schrieben den Themen-Cache nirgends fest — `label()`/
+`badge()` zeigten „—" statt Fach-/Thema-Namen. `api.js` hat jetzt
+`mergeCache(target, list)` (fügt/aktualisiert per `id`, statt den ganzen Cache
+zu ersetzen); `faecher()`/`themen()`/`themenFuerFach()` nutzen es alle.
+`themenFuerFach()` ergänzt zusätzlich `fachName`/`farbe` aus dem bereits
+geladenen Fächer-Cache, weil `GET /faecher/:id/themen` dafür keinen
+`fach`-Include hat (anders als die volle `GET /themen`-Liste). (2) Eine echte
+Race Condition in `fach.html` selbst (nicht im Cache-Layer): mehrere
+Draw-Funktionen liefen per `Promise.all([…])` parallel, aber eine liest
+synchron aus einem Cache, den eine andere erst füllt — ohne Sequenzierung
+(die cache-füllende Funktion zuerst einzeln awaiten) manchmal noch leer.
 **Nachtrag `faecher.html` (2026-09-12):** dasselbe Embedded-Aggregat-Muster
 gilt für `Fach.anzahlThemen`/`anzahlKlausuren` (`fachDTO` in `api/src/lib/
 dto.ts`, mit `GET /faecher` eingebettet) — kein eigener

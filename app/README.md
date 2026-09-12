@@ -86,9 +86,21 @@ Lehren für **jede** weitere Seite:
   `anzahlKlausuren` kommen mit `GET /faecher` schon mit — kein
   `Lesify.countsForFach()`-Äquivalent nötig.
 
-Nächste Seite: eigenes Ermessen, aber die Grundbausteine (Cache, CORS inkl.
-PATCH/DELETE, echte Umgebung) stehen jetzt für alle ~18 verbleibenden Seiten
-bereit.
+**`fach.html` als dritte Seite umgestellt (2026-09-12)** — Kopf/Zähler,
+Themen-Grid, Klausur-Liste, neues Thema anlegen, Farbe ändern. Zwei weitere
+generische Cache-Lücken gefixt, die **jede** weitere Seite treffen können:
+- `themenFuerFach(fachId)` schrieb den Themen-Cache nirgends fest — Badges
+  zeigten „—" statt Fach-/Thema-Name. `api.js` hat jetzt `mergeCache()`
+  (fügt/aktualisiert per `id`, ersetzt den Cache nicht komplett);
+  `faecher()`/`themen()`/`themenFuerFach()` nutzen es alle.
+- **Race Condition, nicht im Cache-Layer:** mehrere Draw-Funktionen liefen
+  per `Promise.all([…])` parallel, aber eine liest synchron aus einem Cache,
+  den eine andere erst füllt. **Faustregel:** die cache-füllende
+  Draw-Funktion zuerst einzeln awaiten, erst danach den Rest parallelisieren.
+
+Nächste Seite: eigenes Ermessen, aber die Grundbausteine (Cache inkl.
+`mergeCache`, CORS inkl. PATCH/DELETE, echte Umgebung) stehen jetzt für alle
+~17 verbleibenden Seiten bereit.
 
 Basis-URL: `window.LESIFY_API_BASE` (Default `http://localhost:3000`).
 Session-Token: `localStorage['lesify:token']`.

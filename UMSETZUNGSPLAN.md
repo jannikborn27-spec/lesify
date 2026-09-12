@@ -2666,14 +2666,44 @@ sonst unverändert.
 > Cut-over sofort eine schreibende Aktion mittesten, nicht nur Lesen.**
 > Tests: `api/src/app.test.ts` (+2, Preflight erlaubt PATCH/DELETE).
 >
+> _2026-09-12: **`fach.html` als dritte Seite umgestellt** (Fach-Detail:
+> Kopf/Zähler, Themen-Grid, Klausur-Liste, neues Thema anlegen, Farbe ändern
+> — alles wiederverwendet aus `faecher.html`/`dashboard.html`). Zwei weitere
+> generische Lücken gefunden und im Cache-Layer gefixt (`assets/js/api.js`,
+> betrifft **jede** künftige Seite):
+> (1) `GET /faecher/:id/themen` hatte keine Zählwerte — anders als
+> `GET /faecher` (das schon `anzahlThemen`/`anzahlKlausuren` einbettet) fehlte
+> das Pendant für Themen. Neu: `anzahlChats`/`anzahlLernzettel`/`anzahlDateien`
+> via `_count` (Klausuren/Testklausuren bleiben außen vor — die hängen über
+> `themaIds`-Array-Felder, nicht über eine echte Relation, `_count` kann das
+> nicht). `themaCard()` (`app.js`) nutzt die eingebetteten Werte, wenn
+> vorhanden, sonst wie bisher `Lesify.countsForThema()` (data.js-Pfad
+> unverändert). (2) **Teil-Listen aktualisierten den Cache nicht richtig:**
+> `themenFuerFach(fachId)` schrieb nirgends in den Themen-Cache, den
+> `label()`/`badge()` lesen — Klausur-Badges zeigten „—·—" statt Fach/Thema.
+> `api.js` hat jetzt `mergeCache()` (fügt/aktualisiert per `id`, statt den
+> ganzen Cache zu ersetzen) — `faecher()`/`themen()`/`themenFuerFach()`
+> nutzen es alle; `themenFuerFach()` ergänzt zusätzlich `fachName`/`farbe`
+> aus dem bereits geladenen Fächer-Cache, weil die Server-Antwort dafür
+> keinen `fach`-Include hat. **Nebenbei eine echte Race Condition in
+> `fach.html` selbst gefunden**, nicht im Cache-Layer: `Promise.all([drawHead(),
+> drawThemen(), drawKlausuren()])` lief parallel, aber `drawKlausuren()`
+> braucht den von `drawThemen()` gefüllten Themen-Cache für seine
+> Klausur-Badges — ohne Sequenzierung (`await drawThemen()` zuerst) manchmal
+> noch leer. **Faustregel für die nächste Seite:** wenn ein `Promise.all([…])`
+> mehrere Draw-Funktionen parallelisiert und eine davon einen sync-Cache
+> befüllt, den eine andere synchron liest, zuerst die Cache-füllende Funktion
+> einzeln awaiten. Tests: `api/src/routes/kern.test.ts` (+1, `anzahlChats`
+> u. a. im `GET /faecher/:id/themen`-Response).
+>
 > Der Rest des `app/*.html`-Seiten-Cut-overs (`chat.html`, `thema.html`,
 > `klausuren.html`, `klausur.html`, `testklausur.html`, `lernplan.html`,
-> `lernplan-lernzettel.html`, `lernzettel.html`, `fach.html`,
+> `lernplan-lernzettel.html`, `lernzettel.html`,
 > `themen.html`, `dateien.html`, `suche.html`, `einstellungen.html`, die vier
 > `eltern-*.html`) bleibt offen — jede Seite braucht denselben sorgfältigen
-> Umbau + Browser-Test wie `dashboard.html`/`faecher.html`, jetzt aber ohne
-> die grundsätzlichen Blocker (Cache-Layer + CORS inkl. PATCH/DELETE stehen
-> bereits).
+> Umbau + Browser-Test wie `dashboard.html`/`faecher.html`/`fach.html`, jetzt
+> aber ohne die grundsätzlichen Blocker (Cache-Layer inkl. `mergeCache` + CORS
+> inkl. PATCH/DELETE stehen bereits).
 
 - [x] **API-Client `assets/js/api.js`** — _`Lesify.*`-Namen wie `data.js`, aber
       Promise-basiert; `fetch`-Wrapper mit Bearer-Token
@@ -2684,8 +2714,9 @@ sonst unverändert.
       `GET /auth/me` → `location.replace('../marketing/login.html?weiter=…')`._
 - [ ] **Seiten umstellen (pro Seite):** `data.js`→`api.js`+`auth-gate.js`,
       `Lesify.*`-Aufrufe `await`en, Renderer in `app.js` auf Promises anpassen.
-      _(Teilfortschritt 2026-09-12: `dashboard.html` + `faecher.html` fertig +
-      verifiziert, siehe Progress-Notizen oben. 18 Seiten offen.)_
+      _(Teilfortschritt 2026-09-12: `dashboard.html` + `faecher.html` +
+      `fach.html` fertig + verifiziert, siehe Progress-Notizen oben. 17 Seiten
+      offen.)_
 - [x] **`assets/js/api.js` — Fächer-/Themen-Cache + reine Helfer nachgezogen**
       — _2026-09-12 (mit `dashboard.html`, siehe Progress-Notiz oben):
       `getFach`/`label` als sync Cache-Lookups, `prozentZuNote`/`noteAmpel`/

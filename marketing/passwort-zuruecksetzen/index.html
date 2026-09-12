@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Passwort zurücksetzen — Lesify</title>
-<meta name="description" content="Passwort für das Lesify-Konto zurücksetzen.">
+<title>Neues Passwort — Lesify</title>
+<meta name="description" content="Neues Passwort für das Lesify-Konto vergeben.">
 <link rel="icon" href="/assets/img/logo.png">
 <link rel="stylesheet" href="/assets/css/marketing.css">
 </head>
-<body data-page="passwort-vergessen" data-nav="none">
+<body data-page="passwort-zuruecksetzen" data-nav="none">
 
 <div class="auth">
   <aside class="auth__aside">
@@ -17,26 +17,28 @@
       <span class="brand__word">Lesify</span>
     </a>
     <div class="auth__aside-body">
-      <h2>Kein Problem, das ist schnell erledigt.</h2>
-      <p>Sie bekommen einen Link per E-Mail und vergeben ein neues Passwort. Alle Inhalte bleiben unverändert.</p>
+      <h2>Fast geschafft.</h2>
+      <p>Neues Passwort vergeben — danach kannst du dich sofort damit anmelden.</p>
     </div>
   </aside>
 
   <div class="auth__main">
     <div class="auth-card">
       <a class="auth-card__back" href="/login/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg> Zurück zur Anmeldung</a>
-      <h1>Passwort zurücksetzen</h1>
-      <p class="auth-card__sub">Geben Sie die E-Mail-Adresse Ihres Kontos ein.</p>
+      <h1>Neues Passwort vergeben</h1>
+      <p class="auth-card__sub">Bitte ein neues Passwort mit mindestens 8 Zeichen wählen.</p>
 
       <form style="margin-top:2rem" novalidate>
         <div class="field">
-          <label for="email">E-Mail</label>
-          <input class="input" type="email" id="email" name="email" placeholder="name@beispiel.de" autocomplete="email" required>
+          <label for="pw">Neues Passwort</label>
+          <input class="input" type="password" id="pw" name="pw" placeholder="mindestens 8 Zeichen" autocomplete="new-password" minlength="8" required>
         </div>
-        <button class="btn btn-primary btn-block btn-lg" type="submit">Link zum Zurücksetzen senden</button>
+        <div class="field">
+          <label for="pw2">Passwort wiederholen</label>
+          <input class="input" type="password" id="pw2" name="pw2" placeholder="nochmal eingeben" autocomplete="new-password" minlength="8" required>
+        </div>
+        <button class="btn btn-primary btn-block btn-lg" type="submit">Passwort speichern</button>
       </form>
-
-      <p class="auth-alt">Doch wieder eingefallen? <a href="/login/">Zur Anmeldung</a></p>
     </div>
   </div>
 </div>

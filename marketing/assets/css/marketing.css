@@ -1866,6 +1866,8 @@ select.input {
 .co-message.is-visible { display: block; }
 .co-message--error { background: var(--rot-bg); color: var(--rot); }
 .co-message--info { background: var(--ink-50); color: var(--ink-700); border: 1px solid var(--line); }
+.co-message--success { background: var(--gruen-bg); color: var(--gruen); }
+.co-message a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
 
 #submit { margin-top: 20px; position: relative; }
 #submit .co-spinner {

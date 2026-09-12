@@ -1,8 +1,10 @@
 /* =========================================================
    Lesify — Marketing / Website
    Vanilla JS, kein Build. Baut Navigation + Footer, steuert
-   Scroll-Reveals, Mobile-Menü, Preis-Umschalter und die
-   Demo-Formulare (kein Backend — siehe Konzept-texts/backend-planning.md §5).
+   Scroll-Reveals, Mobile-Menü, Preis-Umschalter und übrige Demo-Formulare
+   ohne Backend. Login/Registrierung/Passwort-Reset/Kontakt sind echt
+   verdrahtet — siehe assets/js/auth-forms.js und
+   Konzept-texts/backend-planning.md §11.
    ========================================================= */
 (function () {
   'use strict';

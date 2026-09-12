@@ -46,7 +46,8 @@
           </li>
         </ul>
 
-        <form class="contact-form" data-demo="Prototyp ohne Backend — Ihre Nachricht wird nicht wirklich verschickt." data-reveal data-reveal-delay="100" novalidate>
+        <form class="contact-form" data-reveal data-reveal-delay="100" novalidate>
+          <input type="text" name="website" class="visually-hidden" tabindex="-1" autocomplete="off" aria-hidden="true">
           <div class="field">
             <label for="cname">Name</label>
             <input class="input" type="text" id="cname" name="name" placeholder="Ihr Name" autocomplete="name" required>
@@ -83,5 +84,6 @@
 
 <footer id="mkt-footer"></footer>
 <script src="/assets/js/marketing.js"></script>
+<script src="/assets/js/auth-forms.js"></script>
 </body>
 </html>

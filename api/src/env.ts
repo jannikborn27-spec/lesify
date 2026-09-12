@@ -40,6 +40,12 @@ const schema = z.object({
   // nur bei NODE_ENV=development UND explizit gesetztem KI_DEV_ADAPTER.
   CLAUDE_CODE_OAUTH_TOKEN: z.string().optional(),
   KI_DEV_ADAPTER: z.enum(['claude-agent-sdk']).optional(),
+  // CORS (§4/Phase 11): Marketing/App laufen auf anderem Origin als die API
+  // (lokal andere Ports, produktiv andere Domain — siehe Phase 16). Kommagetrennte
+  // Liste erlaubter Origins, z. B. "https://lesify.de,https://www.lesify.de".
+  // Unter `development`/`test` egal (jeder Origin erlaubt, lokale Ports wechseln
+  // je nach Tooling); in `production` **Pflicht** — ohne sie bleibt CORS zu (fail-closed).
+  CORS_ORIGINS: z.string().optional(),
 });
 
 /** Validierte Umgebungsvariablen. Wirft beim Start, wenn Pflichtwerte fehlen. */

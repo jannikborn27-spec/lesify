@@ -1,8 +1,10 @@
 import Fastify, { type FastifyError, type FastifyInstance } from 'fastify';
 import multipart from '@fastify/multipart';
+import cors from '@fastify/cors';
+import { corsOriginOption } from './lib/cors.js';
 import type { PrismaClient } from '@prisma/client';
 import { getPrisma } from './db.js';
-import { env } from './env.js';
+import { env, istProd } from './env.js';
 import { hashToken } from './lib/tokens.js';
 import { HttpError } from './lib/http.js';
 import { getZahlungsGateway, type ZahlungsGateway } from './lib/zahlung.js';
@@ -63,6 +65,10 @@ export function buildApp(opts: BuildOpts = {}): FastifyInstance {
   app.decorate('storage', opts.storage ?? getStorageGateway());
   app.decorateRequest('userId', '');
   app.decorateRequest('rawBody', undefined);
+
+  // ---- CORS (§4/Phase 11) — Marketing/App laufen auf anderem Origin. ----
+  app.register(cors, { origin: corsOriginOption(istProd, env.CORS_ORIGINS), credentials: false });
+
   app.register(multipart, { limits: { fileSize: env.DATEI_MAX_BYTES } });
 
   // Roh-Body mitschneiden, bevor er geparst wird — nur die Stripe-Webhook-

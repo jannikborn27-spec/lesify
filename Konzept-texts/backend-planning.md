@@ -965,14 +965,70 @@ Dev-Switch, `localStorage['lesify:search:v']` — nur Prototyp).
 | POST | `/abo/kinder/:id/sitzung` | Kontext-Wechsel: gibt eine echte `Session` fürs Kind-Profil zurück (`{token, kindId}`); das Elternkonto handelt damit vollständig als Kind, Zurückwechseln = eigenes Token (Phase 12) |
 | GET | `/abo/kinder/:id/zusammenfassung` | Aggregierte Wochenkennzahlen (Fächer/Themen/Chats+Nachrichten der Woche/Lernzettel/Testklausuren/anstehende Klausuren) — **kein Chat-Wortlaut** (Phase 12) |
 
-#### Umsetzungsstand (Phase 9, 2026-09-04)
+#### Umsetzungsstand (Phase 9, 2026-09-04; Stripe-Adapter 2026-09-12)
 
-Endpunkt-Schicht + Datenmodell-Logik komplett; der Zahlungsanbieter ist
-vorerst ein **deterministischer Fake** (`api/src/lib/zahlung.ts`,
-`FakeZahlungsGateway`, dekoriert als `app.zahlung`) — wie die Platzhalter-KI in
-Phase 4. Er legt keine echten Stripe-Objekte an, bildet Trial → Abbuchung,
-Wechsel, Kündigung, Pause und Webhooks aber vollständig ab. Echtes
-Stripe-Adapter + Dashboard-Produkte/-Preise: **Phase 16**.
+Endpunkt-Schicht + Datenmodell-Logik komplett. Zahlungsanbieter-Adapter
+(`api/src/lib/zahlung.ts`, `ZahlungsGateway`-Interface, dekoriert als
+`app.zahlung`) — wie bei KI (`FakeKiClient`/`AnthropicKiClient`) und Storage
+(`FakeStorageGateway`/`SupabaseStorageGateway`) entscheidet die Präsenz des
+echten Keys: **`STRIPE_SECRET_KEY` gesetzt → `StripeZahlungsGateway`, sonst
+`FakeZahlungsGateway`** (`getZahlungsGateway()`). In `api/src/routes/abo.test.ts`
+wird der Fake über `buildApp({zahlung: new FakeZahlungsGateway()})` **immer**
+erzwungen, unabhängig von einem lokal gesetzten Key — sonst würden Tests echte
+Stripe-Calls auslösen.
+
+`StripeZahlungsGateway` (real, gegen Stripe Test-Mode verifiziert):
+- **Preise ohne Dashboard-Pflege:** `price_data` inline bei
+  `subscriptions.create`/`.update` (Betrag aus `aboPreis()`, `@lesify/shared`)
+  — kein manuell zu pflegender Preis-Katalog. Nur drei feste Stripe-Produkte
+  (`lesify_starter`/`_premium`/`_infinite`, ein Produkt je Paket, keins je
+  Sitzzahl/Intervall), die sich beim ersten Gebrauch selbst anlegen
+  (`products.retrieve` → 404 → `products.create` mit fester ID).
+- **`subscriptionAnlegen`:** Stripe Customer + Subscription
+  (`trial_period_days: 14`, `payment_behavior: 'default_incomplete'`,
+  `payment_settings.save_default_payment_method: 'on_subscription'`). Liefert
+  zusätzlich `clientSecret` — bei Trial ohne Sofortbelastung ein
+  **SetupIntent** (`pending_setup_intent`, Präfix `seti_…`), sonst das
+  PaymentIntent der ersten Rechnung (`latest_invoice.confirmation_secret`,
+  Präfix `pi_…`). `marketing/assets/js/checkout.js` unterscheidet am Präfix,
+  ob `stripe.confirmSetup` oder `stripe.confirmPayment` zu rufen ist.
+- **`subscriptionAendern`:** `subscriptions.update` mit neuem `price_data` auf
+  dem bestehenden Item, `proration_behavior: 'create_prorations'`.
+- **`subscriptionKuendigen`:** `cancel_at_period_end: true`.
+  **`subscriptionPausieren`:** `pause_collection: {behavior: 'void'}`.
+- **Webhook-Signaturprüfung ist jetzt echt** (`stripe.webhooks.constructEvent`)
+  — dafür braucht die Route den **rohen** Body-Buffer, nicht den geparsten
+  JSON-Body. `app.ts` schneidet ihn in einem eigenen
+  `application/json`-Content-Type-Parser mit (`req.rawBody`, `fastify.d.ts`);
+  alle anderen Routen sehen weiter ganz normal den geparsten Body. Verarbeitete
+  Stripe-Event-Typen: `customer.subscription.created`/`.updated`/`.deleted`,
+  `invoice.paid`/`.payment_succeeded`/`.payment_failed` → gemappt auf unseren
+  internen `AboStatus` (`trialing→test`, `active→aktiv`, `canceled→gekuendigt`,
+  `paused→pausiert`, `past_due`/`unpaid→zahlung_offen`). Das Stripe-
+  Webhook-Endpoint sollte in Produktion nur auf genau diese Events abonniert
+  werden (`enabled_events` bei der Endpoint-Erstellung), sonst führen
+  uninteressante Events zu `400 ereignis_unbekannt`.
+- **Lokal getestet** über die Stripe CLI (`stripe listen --forward-to
+  localhost:3000/abo/webhook --events …`, `stripe trigger …`) gegen echtes
+  Stripe Test-Mode: Anlegen (SetupIntent-Secret kam korrekt zurück), Wechsel,
+  Pause, Kündigung, Webhook-Signaturprüfung — alle grün.
+- **`marketing/assets/js/checkout.js`:** ruft jetzt wirklich `POST /abo` auf
+  `LESIFY_API_BASE` (Default `http://localhost:3000`) mit
+  `Authorization: Bearer <lesify:token>`. Ohne Token → Hinweis, sich zuerst zu
+  registrieren/anmelden (die Registrierungs-/Login-Anbindung der Marketing-
+  Seite selbst ist **nicht** Teil dieser Änderung, siehe unten). `mode: 'demo'`
+  in `stripe-config.js` gilt nur noch auf der öffentlich deployten Seite
+  (kein `api/` dort gehostet) — lokal (`localhost`) läuft immer der echte
+  Fluss, unabhängig vom gesetzten `mode`.
+- **Neu:** `marketing/checkout-erfolg.html` (Erfolgsseite für
+  `confirmSetup`/`confirmPayment`-`return_url`, existierte vorher nicht).
+- **Weiterhin offen / nicht Teil dieser Änderung:** `marketing/registrieren.html`
+  und `login.html` sind noch reine Demo-Formulare ohne echten `POST
+  /auth/registrieren`/`/auth/login`-Aufruf — die Kasse braucht also aktuell
+  einen Token, der von Hand (z. B. per `curl`) besorgt wurde. Produktions-
+  Hosting für `api/` (öffentliche HTTPS-URL fürs Stripe-Webhook-Endpoint) fehlt
+  weiterhin, siehe Phase 16 in `UMSETZUNGSPLAN.md`. Rechnungsstellung / Umgang
+  mit wiederholt fehlgeschlagenen Zahlungen (Retry, Mahnlogik) ebenfalls offen.
 
 - **Preise/Regeln als Code:** `shared/src/abo.ts` spiegelt `stripe-config.js`
   (`EINZEL_PREISE`, `FAMILIE_PREISE` in Cent, `ABO_ANGEBOT`, `ABO_TRIAL_TAGE = 14`,
@@ -1319,7 +1375,14 @@ Themen-Guard-Treffer, viele fehlgeschlagene Logins, Upload-Flooding.
 ### Weiterhin offen
 
 - [ ] **Preis-Feinheiten**: Angebotsdauer/-verlängerung, Jahrespreis-Rundung, Bindung des Angebotspreises an den Vertrag. Die Beträge selbst liegen jetzt code-seitig in `shared/src/abo.ts` (Spiegel `stripe-config.js`), bleiben aber Design-Platzhalter.
-- [ ] **Abrechnung produktiv (Phase 9-Rest / Phase 16)**: echtes Stripe-Adapter statt `FakeZahlungsGateway`, Stripe-Konto + Produkte/Preise, HMAC-Webhook-Signatur, Rechnungsstellung, Retry-/Mahnlogik bei `zahlung_offen`.
+- [x] **Stripe-Adapter (2026-09-12):** `StripeZahlungsGateway` (Trial/Wechsel/
+      Kündigung/Pause/Webhook-HMAC-Prüfung), aktiv sobald `STRIPE_SECRET_KEY`
+      gesetzt ist — siehe „Umsetzungsstand" oben.
+- [ ] **Abrechnung produktiv (Phase 16, Rest):** `api/` öffentlich hosten
+      (Stripe-Webhook-Endpoint braucht eine erreichbare HTTPS-URL), echte
+      Registrierungs-/Login-Anbindung von `marketing/registrieren.html` +
+      `login.html`, Live-Mode-Keys, Rechnungsstellung, Retry-/Mahnlogik bei
+      `zahlung_offen`.
 - [ ] **Eltern-/Minderjährigen-Einwilligung**: Ablauf/Erneuerung der Einwilligung bei der Schüler:in-Rolle (das Eltern-Kind-Modell selbst ist entschieden, siehe oben).
 - [ ] **Familien-Paket-Mechanik (produktiv)**: Sitz nachträglich hinzufügen/entfernen mit echter Proration/Downgrade zum Zeitraumende. Backend-Grundlage (`PATCH /abo` + `geplanteSitze` + Job `abo-geplante-aenderungen`) steht; offen ist nur das echte Stripe-Adapter.
 - [ ] **Kontaktformular** (`marketing/kontakt.html`): Zielsystem (Support-Postfach/Ticketsystem). Spam-Schutz = IP-Rate-Limit + Honeypot-Feld (kein Captcha), Feinheiten offen.

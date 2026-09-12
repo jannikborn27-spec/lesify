@@ -12,6 +12,16 @@
   var CFG = window.LESIFY_PAYMENTS || {};
   var CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
 
+  // Lokale Entwicklung (pnpm dev / python http.server auf localhost) hat ein
+  // echtes Backend unter LESIFY_API_BASE — dort läuft der volle Stripe-Flow.
+  // Auf der öffentlich deployten Marketing-Seite (github.io/lesify.de) gibt
+  // es noch kein gehostetes `api/` (siehe UMSETZUNGSPLAN.md Phase 16), daher
+  // bleibt es dort beim reinen Validierungs-/Demo-Zustand.
+  var IST_LOKAL = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+  var API_BASE = (window.LESIFY_API_BASE || 'http://localhost:3000').replace(/\/$/, '');
+  var TOKEN_KEY = 'lesify:token';
+  function sessionToken() { try { return localStorage.getItem(TOKEN_KEY) || ''; } catch (e) { return ''; } }
+
   var params = new URLSearchParams(location.search);
   var planKey = params.get('plan');
   var interval = params.get('interval') === 'yearly' ? 'yearly' : 'monthly';
@@ -174,44 +184,54 @@
         return;
       }
 
-      // ----- Ab hier bräuchte es das Backend -----
-      // POST /abo  { paket, intervall, sitze?, email }
-      //   paket: 'starter' | 'premium' | 'infinite'
-      //   sitze: nur bei Familien-Paket (2..4), sonst 1
-      //   -> Stripe: Customer + Subscription (14 Tage Trial, danach automatische
-      //      Abbuchung) anlegen, erste Rechnung
-      //   -> { clientSecret, subscriptionId } zurückgeben
-      // stripe.confirmPayment({ elements, clientSecret,
-      //   confirmParams: { return_url: location.origin + '/checkout-erfolg.html' } })
-
-      if (CFG.mode === 'demo') {
-        message('Zahlungsdaten sind gültig und wurden von Stripe akzeptiert. Im Prototyp fehlt der Server-Schritt, der das Abo bei Stripe anlegt — es wird nichts belastet. Ablauf: Konzept-texts/backend-planning.md §4 (Abo & Abrechnung).', 'info');
+      if (CFG.mode === 'demo' && !IST_LOKAL) {
+        message('Zahlungsdaten sind gültig und wurden von Stripe akzeptiert. Auf der öffentlichen Seite fehlt noch das gehostete Backend, das das Abo bei Stripe anlegt — es wird nichts belastet. Für den vollen Ablauf lokal `pnpm dev` starten.', 'info');
         $('submit').innerHTML = 'Validiert &mdash; Server-Schritt fehlt';
         setLoading(false);
         return;
       }
 
-      // Echt-Betrieb (mit Backend):
-      fetch('/abo', {
+      var token = sessionToken();
+      if (!token) {
+        message('Zum Abschließen zuerst registrieren/anmelden — die Kasse braucht ein Konto, dem sie das Abo zuordnet.', 'error');
+        setLoading(false);
+        return;
+      }
+
+      // Echt-Betrieb: Abo bei Stripe anlegen (Customer + Subscription, 14 Tage
+      // Trial), Client Secret zurückbekommen und die Zahlungsdaten bestätigen.
+      fetch(API_BASE + '/abo', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
         body: JSON.stringify({
           paket: isFamily ? famTier : planKey,
           intervall: interval === 'yearly' ? 'jaehrlich' : 'monatlich',
           sitze: isFamily ? famSeats : 1,
           email: email
         })
-      }).then(function (r) { return r.json(); }).then(function (data) {
-        return stripe.confirmPayment({
+      }).then(function (r) {
+        if (!r.ok) return r.json().then(function (d) { throw new Error(d.fehler || 'anlegen_fehlgeschlagen'); });
+        return r.json();
+      }).then(function (data) {
+        if (!data.clientSecret) throw new Error('kein_client_secret');
+        var returnUrl = location.origin + location.pathname.replace('checkout.html', 'checkout-erfolg.html');
+        // Bei Trial ohne Sofortbelastung liefert Stripe ein SetupIntent
+        // (Präfix `seti_…`) statt eines PaymentIntent (`pi_…`) — je nachdem
+        // ruft man confirmSetup oder confirmPayment.
+        var istSetup = data.clientSecret.indexOf('seti_') === 0;
+        var confirm = istSetup ? stripe.confirmSetup : stripe.confirmPayment;
+        return confirm.call(stripe, {
           elements: elements,
           clientSecret: data.clientSecret,
-          confirmParams: { return_url: location.origin + location.pathname.replace('checkout.html', 'checkout-erfolg.html') }
+          confirmParams: { return_url: returnUrl }
         });
       }).then(function (res) {
         if (res && res.error) message(res.error.message, 'error');
         setLoading(false);
-      }).catch(function () {
-        message('Die Zahlung konnte nicht abgeschlossen werden. Bitte später erneut versuchen.', 'error');
+      }).catch(function (err) {
+        message(err && err.message === 'abo_vorhanden'
+          ? 'Für dieses Konto besteht bereits ein Abo.'
+          : 'Die Zahlung konnte nicht abgeschlossen werden. Bitte später erneut versuchen.', 'error');
         setLoading(false);
       });
     });

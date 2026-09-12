@@ -62,7 +62,25 @@ export function buildApp(opts: BuildOpts = {}): FastifyInstance {
   app.decorate('ki', opts.ki ?? getKiClient());
   app.decorate('storage', opts.storage ?? getStorageGateway());
   app.decorateRequest('userId', '');
+  app.decorateRequest('rawBody', undefined);
   app.register(multipart, { limits: { fileSize: env.DATEI_MAX_BYTES } });
+
+  // Roh-Body mitschneiden, bevor er geparst wird — nur die Stripe-Webhook-
+  // Signaturprüfung (`/abo/webhook`) braucht das, alle anderen Routen sehen
+  // weiterhin ganz normal den geparsten JSON-Body.
+  app.addContentTypeParser(
+    'application/json',
+    { parseAs: 'buffer' },
+    function (req, body: Buffer, done) {
+      req.rawBody = body;
+      if (body.length === 0) return done(null, undefined);
+      try {
+        done(null, JSON.parse(body.toString('utf8')));
+      } catch (err) {
+        done(err as Error, undefined);
+      }
+    },
+  );
 
   // ---- Rate-Limiting (§7, Phase 15) ----
   if (opts.rateLimit ?? env.NODE_ENV !== 'test') {

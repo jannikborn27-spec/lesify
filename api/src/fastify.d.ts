@@ -19,5 +19,12 @@ declare module 'fastify' {
   interface FastifyRequest {
     /** gesetzt durch `requireAuth` */
     userId: string;
+    /**
+     * Roh-Body als Buffer, gesetzt vom `application/json`-Content-Type-Parser
+     * in `app.ts` — nötig für die Stripe-Webhook-Signaturprüfung (HMAC über
+     * exakt die empfangenen Bytes, nicht über einen neu serialisierten
+     * JSON-String).
+     */
+    rawBody?: Buffer;
   }
 }

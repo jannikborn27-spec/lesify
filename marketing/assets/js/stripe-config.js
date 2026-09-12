@@ -6,10 +6,14 @@
    NIEMALS ins Frontend; er lebt nur im späteren Backend
    (siehe Konzept-texts/backend-planning.md §7a).
 
-   `mode: 'demo'` = kein Backend vorhanden. Die Kasse rendert
-   ein echtes Stripe Payment Element und validiert die Eingaben
-   live, kann die Zahlung ohne Server-Schritt aber nicht
-   abschließen — es wird nichts belastet.
+   `mode: 'demo'` = kein Backend erreichbar. Gilt automatisch nur
+   auf der öffentlich deployten Seite (kein `api/` dort gehostet,
+   siehe UMSETZUNGSPLAN.md Phase 16) — die Kasse rendert ein
+   echtes Stripe Payment Element und validiert die Eingaben live,
+   kann ohne Server-Schritt aber nicht abschließen, es wird
+   nichts belastet. Lokal (`pnpm dev`, localhost) läuft der volle
+   Stripe-Flow gegen das lokale Backend, unabhängig vom hier
+   gesetzten `mode` (siehe `checkout.js`, `IST_LOKAL`).
 
    Preis-Modell (Design-Platzhalter, nicht final — die Werte
    spiegeln die Pricing-Tabelle in backend-planning.md §1/§7):

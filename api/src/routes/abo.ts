@@ -19,6 +19,9 @@ const anlegenBody = z.object({
   paket: paketEnum,
   intervall: intervallEnum,
   sitze: z.number().int().min(1).max(4).optional(),
+  // Nur fürs Zahlungsanbieter-Kundenkonto (Stripe Customer.email für Rechnungen) —
+  // Login läuft über den Account, der beim Registrieren schon existiert.
+  email: z.string().trim().toLowerCase().email().max(320).optional(),
 });
 
 const aendernBody = z
@@ -39,9 +42,10 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
 
   // ---- POST /abo/webhook — Callback vom Zahlungsanbieter, KEIN Login ----------
   app.post('/abo/webhook', async (req) => {
-    // Phase 16: echten Roh-Body durchreichen (HMAC-Signaturprüfung). Der
-    // Fake-Anbieter round-trippt über JSON.stringify.
-    const roh = JSON.stringify(req.body ?? {});
+    // Echter Roh-Body (vom Content-Type-Parser in app.ts mitgeschnitten) —
+    // Stripes HMAC-Signaturprüfung braucht exakt die empfangenen Bytes, kein
+    // neu serialisiertes JSON. Der Fake-Anbieter parst denselben String.
+    const roh = req.rawBody ? req.rawBody.toString('utf8') : JSON.stringify(req.body ?? {});
     const sig = req.headers['stripe-signature'];
     const erg = zahlung.webhookVerarbeiten(roh, typeof sig === 'string' ? sig : undefined);
 
@@ -77,6 +81,7 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
       const preis = aboPreis({ paket: body.paket, art, sitze, intervall: body.intervall });
       const sub = await zahlung.subscriptionAnlegen({
         userId: req.userId,
+        email: body.email,
         paket: body.paket,
         art,
         sitze,
@@ -103,7 +108,13 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
         data: { aboId: abo.id, trialEndetAm: null },
       });
 
-      return reply.code(201).send(aboDTO(abo));
+      // clientSecret nur beim echten Stripe-Adapter gesetzt — das Frontend
+      // ruft damit stripe.confirmSetup (Trial, seti_…) oder confirmPayment
+      // (pi_…) auf. Beim Fake-Anbieter fehlt es; checkout.js bleibt dann im
+      // reinen Validierungs-/Demo-Zustand.
+      return reply
+        .code(201)
+        .send({ ...aboDTO(abo), clientSecret: sub.clientSecret ?? null, subscriptionId: sub.ref });
     });
 
     // PATCH /abo — Tarif-/Intervall-/Sitzwechsel (Proration beim Anbieter)

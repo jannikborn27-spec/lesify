@@ -2,6 +2,13 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import type { PrismaClient } from '@prisma/client';
 import { buildApp } from '../app.js';
 import { getPrisma } from '../db.js';
+import { FakeZahlungsGateway } from '../lib/zahlung.js';
+
+// Erzwingt den Fake-Zahlungsanbieter, unabhängig von einem lokal gesetzten
+// STRIPE_SECRET_KEY (api/.env) — dieselbe Determinismus-Regel wie beim
+// `prisma`-Stub oben. Sonst würden diese Tests bei vorhandenem Key echte
+// Stripe-Calls auslösen und an `zahlungsanbieterRef` (erwartet `fake_sub_…`)
+// scheitern.
 
 const keinPrisma = {} as unknown as PrismaClient;
 const hatDb = !!process.env.DATABASE_URL;
@@ -42,7 +49,7 @@ async function registriereUndLogin(app: ReturnType<typeof buildApp>, email: stri
 }
 
 describe.runIf(hatDb)('abo — Einzelplatz-Flow (Supabase)', () => {
-  const app = buildApp({ logger: false });
+  const app = buildApp({ logger: false, zahlung: new FakeZahlungsGateway() });
   const prisma = getPrisma();
   let token = '';
   const auth = () => ({ authorization: `Bearer ${token}` });
@@ -149,7 +156,7 @@ describe.runIf(hatDb)('abo — Einzelplatz-Flow (Supabase)', () => {
 });
 
 describe.runIf(hatDb)('abo — Familien-Flow + Kind-Profile (Supabase)', () => {
-  const app = buildApp({ logger: false });
+  const app = buildApp({ logger: false, zahlung: new FakeZahlungsGateway() });
   let token = '';
   const auth = () => ({ authorization: `Bearer ${token}` });
 
@@ -239,7 +246,7 @@ describe.runIf(hatDb)('abo — Familien-Flow + Kind-Profile (Supabase)', () => {
 });
 
 describe.runIf(hatDb)('abo — Eltern-Features Phase 12 (Supabase)', () => {
-  const app = buildApp({ logger: false });
+  const app = buildApp({ logger: false, zahlung: new FakeZahlungsGateway() });
   const prisma = getPrisma();
   let token = '';
   const auth = () => ({ authorization: `Bearer ${token}` });

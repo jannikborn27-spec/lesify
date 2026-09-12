@@ -2146,12 +2146,29 @@ Der gesamte abgeleitete Zustand muss **bit-genau** zu `data.js` passen.
 > bildet Trial → Abbuchung, Wechsel, Kündigung, Pause und Webhooks vollständig
 > ab, legt aber keine echten Stripe-Objekte an. Preise/Regeln als Code in
 > `shared/src/abo.ts` (Spiegel `stripe-config.js`). Tests: `shared/src/abo.test.ts`
-> (6) + `api/src/routes/abo.test.ts` (18, DB-gated), gesamt shared 52 / api 76.
-> Echtes Stripe-Adapter + Konto/Produkte + Rechnungslogik → Phase 16._
+> (6) + `api/src/routes/abo.test.ts` (18, DB-gated), gesamt shared 52 / api 76._
+>
+> _2026-09-12: **`StripeZahlungsGateway` (echt) ergänzt** — aktiv sobald
+> `STRIPE_SECRET_KEY` gesetzt ist (`getZahlungsGateway()`), Fake bleibt Default
+> ohne Key **und immer in `abo.test.ts`** (dort per `buildApp({zahlung: new
+> FakeZahlungsGateway()})` erzwungen, sonst würden Tests echte Stripe-Calls
+> auslösen). Preise laufen dynamisch über `price_data` (kein manueller
+> Preis-Katalog nötig), nur drei Produkte (je Paket eins) legen sich beim
+> ersten Gebrauch selbst an. Webhook-Signaturprüfung jetzt echt (`stripe.
+> webhooks.constructEvent`, dafür `req.rawBody` in `app.ts` mitgeschnitten).
+> `marketing/assets/js/checkout.js` ruft jetzt wirklich `POST /abo` (inkl.
+> `checkout-erfolg.html`, neu). Lokal komplett gegen echtes Stripe Test-Mode
+> verifiziert (Anlegen/Wechsel/Pause/Kündigen/Webhook, per Stripe CLI).
+> Details: `backend-planning.md` §4 „Umsetzungsstand (Phase 9 …; Stripe-Adapter
+> 2026-09-12)". Noch offen: `api/` öffentlich hosten (Webhook braucht
+> erreichbare HTTPS-URL), echte Registrierung/Login auf der Marketing-Seite,
+> Live-Mode → Phase 16._
 
-- [ ] **Stripe-Konto** (Test- + Live-Modus), Produkte/Preise dort anlegen passend
-      zu `stripe-config.js` (`plans`, `family`, Intervalle, Angebot). _Ops-Schritt,
-      erst mit echtem Stripe-Adapter (Phase 16) sinnvoll._
+- [x] **Stripe-Konto (Test-Modus):** _bereits vorhanden, Secret Key liefert
+      echte Test-Mode-Objekte (siehe oben). Produkte legen sich selbst an,
+      kein manueller Preis-Katalog nötig (dynamisches `price_data`)._
+- [ ] **Stripe-Konto Live-Modus** + Umschalten auf Live-Keys, Rechnungsstellung.
+      _Ops-Schritt, sinnvoll erst mit öffentlich gehostetem `api/` (Phase 16)._
 - [x] **Trial-Modell (Phase 0):** _`POST /abo` legt über `zahlung.subscriptionAnlegen`
       sofort ein Trial-Abo an (`status = test`, `trialEndetAm = +14 Tage`,
       `aktuellerZeitraumEnde` nach Trial). Webhook `trial_beendet` → `status =

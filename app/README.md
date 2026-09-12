@@ -4,9 +4,14 @@ Statischer Prototyp: HTML/CSS/Vanilla-JS, **kein Build-Tool**. Bisher lag dieser
 Ordner im Projekt-Root; beim Monorepo-Umbau (2026-09-04) nach `app/` verschoben.
 
 - Einstieg: `dashboard.html` (Schüler) bzw. `eltern.html` (Elternkonto mit
-  Familien-Abo — Kinder-Übersicht, Wochen-Kennzahlen, Kind einladen/entfernen,
-  Kontext-Wechsel „Als Kind ansehen", Abo/Sitze, Datenschutz). Ansicht im
-  Prototyp über den Schalter „Ansicht" auf `einstellungen.html`.
+  Familien-Abo). Der Eltern-Bereich ist vier eigenständige Seiten (Stand
+  2026-09-12, nicht nur Anker-Abschnitte): `eltern.html` (Übersicht —
+  Familien-Kennzahlen, Kind-Kurzkarten, Datenschutz-Hinweis),
+  `eltern-kinder.html` (Kind-Verwaltung — anlegen/einladen/entfernen/
+  Benachrichtigungen), `eltern-kind.html?id=…` (Einzelansicht — Wochen-
+  Kennzahlen, Fächer- und Klausur-Metadaten je Kind), `eltern-abo.html`
+  (Tarif/Sitze/Status) und `eltern-datenschutz.html` (Export/Löschung).
+  Ansicht im Prototyp über den Schalter „Ansicht" auf `einstellungen.html`.
 - Logik & Dummy-Daten: `assets/js/data.js`, `assets/js/app.js`
 - Design-System: `assets/css/style.css` — token-basierte „Fog Blue"-Rampe.
   **Dunkles Design** über die Einstellung `settings.darkMode` (Karte

@@ -3,23 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Eltern-Bereich · Lesify</title>
+<title>Übersicht · Eltern-Bereich · Lesify</title>
 <link rel="icon" href="assets/img/logo.png">
 <link rel="stylesheet" href="assets/css/style.css">
 <script>(function(){try{var d=JSON.parse(localStorage.getItem("lesify_db_v2")||"null");if(d&&d.settingsOverride&&d.settingsOverride.darkMode)document.documentElement.setAttribute("data-theme","dark");}catch(e){}})();</script>
-<style>
-  .eltern-card { padding: 24px 26px; margin-bottom: var(--sp-6); max-width: 720px; }
-  .eltern-card > h3 { font-size: 1rem; margin-bottom: 4px; }
-  .eltern-card > .eltern-sub { font-size: 0.82rem; color: var(--ink-500); margin-bottom: 18px; }
-  .eltern-section { scroll-margin-top: 80px; }
-  .abo-row { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 0.88rem; }
-  .abo-row:last-of-type { border-bottom: 0; }
-  .abo-row .lbl { color: var(--ink-500); }
-  .abo-row .val { font-weight: 600; color: var(--ink-950); display: flex; align-items: center; gap: 10px; }
-  .seat-step { display: inline-flex; align-items: center; gap: 8px; }
-  .seat-step button { width: 28px; height: 28px; border-radius: var(--radius-sm); border: 1px solid var(--line); background: var(--bg-surface); cursor: pointer; font-size: 1rem; line-height: 1; color: var(--ink-800); }
-  .seat-step button:disabled { opacity: 0.4; cursor: not-allowed; }
-</style>
 </head>
 <body data-page="eltern">
 <div class="app-shell">
@@ -57,294 +44,85 @@ document.addEventListener('DOMContentLoaded', function () {
     return;
   }
 
-  var fam = Lesify.familie();
-
-  /* ---- kleiner, wiederverwendbarer Modal-Helfer ---- */
-  function modal(title, sub, bodyHtml, onConfirm, confirmLabel, danger) {
-    var scrim = document.createElement('div');
-    scrim.className = 'modal-scrim';
-    scrim.innerHTML =
-      '<div class="modal" style="max-width:420px">' +
-        '<div class="modal-head"><div>' +
-          '<h3 class="modal-title">' + title + '</h3>' +
-          (sub ? '<p class="modal-sub">' + sub + '</p>' : '') +
-        '</div><button class="modal-close" type="button" aria-label="Schließen">' + I.x + '</button></div>' +
-        '<div class="modal-body">' + bodyHtml + '</div>' +
-        '<div class="modal-foot">' +
-          '<button class="btn btn-ghost" type="button" data-x>Abbrechen</button>' +
-          '<button class="btn ' + (danger ? 'btn-primary' : 'btn-primary') + '" type="button" data-ok' + (danger ? ' style="background:var(--rot);border-color:var(--rot)"' : '') + '>' + (confirmLabel || 'Speichern') + '</button>' +
-        '</div>' +
-      '</div>';
-    document.body.appendChild(scrim);
-    requestAnimationFrame(function () { scrim.classList.add('is-open'); });
-    function close() { scrim.classList.remove('is-open'); setTimeout(function () { scrim.remove(); }, 200); }
-    scrim.addEventListener('click', function (e) { if (e.target === scrim) close(); });
-    scrim.querySelector('.modal-close').addEventListener('click', close);
-    scrim.querySelector('[data-x]').addEventListener('click', close);
-    scrim.querySelector('[data-ok]').addEventListener('click', function () {
-      if (onConfirm(scrim) !== false) close();
-    });
-    return scrim;
-  }
-
-  /* ---- Wochen-Kennzahlen je Kind ---- */
-  function kzGrid(z) {
-    function kz(num, label) { return '<div class="kz"><div class="kz-num">' + num + '</div><div class="kz-label">' + label + '</div></div>'; }
-    return '<div class="kz-grid">' +
-      kz(z.faecher, 'Fächer') +
-      kz(z.themen, 'Themen') +
-      kz(z.chatsDieWoche, 'Chats diese Woche') +
-      kz(z.nachrichtenDieWoche, 'Nachrichten diese Woche') +
-      kz(z.lernzettelGesamt, 'Lernzettel gesamt') +
-      kz(z.testklausurenDieWoche, 'Testklausuren diese Woche') +
-      kz(z.anstehendeKlausuren, 'Anstehende Klausuren') +
-    '</div>';
-  }
-
   function aktivChip(kind) {
     var a = kind.aktivitaetAmpel;
     return '<span class="ampel-chip ampel-chip-' + a + '"><span class="ampel-dot ampel-' + a + '"></span>' +
       Lesify.kindAktivitaetLabel(a) + '</span>';
   }
 
-  function kindCard(kind) {
+  function miniKarte(kind) {
     var col = Lesify.getFachColor(kind.farbe);
-    var z = Lesify.kindZusammenfassung(kind.id);
-    var pending = !kind.eingeladen;
     var sub = kind.klasse + (kind.eingeladen
       ? (kind.letzteAktivitaet ? ' · zuletzt aktiv ' + kind.letzteAktivitaet : ' · noch nicht gestartet')
       : ' · Einladung ausstehend');
-
-    return '<details class="card kind-card' + (pending ? ' is-pending' : '') + '" data-kind="' + kind.id + '">' +
-      '<summary>' +
-        '<span class="fach-avatar" style="width:38px;height:38px;background:' + col.base + '"><span>' +
-          kind.name.charAt(0).toUpperCase() + '</span></span>' +
-        '<span class="kc-meta"><span class="kc-name">' + kind.name + '</span><span class="kc-sub">' + sub + '</span></span>' +
-        (kind.eingeladen ? aktivChip(kind) : '') +
-        '<span class="kc-chevron spark" style="width:16px;height:16px">' + I.arrowRight + '</span>' +
-      '</summary>' +
-      '<div class="kc-body">' +
-        kzGrid(z) +
-        '<p class="kc-hint">Bewusst ohne Chat- oder Lernzettel-Inhalte, ohne Noten — nur, ob dein Kind dranbleibt.</p>' +
-        '<div class="kc-actions">' +
-          (kind.eingeladen
-            ? '<button class="btn btn-sm btn-ghost" data-act="einladen">Erneut einladen</button>'
-            : '<button class="btn btn-sm btn-primary" data-act="einladen">Einladung senden</button>') +
-          (kind.eingeladen ? '<button class="btn btn-sm btn-ghost" data-act="ansehen">Als ' + kind.name.split(' ')[0] + ' ansehen</button>' : '') +
-          '<button class="btn btn-sm btn-ghost" data-act="benachrichtigung">Benachrichtigungen</button>' +
-          '<button class="btn btn-sm btn-ghost" data-act="entfernen" style="color:var(--rot)">Entfernen</button>' +
-        '</div>' +
-      '</div>' +
-    '</details>';
+    return '<a class="card eltern-mini-card" href="eltern-kind.html?id=' + kind.id + '">' +
+      '<span class="fach-avatar" style="width:38px;height:38px;flex-shrink:0;background:' + col.base + '"><span>' +
+        kind.name.charAt(0).toUpperCase() + '</span></span>' +
+      '<span class="kc-meta">' +
+        '<span class="kc-name">' + kind.name + '</span>' +
+        '<span class="kc-sub">' + sub + '</span>' +
+        (kind.eingeladen ? '<span style="display:inline-block;margin-top:6px">' + aktivChip(kind) + '</span>' : '') +
+      '</span>' +
+    '</a>';
   }
 
-  /* ---- Abschnitt: Kinder ---- */
-  function kinderSection() {
-    var kinder = Lesify.kinder();
-    var sitze = Lesify.plan().familie.sitze;
-    var voll = kinder.length >= sitze;
-    return '<section class="eltern-section" id="kinder">' +
-      '<div class="page-head" style="margin-bottom:14px"><div>' +
-        '<div class="page-eyebrow">Kinder &amp; Zugänge</div>' +
-        '<h2 class="page-title" style="font-size:1.35rem">' + kinder.length + ' von ' + sitze + ' Plätzen belegt</h2>' +
-      '</div></div>' +
-      '<div id="kinder-liste">' + kinder.map(kindCard).join('') + '</div>' +
-      '<button class="btn btn-primary" id="kind-add"' + (voll ? ' disabled' : '') + '>' + I.plus + ' Kind hinzufügen</button>' +
-      (voll ? '<p class="kc-hint">Alle Plätze belegt — im Abschnitt „Abo &amp; Sitze" kannst du einen Platz ergänzen.</p>' : '') +
-    '</section>';
+  /* ---- Familien-weite Kennzahlen — Summe über alle Kinder, aus denselben
+     Wochen-Daten wie die Einzelkarten, nur zusammengezählt. ---- */
+  function familienStats(kinder) {
+    var aktiveKinder = 0, nachrichten = 0, klausuren = 0;
+    kinder.forEach(function (k) {
+      var z = Lesify.kindZusammenfassung(k.id);
+      if (k.aktivitaetAmpel !== 'rot') aktiveKinder++;
+      nachrichten += z.nachrichtenDieWoche;
+      klausuren += z.anstehendeKlausuren;
+    });
+    function stat(num, label) { return '<div class="eltern-stat"><div class="eltern-stat-num">' + num + '</div><div class="eltern-stat-label">' + label + '</div></div>'; }
+    return '<div class="eltern-stats">' +
+      stat(kinder.length, kinder.length === 1 ? 'Kind' : 'Kinder') +
+      stat(aktiveKinder, 'diese Woche aktiv') +
+      stat(nachrichten, 'KI-Nachrichten diese Woche') +
+      stat(klausuren, 'anstehende Klausuren') +
+    '</div>';
   }
 
-  /* ---- Abschnitt: Abo & Sitze ---- */
-  function aboSection() {
-    var p = Lesify.plan();
-    var belegt = Lesify.kinder().length;
-    var statusMap = { aktiv: ['gruen', 'Aktiv'], gekuendigt: ['rot', 'Gekündigt — läuft zum Periodenende aus'], pausiert: ['gelb', 'Sommerpause'] };
-    var st = statusMap[p.status] || statusMap.aktiv;
-    return '<section class="eltern-section" id="abo">' +
-      '<div class="card eltern-card">' +
-        '<h3>Abo &amp; Sitze</h3>' +
-        '<p class="eltern-sub">Tarif, Abrechnung und Familien-Plätze. Ein zusätzlicher Platz greift sofort; ' +
-          'ein Platz weniger wird zum Ende des Abrechnungszeitraums wirksam.</p>' +
-        '<div class="abo-row"><span class="lbl">Tarif</span><span class="val">' + p.name + '</span></div>' +
-        '<div class="abo-row"><span class="lbl">Abrechnung</span><span class="val">' + (p.intervall === 'jaehrlich' ? 'Jährlich' : 'Monatlich') + '</span></div>' +
-        '<div class="abo-row"><span class="lbl">Plätze</span><span class="val">' +
-          '<span class="seat-step">' +
-            '<button type="button" id="seat-minus"' + (p.familie.sitze <= Math.max(2, belegt) ? ' disabled' : '') + '>−</button>' +
-            '<span id="seat-count">' + p.familie.sitze + '</span>' +
-            '<button type="button" id="seat-plus"' + (p.familie.sitze >= 4 ? ' disabled' : '') + '>+</button>' +
-          '</span>' +
-          '<span class="text-xs text-muted">' + belegt + ' belegt</span>' +
-        '</span></div>' +
-        '<div class="abo-row"><span class="lbl">Status</span><span class="val">' +
-          '<span class="ampel-chip ampel-chip-' + st[0] + '"><span class="ampel-dot ampel-' + st[0] + '"></span>' + st[1] + '</span>' +
-        '</span></div>' +
-        '<div class="kc-actions" style="margin-top:18px">' +
-          (p.status === 'aktiv'
-            ? '<button class="btn btn-sm btn-ghost" data-abo="pausieren">Sommerpause</button>' +
-              '<button class="btn btn-sm btn-ghost" data-abo="kuendigen" style="color:var(--rot)">Kündigen</button>'
-            : '<button class="btn btn-sm btn-primary" data-abo="reaktivieren">Abo reaktivieren</button>') +
-        '</div>' +
-      '</div>' +
-    '</section>';
-  }
-
-  /* ---- Abschnitt: Datenschutz & Konto ---- */
-  function datenschutzSection() {
-    return '<section class="eltern-section" id="datenschutz">' +
-      '<div class="card eltern-card">' +
-        '<h3>Datenschutz &amp; Konto</h3>' +
-        '<p class="eltern-sub">Das Familienkonto umfasst alle Kind-Profile. Export und Löschung wirken auf das gesamte Konto.</p>' +
-        '<div class="abo-row"><span class="lbl">Einwilligung erteilt am</span><span class="val">' +
-          (fam.einwilligungAm ? R.formatDatum(fam.einwilligungAm) : '—') + '</span></div>' +
-        '<div class="abo-row"><span class="lbl">Konto-E-Mail</span><span class="val">' + (fam.elternEmail || '—') + '</span></div>' +
-        '<div class="kc-actions" style="margin-top:18px">' +
-          '<button class="btn btn-sm btn-ghost" data-ds="export">Daten exportieren</button>' +
-          '<button class="btn btn-sm btn-ghost" data-ds="loeschen" style="color:var(--rot)">Familienkonto löschen</button>' +
-        '</div>' +
-        '<p class="kc-hint">Eine Löschung entfernt alle Fächer, Chats, Lernzettel, Dateien und Klausuren aller Kinder unwiderruflich.</p>' +
-      '</div>' +
-    '</section>';
-  }
-
-  /* ---- Seite zusammensetzen ---- */
   function render() {
-    fam = Lesify.familie();
+    var fam = Lesify.familie();
+    var kinder = Lesify.kinder();
     main.innerHTML =
       '<div class="page-head"><div>' +
         '<div class="page-eyebrow">Eltern-Bereich</div>' +
         '<h1 class="page-title">Hallo, ' + fam.elternName.split(' ')[0] + '</h1>' +
         '<p class="page-sub">Überblick über deine Kinder — ob sie dranbleiben, ohne ihnen über die Schulter zu schauen.</p>' +
       '</div></div>' +
-      kinderSection() +
-      aboSection() +
-      datenschutzSection();
-    wire();
-    if (location.hash) { var t = document.querySelector(location.hash); if (t) t.scrollIntoView(); }
-  }
 
-  /* ---- Event-Verdrahtung ---- */
-  function wire() {
-    // Kind-Karten-Aktionen (delegiert)
-    document.getElementById('kinder-liste').addEventListener('click', function (e) {
-      var btn = e.target.closest('[data-act]');
-      if (!btn) return;
-      e.preventDefault();
-      var card = btn.closest('[data-kind]');
-      var id = card.getAttribute('data-kind');
-      var kind = Lesify.getKind(id);
-      var act = btn.getAttribute('data-act');
+      familienStats(kinder) +
 
-      if (act === 'einladen') {
-        modal('Kind einladen', 'Wir schicken eine E-Mail mit einem Link, über den ' + kind.name.split(' ')[0] + ' ein eigenes Passwort setzt.',
-          '<div class="field mt-0"><label for="m-mail">E-Mail-Adresse</label>' +
-          '<input class="input" id="m-mail" type="email" value="' + (kind.email || '') + '" placeholder="name@beispiel.de"></div>',
-          function (scrim) {
-            var mail = scrim.querySelector('#m-mail').value.trim();
-            if (!mail || mail.indexOf('@') < 1) { scrim.querySelector('#m-mail').focus(); return false; }
-            Lesify.kindEinladung(id, mail);
-            LesifyUI.toast('Einladung an ' + mail + ' gesendet.');
-            render();
-          }, 'Einladung senden');
-      } else if (act === 'ansehen') {
-        Lesify.wechsleZuKind(id);
-        window.location.href = 'dashboard.html';
-      } else if (act === 'entfernen') {
-        modal('„' + kind.name + '" entfernen?', 'Alle Fächer, Chats, Lernzettel, Dateien und Klausuren dieses Kindes werden unwiderruflich gelöscht. Der Platz wird wieder frei.',
-          '<p class="text-sm" style="margin:0;color:var(--ink-700)">Zum Bestätigen bitte den Vornamen <strong>' + kind.name.split(' ')[0] + '</strong> eingeben.</p>' +
-          '<div class="field mt-0" style="margin-top:10px"><input class="input" id="m-confirm" type="text" autocomplete="off"></div>',
-          function (scrim) {
-            if (scrim.querySelector('#m-confirm').value.trim() !== kind.name.split(' ')[0]) { scrim.querySelector('#m-confirm').focus(); return false; }
-            Lesify.removeKind(id);
-            LesifyUI.toast(kind.name + ' wurde entfernt.');
-            render();
-          }, 'Endgültig entfernen', true);
-      } else if (act === 'benachrichtigung') {
-        modal('Benachrichtigungen — ' + kind.name.split(' ')[0], 'Wirken, sobald der E-Mail-Versand aktiv ist. Bis dahin nur gemerkt.',
-          '<div class="toggle-row" style="padding-top:0"><div><div class="toggle-label">Erinnerung vor Klausuren</div>' +
-          '<div class="toggle-sub">Ein Hinweis wenige Tage vor einem Termin.</div></div>' +
-          '<label class="toggle-switch"><input type="checkbox" id="m-t1"' + (kind.erinnerungVorKlausuren ? ' checked' : '') + '><span class="track"><span class="thumb"></span></span></label></div>' +
-          '<div class="toggle-row"><div><div class="toggle-label">Wöchentliche Zusammenfassung</div>' +
-          '<div class="toggle-sub">Der Wochen-Überblick dieser Seite, per E-Mail.</div></div>' +
-          '<label class="toggle-switch"><input type="checkbox" id="m-t2"' + (kind.woechentlicheZusammenfassung ? ' checked' : '') + '><span class="track"><span class="thumb"></span></span></label></div>',
-          function (scrim) {
-            Lesify.updateKind(id, {
-              erinnerungVorKlausuren: scrim.querySelector('#m-t1').checked,
-              woechentlicheZusammenfassung: scrim.querySelector('#m-t2').checked
-            });
-            LesifyUI.toast('Einstellungen für ' + kind.name.split(' ')[0] + ' gespeichert.');
-          }, 'Speichern');
-      }
-    });
+      '<div class="card eltern-card eltern-trust">' +
+        '<span class="spark">' + I.lock + '</span>' +
+        '<div><h3>Warum siehst du keine Chats oder Lernzettel?</h3>' +
+        '<p>Lesify zeigt dir, <strong>ob</strong> dein Kind dranbleibt — nicht <strong>was</strong> es schreibt. ' +
+          'Chat-Verläufe, Lernzettel-Inhalte und einzelne Testklausur-Ergebnisse bleiben bewusst privat, ' +
+          'damit dein Kind offen fragen kann. Du bekommst nur zusammengefasste Wochenzahlen.</p></div>' +
+      '</div>' +
 
-    // Kind hinzufügen
-    var addBtn = document.getElementById('kind-add');
-    if (addBtn && !addBtn.disabled) addBtn.addEventListener('click', function () {
-      var farben = Lesify.FACH_COLORS.map(function (c, i) {
-        return '<label style="display:inline-flex;align-items:center;gap:5px;font-size:0.8rem;margin:0 10px 6px 0">' +
-          '<input type="radio" name="m-farbe" value="' + c.key + '"' + (i === 0 ? ' checked' : '') + '>' +
-          '<span style="width:13px;height:13px;border-radius:50%;background:' + c.base + ';display:inline-block"></span>' + c.name + '</label>';
-      }).join('');
-      modal('Kind hinzufügen', 'Legt ein neues Profil an. Einladen kannst du danach jederzeit.',
-        '<div class="field"><label for="m-name">Name</label><input class="input" id="m-name" type="text" placeholder="Vor- und Nachname"></div>' +
-        '<div class="field"><label for="m-klasse">Klassenstufe</label><input class="input" id="m-klasse" type="text" placeholder="z. B. 7. Klasse"></div>' +
-        '<div class="field mt-0"><label>Farbe</label><div>' + farben + '</div></div>',
-        function (scrim) {
-          var name = scrim.querySelector('#m-name').value.trim();
-          var klasse = scrim.querySelector('#m-klasse').value.trim();
-          if (!name || !klasse) { scrim.querySelector('#m-name').focus(); return false; }
-          var farbe = (scrim.querySelector('input[name="m-farbe"]:checked') || {}).value || 'graphit';
-          try {
-            Lesify.addKind({ name: name, klasse: klasse, farbe: farbe });
-            LesifyUI.toast(name + ' hinzugefügt.');
-            render();
-          } catch (err) {
-            LesifyUI.toast(err.message === 'sitze_ausgeschoepft' ? 'Alle Plätze belegt.' : 'Konnte nicht anlegen.');
-            return false;
-          }
-        }, 'Anlegen');
-    });
+      '<div class="page-head" style="margin:8px 0 14px"><div>' +
+        '<h2 class="page-title" style="font-size:1.15rem">Deine Kinder</h2>' +
+      '</div><a class="btn btn-ghost btn-sm" href="eltern-kinder.html">Verwalten' + I.arrowRight + '</a></div>' +
+      '<div class="eltern-mini-row">' + kinder.map(miniKarte).join('') + '</div>' +
 
-    // Abo & Sitze
-    var seatMinus = document.getElementById('seat-minus'), seatPlus = document.getElementById('seat-plus');
-    if (seatPlus) seatPlus.addEventListener('click', function () {
-      try { Lesify.setFamilieSitze(Lesify.plan().familie.sitze + 1); LesifyUI.toast('Ein Platz ergänzt.'); render(); }
-      catch (e) { LesifyUI.toast('Maximal 4 Plätze.'); }
-    });
-    if (seatMinus) seatMinus.addEventListener('click', function () {
-      try { Lesify.setFamilieSitze(Lesify.plan().familie.sitze - 1); LesifyUI.toast('Platz wird zum Periodenende entfernt.'); render(); }
-      catch (e) { LesifyUI.toast('Zuerst ein Kind entfernen — der Platz ist belegt.'); }
-    });
-    LesifyUI.qsa('[data-abo]').forEach(function (b) {
-      b.addEventListener('click', function () {
-        var a = b.getAttribute('data-abo');
-        if (a === 'kuendigen') {
-          modal('Abo kündigen?', 'Das Abo läuft bis zum Ende des bezahlten Zeitraums weiter — bis dahin bleibt alles nutzbar.',
-            '<p class="text-sm" style="margin:0;color:var(--ink-700)">Danach werden die Inhalte gemäß Aufbewahrungsfrist gelöscht.</p>',
-            function () { Lesify.setAboStatus('gekuendigt'); LesifyUI.toast('Abo gekündigt.'); render(); }, 'Kündigen', true);
-        } else if (a === 'pausieren') {
-          Lesify.setAboStatus('pausiert'); LesifyUI.toast('Sommerpause aktiviert — Inhalte bleiben erhalten.'); render();
-        } else if (a === 'reaktivieren') {
-          Lesify.setAboStatus('aktiv'); LesifyUI.toast('Abo wieder aktiv.'); render();
-        }
-      });
-    });
-
-    // Datenschutz
-    LesifyUI.qsa('[data-ds]').forEach(function (b) {
-      b.addEventListener('click', function () {
-        var a = b.getAttribute('data-ds');
-        if (a === 'export') {
-          LesifyUI.toast('Export wird erstellt — du bekommst eine E-Mail mit dem Download-Link.');
-        } else if (a === 'loeschen') {
-          modal('Familienkonto löschen?', 'Unwiderruflich. Alle Kind-Profile und deren Inhalte werden gelöscht, das Abo endet sofort.',
-            '<div class="field mt-0"><label for="m-del">Zum Bestätigen „LÖSCHEN" eingeben</label><input class="input" id="m-del" type="text" autocomplete="off"></div>',
-            function (scrim) {
-              if (scrim.querySelector('#m-del').value.trim().toUpperCase() !== 'LÖSCHEN') { scrim.querySelector('#m-del').focus(); return false; }
-              LesifyUI.toast('Löschung beantragt — wir bestätigen per E-Mail.');
-            }, 'Löschung beantragen', true);
-        }
-      });
-    });
+      '<div class="page-head" style="margin:28px 0 14px"><div>' +
+        '<h2 class="page-title" style="font-size:1.15rem">Konto</h2>' +
+      '</div></div>' +
+      '<div class="eltern-mini-row">' +
+        '<a class="card eltern-mini-card" href="eltern-abo.html">' +
+          '<span class="spark" style="width:22px;height:22px;color:var(--ink-400)">' + I.docCheck + '</span>' +
+          '<span class="kc-meta"><span class="kc-name">Abo &amp; Sitze</span><span class="kc-sub">Tarif, Abrechnung, Familien-Plätze</span></span>' +
+        '</a>' +
+        '<a class="card eltern-mini-card" href="eltern-datenschutz.html">' +
+          '<span class="spark" style="width:22px;height:22px;color:var(--ink-400)">' + I.lock + '</span>' +
+          '<span class="kc-meta"><span class="kc-name">Datenschutz &amp; Konto</span><span class="kc-sub">Export, Löschung, Einwilligung</span></span>' +
+        '</a>' +
+      '</div>';
   }
 
   render();

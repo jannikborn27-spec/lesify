@@ -62,13 +62,13 @@
   ];
 
   // Eigene Nav für ein Elternkonto mit Familien-Abo — es lernt selbst nicht,
-  // sondern verwaltet Kind-Profile. eltern.html ist eine Seite mit Abschnitten;
-  // die Unterpunkte sind Anker.
+  // sondern verwaltet Kind-Profile. Vier eigenständige Seiten (kein
+  // Anker-Sprung in eine gemeinsame Seite mehr, siehe eltern-zugang-plan.md).
   var ELTERN_NAV_ITEMS = [
     { key: 'eltern', href: 'eltern.html', label: 'Übersicht', icon: 'grid' },
-    { key: 'eltern-kinder', href: 'eltern.html#kinder', label: 'Kinder & Zugänge', icon: 'layers' },
-    { key: 'eltern-abo', href: 'eltern.html#abo', label: 'Abo & Sitze', icon: 'docCheck' },
-    { key: 'eltern-daten', href: 'eltern.html#datenschutz', label: 'Datenschutz', icon: 'lock', divider: true },
+    { key: 'eltern-kinder', href: 'eltern-kinder.html', label: 'Kinder & Zugänge', icon: 'layers' },
+    { key: 'eltern-abo', href: 'eltern-abo.html', label: 'Abo & Sitze', icon: 'docCheck' },
+    { key: 'eltern-daten', href: 'eltern-datenschutz.html', label: 'Datenschutz', icon: 'lock', divider: true },
     { key: 'einstellungen', href: 'einstellungen.html', label: 'Einstellungen', icon: 'settings' }
   ];
 

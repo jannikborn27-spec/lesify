@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kind · Eltern-Bereich · Lesify</title>
+<link rel="icon" href="assets/img/logo.png">
+<link rel="stylesheet" href="assets/css/style.css">
+<script>(function(){try{var d=JSON.parse(localStorage.getItem("lesify_db_v2")||"null");if(d&&d.settingsOverride&&d.settingsOverride.darkMode)document.documentElement.setAttribute("data-theme","dark");}catch(e){}})();</script>
+</head>
+<body data-page="eltern-kinder">
+<div class="app-shell">
+  <div id="sidebar-root"></div>
+  <div class="main">
+    <div id="topbar-root"></div>
+    <main class="main-inner" id="eltern-main"></main>
+  </div>
+</div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var R = LesifyUI.Render, I = LesifyUI.Icons, main = document.getElementById('eltern-main');
+
+  if (!Lesify.istElternteil()) { window.location.href = 'eltern.html'; return; }
+
+  var params = new URLSearchParams(window.location.search);
+  var kind = Lesify.getKind(params.get('id'));
+  if (!kind) {
+    main.innerHTML = '<div class="card eltern-card"><h1>Kind nicht gefunden</h1>' +
+      '<p class="eltern-sub">Vielleicht wurde das Profil entfernt.</p>' +
+      '<a class="btn btn-primary" href="eltern-kinder.html">Zu Kinder &amp; Zugänge</a></div>';
+    return;
+  }
+
+  function aktivChip(a) {
+    return '<span class="ampel-chip ampel-chip-' + a + '"><span class="ampel-dot ampel-' + a + '"></span>' +
+      Lesify.kindAktivitaetLabel(a) + '</span>';
+  }
+
+  function kzGrid(z) {
+    function kz(num, label) { return '<div class="kz"><div class="kz-num">' + num + '</div><div class="kz-label">' + label + '</div></div>'; }
+    return '<div class="kz-grid">' +
+      kz(z.faecher, 'Fächer') +
+      kz(z.themen, 'Themen') +
+      kz(z.chatsDieWoche, 'Chats diese Woche') +
+      kz(z.nachrichtenDieWoche, 'Nachrichten diese Woche') +
+      kz(z.lernzettelGesamt, 'Lernzettel gesamt') +
+      kz(z.testklausurenDieWoche, 'Testklausuren diese Woche') +
+      kz(z.anstehendeKlausuren, 'Anstehende Klausuren') +
+    '</div>';
+  }
+
+  function faecherListe(list) {
+    if (!list.length) return '<p class="eltern-empty">Noch kein Fach angelegt.</p>';
+    return '<div class="kind-fach-list">' + list.map(function (f) {
+      var col = Lesify.getFachColor(f.farbe);
+      return '<div class="kind-fach-row"><span class="kind-fach-dot" style="background:' + col.base + '"></span>' +
+        '<span class="kind-fach-name">' + f.name + '</span>' +
+        '<span class="kind-fach-n">' + f.themen + (f.themen === 1 ? ' Thema' : ' Themen') + '</span></div>';
+    }).join('') + '</div>';
+  }
+
+  function klausurenListe(list) {
+    if (!list.length) return '<p class="eltern-empty">Keine Klausur eingetragen.</p>';
+    return '<div class="kind-fach-list">' + list.map(function (k) {
+      return '<div class="kind-klausur-row"><span class="kind-klausur-fach">' + k.fach + '</span>' +
+        '<span class="kind-klausur-datum">' + R.formatDatum(k.datum) + ' · ' + R.countdown(k.datum) + '</span></div>';
+    }).join('') + '</div>';
+  }
+
+  function render() {
+    var z = Lesify.kindZusammenfassung(kind.id);
+    var col = Lesify.getFachColor(kind.farbe);
+    main.innerHTML =
+      '<a class="auth-card__back" href="eltern-kinder.html" style="display:inline-flex;align-items:center;gap:6px;margin-bottom:18px;font-size:0.85rem;color:var(--ink-500);text-decoration:none">' +
+        '<span class="spark" style="width:16px;height:16px;transform:scaleX(-1)">' + I.arrowRight + '</span> Kinder &amp; Zugänge</a>' +
+      '<div class="page-head"><div style="display:flex;align-items:center;gap:16px">' +
+        '<span class="fach-avatar" style="width:52px;height:52px;font-size:1.1rem;background:' + col.base + '"><span>' + kind.name.charAt(0).toUpperCase() + '</span></span>' +
+        '<div><div class="page-eyebrow">' + kind.klasse + '</div>' +
+        '<h1 class="page-title">' + kind.name + '</h1></div>' +
+      '</div></div>' +
+      '<div style="margin:6px 0 22px">' + (kind.eingeladen ? aktivChip(kind.aktivitaetAmpel) : '<span class="ampel-chip">Einladung ausstehend</span>') + '</div>' +
+
+      '<div class="card eltern-card">' +
+        '<h3>Diese Woche</h3>' +
+        '<p class="eltern-sub">Bewusst ohne Chat- oder Lernzettel-Inhalte, ohne Noten — nur, ob dein Kind dranbleibt.</p>' +
+        kzGrid(z) +
+      '</div>' +
+
+      '<div class="card eltern-card">' +
+        '<h3>Fächer</h3>' +
+        '<p class="eltern-sub">Welche Fächer aktiv sind und wie viele Themen angelegt wurden.</p>' +
+        faecherListe(z.faecherListe) +
+      '</div>' +
+
+      '<div class="card eltern-card">' +
+        '<h3>Anstehende Klausuren</h3>' +
+        '<p class="eltern-sub">Termine, für die Lesify gerade einen Lernplan begleitet.</p>' +
+        klausurenListe(z.anstehendeKlausurenListe) +
+      '</div>' +
+
+      '<div class="card eltern-card">' +
+        '<h3>Verwalten</h3>' +
+        '<div class="kc-actions" style="margin-top:0">' +
+          (kind.eingeladen
+            ? '<button class="btn btn-sm btn-ghost" data-act="einladen">Erneut einladen</button>'
+            : '<button class="btn btn-sm btn-primary" data-act="einladen">Einladung senden</button>') +
+          (kind.eingeladen ? '<button class="btn btn-sm btn-ghost" data-act="ansehen">Als ' + kind.name.split(' ')[0] + ' ansehen</button>' : '') +
+          '<button class="btn btn-sm btn-ghost" data-act="benachrichtigung">Benachrichtigungen</button>' +
+          '<button class="btn btn-sm btn-ghost" data-act="entfernen" style="color:var(--rot)">Entfernen</button>' +
+        '</div>' +
+      '</div>';
+    wire();
+  }
+
+  function modal(title, sub, bodyHtml, onConfirm, confirmLabel, danger) {
+    var scrim = document.createElement('div');
+    scrim.className = 'modal-scrim';
+    scrim.innerHTML =
+      '<div class="modal" style="max-width:420px">' +
+        '<div class="modal-head"><div>' +
+          '<h3 class="modal-title">' + title + '</h3>' +
+          (sub ? '<p class="modal-sub">' + sub + '</p>' : '') +
+        '</div><button class="modal-close" type="button" aria-label="Schließen">' + I.x + '</button></div>' +
+        '<div class="modal-body">' + bodyHtml + '</div>' +
+        '<div class="modal-foot">' +
+          '<button class="btn btn-ghost" type="button" data-x>Abbrechen</button>' +
+          '<button class="btn btn-primary" type="button" data-ok' + (danger ? ' style="background:var(--rot);border-color:var(--rot)"' : '') + '>' + (confirmLabel || 'Speichern') + '</button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(scrim);
+    requestAnimationFrame(function () { scrim.classList.add('is-open'); });
+    function close() { scrim.classList.remove('is-open'); setTimeout(function () { scrim.remove(); }, 200); }
+    scrim.addEventListener('click', function (e) { if (e.target === scrim) close(); });
+    scrim.querySelector('.modal-close').addEventListener('click', close);
+    scrim.querySelector('[data-x]').addEventListener('click', close);
+    scrim.querySelector('[data-ok]').addEventListener('click', function () {
+      if (onConfirm(scrim) !== false) close();
+    });
+    return scrim;
+  }
+
+  function wire() {
+    main.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-act]');
+      if (!btn) return;
+      e.preventDefault();
+      var act = btn.getAttribute('data-act');
+
+      if (act === 'einladen') {
+        modal('Kind einladen', 'Wir schicken eine E-Mail mit einem Link, über den ' + kind.name.split(' ')[0] + ' ein eigenes Passwort setzt.',
+          '<div class="field mt-0"><label for="m-mail">E-Mail-Adresse</label>' +
+          '<input class="input" id="m-mail" type="email" value="' + (kind.email || '') + '" placeholder="name@beispiel.de"></div>',
+          function (scrim) {
+            var mail = scrim.querySelector('#m-mail').value.trim();
+            if (!mail || mail.indexOf('@') < 1) { scrim.querySelector('#m-mail').focus(); return false; }
+            Lesify.kindEinladung(kind.id, mail);
+            LesifyUI.toast('Einladung an ' + mail + ' gesendet.');
+            kind = Lesify.getKind(kind.id);
+            render();
+          }, 'Einladung senden');
+      } else if (act === 'ansehen') {
+        Lesify.wechsleZuKind(kind.id);
+        window.location.href = 'dashboard.html';
+      } else if (act === 'entfernen') {
+        modal('„' + kind.name + '" entfernen?', 'Alle Fächer, Chats, Lernzettel, Dateien und Klausuren dieses Kindes werden unwiderruflich gelöscht. Der Platz wird wieder frei.',
+          '<p class="text-sm" style="margin:0;color:var(--ink-700)">Zum Bestätigen bitte den Vornamen <strong>' + kind.name.split(' ')[0] + '</strong> eingeben.</p>' +
+          '<div class="field mt-0" style="margin-top:10px"><input class="input" id="m-confirm" type="text" autocomplete="off"></div>',
+          function (scrim) {
+            if (scrim.querySelector('#m-confirm').value.trim() !== kind.name.split(' ')[0]) { scrim.querySelector('#m-confirm').focus(); return false; }
+            Lesify.removeKind(kind.id);
+            LesifyUI.toast(kind.name + ' wurde entfernt.');
+            window.location.href = 'eltern-kinder.html';
+          }, 'Endgültig entfernen', true);
+      } else if (act === 'benachrichtigung') {
+        modal('Benachrichtigungen — ' + kind.name.split(' ')[0], 'Wirken, sobald der E-Mail-Versand aktiv ist. Bis dahin nur gemerkt.',
+          '<div class="toggle-row" style="padding-top:0"><div><div class="toggle-label">Erinnerung vor Klausuren</div>' +
+          '<div class="toggle-sub">Ein Hinweis wenige Tage vor einem Termin.</div></div>' +
+          '<label class="toggle-switch"><input type="checkbox" id="m-t1"' + (kind.erinnerungVorKlausuren ? ' checked' : '') + '><span class="track"><span class="thumb"></span></span></label></div>' +
+          '<div class="toggle-row"><div><div class="toggle-label">Wöchentliche Zusammenfassung</div>' +
+          '<div class="toggle-sub">Der Wochen-Überblick dieser Seite, per E-Mail.</div></div>' +
+          '<label class="toggle-switch"><input type="checkbox" id="m-t2"' + (kind.woechentlicheZusammenfassung ? ' checked' : '') + '><span class="track"><span class="thumb"></span></span></label></div>',
+          function (scrim) {
+            Lesify.updateKind(kind.id, {
+              erinnerungVorKlausuren: scrim.querySelector('#m-t1').checked,
+              woechentlicheZusammenfassung: scrim.querySelector('#m-t2').checked
+            });
+            LesifyUI.toast('Einstellungen für ' + kind.name.split(' ')[0] + ' gespeichert.');
+            kind = Lesify.getKind(kind.id);
+          }, 'Speichern');
+      }
+    });
+  }
+
+  render();
+});
+</script>
+</body>
+</html>

@@ -19,6 +19,27 @@
 > und die Rollen-/Familie-Weiche in `app/assets/js/auth-gate.js`. Noch offen:
 > `marketing/login.html` (redirectet im Prototyp nirgendwohin — Teil des
 > Phase-11-Cut-overs).
+>
+> **Status 2026-09-12 — Redesign auf vier eigenständige Seiten.** Entscheidung
+> §3.3 revidiert: statt einer Seite mit ausklappbaren Kind-Karten jetzt vier
+> echte Seiten — `eltern.html` (Übersicht: Familien-weite Kennzahlen,
+> Kind-Kurzkarten, Datenschutz-Vertrauenshinweis), `eltern-kinder.html`
+> (Kind-Verwaltung, entspricht der bisherigen `<details>`-Liste),
+> `eltern-kind.html?id=…` (**neu**, Einzelansicht je Kind: Wochen-Kennzahlen +
+> Fächer-Liste mit Themen-Anzahl + Liste anstehender Klausuren mit Datum),
+> `eltern-abo.html` und `eltern-datenschutz.html` (aus der alten Seite
+> herausgelöst, siehe §2 „Empfohlene Reihenfolge" Schritt 6, jetzt erledigt).
+> `app/assets/js/app.js` (`ELTERN_NAV_ITEMS`) verlinkt jetzt echte Seiten statt
+> `eltern.html#anker`. Modal-Helfer + Datenschutz-/Abo-Handler sind je Seite
+> dupliziert (kein gemeinsames Modul) — entspricht dem bestehenden Muster im
+> Rest von `app.js` (mehrere lokale Modal-Bauer statt einer geteilten
+> Abstraktion). Neue Metadaten je Kind in `data.js`
+> (`woche.faecherListe`/`woche.anstehendeKlausurenListe`, Fach + Anzahl/Datum)
+> sind eine Detaillierung der bereits erlaubten `faecher`/`anstehendeKlausuren`-
+> Zähler, **kein** neuer Content-Zugriff — siehe §1.2 unten für die Abgrenzung.
+> Für den echten Cut-over bedeutet das: `GET /abo/kinder/:id/zusammenfassung`
+> müsste um dieselben zwei Felder erweitert werden (`backend-planning.md` §4
+> nachgezogen, Endpunkt-Erweiterung selbst noch offen).
 
 ## 0. Ausgangslage
 
@@ -84,10 +105,13 @@ mit der Umsetzung dieses Plans behoben werden (§4 unten).
 2. **Wochen-Zusammenfassung je Kind** — direkt aus
    `GET /abo/kinder/:id/zusammenfassung`: Fächer/Themen-Anzahl, Chats +
    Nachrichten diese Woche, Lernzettel gesamt, Testklausuren diese Woche,
-   anstehende Klausurtermine. Bewusst **keine** Chat-Inhalte, keine
-   Lernzettel-Inhalte — das ist laut `Eltern-USPs-Feature-Ranking` einer der
-   stärksten Vertrauens-USPs gegenüber Eltern und darf nicht aufgeweicht
-   werden.
+   anstehende Klausurtermine. **Seit 2026-09-12** zusätzlich als Liste
+   verfügbar (`eltern-kind.html`): `faecherListe` (Fach + Themen-Anzahl) und
+   `anstehendeKlausurenListe` (Fach + Datum) — reine Detaillierung derselben
+   Zähler, kein neuer Content-Zugriff. Bewusst **keine** Chat-Inhalte, keine
+   Lernzettel-Inhalte, keine Klausur-Ergebnisse — das ist laut
+   `Eltern-USPs-Feature-Ranking` einer der stärksten Vertrauens-USPs gegenüber
+   Eltern und darf nicht aufgeweicht werden.
 3. **Kind-Profil-Verwaltung** — Kind anlegen (bis `Abo.sitze` erreicht),
    per E-Mail einladen (Kind setzt eigenes Passwort), entfernen (mit
    deutlicher Warnung: Cascade-Löschung aller Inhalte des Sitzes).
@@ -182,8 +206,12 @@ faktisch als Kind agieren kann).
    nicht in den Eltern-Bereich. Eltern-Digest bleibt bis zum E-Mail-Versand offen.
 2. **Einladung von Kindern:** _erst im Eltern-Bereich_ (nicht im Checkout).
    Umgesetzt: Karte pro Kind, „Einladung senden" setzt die E-Mail.
-3. **Kind-Karten:** _eine Seite, ausklappbar_ (`<details>`), kein eigener
-   Detail-Screen je Kind.
+3. **Kind-Karten:** ~~eine Seite, ausklappbar (`<details>`), kein eigener
+   Detail-Screen je Kind~~ — **revidiert 2026-09-12:** doch ein eigener
+   Detail-Screen je Kind (`eltern-kind.html?id=…`), dafür mit mehr Inhalt
+   (Fächer-/Klausur-Metadaten, siehe §1 Punkt 2); die Übersichtsliste
+   (`eltern-kinder.html`) zeigt weiterhin kompakte Karten mit den
+   Verwaltungs-Aktionen, verlinkt aber statt auszuklappen.
 4. **Kontext-Wechsel:** Prototyp nutzt ein `localStorage`-Flag
    (`store.elternModus`) + dauerhaftes Banner. Für das echte Backend gilt
    weiter: eigene Kind-`Session` über `POST /abo/kinder/:id/sitzung`, bewusst
@@ -220,8 +248,16 @@ während andere Seiten noch migriert werden.
 - `api/src/routes/abo.ts` — keine Änderung nötig (nur ggf. Audit-Log).
 - `app/assets/js/api.js` — 3 neue Funktionen.
 - `app/assets/js/auth-gate.js` — Rollen-/Familie-Weiche.
-- `app/eltern.html` — neu.
-- `app/assets/js/app.js` bzw. gemeinsames Nav-Partial — Eltern-Nav-Variante.
+- `app/eltern.html`, `eltern-kinder.html`, `eltern-kind.html`, `eltern-abo.html`,
+  `eltern-datenschutz.html` — vier Seiten (Stand 2026-09-12; ursprünglich eine
+  Seite `eltern.html` mit Anker-Abschnitten).
+- `app/assets/js/app.js` bzw. gemeinsames Nav-Partial — Eltern-Nav-Variante
+  (`ELTERN_NAV_ITEMS`, verlinkt jetzt echte Seiten statt `eltern.html#anker`).
+- `app/assets/js/data.js` — `woche.faecherListe`/`.anstehendeKlausurenListe`
+  je Kind (Metadaten, kein neuer Content-Zugriff).
+- `app/assets/css/style.css` — Eltern-Karten-/Stats-/Fach-Listen-Styles
+  (früher Seiten-lokales `<style>` in `eltern.html`, jetzt global, weil
+  mehrere Seiten sie brauchen).
 - `app/einstellungen.html` — Familie-Textblock ersetzen/verschieben.
 - `marketing/login.html` — Redirect-Weiche.
 - `Konzept-texts/backend-planning.md`, `UMSETZUNGSPLAN.md`, `app/README.md`

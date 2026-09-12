@@ -463,7 +463,21 @@
           erinnerungVorKlausuren: true, woechentlicheZusammenfassung: true,
           woche: {
             faecher: 6, themen: 14, chatsDieWoche: 9, nachrichtenDieWoche: 63,
-            lernzettelGesamt: 11, testklausurenDieWoche: 2, anstehendeKlausuren: 2
+            lernzettelGesamt: 11, testklausurenDieWoche: 2, anstehendeKlausuren: 2,
+            // Metadaten (Fach + Themen-/Klausur-Anzahl) — bewusst KEIN Chat-/
+            // Lernzettel-Inhalt und KEIN Ergebnis, siehe eltern-zugang-plan.md §1.2.
+            faecherListe: [
+              { name: 'Mathematik', farbe: 'blue', themen: 3 },
+              { name: 'Deutsch', farbe: 'rose', themen: 2 },
+              { name: 'Englisch', farbe: 'amber', themen: 3 },
+              { name: 'Biologie', farbe: 'teal', themen: 2 },
+              { name: 'Geschichte', farbe: 'terracotta', themen: 2 },
+              { name: 'Erdkunde', farbe: 'graphit', themen: 2 }
+            ],
+            anstehendeKlausurenListe: [
+              { fach: 'Mathematik', datum: '2026-09-18' },
+              { fach: 'Englisch', datum: '2026-09-25' }
+            ]
           }
         },
         {
@@ -473,7 +487,16 @@
           erinnerungVorKlausuren: true, woechentlicheZusammenfassung: false,
           woche: {
             faecher: 4, themen: 7, chatsDieWoche: 2, nachrichtenDieWoche: 11,
-            lernzettelGesamt: 3, testklausurenDieWoche: 0, anstehendeKlausuren: 1
+            lernzettelGesamt: 3, testklausurenDieWoche: 0, anstehendeKlausuren: 1,
+            faecherListe: [
+              { name: 'Mathematik', farbe: 'blue', themen: 2 },
+              { name: 'Deutsch', farbe: 'rose', themen: 2 },
+              { name: 'Englisch', farbe: 'amber', themen: 2 },
+              { name: 'Erdkunde', farbe: 'graphit', themen: 1 }
+            ],
+            anstehendeKlausurenListe: [
+              { fach: 'Deutsch', datum: '2026-09-22' }
+            ]
           }
         },
         {
@@ -483,7 +506,8 @@
           erinnerungVorKlausuren: true, woechentlicheZusammenfassung: true,
           woche: {
             faecher: 0, themen: 0, chatsDieWoche: 0, nachrichtenDieWoche: 0,
-            lernzettelGesamt: 0, testklausurenDieWoche: 0, anstehendeKlausuren: 0
+            lernzettelGesamt: 0, testklausurenDieWoche: 0, anstehendeKlausuren: 0,
+            faecherListe: [], anstehendeKlausurenListe: []
           }
         }
       ]
@@ -1350,6 +1374,10 @@
 
   // Spiegelt `GET /abo/kinder/:id/zusammenfassung` — aggregierte Wochenkennzahlen,
   // KEIN Chat-Wortlaut, KEINE Lernzettel-Inhalte, KEINE Noten.
+  // `faecherListe`/`anstehendeKlausurenListe` sind reine Metadaten (Fach +
+  // Themen-/Termin-Anzahl) — eine Detaillierung der bereits erlaubten
+  // `faecher`/`anstehendeKlausuren`-Zähler, kein neuer Content-Zugriff
+  // (siehe eltern-zugang-plan.md §1.2 für die Abgrenzung).
   Lesify.kindZusammenfassung = function (id) {
     var k = Lesify.getKind(id);
     if (!k) return null;
@@ -1363,6 +1391,8 @@
       lernzettelGesamt: w.lernzettelGesamt || 0,
       testklausurenDieWoche: w.testklausurenDieWoche || 0,
       anstehendeKlausuren: w.anstehendeKlausuren || 0,
+      faecherListe: w.faecherListe || [],
+      anstehendeKlausurenListe: w.anstehendeKlausurenListe || [],
       aktivitaetAmpel: k.aktivitaetAmpel,
       letzteAktivitaet: k.letzteAktivitaet
     };
@@ -1382,7 +1412,11 @@
       email: null, eingeladen: false, aktiv: false,
       letzteAktivitaet: null,
       erinnerungVorKlausuren: true, woechentlicheZusammenfassung: true,
-      woche: { faecher: 0, themen: 0, chatsDieWoche: 0, nachrichtenDieWoche: 0, lernzettelGesamt: 0, testklausurenDieWoche: 0, anstehendeKlausuren: 0 }
+      woche: {
+        faecher: 0, themen: 0, chatsDieWoche: 0, nachrichtenDieWoche: 0,
+        lernzettelGesamt: 0, testklausurenDieWoche: 0, anstehendeKlausuren: 0,
+        faecherListe: [], anstehendeKlausurenListe: []
+      }
     };
     list = list.concat([kind]);
     saveKinder(list);

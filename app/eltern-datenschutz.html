@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Datenschutz &amp; Konto · Eltern-Bereich · Lesify</title>
+<link rel="icon" href="assets/img/logo.png">
+<link rel="stylesheet" href="assets/css/style.css">
+<script>(function(){try{var d=JSON.parse(localStorage.getItem("lesify_db_v2")||"null");if(d&&d.settingsOverride&&d.settingsOverride.darkMode)document.documentElement.setAttribute("data-theme","dark");}catch(e){}})();</script>
+</head>
+<body data-page="eltern-daten">
+<div class="app-shell">
+  <div id="sidebar-root"></div>
+  <div class="main">
+    <div id="topbar-root"></div>
+    <main class="main-inner" id="eltern-main"></main>
+  </div>
+</div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var R = LesifyUI.Render, I = LesifyUI.Icons, main = document.getElementById('eltern-main');
+
+  if (!Lesify.istElternteil()) { window.location.href = 'eltern.html'; return; }
+
+  function modal(title, sub, bodyHtml, onConfirm, confirmLabel, danger) {
+    var scrim = document.createElement('div');
+    scrim.className = 'modal-scrim';
+    scrim.innerHTML =
+      '<div class="modal" style="max-width:420px">' +
+        '<div class="modal-head"><div>' +
+          '<h3 class="modal-title">' + title + '</h3>' +
+          (sub ? '<p class="modal-sub">' + sub + '</p>' : '') +
+        '</div><button class="modal-close" type="button" aria-label="Schließen">' + I.x + '</button></div>' +
+        '<div class="modal-body">' + bodyHtml + '</div>' +
+        '<div class="modal-foot">' +
+          '<button class="btn btn-ghost" type="button" data-x>Abbrechen</button>' +
+          '<button class="btn btn-primary" type="button" data-ok' + (danger ? ' style="background:var(--rot);border-color:var(--rot)"' : '') + '>' + (confirmLabel || 'Speichern') + '</button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(scrim);
+    requestAnimationFrame(function () { scrim.classList.add('is-open'); });
+    function close() { scrim.classList.remove('is-open'); setTimeout(function () { scrim.remove(); }, 200); }
+    scrim.addEventListener('click', function (e) { if (e.target === scrim) close(); });
+    scrim.querySelector('.modal-close').addEventListener('click', close);
+    scrim.querySelector('[data-x]').addEventListener('click', close);
+    scrim.querySelector('[data-ok]').addEventListener('click', function () {
+      if (onConfirm(scrim) !== false) close();
+    });
+    return scrim;
+  }
+
+  function render() {
+    var fam = Lesify.familie();
+    main.innerHTML =
+      '<div class="page-head"><div>' +
+        '<div class="page-eyebrow">Eltern-Bereich</div>' +
+        '<h1 class="page-title">Datenschutz &amp; Konto</h1>' +
+        '<p class="page-sub">Das Familienkonto umfasst alle Kind-Profile. Export und Löschung wirken auf das gesamte Konto.</p>' +
+      '</div></div>' +
+      '<div class="card eltern-card">' +
+        '<h3>Konto-Angaben</h3>' +
+        '<div class="abo-row"><span class="lbl">Einwilligung erteilt am</span><span class="val">' +
+          (fam.einwilligungAm ? R.formatDatum(fam.einwilligungAm) : '—') + '</span></div>' +
+        '<div class="abo-row"><span class="lbl">Konto-E-Mail</span><span class="val">' + (fam.elternEmail || '—') + '</span></div>' +
+        '<div class="abo-row"><span class="lbl">Aufbewahrung</span><span class="val">1 Jahr nach letzter Aktivität</span></div>' +
+        '<div class="kc-actions" style="margin-top:18px">' +
+          '<button class="btn btn-sm btn-ghost" data-ds="export">Daten exportieren</button>' +
+          '<button class="btn btn-sm btn-ghost" data-ds="loeschen" style="color:var(--rot)">Familienkonto löschen</button>' +
+        '</div>' +
+        '<p class="kc-hint">Eine Löschung entfernt alle Fächer, Chats, Lernzettel, Dateien und Klausuren aller Kinder unwiderruflich.</p>' +
+      '</div>' +
+      '<div class="card eltern-card eltern-trust">' +
+        '<span class="spark">' + I.lock + '</span>' +
+        '<div><h3>Was wir nie sehen oder teilen</h3>' +
+        '<p>Chat-Wortlaut und Lernzettel-Inhalte verlassen nie das Konto deines Kindes — auch nicht an dich als Elternteil. ' +
+          'Wir werten sie ausschließlich zu den Wochenzahlen aus, die du auf den Kind-Seiten siehst.</p></div>' +
+      '</div>';
+    wire();
+  }
+
+  function wire() {
+    LesifyUI.qsa('[data-ds]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var a = b.getAttribute('data-ds');
+        if (a === 'export') {
+          LesifyUI.toast('Export wird erstellt — du bekommst eine E-Mail mit dem Download-Link.');
+        } else if (a === 'loeschen') {
+          modal('Familienkonto löschen?', 'Unwiderruflich. Alle Kind-Profile und deren Inhalte werden gelöscht, das Abo endet sofort.',
+            '<div class="field mt-0"><label for="m-del">Zum Bestätigen „LÖSCHEN" eingeben</label><input class="input" id="m-del" type="text" autocomplete="off"></div>',
+            function (scrim) {
+              if (scrim.querySelector('#m-del').value.trim().toUpperCase() !== 'LÖSCHEN') { scrim.querySelector('#m-del').focus(); return false; }
+              LesifyUI.toast('Löschung beantragt — wir bestätigen per E-Mail.');
+            }, 'Löschung beantragen', true);
+        }
+      });
+    });
+  }
+
+  render();
+});
+</script>
+</body>
+</html>

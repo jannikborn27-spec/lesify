@@ -1942,9 +1942,9 @@ textarea.input { height: auto; padding: 12px 14px; min-height: 90px; resize: ver
 .kind-card > summary::-webkit-details-marker { display: none; }
 .kind-card > summary:hover { background: var(--ink-50); }
 .kind-card[open] > summary { border-bottom: 1px solid var(--line); }
-.kind-card .kc-meta { flex: 1; min-width: 0; }
-.kind-card .kc-name { font-size: 0.98rem; font-weight: 700; color: var(--ink-950); }
-.kind-card .kc-sub { font-size: 0.8rem; color: var(--ink-500); margin-top: 2px; }
+.kind-card .kc-meta, .eltern-mini-card .kc-meta { flex: 1; min-width: 0; }
+.kind-card .kc-name, .eltern-mini-card .kc-name { display: block; font-size: 0.98rem; font-weight: 700; color: var(--ink-950); }
+.kind-card .kc-sub, .eltern-mini-card .kc-sub { display: block; font-size: 0.8rem; color: var(--ink-500); margin-top: 2px; }
 .kind-card .kc-chevron { flex-shrink: 0; color: var(--ink-400); transition: transform 160ms var(--ease-out); }
 .kind-card[open] .kc-chevron { transform: rotate(90deg); }
 .kind-card .kc-body { padding: 18px 20px 20px; }
@@ -1965,6 +1965,52 @@ textarea.input { height: auto; padding: 12px 14px; min-height: 90px; resize: ver
 .eltern-gate { max-width: 460px; margin: 8vh auto 0; text-align: center; padding: 32px 30px; }
 .eltern-gate h1 { font-size: 1.3rem; margin: 14px 0 8px; }
 .eltern-gate p { color: var(--ink-500); font-size: 0.9rem; margin: 0 0 20px; }
+
+/* Geteilt über eltern.html/eltern-kinder.html/eltern-kind.html/
+   eltern-abo.html/eltern-datenschutz.html (früher Seiten-lokales <style>
+   nur in eltern.html — jetzt global, weil mehrere Seiten es brauchen). */
+.eltern-card { padding: 24px 26px; margin-bottom: var(--sp-6); max-width: 720px; }
+.eltern-card > h3 { font-size: 1rem; margin-bottom: 4px; }
+.eltern-card > .eltern-sub { font-size: 0.82rem; color: var(--ink-500); margin-bottom: 18px; }
+.abo-row { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 0.88rem; }
+.abo-row:last-of-type { border-bottom: 0; }
+.abo-row .lbl { color: var(--ink-500); }
+.abo-row .val { font-weight: 600; color: var(--ink-950); display: flex; align-items: center; gap: 10px; }
+.seat-step { display: inline-flex; align-items: center; gap: 8px; }
+.seat-step button { width: 28px; height: 28px; border-radius: var(--radius-sm); border: 1px solid var(--line); background: var(--bg-surface); cursor: pointer; font-size: 1rem; line-height: 1; color: var(--ink-800); }
+.seat-step button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Familien-Übersicht (eltern.html) — Kachel-Reihe mit Familien-weiten Zahlen. */
+.eltern-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: var(--sp-6); }
+.eltern-stat { background: var(--bg-surface); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 14px 16px; }
+.eltern-stat-num { font-family: var(--font-display); font-size: 1.7rem; font-weight: 800; letter-spacing: -0.02em; color: var(--ink-950); font-variant-numeric: tabular-nums; }
+.eltern-stat-label { font-size: 0.78rem; color: var(--ink-500); font-weight: 600; margin-top: 2px; }
+
+/* Vertrauens-Hinweis: warum Eltern keine Chat-/Lernzettel-Inhalte sehen. */
+.eltern-trust { display: flex; gap: 14px; padding: 18px 20px; }
+.eltern-trust .spark { flex-shrink: 0; color: var(--ink-400); width: 22px; height: 22px; margin-top: 2px; }
+.eltern-trust h3 { font-size: 0.92rem; margin: 0 0 4px; }
+.eltern-trust p { font-size: 0.83rem; color: var(--ink-500); margin: 0; line-height: 1.5; }
+
+/* Mini-Kind-Karten auf eltern.html (nur Blick, kein Ausklappen/Verwalten). */
+.eltern-mini-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+.eltern-mini-card { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; text-decoration: none; color: inherit; }
+.eltern-mini-card:hover { border-color: var(--ink-300); }
+.eltern-mini-card .kc-meta { flex: 1; min-width: 0; }
+
+/* Fächer- + Klausur-Metadaten auf eltern-kind.html — Fach + Anzahl/Datum,
+   bewusst kein Inhalt (siehe eltern-zugang-plan.md §1.2). */
+.kind-fach-list { display: flex; flex-direction: column; gap: 2px; }
+.kind-fach-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 0.86rem; }
+.kind-fach-row:last-child { border-bottom: 0; }
+.kind-fach-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.kind-fach-name { flex: 1; color: var(--ink-800); font-weight: 600; }
+.kind-fach-n { color: var(--ink-500); font-size: 0.8rem; }
+.kind-klausur-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 0.86rem; }
+.kind-klausur-row:last-child { border-bottom: 0; }
+.kind-klausur-fach { font-weight: 600; color: var(--ink-800); }
+.kind-klausur-datum { color: var(--ink-500); font-size: 0.8rem; }
+.eltern-empty { font-size: 0.83rem; color: var(--ink-500); padding: 10px 0; }
 
 /* =========================================================
    Dunkles Design — nur eingeloggter Bereich (app/)

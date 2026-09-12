@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Abo &amp; Sitze · Eltern-Bereich · Lesify</title>
+<link rel="icon" href="assets/img/logo.png">
+<link rel="stylesheet" href="assets/css/style.css">
+<script>(function(){try{var d=JSON.parse(localStorage.getItem("lesify_db_v2")||"null");if(d&&d.settingsOverride&&d.settingsOverride.darkMode)document.documentElement.setAttribute("data-theme","dark");}catch(e){}})();</script>
+</head>
+<body data-page="eltern-abo">
+<div class="app-shell">
+  <div id="sidebar-root"></div>
+  <div class="main">
+    <div id="topbar-root"></div>
+    <main class="main-inner" id="eltern-main"></main>
+  </div>
+</div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var I = LesifyUI.Icons, main = document.getElementById('eltern-main');
+
+  if (!Lesify.istElternteil()) { window.location.href = 'eltern.html'; return; }
+
+  function modal(title, sub, bodyHtml, onConfirm, confirmLabel, danger) {
+    var scrim = document.createElement('div');
+    scrim.className = 'modal-scrim';
+    scrim.innerHTML =
+      '<div class="modal" style="max-width:420px">' +
+        '<div class="modal-head"><div>' +
+          '<h3 class="modal-title">' + title + '</h3>' +
+          (sub ? '<p class="modal-sub">' + sub + '</p>' : '') +
+        '</div><button class="modal-close" type="button" aria-label="Schließen">' + I.x + '</button></div>' +
+        '<div class="modal-body">' + bodyHtml + '</div>' +
+        '<div class="modal-foot">' +
+          '<button class="btn btn-ghost" type="button" data-x>Abbrechen</button>' +
+          '<button class="btn btn-primary" type="button" data-ok' + (danger ? ' style="background:var(--rot);border-color:var(--rot)"' : '') + '>' + (confirmLabel || 'Speichern') + '</button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(scrim);
+    requestAnimationFrame(function () { scrim.classList.add('is-open'); });
+    function close() { scrim.classList.remove('is-open'); setTimeout(function () { scrim.remove(); }, 200); }
+    scrim.addEventListener('click', function (e) { if (e.target === scrim) close(); });
+    scrim.querySelector('.modal-close').addEventListener('click', close);
+    scrim.querySelector('[data-x]').addEventListener('click', close);
+    scrim.querySelector('[data-ok]').addEventListener('click', function () {
+      if (onConfirm(scrim) !== false) close();
+    });
+    return scrim;
+  }
+
+  function render() {
+    var p = Lesify.plan();
+    var belegt = Lesify.kinder().length;
+    var statusMap = { aktiv: ['gruen', 'Aktiv'], gekuendigt: ['rot', 'Gekündigt — läuft zum Periodenende aus'], pausiert: ['gelb', 'Sommerpause'] };
+    var st = statusMap[p.status] || statusMap.aktiv;
+
+    main.innerHTML =
+      '<div class="page-head"><div>' +
+        '<div class="page-eyebrow">Eltern-Bereich</div>' +
+        '<h1 class="page-title">Abo &amp; Sitze</h1>' +
+        '<p class="page-sub">Tarif, Abrechnung und Familien-Plätze.</p>' +
+      '</div></div>' +
+      '<div class="card eltern-card">' +
+        '<h3>Aktueller Tarif</h3>' +
+        '<p class="eltern-sub">Ein zusätzlicher Platz greift sofort; ein Platz weniger wird zum Ende des Abrechnungszeitraums wirksam.</p>' +
+        '<div class="abo-row"><span class="lbl">Tarif</span><span class="val">' + p.name + '</span></div>' +
+        '<div class="abo-row"><span class="lbl">Abrechnung</span><span class="val">' + (p.intervall === 'jaehrlich' ? 'Jährlich' : 'Monatlich') + '</span></div>' +
+        '<div class="abo-row"><span class="lbl">Plätze</span><span class="val">' +
+          '<span class="seat-step">' +
+            '<button type="button" id="seat-minus"' + (p.familie.sitze <= Math.max(2, belegt) ? ' disabled' : '') + '>−</button>' +
+            '<span id="seat-count">' + p.familie.sitze + '</span>' +
+            '<button type="button" id="seat-plus"' + (p.familie.sitze >= 4 ? ' disabled' : '') + '>+</button>' +
+          '</span>' +
+          '<span class="text-xs text-muted">' + belegt + ' belegt</span>' +
+        '</span></div>' +
+        '<div class="abo-row"><span class="lbl">Status</span><span class="val">' +
+          '<span class="ampel-chip ampel-chip-' + st[0] + '"><span class="ampel-dot ampel-' + st[0] + '"></span>' + st[1] + '</span>' +
+        '</span></div>' +
+        '<div class="kc-actions" style="margin-top:18px">' +
+          (p.status === 'aktiv'
+            ? '<button class="btn btn-sm btn-ghost" data-abo="pausieren">Sommerpause</button>' +
+              '<button class="btn btn-sm btn-ghost" data-abo="kuendigen" style="color:var(--rot)">Kündigen</button>'
+            : '<button class="btn btn-sm btn-primary" data-abo="reaktivieren">Abo reaktivieren</button>') +
+        '</div>' +
+      '</div>';
+    wire();
+  }
+
+  function wire() {
+    var seatMinus = document.getElementById('seat-minus'), seatPlus = document.getElementById('seat-plus');
+    if (seatPlus) seatPlus.addEventListener('click', function () {
+      try { Lesify.setFamilieSitze(Lesify.plan().familie.sitze + 1); LesifyUI.toast('Ein Platz ergänzt.'); render(); }
+      catch (e) { LesifyUI.toast('Maximal 4 Plätze.'); }
+    });
+    if (seatMinus) seatMinus.addEventListener('click', function () {
+      try { Lesify.setFamilieSitze(Lesify.plan().familie.sitze - 1); LesifyUI.toast('Platz wird zum Periodenende entfernt.'); render(); }
+      catch (e) { LesifyUI.toast('Zuerst ein Kind entfernen — der Platz ist belegt.'); }
+    });
+    LesifyUI.qsa('[data-abo]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var a = b.getAttribute('data-abo');
+        if (a === 'kuendigen') {
+          modal('Abo kündigen?', 'Das Abo läuft bis zum Ende des bezahlten Zeitraums weiter — bis dahin bleibt alles nutzbar.',
+            '<p class="text-sm" style="margin:0;color:var(--ink-700)">Danach werden die Inhalte gemäß Aufbewahrungsfrist gelöscht.</p>',
+            function () { Lesify.setAboStatus('gekuendigt'); LesifyUI.toast('Abo gekündigt.'); render(); }, 'Kündigen', true);
+        } else if (a === 'pausieren') {
+          Lesify.setAboStatus('pausiert'); LesifyUI.toast('Sommerpause aktiviert — Inhalte bleiben erhalten.'); render();
+        } else if (a === 'reaktivieren') {
+          Lesify.setAboStatus('aktiv'); LesifyUI.toast('Abo wieder aktiv.'); render();
+        }
+      });
+    });
+  }
+
+  render();
+});
+</script>
+</body>
+</html>

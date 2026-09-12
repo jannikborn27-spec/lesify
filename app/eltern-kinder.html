@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kinder &amp; Zugänge · Eltern-Bereich · Lesify</title>
+<link rel="icon" href="assets/img/logo.png">
+<link rel="stylesheet" href="assets/css/style.css">
+<script>(function(){try{var d=JSON.parse(localStorage.getItem("lesify_db_v2")||"null");if(d&&d.settingsOverride&&d.settingsOverride.darkMode)document.documentElement.setAttribute("data-theme","dark");}catch(e){}})();</script>
+</head>
+<body data-page="eltern-kinder">
+<div class="app-shell">
+  <div id="sidebar-root"></div>
+  <div class="main">
+    <div id="topbar-root"></div>
+    <main class="main-inner" id="eltern-main"></main>
+  </div>
+</div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var R = LesifyUI.Render, I = LesifyUI.Icons, main = document.getElementById('eltern-main');
+
+  if (!Lesify.istElternteil()) { window.location.href = 'eltern.html'; return; }
+
+  /* ---- kleiner, wiederverwendbarer Modal-Helfer ---- */
+  function modal(title, sub, bodyHtml, onConfirm, confirmLabel, danger) {
+    var scrim = document.createElement('div');
+    scrim.className = 'modal-scrim';
+    scrim.innerHTML =
+      '<div class="modal" style="max-width:420px">' +
+        '<div class="modal-head"><div>' +
+          '<h3 class="modal-title">' + title + '</h3>' +
+          (sub ? '<p class="modal-sub">' + sub + '</p>' : '') +
+        '</div><button class="modal-close" type="button" aria-label="Schließen">' + I.x + '</button></div>' +
+        '<div class="modal-body">' + bodyHtml + '</div>' +
+        '<div class="modal-foot">' +
+          '<button class="btn btn-ghost" type="button" data-x>Abbrechen</button>' +
+          '<button class="btn btn-primary" type="button" data-ok' + (danger ? ' style="background:var(--rot);border-color:var(--rot)"' : '') + '>' + (confirmLabel || 'Speichern') + '</button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(scrim);
+    requestAnimationFrame(function () { scrim.classList.add('is-open'); });
+    function close() { scrim.classList.remove('is-open'); setTimeout(function () { scrim.remove(); }, 200); }
+    scrim.addEventListener('click', function (e) { if (e.target === scrim) close(); });
+    scrim.querySelector('.modal-close').addEventListener('click', close);
+    scrim.querySelector('[data-x]').addEventListener('click', close);
+    scrim.querySelector('[data-ok]').addEventListener('click', function () {
+      if (onConfirm(scrim) !== false) close();
+    });
+    return scrim;
+  }
+
+  function aktivChip(kind) {
+    var a = kind.aktivitaetAmpel;
+    return '<span class="ampel-chip ampel-chip-' + a + '"><span class="ampel-dot ampel-' + a + '"></span>' +
+      Lesify.kindAktivitaetLabel(a) + '</span>';
+  }
+
+  function kindCard(kind) {
+    var col = Lesify.getFachColor(kind.farbe);
+    var pending = !kind.eingeladen;
+    var sub = kind.klasse + (kind.eingeladen
+      ? (kind.letzteAktivitaet ? ' · zuletzt aktiv ' + kind.letzteAktivitaet : ' · noch nicht gestartet')
+      : ' · Einladung ausstehend');
+
+    return '<div class="card kind-card is-open' + (pending ? ' is-pending' : '') + '" data-kind="' + kind.id + '" style="padding:0">' +
+      '<div style="display:flex;align-items:center;gap:14px;padding:16px 20px">' +
+        '<span class="fach-avatar" style="width:38px;height:38px;background:' + col.base + '"><span>' +
+          kind.name.charAt(0).toUpperCase() + '</span></span>' +
+        '<span class="kc-meta"><span class="kc-name">' + kind.name + '</span><span class="kc-sub">' + sub + '</span></span>' +
+        (kind.eingeladen ? aktivChip(kind) : '') +
+        '<a class="btn btn-sm btn-ghost" href="eltern-kind.html?id=' + kind.id + '">Details' + I.arrowRight + '</a>' +
+      '</div>' +
+      '<div class="kc-body" style="border-top:1px solid var(--line)">' +
+        '<div class="kc-actions" style="margin-top:0">' +
+          (kind.eingeladen
+            ? '<button class="btn btn-sm btn-ghost" data-act="einladen">Erneut einladen</button>'
+            : '<button class="btn btn-sm btn-primary" data-act="einladen">Einladung senden</button>') +
+          (kind.eingeladen ? '<button class="btn btn-sm btn-ghost" data-act="ansehen">Als ' + kind.name.split(' ')[0] + ' ansehen</button>' : '') +
+          '<button class="btn btn-sm btn-ghost" data-act="benachrichtigung">Benachrichtigungen</button>' +
+          '<button class="btn btn-sm btn-ghost" data-act="entfernen" style="color:var(--rot)">Entfernen</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function render() {
+    var kinder = Lesify.kinder();
+    var sitze = Lesify.plan().familie.sitze;
+    var voll = kinder.length >= sitze;
+    main.innerHTML =
+      '<div class="page-head"><div>' +
+        '<div class="page-eyebrow">Eltern-Bereich</div>' +
+        '<h1 class="page-title">Kinder &amp; Zugänge</h1>' +
+        '<p class="page-sub">' + kinder.length + ' von ' + sitze + ' Plätzen belegt. Jedes Kind hat ein eigenes, unabhängiges Profil.</p>' +
+      '</div></div>' +
+      '<div id="kinder-liste">' + kinder.map(kindCard).join('') + '</div>' +
+      '<button class="btn btn-primary" id="kind-add"' + (voll ? ' disabled' : '') + '>' + I.plus + ' Kind hinzufügen</button>' +
+      (voll ? '<p class="kc-hint">Alle Plätze belegt — auf <a href="eltern-abo.html">Abo &amp; Sitze</a> kannst du einen Platz ergänzen.</p>' : '');
+    wire();
+  }
+
+  function wire() {
+    document.getElementById('kinder-liste').addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-act]');
+      if (!btn) return;
+      e.preventDefault();
+      var card = btn.closest('[data-kind]');
+      var id = card.getAttribute('data-kind');
+      var kind = Lesify.getKind(id);
+      var act = btn.getAttribute('data-act');
+
+      if (act === 'einladen') {
+        modal('Kind einladen', 'Wir schicken eine E-Mail mit einem Link, über den ' + kind.name.split(' ')[0] + ' ein eigenes Passwort setzt.',
+          '<div class="field mt-0"><label for="m-mail">E-Mail-Adresse</label>' +
+          '<input class="input" id="m-mail" type="email" value="' + (kind.email || '') + '" placeholder="name@beispiel.de"></div>',
+          function (scrim) {
+            var mail = scrim.querySelector('#m-mail').value.trim();
+            if (!mail || mail.indexOf('@') < 1) { scrim.querySelector('#m-mail').focus(); return false; }
+            Lesify.kindEinladung(id, mail);
+            LesifyUI.toast('Einladung an ' + mail + ' gesendet.');
+            render();
+          }, 'Einladung senden');
+      } else if (act === 'ansehen') {
+        Lesify.wechsleZuKind(id);
+        window.location.href = 'dashboard.html';
+      } else if (act === 'entfernen') {
+        modal('„' + kind.name + '" entfernen?', 'Alle Fächer, Chats, Lernzettel, Dateien und Klausuren dieses Kindes werden unwiderruflich gelöscht. Der Platz wird wieder frei.',
+          '<p class="text-sm" style="margin:0;color:var(--ink-700)">Zum Bestätigen bitte den Vornamen <strong>' + kind.name.split(' ')[0] + '</strong> eingeben.</p>' +
+          '<div class="field mt-0" style="margin-top:10px"><input class="input" id="m-confirm" type="text" autocomplete="off"></div>',
+          function (scrim) {
+            if (scrim.querySelector('#m-confirm').value.trim() !== kind.name.split(' ')[0]) { scrim.querySelector('#m-confirm').focus(); return false; }
+            Lesify.removeKind(id);
+            LesifyUI.toast(kind.name + ' wurde entfernt.');
+            render();
+          }, 'Endgültig entfernen', true);
+      } else if (act === 'benachrichtigung') {
+        modal('Benachrichtigungen — ' + kind.name.split(' ')[0], 'Wirken, sobald der E-Mail-Versand aktiv ist. Bis dahin nur gemerkt.',
+          '<div class="toggle-row" style="padding-top:0"><div><div class="toggle-label">Erinnerung vor Klausuren</div>' +
+          '<div class="toggle-sub">Ein Hinweis wenige Tage vor einem Termin.</div></div>' +
+          '<label class="toggle-switch"><input type="checkbox" id="m-t1"' + (kind.erinnerungVorKlausuren ? ' checked' : '') + '><span class="track"><span class="thumb"></span></span></label></div>' +
+          '<div class="toggle-row"><div><div class="toggle-label">Wöchentliche Zusammenfassung</div>' +
+          '<div class="toggle-sub">Der Wochen-Überblick dieser Seite, per E-Mail.</div></div>' +
+          '<label class="toggle-switch"><input type="checkbox" id="m-t2"' + (kind.woechentlicheZusammenfassung ? ' checked' : '') + '><span class="track"><span class="thumb"></span></span></label></div>',
+          function (scrim) {
+            Lesify.updateKind(id, {
+              erinnerungVorKlausuren: scrim.querySelector('#m-t1').checked,
+              woechentlicheZusammenfassung: scrim.querySelector('#m-t2').checked
+            });
+            LesifyUI.toast('Einstellungen für ' + kind.name.split(' ')[0] + ' gespeichert.');
+          }, 'Speichern');
+      }
+    });
+
+    var addBtn = document.getElementById('kind-add');
+    if (addBtn && !addBtn.disabled) addBtn.addEventListener('click', function () {
+      var farben = Lesify.FACH_COLORS.map(function (c, i) {
+        return '<label style="display:inline-flex;align-items:center;gap:5px;font-size:0.8rem;margin:0 10px 6px 0">' +
+          '<input type="radio" name="m-farbe" value="' + c.key + '"' + (i === 0 ? ' checked' : '') + '>' +
+          '<span style="width:13px;height:13px;border-radius:50%;background:' + c.base + ';display:inline-block"></span>' + c.name + '</label>';
+      }).join('');
+      modal('Kind hinzufügen', 'Legt ein neues Profil an. Einladen kannst du danach jederzeit.',
+        '<div class="field"><label for="m-name">Name</label><input class="input" id="m-name" type="text" placeholder="Vor- und Nachname"></div>' +
+        '<div class="field"><label for="m-klasse">Klassenstufe</label><input class="input" id="m-klasse" type="text" placeholder="z. B. 7. Klasse"></div>' +
+        '<div class="field mt-0"><label>Farbe</label><div>' + farben + '</div></div>',
+        function (scrim) {
+          var name = scrim.querySelector('#m-name').value.trim();
+          var klasse = scrim.querySelector('#m-klasse').value.trim();
+          if (!name || !klasse) { scrim.querySelector('#m-name').focus(); return false; }
+          var farbe = (scrim.querySelector('input[name="m-farbe"]:checked') || {}).value || 'graphit';
+          try {
+            Lesify.addKind({ name: name, klasse: klasse, farbe: farbe });
+            LesifyUI.toast(name + ' hinzugefügt.');
+            render();
+          } catch (err) {
+            LesifyUI.toast(err.message === 'sitze_ausgeschoepft' ? 'Alle Plätze belegt.' : 'Konnte nicht anlegen.');
+            return false;
+          }
+        }, 'Anlegen');
+    });
+  }
+
+  render();
+});
+</script>
+</body>
+</html>

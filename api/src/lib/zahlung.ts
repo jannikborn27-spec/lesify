@@ -108,7 +108,7 @@ export class FakeZahlungsGateway implements ZahlungsGateway {
     // no-op: bei Stripe `pause_collection`
   }
 
-  webhookVerarbeiten(rohBody: string, _signatur: string | undefined): WebhookErgebnis {
+  webhookVerarbeiten(rohBody: string): WebhookErgebnis {
     // Echte Signaturprüfung (HMAC über den Roh-Body) macht jetzt
     // `StripeZahlungsGateway.webhookVerarbeiten` — der Fake bleibt bewusst
     // ungeprüft, er simuliert nur die Business-Logik fürs Testen/lokale Dev.

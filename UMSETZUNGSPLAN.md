@@ -2334,6 +2334,18 @@ sonst unverändert.
   - [x] Doku: `backend-planning.md` §8 „Eltern-Kind-Modell" +
         „Familien-Abo-Sichtbarkeit" + „Kontext-Wechsel" als entschieden
         (2026-09-08), §9-Mapping + §10-Dev-Switcher nachgezogen; `app/README.md`.
+  - [x] **Redesign auf vier Seiten (2026-09-12):** `eltern.html` (Übersicht:
+        Familien-Kennzahlen, Kind-Kurzkarten, Datenschutz-Vertrauenshinweis),
+        `eltern-kinder.html` (Kind-Verwaltung, die bisherige `<details>`-Liste),
+        `eltern-kind.html?id=…` (**neu**: Wochen-Kennzahlen + Fächer-Liste +
+        anstehende Klausuren je Kind, aus neuen `data.js`-Feldern
+        `woche.faecherListe`/`.anstehendeKlausurenListe` — Metadaten, kein
+        neuer Content-Zugriff), `eltern-abo.html`, `eltern-datenschutz.html`.
+        `ELTERN_NAV_ITEMS` in `app.js` verlinkt jetzt echte Seiten statt
+        `eltern.html#anker`. Seiten-lokales CSS aus der alten `eltern.html`
+        nach `style.css` verschoben (mehrere Seiten brauchen es jetzt).
+        `Konzept-texts/eltern-zugang-plan.md` (§1/§3/§5) und
+        `backend-planning.md` §4/§8 nachgezogen.
   - [ ] `marketing/login.html`: Redirect-Weiche nach Rolle/Familie — offen,
         gehört zum Phase-11-Cut-over (die Prototyp-Login-Seite redirectet
         aktuell nirgendwohin; die Weiche steht in `auth-gate.js` bereit).

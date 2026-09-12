@@ -1964,6 +1964,47 @@ Blockiert alles Weitere. Erst die offenen Produktfragen klären, dann bauen.
       1180px-Breakpoint lag — dieselbe Logik wie im Dashboard), keine
       Konsolenfehler auf beiden Seiten.
 
+- [x] **Fünfte Nachjustierung `ueber-uns.html`-Hero: Wasserzeichen-
+      Position, breitere Textspalte, größeres Foto (2026-09-12, später
+      am selben Tag):** Drei Feinschliffe auf Basis von Feedback.
+      · **Wasserzeichen saß hinter/über dem Header und lief rechts aus
+      dem Viewport:** `.au-watermark` hatte `top:-28px;right:-28px` 1:1
+      vom Dashboard übernommen — dort sitzt es in einer Karte mit
+      eigenem `overflow:hidden`-Rahmen, auf `ueber-uns.html` dagegen
+      direkt in der vollen, randlosen `.au-hero`-Section, wo der
+      negative `right`-Wert es über den echten Viewport-Rand hinaus
+      schiebt und `main.overflow-x-hidden` es abschneidet. Jetzt
+      `top:115px;right:20px` — sitzt sauber unterhalb der schwebenden
+      Nav-Pille (geprüft: `wmRect.top` > `nav.getBoundingClientRect().bottom`)
+      und vollständig innerhalb des Viewports (`wmRect.right` <
+      `innerWidth`).
+      · **Breitere Textspalte:** `.au-hero-portrait__body` von
+      `max-width:680px` auf `820px`, `h1` von `15ch` auf `20ch`, `p` von
+      `46ch` auf `56ch`. Zusätzlich bekommt nur der Hero-Abschnitt einen
+      breiteren Container: `.au-hero .container--narrow { max-width:
+      1080px }` (Timeline/Stand bleiben bei 860px) — sonst hätte die
+      breitere Body/H1-Vorgabe nichts gebracht, weil der Elternrahmen
+      der Flaschenhals war.
+      · **Größeres Foto:** `.au-hero-portrait__photo` von
+      `clamp(260px,30vw,400px)` auf `clamp(320px,36vw,480px)`,
+      `__body`s `padding-left` passend von `clamp(290px,33vw,430px)`
+      auf `clamp(350px,39vw,510px)` nachgezogen, mobiles Foto von
+      220px auf 260px.
+      · **Diesmal mit echtem visuellem Check statt nur Computed-Style-
+      Vergleich:** erster Versuch zeigte in Screenshots einen
+      scheinbaren Overlap mit der schwarzen Timeline-Section — Ursache
+      war kein Layout-Bug, sondern ein veralteter Screenshot-Frame,
+      weil der Browser-Pane-Tab nicht im Vordergrund war (bekanntes
+      Verhalten dieser Session: `computer screenshot` liefert im
+      Hintergrund-Zustand einen stehenden alten Frame). Nach
+      `tabs_select` (Tab in den Vordergrund) und Kontrolle von
+      `window.scrollY` (war 0, nicht wie im stehenden Frame vermeintlich
+      verschoben) zeigte der Screenshot den korrekten Zustand: Foto
+      größer, Text breiter, Wasserzeichen sauber unter dem Header,
+      keine Überlappung. Zusätzlich bei 1000px, 1280px und mobil
+      (375px) geprüft — Wasserzeichen bleibt wie im Dashboard unter
+      860px ausgeblendet.
+
 ---
 
 ## Phase 1 — Stack-Entscheidung & Projekt-Setup

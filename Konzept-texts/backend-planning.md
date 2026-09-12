@@ -1495,6 +1495,22 @@ Navigation hätte ohne Authorization-Header eine 401 bekommen. Fix: Button
 holt den Text per `fetch()` + Bearer-Header, baut daraus einen Blob +
 `URL.createObjectURL`-Download.
 
+**Nachtrag `thema.html` (2026-09-12) — bisher der größte Umbau nach
+`lernplan.html`:** fünf Inhaltstypen (Übersicht + Chats/Lernzettel/Dateien/
+Klausuren-Tabs) + echter Datei-Upload + Klausur-Anlage-Modal. Neue
+`loadDaten()` lädt Chats (fach-gefiltert → clientseitig auf `themaId`
+eingeengt, `GET /chats` kennt keinen `themaId`-Filter)/Lernzettel/Dateien
+(serverseitig `themaId`-gefiltert)/Klausuren (ungefiltert → clientseitig
+eingeengt) **einmal statt bis zu 4×** — vorher lasen `chatItems()` &
+Co. bei jedem Tab-/Übersicht-Redraw frisch. Datei-Upload komplett neu
+geschrieben (kein reiner Await-Umbau): `Lesify.uploadDatei()` (multipart) +
+`Lesify.pollDateiStatus()` ersetzt die rein clientseitige data.js-Simulation,
+inkl. serverseitiger MIME-Prüfung statt Client-Extension-Heuristik. Neue
+`api.js`-Lücke: `GET /dateien` liefert `groesseBytes` (Zahl), aber
+`dateiCard()`/`dateiRow()` erwarten die formatierte `groesse`-Zeichenkette
+("1.2 MB") wie im data.js-Seed — neue `formatBytes()`/`mitDateiForm()`,
+jetzt einheitlich in `dateien()`/`getDatei()`/`uploadDatei()`.
+
 **Nachtrag `klausur.html` (2026-09-12) — deutlich leichter als erwartet:**
 kein Backend-Change nötig — die komplette eingebettete Lernplan-Sektion
 läuft unverändert mit den Bausteinen aus `lernplan.html` weiter. Zwei

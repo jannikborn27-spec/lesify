@@ -151,9 +151,22 @@ lernzettel/dokument` hat **keinen** `?token=`-Fallback wie
 der Button den Text per `fetch()` + Bearer-Header und baut daraus einen
 Blob-Download. Details: `backend-planning.md` §9.
 
+**`thema.html` als achte Seite umgestellt (2026-09-12) — bisher der größte
+Umbau nach `lernplan.html`.** Fünf Inhaltstypen (Übersicht +
+Chats/Lernzettel/Dateien/Klausuren-Tabs), echter Datei-Upload, Klausur-
+Anlage-Modal. Neue `loadDaten()` lädt alle vier Listen **einmal** statt bis
+zu 4× pro Redraw (vorher lasen `chatItems()` & Co. bei jedem Tab-Wechsel
+frisch nach). Datei-Upload komplett neu geschrieben (kein reiner
+Await-Umbau): `Lesify.uploadDatei()` + `Lesify.pollDateiStatus()` ersetzt
+die clientseitige data.js-Simulation — live mit einer absichtlich kaputten
+Test-PDF geprüft, Fehlerpfad ("Dateiformat wird nicht unterstützt.") greift
+sauber. Neue `api.js`-Lücke: `GET /dateien` liefert `groesseBytes` (Zahl)
+statt der von `dateiCard()` erwarteten `groesse`-Zeichenkette — neue
+`formatBytes()`/`mitDateiForm()`. Details: `backend-planning.md` §9.
+
 Nächste Seite: eigenes Ermessen. Cache inkl.
 `mergeCache`/`_faecherCache`/`_cache.lernplaene`, CORS inkl. PATCH/DELETE,
-echte Umgebung stehen jetzt für alle ~13 verbleibenden Seiten bereit.
+echte Umgebung stehen jetzt für alle ~12 verbleibenden Seiten bereit.
 
 Basis-URL: `window.LESIFY_API_BASE` (Default `http://localhost:3000`).
 Session-Token: `localStorage['lesify:token']`.

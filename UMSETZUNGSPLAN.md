@@ -2815,7 +2815,43 @@ sonst unverändert.
 > echter Inhalt gerendert, Download-Button lädt den exakten
 > Server-Markdown-Text (per Netzwerk-Log geprüft).
 >
-> Der Rest des `app/*.html`-Seiten-Cut-overs (`chat.html`, `thema.html`,
+> _2026-09-12: **`thema.html` als achte Seite umgestellt — bisher der größte
+> Umbau nach `lernplan.html`**, weil die Seite fünf Inhaltstypen
+> (Chats/Lernzettel/Dateien/Klausuren + Übersicht) parallel zeigt und einen
+> echten Datei-Upload + eine Klausur-Anlage-Modal hat. Wichtigste
+> Architektur-Entscheidung: `chatItems()`/`lzItems()`/`dateiItems()`/
+> `klausurItems()` lasen im Original JEDES Mal frisch (auch beim Wechsel
+> zwischen Übersicht und Einzel-Tab) — unter api.js hätte das pro
+> Seitenaufruf 4× wiederholte Netzwerk-Fetches bedeutet. Neu: `loadDaten()`
+> lädt Chats (fach-gefiltert, dann clientseitig auf `themaId` eingeengt —
+> `GET /chats` kennt keinen `themaId`-Filter)/Lernzettel/Dateien (beide
+> serverseitig `themaId`-gefiltert)/Klausuren (ungefiltert, dann
+> clientseitig eingeengt) **einmal**, `drawTabs`/`drawUebersicht`/die vier
+> Einzel-Tab-Draws bekommen die fertigen Listen als Parameter — behebt
+> nebenbei einen Staleness-Bug (die alten Tab-Zähler kamen aus
+> `Lesify.countsForThema()`, hätten nach einem Upload nicht ohne
+> Neu-Fetch der Themen-Objekts aktualisiert werden können).
+> **Datei-Upload komplett neu geschrieben, kein Await-Umbau:** data.js
+> simuliert Upload+Verarbeitung rein clientseitig (`Lesify.addDatei` +
+> `setTimeout` + `Lesify.markDateiBereit`); api.js hat den echten Weg
+> `Lesify.uploadDatei(themaId, file)` (multipart) + `Lesify.pollDateiStatus()`
+> (Backoff-Polling bis `bereit`/`fehler`) — inkl. serverseitiger MIME-Prüfung,
+> die die alte Client-Extension-Heuristik (`ext === 'pdf' ? …`) ersetzt.
+> Live mit einer absichtlich kaputten Test-PDF geprüft: Upload → Status
+> `verarbeitung` → Polling → Status `fehler` mit
+> „Dateiformat wird nicht unterstützt." — der Fehlerpfad greift genauso
+> sauber wie der Erfolgspfad. **Neue `api.js`-Lücke gefunden:** `GET
+> /dateien` lieferte `groesseBytes` (Zahl) statt der von `dateiCard()`/
+> `dateiRow()` erwarteten formatierten `groesse`-Zeichenkette ("1.2 MB") —
+> neue `formatBytes()`/`mitDateiForm()` in `api.js`, jetzt in
+> `dateien()`/`getDatei()`/`uploadDatei()` einheitlich angewandt.
+> Klausur-Anlage-Modal nutzt dasselbe `themenFuerFach()`-Cache-Muster wie
+> `klausuren.html`. Live komplett durchgeklickt: Tabs mit korrekten
+> Zählern, Datei-Upload (Fehlerpfad), Lernzettel erstellen (echter KI-Call,
+> Weiterleitung mit echter ID), Klausur im Modal anlegen (echter KI-Call,
+> Weiterleitung zu `lernplan.html` mit echtem Lernplan).
+>
+> Der Rest des `app/*.html`-Seiten-Cut-overs (`chat.html`,
 > `testklausur.html`, `lernzettel.html`,
 > `themen.html`, `dateien.html`, `suche.html`, `einstellungen.html`, die vier
 > `eltern-*.html`) bleibt offen. Grundbausteine (Cache inkl.
@@ -2833,8 +2869,8 @@ sonst unverändert.
       `Lesify.*`-Aufrufe `await`en, Renderer in `app.js` auf Promises anpassen.
       _(Teilfortschritt 2026-09-12: `dashboard.html` + `faecher.html` +
       `fach.html` + `klausuren.html` + `lernplan.html` + `klausur.html` +
-      `lernplan-lernzettel.html` fertig + verifiziert, siehe
-      Progress-Notizen oben. 13 Seiten offen.)_
+      `lernplan-lernzettel.html` + `thema.html` fertig + verifiziert, siehe
+      Progress-Notizen oben. 12 Seiten offen.)_
 - [x] **`assets/js/api.js` — Fächer-/Themen-Cache + reine Helfer nachgezogen**
       — _2026-09-12 (mit `dashboard.html`, siehe Progress-Notiz oben):
       `getFach`/`label` als sync Cache-Lookups, `prozentZuNote`/`noteAmpel`/

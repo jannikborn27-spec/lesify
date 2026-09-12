@@ -2005,6 +2005,53 @@ Blockiert alles Weitere. Erst die offenen Produktfragen klären, dann bauen.
       (375px) geprüft — Wasserzeichen bleibt wie im Dashboard unter
       860px ausgeblendet.
 
+- [x] **Sechste Nachjustierung `ueber-uns.html`-Hero: v2 (mit Signatur)
+      wird neue Baseline, 9 systematische Bildgröße×Textbreite-
+      Varianten (2026-09-12, gleicher Tag):** Feedback: Wasserzeichen
+      gut, Foto/Text dürfen aber noch größer/breiter — außerdem sollte
+      die bisherige v2 (Eyebrow+Headline+Absatz+Signatur) die neue v1
+      werden und alle anderen Content-Varianten (Fakten/Chips/Zitat)
+      entfallen, dafür 9 neue Varianten, die nur Bildgröße × Textbreite
+      durchspielen.
+      · **Inhalt vereinheitlicht:** alle 10 Varianten zeigen jetzt
+      denselben Inhalt (bisherige v2). Statt 10 unterschiedlicher
+      Composings gibt es jetzt zwei Stufen-Achsen als zusätzliche
+      Klassen auf demselben `[data-variant]`-Element: `.au-img-1..4`
+      (Fotobreite + passend reservierter `padding-left`) und
+      `.au-txt-1..4` (Body-/Headline-/Absatzbreite). v1 = `au-img-1
+      au-txt-1` (bisherige Baseline-Größe), v2–v10 kreuzen die drei
+      größeren Stufen jeder Achse (img2/3/4 × txt2/3/4 = 9 Kombinationen).
+      · **Reiner Größen-Bug beim ersten Durchlauf gefunden + gefixt:**
+      `padding-left` skaliert nur mit der Bild-Stufe, `max-width` des
+      Textblocks nur mit der Text-Stufe — bei den ursprünglichen
+      Zahlen ergab das bei großen Bild- + kleineren Text-Stufen (z. B.
+      img-4 + txt-2) eine Textspalte von nur ~190px (per
+      `getBoundingClientRect` gemessen, nicht nur geschätzt). Die
+      Textbreiten-Stufen 2–4 daraufhin kräftig angehoben (920→1150,
+      1020→1250, 1120→1350px plus größere ch-Werte), Container auf
+      1450px verbreitert. Nachmessung: schlechtester Fall (v8, img-4+
+      txt-2) jetzt ~420px Textspalte statt ~190px.
+      · **Zweiter Bug: `min-height` war bislang eine einzige, geteilte
+      Regel** (`clamp(360px,44vw,620px)`), unabhängig von der
+      Bild-Stufe — bei img-4 (Foto bis 720px hoch, bodenbündig) hätte
+      das Foto oben über die Section hinausgeragt. Jetzt
+      `.au-hero-portrait.au-img-1..4` (compound-Selektor, da beide
+      Klassen auf demselben Element sitzen — nicht verschachtelt)
+      setzt je eine zur Fotohöhe passende `min-height`
+      (560px…800px). Mobile-Override entsprechend nachgezogen
+      (`.au-hero-portrait.au-img-N { min-height:0 }` in der
+      720px-Media-Query, sonst hätten dort dieselben vw-Werte per
+      Spezifität gewonnen).
+      · Dev-Panel/`.au-group`-Sichtbarkeitsregel wieder auf `max:10`
+      erweitert. Im Browser (lokaler Server, Tab bewusst in den
+      Vordergrund geholt vor jedem Screenshot) geprüft: alle 10
+      Varianten je 1 sichtbares Kind, keine Überlappung von Foto und
+      Section-Rand (`photoTop - sectionTop` durchweg negativ, kein
+      Bild-Überstand nach oben), Headline-Breite bei allen 10
+      Kombinationen zwischen ~320px (v1) und ~610px (breiteste
+      Kombination), mobil (375px) einheitlich und unverändert über
+      alle Varianten, keine Konsolenfehler.
+
 ---
 
 ## Phase 1 — Stack-Entscheidung & Projekt-Setup

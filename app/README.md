@@ -53,5 +53,24 @@ gleicher Ansatz wie `checkout.js`). `login/` enthält auch die Rollen-/
 Familien-Weiche (Schritt oben unter „App-Seiten" bezieht sich nur noch auf
 die eingeloggten `app/*.html`-Seiten selbst).
 
+**`dashboard.html` als erste App-Seite umgestellt (2026-09-12)** — Schritte 1+2
+oben durchlaufen, live gegen die echte Supabase-DB geprüft (Feed, Live-Suche,
+Rollen-Redirect, Logout-Redirect). Dabei wurde `assets/js/api.js` um einiges
+erweitert, das für **jede** weitere Seite gebraucht wird (Details:
+`backend-planning.md` §9 „api.js-Cache-Layer"):
+- Fächer-/Themen-Cache mit synchronen `getFach(id)`/`label(themaId)` —
+  Voraussetzung für `badge`/`fachColorVars`/`fachBadge`/`cardWatermark`/…
+  (die lesen Fach-/Thema-Daten synchron per ID, wie im data.js-Prototyp).
+  Braucht ein vorheriges `await Lesify.faecher()`/`Lesify.themen()` auf der
+  Seite — bei den meisten Seiten ohnehin schon Teil der Hauptdaten-Ladung.
+- Reine Formeln/Design-Tokens gespiegelt: `prozentZuNote`/`noteAmpel`/
+  `noteLabel`/`tierLabel`/`klausurVergangen`, `FACH_COLORS`/`getFachColor`/
+  `FACH_PRESETS`/`getFachIconSvg`.
+- Neu: `relativeTime()` für `.updated`-Anzeigen (Chats/Lernzettel/Dateien).
+- `GET /lernzettel(?themaId=)` — neue Backend-Route, fehlte für Feeds.
+
+Nächste Seite: eigenes Ermessen, aber die Grundbausteine (Cache, CORS, echte
+Umgebung) stehen jetzt für alle ~19 verbleibenden Seiten bereit.
+
 Basis-URL: `window.LESIFY_API_BASE` (Default `http://localhost:3000`).
 Session-Token: `localStorage['lesify:token']`.

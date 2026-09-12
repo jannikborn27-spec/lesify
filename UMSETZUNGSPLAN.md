@@ -2598,14 +2598,50 @@ sonst unverändert.
 > auf, dass die API noch **kein CORS** hatte (Marketing/App laufen lokal auf
 > anderem Port als `api/`, produktiv auf anderer Domain); ohne das wäre auch
 > der `app/`-Seiten-Cut-over später am selben Problem gescheitert. Jetzt
-> nachgerüstet (`@fastify/cors`). Der `app/*.html`-Seiten-Cut-over selbst
-> (`dashboard.html`, `chat.html`, `thema.html`, …) ist bewusst **nicht**
-> angefasst — das sind ~20 Seiten mit synchron schreibenden Renderern in
-> `app.js`, die einzeln auf `await`/Promises umgestellt und im Browser
-> durchgeklickt werden müssen, um kein halbfertiges Zwischenergebnis zu
-> riskieren. Lokal jetzt aber ohne Blocker möglich (`api/.env` mit echten
-> Supabase-/Stripe-Werten liegt bereits vor Ort, CORS steht) — nächster
-> sinnvoller Schnitt Seite für Seite, z. B. beginnend mit `dashboard.html`._
+> nachgerüstet (`@fastify/cors`)._
+>
+> _2026-09-12: **`dashboard.html` als erste Seite umgestellt** (siehe unten) —
+> dabei kam eine ganze Reihe zusätzlicher Bausteine ans Licht, die
+> `assets/js/api.js` noch fehlten, weil `app.js`s geteilte Renderer
+> (`badge`/`fachColorVars`/`fachBadge`/`cardWatermark`/`klausurCard`/…)
+> Fach-/Thema-Daten **synchron** per ID lesen (`Lesify.getFach(id)`,
+> `Lesify.label(themaId)`) — genau wie im data.js-Prototyp, wo ohnehin alles
+> im Speicher liegt. `api.js` bekam dafür einen kleinen Fächer-/Themen-Cache
+> (gefüllt von `faecher()`/`themen()`) mit synchronen Lookups obendrauf, plus
+> die reinen Formeln/Design-Tokens aus `data.js` gespiegelt
+> (`prozentZuNote`/`noteAmpel`/`noteLabel`/`tierLabel`/`klausurVergangen`,
+> `FACH_COLORS`/`getFachColor`/`FACH_PRESETS`/`getFachIconSvg`) und eine neue
+> `relativeTime()`-Berechnung für `.updated`-Anzeigen (in data.js nur ein
+> fest verdrahteter Seed-Text). `Lesify.getUser()` bekam zusätzlich
+> `.klasse`/`.initials`, `Lesify.getFach(id)` (vorher ein nicht existierender
+> Endpunkt, also immer 404) wurde zum sync Cache-Lookup umgebaut. Die
+> Sidebar-Chrome (`app.js` → `renderChrome()`) rendert den Profil-Chip jetzt
+> mit einem Platzhalter und füllt ihn nach, sobald `getUser()` (Promise unter
+> api.js) aufgelöst ist — synchrones data.js-Verhalten bleibt unverändert.
+> `klausurNoteBox()` nutzt das mit `GET /klausuren` eingebettete `note`-Feld,
+> statt (wie data.js) einen flachen Testklausur-Index zu durchsuchen, den es
+> im echten Backend so nicht gibt. Backend-seitig kam eine fehlende
+> `GET /lernzettel(?themaId=)`-Listen-Route dazu (für den „Zuletzt
+> bearbeitet"-Feed) sowie ein Bugfix in `GET /suche`: die `href`-Felder waren
+> **absolut** (`/fach.html?id=…`) statt relativ — hätte in Produktion (App
+> unter `/app/`) auf die falsche Seite verlinkt. Alles gegen die echte
+> Supabase-DB im Browser durchgeklickt (Dashboard-Feed, Live-Suche,
+> Rollen-Redirect, ausgeloggt → Redirect zu `login/?weiter=…`), Test-User
+> danach gelöscht. **Bekannte, bewusst zurückgestellte Lücke:** Dark-Mode
+> (`settings.darkMode`) existiert nur im data.js-Prototyp, nicht im
+> `Einstellungen`-Datenmodell — auf `dashboard.html` unter api.js also ohne
+> Effekt (kein Crash, `applyTheme()` scheitert still). Wird beim Cut-over von
+> `einstellungen.html` nachgezogen oder vorher entschieden, ob das Feature
+> überhaupt bleibt. Tests: `api/src/routes/ki.test.ts` (+1),
+> `api/src/routes/kern.test.ts` (+2)._
+>
+> Der Rest des `app/*.html`-Seiten-Cut-overs (`chat.html`, `thema.html`,
+> `klausuren.html`, `klausur.html`, `testklausur.html`, `lernplan.html`,
+> `lernplan-lernzettel.html`, `lernzettel.html`, `faecher.html`, `fach.html`,
+> `themen.html`, `dateien.html`, `suche.html`, `einstellungen.html`, die vier
+> `eltern-*.html`) bleibt offen — jede Seite braucht denselben sorgfältigen
+> Umbau + Browser-Test wie `dashboard.html`, jetzt aber ohne die
+> grundsätzlichen Blocker (Cache-Layer + CORS stehen bereits).
 
 - [x] **API-Client `assets/js/api.js`** — _`Lesify.*`-Namen wie `data.js`, aber
       Promise-basiert; `fetch`-Wrapper mit Bearer-Token
@@ -2616,6 +2652,27 @@ sonst unverändert.
       `GET /auth/me` → `location.replace('../marketing/login.html?weiter=…')`._
 - [ ] **Seiten umstellen (pro Seite):** `data.js`→`api.js`+`auth-gate.js`,
       `Lesify.*`-Aufrufe `await`en, Renderer in `app.js` auf Promises anpassen.
+      _(Teilfortschritt 2026-09-12: `dashboard.html` fertig + verifiziert,
+      siehe Progress-Notiz oben. 19 Seiten offen.)_
+- [x] **`assets/js/api.js` — Fächer-/Themen-Cache + reine Helfer nachgezogen**
+      — _2026-09-12 (mit `dashboard.html`, siehe Progress-Notiz oben):
+      `getFach`/`label` als sync Cache-Lookups, `prozentZuNote`/`noteAmpel`/
+      `noteLabel`/`tierLabel`/`klausurVergangen`/`FACH_COLORS`/`getFachColor`/
+      `FACH_PRESETS`/`getFachIconSvg`/`relativeTime` gespiegelt/ergänzt,
+      `getUser()` um `.klasse`/`.initials` erweitert. Nicht Teil des
+      ursprünglichen Phase-11-Plans, aber Voraussetzung dafür, dass die
+      geteilten `app.js`-Renderer (badge/fachColorVars/…) unter api.js
+      überhaupt funktionieren._
+- [x] **`GET /lernzettel(?themaId=)`** (neue Route) — _2026-09-12: fehlte für
+      Feeds/Übersichten (z. B. Dashboard „Zuletzt bearbeitet") — vorher gab es
+      nur `GET /lernzettel/:id`. `api/src/routes/lernzettel.ts`,
+      `Lesify.lernzettel(themaId)` in `api.js`. Test in `ki.test.ts`._
+- [x] **`GET /suche`-Bugfix: relative statt absolute `href`s** — _2026-09-12:
+      `/fach.html?id=…` → `fach.html?id=…` (+ `chat`/`dateien`-Links an die
+      echten Query-Parameter angeglichen, die `chat.html`/`thema.html` schon
+      aus dem client-seitigen `searchAll()` kennen). Wäre in Produktion
+      (App unter `/app/`) auf die falsche Seite gesprungen. Test in
+      `kern.test.ts`._
 - [x] **Marketing-Formulare verdrahten** — _2026-09-12: `login/`, `registrieren/`,
       `passwort-vergessen/` (+ neue Seite `passwort-zuruecksetzen/`) und `kontakt/`
       rufen jetzt echt `POST /auth/login`/`registrieren`/`passwort-vergessen`/

@@ -869,6 +869,7 @@ Abweichungen von den Tabellen unten:
 ### Lernzettel
 | Methode | Pfad | Zweck |
 |---|---|---|
+| GET | `/lernzettel?themaId=` oder ohne Filter | **Neu (Phase 11, 2026-09-12).** Übersichts-Liste ohne Revisionsverlauf — für Feeds/Dashboards (z. B. „Zuletzt bearbeitet"). Fehlte bis dahin (nur Einzel-Fetch über `:id`) |
 | POST | `/themen/:id/lernzettel` | Vollautomatische Erstellung (Call 08, **Phase 6 verdrahtet**), liefert fertigen Lernzettel |
 | GET | `/lernzettel/:id` | Inhalt + Revisionsverlauf + `freeMessagesUsed` |
 | POST | `/lernzettel/:id/revisionen` | `{text}` → KI passt `content` an (Call 09, **Phase 6 verdrahtet**: Vorab-Filter + Such-/Ersetzen-Patches), gibt aktualisierten Lernzettel + Revisionsverlauf zurück |
@@ -941,6 +942,14 @@ Antwortform: `[{ type, label, icon, items: [{ title, sub, href, fachId, fachName
 Zeile über `--fach-color/-ink/-bg` nach Fach ein (gemeinsames Render-Modul für
 Dashboard-Dropdown und `suche.html`, 5 umschaltbare Design-Varianten über den
 Dev-Switch, `localStorage['lesify:search:v']` — nur Prototyp).
+
+**`href` relativ (Bugfix 2026-09-12):** war zunächst absolut (`/fach.html?id=…`)
+— in Produktion läuft `app/` aber unter `/app/`, das wäre auf die falsche Seite
+(Marketing-Root) gesprungen. Jetzt wie jeder andere Link im Prototyp relativ
+(`fach.html?id=…`); `chat`/`dateien`-Treffer bekamen zusätzlich dieselben
+Query-Parameter, die `chat.html`/`thema.html` aus dem client-seitigen
+`searchAll()` (`app.js`) schon kennen (`?fach=&thema=&chat=` bzw.
+`thema.html?id=&tab=dateien` statt einer eigenen `dateien.html?datei=`-Route).
 
 ### Auth (neu — beliefert `marketing/login.html`, `registrieren.html`, `passwort-vergessen.html`)
 | Methode | Pfad | Zweck |
@@ -1437,6 +1446,30 @@ Deep-Link-Chats aus dem Lernplan werden jetzt beim ersten Absenden über `Lesify
 angelegt und über `Lesify.appendChatMessages` fortgeschrieben (vorher: flüchtig im Seiten-State).
 Entfallen: `Testklausur.nachtestPool`, `Vorbereitungsstand.nachtestsVerwendet`,
 `Lesify.nachtestVersuch`, `Lesify.nachtestDokument`, `NACHTEST_ERFOLGSCHANCE`.
+
+**`api.js`-Cache-Layer für synchrone Renderer (2026-09-12, mit `dashboard.html`
+als erster Seite):** `app.js`s geteilte Render-Helfer (`badge`, `fachColorVars`,
+`fachBadge`, `cardWatermark`, `klausurCard`, `fachFilterChips`, …) lesen Fach-/
+Thema-Daten **synchron** per ID (`Lesify.getFach(id)`, `Lesify.label(themaId)`)
+— im data.js-Prototyp trivial, weil ohnehin alles im Speicher liegt. Damit
+dieselben Renderer unverändert auch unter `api.js` laufen, hält `api.js` jetzt
+einen kleinen Fächer-/Themen-Cache (befüllt als Nebeneffekt von `faecher()`/
+`themen()`) und beantwortet `getFach`/`label` synchron daraus — die aufrufende
+Seite muss dafür einmal `faecher()`/`themen()` geawaitet haben (macht jede
+Seite ohnehin für ihre Hauptdaten). Reine Formeln/Design-Tokens ohne
+Server-Abhängigkeit (`prozentZuNote`/`noteAmpel`/`noteLabel`/`tierLabel`/
+`klausurVergangen`, `FACH_COLORS`/`getFachColor`/`FACH_PRESETS`/
+`getFachIconSvg`) sind 1:1 aus `data.js` nach `api.js` gespiegelt (identisch
+zum bereits vorhandenen `slugify`/`uid`-Muster). Neu: `relativeTime()` berechnet
+`.updated`-Anzeigen ("vor 2 Stunden") aus dem echten Zeitstempel — im
+Prototyp war das nur ein fest verdrahteter Seed-Text. `getUser()` bekam
+zusätzlich `.klasse` (Alias für `klassenstufe`) und berechnete `.initials`.
+`klausurNoteBox()` (in `app.js`) nutzt unter `api.js` das mit `GET /klausuren`
+eingebettete `note`-Feld statt (wie im Prototyp) einen flachen
+Testklausur-Index zu durchsuchen, den es im echten Backend nicht gibt — beide
+Pfade bleiben nebeneinander bestehen (Unterscheidung: trägt das übergebene
+Objekt ein `note`-Feld, auch `null`). Gilt für **jede** künftige Seite im
+Cut-over, nicht nur `dashboard.html`.
 
 Dunkles Design: `SEED.settings.darkMode` (bool) — von `Lesify.getSettings`/
 `updateSettings` mitgeführt, sonst kein Datenfluss (reine Client-Darstellung,

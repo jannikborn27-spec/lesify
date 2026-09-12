@@ -66,6 +66,29 @@ Betrifft die Änderung Datenmodell / Notenlogik / Limits / Endpunkte, zusätzlic
 `Konzept-texts/backend-planning.md` nachziehen (siehe Abschnitt oben) — beide
 Dokumente müssen den aktuellen Stand widerspiegeln.
 
+## Pflicht: Lokal + GitHub synchron halten
+
+Dieses Repo ist mit GitHub verbunden (`https://github.com/jannikborn27-spec/lesify`,
+Branch `main`) und über GitHub Pages live auf `lesify.de` (`marketing/` = Root,
+`app/` unter `/app`) — Deploy läuft automatisch bei jedem Push auf `main`
+(`.github/workflows/pages.yml`).
+
+**Jede Änderung an diesem Projekt — Code, Doku, Assets, egal ob großes Feature
+oder kleiner Fix — muss noch in derselben Aufgabe sowohl lokal committet als
+auch nach GitHub gepusht werden, bevor die Aufgabe als erledigt gilt:**
+`git add` der betroffenen Dateien → commit mit aussagekräftiger Nachricht →
+`git push origin main`. Nicht am Ende der Session sammeln, sondern je
+abgeschlossenem Arbeitsschritt commiten/pushen (siehe bisherige Praxis: ein
+Commit für Preise/FAQ-Umbau, ein eigener für den Stripe-Adapter, ein eigener
+fürs Eltern-Redesign).
+
+Push auf `main` ist für dieses Projekt damit vorab autorisiert — nicht jedes
+Mal einzeln nachfragen. Offensichtlicher Schrott/Testkram (z. B.
+`index-backup*.html`, `test-img*`, `assets.zip`) weiterhin nicht committen,
+außer der Nutzer bittet ausdrücklich darum. Destruktive Git-Operationen
+(force-push, `reset --hard` o. Ä.) bleiben davon ausgenommen — dafür weiter
+wie gewohnt nachfragen.
+
 ## Sonstige Arbeitsweise
 
 - Sprache im Projekt (Dummy-Daten, UI-Texte, Doku) ist Deutsch.

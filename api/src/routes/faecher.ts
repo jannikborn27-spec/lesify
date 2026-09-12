@@ -63,12 +63,23 @@ export async function faecherRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // GET /faecher/:id/themen
+  // Mit Zählwerten (Chats/Lernzettel/Dateien) — Klausuren/Testklausuren
+  // hängen über `themaIds` (String-Array) statt einer echten Relation und
+  // lassen sich darum nicht über `_count` mitziehen (siehe GET /themen/:id
+  // für den vollen, teureren Weg per Thema).
   app.get<{ Params: { id: string } }>('/faecher/:id/themen', async (req) => {
     oder404(await prisma.fach.findFirst({ where: { id: req.params.id, userId: req.userId } }));
     const themen = await prisma.thema.findMany({
       where: { fachId: req.params.id, userId: req.userId },
       orderBy: { name: 'asc' },
+      include: { _count: { select: { chats: true, lernzettel: true, dateien: true } } },
     });
-    return themen.map((t) => themaDTO(t));
+    return themen.map((t) =>
+      themaDTO(t, {
+        chats: t._count.chats,
+        lernzettel: t._count.lernzettel,
+        dateien: t._count.dateien,
+      }),
+    );
   });
 }

@@ -1515,7 +1515,13 @@
 
   function themaCard(t, opts) {
     opts = opts || {};
-    var c = Lesify.countsForThema(t.id);
+    // api.js liefert Chats/Lernzettel/Dateien-Zähler bereits mit GET
+    // /faecher/:id/themen eingebettet (kein flacher Index wie im Prototyp,
+    // aus dem sich `klausuren`/`testklausuren` je Thema günstig berechnen
+    // ließen — deshalb hier 0, bis eine Seite die wirklich anzeigen will).
+    var c = ('anzahlChats' in t)
+      ? { chats: t.anzahlChats, lernzettel: t.anzahlLernzettel, dateien: t.anzahlDateien, klausuren: 0, testklausuren: 0 }
+      : Lesify.countsForThema(t.id);
     var keys = opts.countKeys || ['chats', 'lernzettel', 'dateien', 'klausuren'];
     var labels = { chats: 'Chats', lernzettel: 'Lernzettel', dateien: 'Dateien', klausuren: 'Klausuren' };
     var countsHtml = keys.map(function (k) { return '<span>' + c[k] + ' ' + labels[k] + '</span>'; }).join('');

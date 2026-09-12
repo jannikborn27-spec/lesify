@@ -225,6 +225,17 @@
      haben (macht jede Seite ohnehin für ihre Haupt-Daten); danach beantworten
      `getFach`/`label` Lookups aus dem Cache, ohne einen weiteren Request. */
   var _cache = { faecher: [], themen: [] };
+  /** Fügt/aktualisiert Einträge per `id`, statt den ganzen Cache zu ersetzen —
+      wichtig für Teil-Listen wie `themenFuerFach()`, die sonst alles außer
+      dem gerade abgefragten Fach aus dem Cache werfen würden. */
+  function mergeCache(target, list) {
+    list.forEach(function (item) {
+      for (var i = 0; i < target.length; i++) {
+        if (target[i].id === item.id) { target[i] = item; return; }
+      }
+      target.push(item);
+    });
+  }
   function getFach(id) {
     for (var i = 0; i < _cache.faecher.length; i++) if (_cache.faecher[i].id === id) return _cache.faecher[i];
     return undefined;
@@ -309,7 +320,7 @@
     /* Fächer & Themen ---------------------------------------------- */
     faecher: function () {
       return GET('/faecher').then(function (list) {
-        _cache.faecher = list;
+        mergeCache(_cache.faecher, list);
         return list;
       });
     },
@@ -322,12 +333,25 @@
     updateFach: function (id, patch) {
       return PATCH('/faecher/' + id, patch);
     },
+    /** Scoped-Liste — hat kein `fachName`/`farbe` vom Server (kein `fach`-Include,
+        siehe faecher.ts), darum hier aus dem Fächer-Cache ergänzt, bevor der
+        Themen-Cache aktualisiert wird (sonst zeigen Badges „—" statt Fachname). */
     themenFuerFach: function (fachId) {
-      return GET('/faecher/' + fachId + '/themen');
+      return GET('/faecher/' + fachId + '/themen').then(function (list) {
+        var f = getFach(fachId);
+        if (f) {
+          list.forEach(function (t) {
+            t.fachName = t.fachName || f.name;
+            t.farbe = t.farbe || f.farbe;
+          });
+        }
+        mergeCache(_cache.themen, list);
+        return list;
+      });
     },
     themen: function () {
       return GET('/themen').then(function (list) {
-        _cache.themen = list;
+        mergeCache(_cache.themen, list);
         return list;
       });
     },

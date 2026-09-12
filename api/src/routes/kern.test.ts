@@ -127,6 +127,11 @@ describe.runIf(hatDb)('kern-API — Flow (Supabase)', () => {
       headers: auth(),
     });
     expect(beiFach.json().map((t: { id: string }) => t.id)).toContain(themaId);
+    const gefunden = beiFach.json().find((t: { id: string }) => t.id === themaId) as Record<
+      string,
+      unknown
+    >;
+    expect(gefunden).toMatchObject({ anzahlChats: 0, anzahlLernzettel: 0, anzahlDateien: 0 });
   });
 
   it('POST /themen mit fremdem fachId → 404', async () => {

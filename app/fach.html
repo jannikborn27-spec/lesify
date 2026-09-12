@@ -72,23 +72,25 @@
   </div>
 </div>
 
-<script src="assets/js/data.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/auth-gate.js"></script>
 <script src="assets/js/app.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
   var R = LesifyUI.Render, I = LesifyUI.Icons;
   var params = new URLSearchParams(window.location.search);
-  var fachId = params.get('id') || Lesify.faecher()[0].id;
-  var fach = Lesify.getFach(fachId) || Lesify.faecher()[0];
+
+  var faecher = await Lesify.faecher();
+  var fachId = params.get('id') || faecher[0].id;
+  var fach = Lesify.getFach(fachId) || faecher[0];
   fachId = fach.id;
   LesifyUI.setPageWatermark(Lesify.getFachIcon(fachId) || '', Lesify.getFachColor(fach.farbe).base);
 
   document.title = fach.name + ' · Lesify';
   document.getElementById('nt-sub').textContent = 'Wird direkt ' + fach.name + ' zugeordnet.';
 
-  function drawHead() {
-    fach = Lesify.getFach(fachId) || fach;
-    var counts = Lesify.countsForFach(fachId);
+  async function drawHead() {
+    fach = (await Lesify.faecher()).find(function (f) { return f.id === fachId; }) || fach;
     document.getElementById('fach-head').innerHTML =
       '<div class="flex items-center gap-4">' +
         '<button type="button" class="fach-avatar-btn" data-fach-color="' + fach.id + '" aria-label="Farbe von ' + fach.name + ' ändern" title="Farbe ändern">' +
@@ -97,7 +99,7 @@ document.addEventListener('DOMContentLoaded', function () {
         '<div>' +
           '<div class="page-eyebrow">Fach</div>' +
           '<h1 class="page-title">' + fach.name + '</h1>' +
-          '<p class="page-sub">' + (fach.klasse || 'Keine Klassenstufe hinterlegt') + ' · ' + counts.themen + ' Themen · ' + counts.klausuren + ' Klausuren</p>' +
+          '<p class="page-sub">' + (fach.klasse || 'Keine Klassenstufe hinterlegt') + ' · ' + fach.anzahlThemen + ' Themen · ' + fach.anzahlKlausuren + ' Klausuren</p>' +
         '</div>' +
       '</div>';
   }
@@ -108,8 +110,8 @@ document.addEventListener('DOMContentLoaded', function () {
     LesifyUI.openFachColorPicker(btn.getAttribute('data-fach-color'), drawHead);
   });
 
-  function drawThemen() {
-    var themen = Lesify.themen(fachId);
+  async function drawThemen() {
+    var themen = await Lesify.themenFuerFach(fachId);
     var html = themen.map(function (t) {
       return R.themaCard(t, { showFachBadge: false, filter: false, countKeys: ['chats', 'lernzettel', 'dateien'] });
     }).join('');
@@ -119,8 +121,8 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('fach-themen').innerHTML = html;
   }
 
-  function drawKlausuren() {
-    var klausuren = Lesify.klausuren(fachId).filter(function (k) { return k.fachId === fachId; });
+  async function drawKlausuren() {
+    var klausuren = (await Lesify.klausuren()).filter(function (k) { return k.fachId === fachId; });
     var html = R.klausurListe(klausuren);
     if (!klausuren.length) {
       html = '<div class="empty-state"><div class="es-icon">' + I.docCheck + '</div><h4>Noch keine Klausuren</h4><p>Für ' + fach.name + ' wurde noch keine Klausur angelegt.</p><a class="btn btn-secondary" href="klausuren.html">Klausur hinzufügen</a></div>';
@@ -128,17 +130,27 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('fach-klausuren').innerHTML = html;
   }
 
-  drawHead(); drawThemen(); drawKlausuren();
+  // drawThemen() zuerst und für sich (füllt den Themen-Cache, siehe api.js) —
+  // drawKlausuren() rendert Thema-Badges daraus (Lesify.label(), synchron) und
+  // müsste sonst raten, ob der Cache schon warm ist.
+  await drawThemen();
+  await Promise.all([drawHead(), drawKlausuren()]);
 
-  document.getElementById('new-thema-form').addEventListener('submit', function (e) {
+  document.getElementById('new-thema-form').addEventListener('submit', async function (e) {
     e.preventDefault();
     var name = document.getElementById('nt-name').value.trim();
     var desc = document.getElementById('nt-desc').value.trim();
     if (!name) return;
-    var thema = Lesify.addThema({ fachId: fachId, name: name, beschreibung: desc });
+    var thema;
+    try {
+      thema = await Lesify.addThema({ fachId: fachId, name: name, beschreibung: desc });
+    } catch (err) {
+      LesifyUI.toast(Lesify.fehlerText ? Lesify.fehlerText(err) : 'Thema konnte nicht angelegt werden.');
+      return;
+    }
     LesifyUI.closeModal(document.getElementById('modal-new-thema'));
     this.reset();
-    drawHead(); drawThemen();
+    await Promise.all([drawHead(), drawThemen()]);
     LesifyUI.toast('„' + thema.name + '" wurde zu ' + fach.name + ' hinzugefügt.');
   });
 });

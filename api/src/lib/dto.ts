@@ -24,12 +24,22 @@ export function fachDTO(f: Fach, counts?: { themen: number; klausuren: number })
   };
 }
 
-export function themaDTO(t: Thema & { fach?: Fach | null }) {
+export function themaDTO(
+  t: Thema & { fach?: Fach | null },
+  counts?: { chats: number; lernzettel: number; dateien: number },
+) {
   return {
     id: t.id,
     fachId: t.fachId,
     name: t.name,
     beschreibung: t.beschreibung,
     ...(t.fach ? { fachName: t.fach.name, farbe: t.fach.farbe } : {}),
+    ...(counts
+      ? {
+          anzahlChats: counts.chats,
+          anzahlLernzettel: counts.lernzettel,
+          anzahlDateien: counts.dateien,
+        }
+      : {}),
   };
 }

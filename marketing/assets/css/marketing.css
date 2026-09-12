@@ -1375,8 +1375,15 @@ main { display: block; }
     radial-gradient(circle at 15% 10%, rgba(255,255,255,0.12), transparent 45%),
     radial-gradient(circle at 100% 100%, rgba(255,255,255,0.09), transparent 45%);
 }
-.auth__aside .brand__word { color: var(--paper); }
-.auth__aside .brand__mark { background: var(--white); color: var(--ink-950); }
+/* Größeres Logo auf den Auth-Seiten (Anmelden/Registrieren/Passwort
+   vergessen) — im dunklen Aside-Panel steht es allein, ohne Nav
+   drumherum, deshalb darf es deutlich präsenter sein als in der
+   schmalen Nav-Pille. */
+.auth__aside .brand { gap: 14px; margin-bottom: 0; }
+.auth__aside .brand__word { color: var(--paper); font-size: 1.55rem; }
+.auth__aside .brand__mark { width: 44px; height: 44px; border-radius: 12px; background: var(--white); color: var(--ink-950); }
+.auth__aside .brand__mark svg,
+.auth__aside .brand__mark img { width: 26px; height: 26px; }
 .auth__aside-body { margin-top: auto; }
 .auth__aside-body h2 {
   color: var(--paper);
@@ -1409,6 +1416,18 @@ main { display: block; }
 .auth-card {
   width: 100%;
   max-width: 400px;
+}
+
+/* Registrieren: das Formular ist länger als bei Anmelden/Passwort-
+   vergessen (Rollen-Auswahl + mehr Felder) — deshalb hier eigens die
+   linke, dunkle Spalte auf Viewport-Höhe fixiert (kein Scroll), nur
+   die rechte Formular-Spalte scrollt für sich. Nur ab der Breite, ab
+   der beide Spalten nebeneinander stehen (siehe max-width:960px unten,
+   das die Aside sonst ausblendet). */
+@media (min-width: 961px) {
+  body[data-page="registrieren"] .auth { height: 100dvh; overflow: hidden; }
+  body[data-page="registrieren"] .auth__aside { height: 100%; overflow: hidden; }
+  body[data-page="registrieren"] .auth__main { height: 100%; align-items: flex-start; overflow-y: auto; }
 }
 .auth-card__back {
   display: inline-flex; align-items: center; gap: 6px;

@@ -41,8 +41,8 @@ Cut-over **pro Seite** (noch offen, braucht laufendes Backend auf `staging`):
 4. Datei-Viewer auf `Lesify.dateiInhaltUrl(id)` + `Lesify.pollDateiStatus(id, cb)`
    umstellen, Dev-Switcher (Suche-Varianten, Pill-Style, Testklausur-Phasen)
    hinter einen Dev-Flag legen oder entfernen.
-5. Marketing-Formulare (`marketing/login.html`, `registrieren.html`,
-   `passwort-vergessen.html`, `kontakt.html`) an `Lesify.login` / `registrieren`
+5. Marketing-Formulare (`marketing/login/`, `registrieren/`,
+   `passwort-vergessen/`, `kontakt/`) an `Lesify.login` / `registrieren`
    / `passwortVergessen` / `kontakt` hängen.
 
 Basis-URL: `window.LESIFY_API_BASE` (Default `http://localhost:3000`).

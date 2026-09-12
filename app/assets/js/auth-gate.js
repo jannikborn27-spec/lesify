@@ -11,7 +11,7 @@
   'use strict';
   if (!window.Lesify || !window.Lesify.me) return; // data.js-Modus: nichts tun
 
-  var LOGIN = '../marketing/login.html';
+  var LOGIN = '/login/';
   var ELTERN_SEITE = 'eltern.html';
   var SCHUELER_START = 'dashboard.html';
 

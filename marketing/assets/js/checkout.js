@@ -214,7 +214,7 @@
         return r.json();
       }).then(function (data) {
         if (!data.clientSecret) throw new Error('kein_client_secret');
-        var returnUrl = location.origin + location.pathname.replace('checkout.html', 'checkout-erfolg.html');
+        var returnUrl = location.origin + '/checkout-erfolg/';
         // Bei Trial ohne Sofortbelastung liefert Stripe ein SetupIntent
         // (Präfix `seti_…`) statt eines PaymentIntent (`pi_…`) — je nachdem
         // ruft man confirmSetup oder confirmPayment.

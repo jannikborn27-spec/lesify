@@ -1784,6 +1784,87 @@ Blockiert alles Weitere. Erst die offenen Produktfragen klären, dann bauen.
       (4 Sections × 4 Ecken) vorhanden, Dev-Panel zeigt nur noch „Hero",
       keine Konsolenfehler.
 
+- [x] **Dritte Nachjustierung `ueber-uns.html` + sauberere URLs +
+      404-Seite + Auth-Seiten (2026-09-12, gleicher Tag):**
+      · **Eck-Passermarken wieder entfernt** — `.au-frame-mark` war ein
+      Alleingang ohne Vorbild auf der Startseite; der einzige tatsächlich
+      site-weit genutzte „Rahmen-Effekt" ist der bestehende Rundungs-/
+      Zwickel-Übergang (`.mkt-cut`/`.mkt-dark`, gleiche Technik wie
+      `index.html`s `.sv-sec[data-*]`), der auf `ueber-uns.html` unverändert
+      weiterläuft. Keine Ersatz-Dekoration hinzugefügt.
+      · **Hero, 3. Anlauf** — alle 10 Varianten aus Anlauf 2 (Diagonal-Split
+      ausgenommen, der gefiel) durch 9 neue ersetzt, diesmal um ein groß
+      eingesetztes, randloses Foto statt Layout-Spielereien: Vollbild-Split
+      bis zum Viewport-Rand (`position:absolute` verankert an `.au-hero`,
+      dem einzigen `position:relative`-Vorfahren, der die volle Section
+      statt nur die schmale `.container--narrow`-Spalte umfasst), riesige
+      zentrierte Figur mit Headline oben/unten, Split mit überformatierter
+      Display-Type, weicher organischer Farbfleck (`border-radius`-Blob)
+      hinter dem Foto, enger Zoom-Crop, großes gedrehtes Foto (mit
+      reserviertem Textbereich, siehe Bug unten), unten angeschnittenes
+      Foto (`overflow:hidden` + `object-position:top`), hoher Bildstreifen
+      als Vollhöhen-Backdrop rechts (Text strikt links, kein Überlapp),
+      Foto zum Großteil jenseits des Viewport-Rands (von
+      `main.overflow-x-hidden` abgeschnitten). **Zwei Bugs beim Testen
+      gefunden + gefixt:** (1) das gedrehte Foto lag über der Headline und
+      machte sie unleserlich → `padding-right` + schmalere `h1` reserviert;
+      (2) der Vollbild-Backdrop lag unter dem Fließtext, Kopf/Kleidung
+      der Person verschluckte die Schrift → Backdrop auf eine reine
+      rechte Bildspalte (56 %) reduziert, Text bleibt strikt links ohne
+      Überlappung.
+      · **Timeline** auf die Jahreszahl-Variante fixiert (Zickzack
+      gelöscht), Dev-Panel zeigt jetzt nur noch die Achse „Hero".
+      · **Saubere URLs site-weit:** alle Marketing-Seiten außer
+      `index.html` von `pagename.html` nach `pagename/index.html`
+      verschoben (`git mv`) — `/pagename/` löst über die normale
+      Verzeichnis-Index-Auflösung auf (GitHub Pages wie lokaler
+      `python3 -m http.server`), kein Rewrite/Redirect nötig. Alle
+      internen Links (NAV_LINKS/FOOTER + Inline-`href`/`src` in jeder
+      Seite + `marketing.js`) auf root-absolute Pfade umgestellt
+      (`/kontakt/`, `/#price`, `/assets/css/marketing.css` …) — Assets
+      mussten mit, sonst hätten die verschachtelten Seiten `assets/…`
+      relativ zur eigenen Unter-URL gesucht. `app/dashboard.html` bleibt
+      `.html` (App-Unterseite `/app` ist von dieser Umstellung nicht
+      betroffen). **Mitgezogene Folgefixe:**
+      `currentBasename()`/`samePageHash()` in `marketing.js` verglichen
+      bisher Dateinamen (`location.pathname.split('/').pop()`) — bricht
+      bei `/#price`-Ankern seit die Seite unter `/` statt `index.html`
+      läuft; jetzt Vergleich über den vollen `location.pathname`.
+      `checkout.js`s Stripe-Return-URL baute bisher per
+      `location.pathname.replace('checkout.html','checkout-erfolg.html')`
+      — jetzt direkt `location.origin + '/checkout-erfolg/'`.
+      `app/assets/js/auth-gate.js`s (noch inaktiver, Phase-11-)
+      Login-Redirect zeigte ohnehin fälschlich auf `../marketing/login.html`
+      → korrigiert auf `/login/`. `app/README.md` Pfad-Erwähnungen
+      nachgezogen.
+      · **`marketing/404.html`** neu — GitHub Pages serviert das
+      automatisch für jeden nicht gefundenen Pfad unterhalb der Domain.
+      Eigener Minimal-Nav-Modus (`data-nav="minimal"`, vorher ungenutzt),
+      große „404"-Ziffer, kurzer Text, CTA zurück zur Startseite/Kontakt.
+      · **Login/Registrieren: größeres Logo** im dunklen Aside-Panel
+      (`.auth__aside .brand`) — Marke 30→44 px, Icon 18→26 px, Wortmarke
+      1.16→1.55 rem — gilt für alle drei Auth-Seiten (Login, Registrieren,
+      Passwort vergessen), da sie dieselbe Komponente teilen.
+      · **Registrieren: linke Spalte fixiert, rechte scrollt.** Das
+      Formular ist länger als bei Login (Rollen-Wahl + mehr Felder) und
+      lief bisher komplett aus dem Viewport. Ab 961 px (darunter blendet
+      `.auth__aside` ohnehin aus) `body[data-page="registrieren"] .auth`
+      auf `height:100dvh` + `overflow:hidden`, `.auth__aside` `height:100%`
+      + `overflow:hidden` (kein Scroll), `.auth__main` `height:100%` +
+      `overflow-y:auto` (scrollt für sich); `align-items` dort von
+      `center` auf `flex-start`, weil zentrierte Flex-Items bei Overflow
+      am oberen Rand sonst nicht erreichbar scrollen.
+      · Im Browser (temporärer lokaler Server, `python3 -m http.server`
+      simuliert die Verzeichnis-Index-Auflösung 1:1 wie GitHub Pages)
+      geprüft: alle 11 Seiten (`/`, `/ueber-uns/`, `/login/`,
+      `/registrieren/`, `/kontakt/`, `/agb/`, `/datenschutz/`,
+      `/impressum/`, `/checkout/?plan=…`, `/checkout-erfolg/`,
+      `/passwort-vergessen/`, `/404.html`) laden ohne Konsolenfehler,
+      Nav-/Footer-Links zeigen ausschließlich saubere Pfade, `/#price`
+      löst weiterhin als In-Page-Scroll auf (kein Reload), Registrieren-
+      Formular scrollt sichtbar unabhängig von der fixierten linken
+      Spalte.
+
 ---
 
 ## Phase 1 — Stack-Entscheidung & Projekt-Setup

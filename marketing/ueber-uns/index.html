@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Über uns — Lesify</title>
 <meta name="description" content="Lesify begann als Lernsystem, das Jannik Born fürs eigene Abitur gebaut und im Studium mit KI weiterentwickelt hat — bis daraus die Lernapp für seine Schwester und schließlich ein Unternehmen wurde.">
-<link rel="icon" href="assets/img/logo.png">
-<link rel="stylesheet" href="assets/css/marketing.css">
-<link rel="stylesheet" href="assets/css/landing-lab.css">
-<link rel="stylesheet" href="assets/css/ueber-uns.css">
+<link rel="icon" href="/assets/img/logo.png">
+<link rel="stylesheet" href="/assets/css/marketing.css">
+<link rel="stylesheet" href="/assets/css/landing-lab.css">
+<link rel="stylesheet" href="/assets/css/ueber-uns.css">
 </head>
 <body data-page="ueber-uns">
 <header id="mkt-nav"></header>
@@ -16,15 +16,14 @@
 <main class="overflow-x-hidden">
 
   <!-- ============================================================
-       1) HERO (weiß) — 10 Design-Varianten, jede mit Gründer-Foto,
-          Dev-Panel unten rechts. Eck-Passermarken (.au-frame-mark)
-          rahmen jeden Abschnitt der Seite.
+       1) HERO (weiß) — 10 Design-Varianten, jede mit großem Gründer-Foto
+          (kein Rahmen/Karte — das Foto-Backdrop trifft den Seitenhintergrund,
+          wirkt dadurch wie ein freigestelltes PNG). Dev-Panel unten rechts.
+          Rundungs-/Zwickel-Übergang zwischen den Abschnitten läuft wie
+          überall sonst auf der Seite über .mkt-cut/.mkt-dark — kein
+          zusätzlicher Rahmen-Effekt hier.
        ============================================================ -->
   <section class="page-hero au-hero mkt-cut mkt-cut--bottom">
-    <span class="au-frame-mark au-frame-mark--tl" aria-hidden="true"></span>
-    <span class="au-frame-mark au-frame-mark--tr" aria-hidden="true"></span>
-    <span class="au-frame-mark au-frame-mark--bl" aria-hidden="true"></span>
-    <span class="au-frame-mark au-frame-mark--br" aria-hidden="true"></span>
     <div class="container container--narrow">
       <div class="au-group" data-group="hero" data-active="1" data-reveal>
 
@@ -40,49 +39,43 @@
               <div class="au-signature">Jannik Born<span>Gründer von Lesify</span></div>
             </div>
             <div class="au-hero-1__photo">
-              <img src="assets/img/jborn-uberuns.jpg" alt="Jannik Born, Gründer von Lesify" onerror="this.remove()">
+              <img src="/assets/img/jborn-uberuns.jpg" alt="Jannik Born, Gründer von Lesify" onerror="this.remove()">
             </div>
           </div>
         </div>
 
-        <!-- v2 — Das große "J": Foto in die Initiale maskiert -->
+        <!-- v2 — Vollflächiges Foto rechts, bis an den Viewport-Rand -->
         <div class="au-hero-2" data-variant="2">
           <div class="au-hero-2__grid">
-            <span class="au-hero-2__letter" aria-hidden="true">J</span>
-            <div>
+            <div class="au-hero-2__text">
               <span class="eyebrow au-hero-eyebrow">Über uns</span>
               <h1>Angefangen hat alles mit einem Lernzettel für mich selbst.</h1>
               <p>Lesify ist kein Konzern-Produkt. Es ist aus einem Lernsystem entstanden, das ich
               fürs eigene Abitur gebaut, im Studium weitergedacht und irgendwann für meine
               Schwester zu einer echten App gemacht habe.</p>
+              <div class="au-signature">Jannik Born<span>Gründer von Lesify</span></div>
+            </div>
+            <div class="au-hero-2__photo">
+              <img src="/assets/img/jborn-uberuns.jpg" alt="Jannik Born, Gründer von Lesify" onerror="this.remove()">
             </div>
           </div>
         </div>
 
-        <!-- v3 — Zeitungs-Titelseite: Masthead + Foto-Credit -->
+        <!-- v3 — Riesige Figur zentriert, Headline oben + unten -->
         <div class="au-hero-3" data-variant="3">
-          <div class="au-hero-3__masthead"><span>LESIFY</span>&nbsp;&middot;&nbsp;GRÜNDERGESCHICHTE</div>
+          <span class="eyebrow au-hero-eyebrow">Über uns</span>
           <h1>Angefangen hat alles mit einem Lernzettel für mich selbst.</h1>
+          <div class="au-hero-3__photo">
+            <img src="/assets/img/jborn-uberuns.jpg" alt="Jannik Born, Gründer von Lesify" onerror="this.remove()">
+          </div>
           <p>Lesify ist kein Konzern-Produkt. Es ist aus einem Lernsystem entstanden, das ich
           fürs eigene Abitur gebaut, im Studium weitergedacht und irgendwann für meine
           Schwester zu einer echten App gemacht habe.</p>
-          <div class="au-hero-3__credit">
-            <span class="au-hero-3__thumb">
-              <img src="assets/img/jborn-uberuns.jpg" alt="" onerror="this.replaceWith(document.createTextNode('JB'))">
-            </span>
-            <span>Foto: Jannik Born, Gründer</span>
-          </div>
         </div>
 
-        <!-- v4 — Farbfeld-Split: Tinten-Panel mit Foto -->
+        <!-- v4 — Split mit überformatierter Headline + großem Foto -->
         <div class="au-hero-4" data-variant="4">
           <div class="au-hero-4__grid">
-            <div class="au-hero-4__panel">
-              <div class="au-hero-4__panel-photo">
-                <img src="assets/img/jborn-uberuns.jpg" alt="Jannik Born, Gründer von Lesify" onerror="this.remove()">
-              </div>
-              <span class="au-hero-4__panel-meta">Gründer &middot; seit 2023</span>
-            </div>
             <div class="au-hero-4__text">
               <span class="eyebrow au-hero-eyebrow">Über uns</span>
               <h1>Angefangen hat alles mit einem Lernzettel für mich selbst.</h1>
@@ -90,56 +83,38 @@
               fürs eigene Abitur gebaut, im Studium weitergedacht und irgendwann für meine
               Schwester zu einer echten App gemacht habe.</p>
             </div>
+            <div class="au-hero-4__photo">
+              <img src="/assets/img/jborn-uberuns.jpg" alt="Jannik Born, Gründer von Lesify" onerror="this.remove()">
+            </div>
           </div>
         </div>
 
-        <!-- v5 — Magazin-Umfluss: Foto als Drop-Bild im Fließtext -->
+        <!-- v5 — Weicher Farbfleck hinter dem großen Foto -->
         <div class="au-hero-5" data-variant="5">
-          <span class="eyebrow au-hero-eyebrow">Über uns</span>
-          <h1>Angefangen hat alles mit einem Lernzettel für mich selbst.</h1>
-          <div class="au-hero-5__body">
-            <span class="au-hero-5__drop">
-              <img src="assets/img/jborn-uberuns.jpg" alt="Jannik Born, Gründer von Lesify" onerror="this.replaceWith(document.createTextNode('JB'))">
-            </span>
-            <p>Lesify ist kein Konzern-Produkt. Es ist aus einem Lernsystem entstanden, das ich
-            fürs eigene Abitur gebaut, im Studium weitergedacht und irgendwann für meine
-            Schwester zu einer echten App gemacht habe. Heute steht dahinter ein kleines Team,
-            aber die Methode ist dieselbe geblieben.</p>
-          </div>
-        </div>
-
-        <!-- v6 — Gründer-Memo mit Ausweis-Badge -->
-        <div class="au-hero-6" data-variant="6">
-          <div class="au-hero-6__grid">
-            <div class="au-hero-6__memo">
-              <span class="au-hero-6__stamp">Gründer-Notiz</span>
-              <h1>Angefangen hat alles <mark>mit einem Lernzettel</mark> für mich selbst.</h1>
+          <div class="au-hero-5__grid">
+            <div class="au-hero-5__text">
+              <span class="eyebrow au-hero-eyebrow">Über uns</span>
+              <h1>Angefangen hat alles mit einem Lernzettel für mich selbst.</h1>
               <p>Lesify ist kein Konzern-Produkt. Es ist aus einem Lernsystem entstanden, das ich
               fürs eigene Abitur gebaut, im Studium weitergedacht und irgendwann für meine
               Schwester zu einer echten App gemacht habe.</p>
             </div>
-            <div class="au-hero-6__badge">
-              <span class="au-hero-6__badge-hole" aria-hidden="true"></span>
-              <div class="au-hero-6__badge-photo">
-                <img src="assets/img/jborn-uberuns.jpg" alt="Jannik Born, Gründer von Lesify" onerror="this.replaceWith(document.createTextNode('JB'))">
+            <div class="au-hero-5__stage">
+              <span class="au-hero-5__blob" aria-hidden="true"></span>
+              <div class="au-hero-5__photo">
+                <img src="/assets/img/jborn-uberuns.jpg" alt="Jannik Born, Gründer von Lesify" onerror="this.remove()">
               </div>
-              <b>Jannik Born</b>
-              <span>Gründer</span>
             </div>
           </div>
         </div>
 
-        <!-- v7 — Scrapbook: Foto mit Washi-Tape auf Punktraster -->
-        <div class="au-hero-7" data-variant="7">
-          <div class="au-hero-7__grid">
-            <div class="au-hero-7__scrap">
-              <span class="au-hero-7__tape" aria-hidden="true"></span>
-              <div class="au-hero-7__photo">
-                <img src="assets/img/jborn-uberuns.jpg" alt="Jannik Born, Gründer von Lesify" onerror="this.replaceWith(document.createTextNode('JB'))">
-              </div>
-              <span class="au-hero-7__caption">Jannik, Gründer</span>
+        <!-- v6 — Enger Bild-Crop, Headline knapp daneben -->
+        <div class="au-hero-6" data-variant="6">
+          <div class="au-hero-6__grid">
+            <div class="au-hero-6__photo">
+              <img src="/assets/img/jborn-uberuns.jpg" alt="Jannik Born, Gründer von Lesify" onerror="this.remove()">
             </div>
-            <div class="au-hero-7__text">
+            <div class="au-hero-6__text">
               <span class="eyebrow au-hero-eyebrow">Über uns</span>
               <h1>Angefangen hat alles mit einem Lernzettel für mich selbst.</h1>
               <p>Lesify ist kein Konzern-Produkt. Es ist aus einem Lernsystem entstanden, das ich
@@ -149,49 +124,60 @@
           </div>
         </div>
 
-        <!-- v8 — Ticker-Leiste mit "Live"-Avatar -->
+        <!-- v7 — Großes, leicht gedrehtes Foto überlappt die Headline -->
+        <div class="au-hero-7" data-variant="7">
+          <span class="eyebrow au-hero-eyebrow">Über uns</span>
+          <div class="au-hero-7__row">
+            <h1>Angefangen hat alles mit einem Lernzettel für mich selbst.</h1>
+            <div class="au-hero-7__photo">
+              <img src="/assets/img/jborn-uberuns.jpg" alt="Jannik Born, Gründer von Lesify" onerror="this.remove()">
+            </div>
+          </div>
+          <p>Lesify ist kein Konzern-Produkt. Es ist aus einem Lernsystem entstanden, das ich
+          fürs eigene Abitur gebaut, im Studium weitergedacht und irgendwann für meine
+          Schwester zu einer echten App gemacht habe.</p>
+        </div>
+
+        <!-- v8 — Foto am unteren Rand angeschnitten -->
         <div class="au-hero-8" data-variant="8">
-          <div class="au-hero-8__ticker" aria-hidden="true">
-            <span class="au-hero-8__ticker-track">GRÜNDERGESCHICHTE&nbsp;&middot;&nbsp;SEIT 2023&nbsp;&middot;&nbsp;LESIFY&nbsp;&middot;&nbsp;GRÜNDERGESCHICHTE&nbsp;&middot;&nbsp;SEIT 2023&nbsp;&middot;&nbsp;LESIFY&nbsp;&middot;&nbsp;</span>
-          </div>
-          <div class="au-hero-8__lead">
-            <span class="au-avatar au-hero-8__avatar">
-              <img src="assets/img/jborn-uberuns.jpg" alt="" onerror="this.replaceWith(document.createTextNode('JB'))">
-            </span>
-            <span class="au-hero-8__live"><span class="au-hero-8__dot"></span>Gründer live</span>
-          </div>
+          <span class="eyebrow au-hero-eyebrow">Über uns</span>
           <h1>Angefangen hat alles mit einem Lernzettel für mich selbst.</h1>
           <p>Lesify ist kein Konzern-Produkt. Es ist aus einem Lernsystem entstanden, das ich
           fürs eigene Abitur gebaut, im Studium weitergedacht und irgendwann für meine
           Schwester zu einer echten App gemacht habe.</p>
-        </div>
-
-        <!-- v9 — Foto-Maske im ersten Wort der Headline -->
-        <div class="au-hero-9" data-variant="9">
-          <span class="eyebrow au-hero-eyebrow">Über uns</span>
-          <h1><span class="au-hero-9__masked">Angefangen</span><span class="au-hero-9__rest">hat alles mit einem Lernzettel für mich selbst.</span></h1>
-          <p>Lesify ist kein Konzern-Produkt. Es ist aus einem Lernsystem entstanden, das ich
-          fürs eigene Abitur gebaut, im Studium weitergedacht und irgendwann für meine
-          Schwester zu einer echten App gemacht habe.</p>
-        </div>
-
-        <!-- v10 — Interview-Karte mit Tonspur-Balken -->
-        <div class="au-hero-10" data-variant="10">
-          <div class="au-hero-10__card">
-            <span class="au-hero-10__tab">Gründer-Interview</span>
-            <div class="au-hero-10__row">
-              <span class="au-avatar au-hero-10__avatar">
-                <img src="assets/img/jborn-uberuns.jpg" alt="" onerror="this.replaceWith(document.createTextNode('JB'))">
-              </span>
-              <span class="au-hero-10__wave" aria-hidden="true">
-                <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
-              </span>
-            </div>
-            <h1>Angefangen hat alles mit einem Lernzettel für mich selbst.</h1>
+          <div class="au-hero-8__photo">
+            <img src="/assets/img/jborn-uberuns.jpg" alt="Jannik Born, Gründer von Lesify" onerror="this.remove()">
           </div>
-          <p>Lesify ist kein Konzern-Produkt. Es ist aus einem Lernsystem entstanden, das ich
-          fürs eigene Abitur gebaut, im Studium weitergedacht und irgendwann für meine
-          Schwester zu einer echten App gemacht habe.</p>
+        </div>
+
+        <!-- v9 — Foto als Vollbild-Backdrop der ganzen Hero, Headline darüber -->
+        <div class="au-hero-9" data-variant="9">
+          <div class="au-hero-9__backdrop" aria-hidden="true">
+            <img src="/assets/img/jborn-uberuns.jpg" alt="" onerror="this.remove()">
+          </div>
+          <div class="au-hero-9__body">
+            <span class="eyebrow au-hero-eyebrow">Über uns</span>
+            <h1>Angefangen hat alles mit einem Lernzettel für mich selbst.</h1>
+            <p>Lesify ist kein Konzern-Produkt. Es ist aus einem Lernsystem entstanden, das ich
+            fürs eigene Abitur gebaut, im Studium weitergedacht und irgendwann für meine
+            Schwester zu einer echten App gemacht habe.</p>
+          </div>
+        </div>
+
+        <!-- v10 — Foto zum Großteil außerhalb des Viewports -->
+        <div class="au-hero-10" data-variant="10">
+          <div class="au-hero-10__grid">
+            <div class="au-hero-10__text">
+              <span class="eyebrow au-hero-eyebrow">Über uns</span>
+              <h1>Angefangen hat alles mit einem Lernzettel für mich selbst.</h1>
+              <p>Lesify ist kein Konzern-Produkt. Es ist aus einem Lernsystem entstanden, das ich
+              fürs eigene Abitur gebaut, im Studium weitergedacht und irgendwann für meine
+              Schwester zu einer echten App gemacht habe.</p>
+            </div>
+            <div class="au-hero-10__photo">
+              <img src="/assets/img/jborn-uberuns.jpg" alt="Jannik Born, Gründer von Lesify" onerror="this.remove()">
+            </div>
+          </div>
         </div>
 
       </div>
@@ -202,10 +188,6 @@
        2) TIMELINE (schwarz) — final: große verblasste Jahreszahl
        ============================================================ -->
   <section class="section mkt-dark">
-    <span class="au-frame-mark au-frame-mark--tl" aria-hidden="true"></span>
-    <span class="au-frame-mark au-frame-mark--tr" aria-hidden="true"></span>
-    <span class="au-frame-mark au-frame-mark--bl" aria-hidden="true"></span>
-    <span class="au-frame-mark au-frame-mark--br" aria-hidden="true"></span>
     <div class="container container--narrow">
       <div class="section-head au-tl-head" data-reveal>
         <span class="eyebrow">Wie daraus Lesify wurde</span>
@@ -242,10 +224,6 @@
        3) WO LESIFY JETZT STEHT (weiß) — final, keine Varianten mehr
        ============================================================ -->
   <section class="section mkt-cut mkt-cut--all">
-    <span class="au-frame-mark au-frame-mark--tl" aria-hidden="true"></span>
-    <span class="au-frame-mark au-frame-mark--tr" aria-hidden="true"></span>
-    <span class="au-frame-mark au-frame-mark--bl" aria-hidden="true"></span>
-    <span class="au-frame-mark au-frame-mark--br" aria-hidden="true"></span>
     <div class="container container--narrow">
       <div class="about-outlook au-stand-head" data-reveal>
         <h2>Wo Lesify gerade steht</h2>
@@ -254,7 +232,7 @@
           der Nachtest-Ablauf rechnen bereits echt, die KI-Antworten sind noch simulierter
           Platzhaltertext. Diese Website zeigt, wie sich das fertige Produkt anfühlen soll.
           Fragen oder Feedback gehen direkt an mich, über die
-          <a href="kontakt.html">Kontaktseite</a>.
+          <a href="/kontakt/">Kontaktseite</a>.
         </p>
       </div>
 
@@ -271,18 +249,14 @@
        4) ABSCHLUSS-CTA (schwarz) — fest, keine Varianten
        ============================================================ -->
   <section class="section mkt-dark">
-    <span class="au-frame-mark au-frame-mark--tl" aria-hidden="true"></span>
-    <span class="au-frame-mark au-frame-mark--tr" aria-hidden="true"></span>
-    <span class="au-frame-mark au-frame-mark--bl" aria-hidden="true"></span>
-    <span class="au-frame-mark au-frame-mark--br" aria-hidden="true"></span>
     <div class="container">
       <div class="cta-band" data-reveal>
         <span class="eyebrow" style="justify-content:center">Loslegen</span>
         <h2>Sehen Sie selbst, ob es passt.</h2>
         <p>Kostenloses Konto, ein Fach, eine Woche. Danach entscheiden Sie.</p>
         <div class="hero__cta">
-          <a class="btn btn-on-dark btn-primary btn-lg" href="registrieren.html">Kostenlos starten</a>
-          <a class="btn btn-on-dark btn-secondary btn-lg" href="kontakt.html">Kontakt aufnehmen</a>
+          <a class="btn btn-on-dark btn-primary btn-lg" href="/registrieren/">Kostenlos starten</a>
+          <a class="btn btn-on-dark btn-secondary btn-lg" href="/kontakt/">Kontakt aufnehmen</a>
         </div>
       </div>
     </div>
@@ -291,7 +265,7 @@
 </main>
 
 <footer id="mkt-footer"></footer>
-<script src="assets/js/marketing.js"></script>
+<script src="/assets/js/marketing.js"></script>
 <script>
 (function () {
   /* Dev-Switcher für die letzte verbliebene Design-Achse dieser Seite

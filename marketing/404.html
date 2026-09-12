@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seite nicht gefunden — Lesify</title>
+<meta name="description" content="Diese Seite gibt es nicht (mehr). Zurück zur Lesify-Startseite oder direkt Kontakt aufnehmen.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="/assets/img/logo.png">
+<link rel="stylesheet" href="/assets/css/marketing.css">
+<style>
+  .error-404 {
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: clamp(6rem, 4rem + 6vw, 9rem) var(--gutter) clamp(3rem, 2rem + 4vw, 5rem);
+  }
+  .error-404__num {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(4.5rem, 3rem + 8vw, 8rem);
+    line-height: 1;
+    letter-spacing: -0.03em;
+    color: var(--ink-200);
+  }
+  .error-404 h1 {
+    margin-top: 0.6rem;
+    font-size: clamp(1.7rem, 1.3rem + 1.6vw, 2.4rem);
+  }
+  .error-404 p {
+    margin-top: 0.9rem;
+    max-width: 46ch;
+    margin-inline: auto;
+    color: var(--ink-600);
+    font-size: 1.05rem;
+  }
+  .error-404 .hero__cta { margin-top: 2rem; justify-content: center; }
+</style>
+</head>
+<body data-page="404" data-nav="minimal">
+<header id="mkt-nav"></header>
+
+<main class="overflow-x-hidden">
+  <section class="error-404">
+    <div class="container container--narrow">
+      <span class="error-404__num" aria-hidden="true">404</span>
+      <h1>Diese Seite gibt es nicht.</h1>
+      <p>
+        Der Link ist vielleicht veraltet oder falsch getippt. Auf der Startseite finden Sie
+        alles Wichtige — oder schreiben Sie uns, wenn Sie etwas Bestimmtes gesucht haben.
+      </p>
+      <div class="hero__cta">
+        <a class="btn btn-primary btn-lg" href="/">Zur Startseite</a>
+        <a class="btn btn-secondary btn-lg" href="/kontakt/">Kontakt aufnehmen</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer id="mkt-footer"></footer>
+<script src="/assets/js/marketing.js"></script>
+</body>
+</html>

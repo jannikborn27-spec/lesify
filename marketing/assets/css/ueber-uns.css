@@ -21,20 +21,6 @@
 .au-group[data-active="10"] > [data-variant="10"] { display: block; }
 
 /* ---------------------------------------------------------
-   Eck-Passermarken — rahmen jeden der vier Abschnitte dieser Seite
-   (Hero/Timeline/Stand/CTA). Dunkle Marken auf Weiß, helle auf
-   Schwarz (.mkt-dark). Rein dekorativ, deshalb aria-hidden + auf
-   kleinen Screens ausgeblendet (Platz reicht sonst nicht).
-   --------------------------------------------------------- */
-.au-frame-mark { position: absolute; width: 18px; height: 18px; border-color: var(--ink-950); pointer-events: none; z-index: 2; }
-.au-frame-mark--tl { top: 28px; left: 28px; border-top: 1.5px solid; border-left: 1.5px solid; }
-.au-frame-mark--tr { top: 28px; right: 28px; border-top: 1.5px solid; border-right: 1.5px solid; }
-.au-frame-mark--bl { bottom: 28px; left: 28px; border-bottom: 1.5px solid; border-left: 1.5px solid; }
-.au-frame-mark--br { bottom: 28px; right: 28px; border-bottom: 1.5px solid; border-right: 1.5px solid; }
-.mkt-dark .au-frame-mark { border-color: rgba(255,255,255,0.35); }
-@media (max-width: 640px) { .au-frame-mark { display: none; } }
-
-/* ---------------------------------------------------------
    Utilities, gemeinsam von mehreren Varianten genutzt
    --------------------------------------------------------- */
 .au-cols-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
@@ -69,150 +55,109 @@
 .au-hero-1__photo { position: relative; align-self: stretch; min-height: 380px; border-radius: var(--radius-xl); overflow: hidden; background: var(--ink-950); clip-path: polygon(16% 0, 100% 0, 100% 100%, 0% 100%); }
 .au-hero-1__photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-/* v2 — Das große "J": Foto in die Initiale maskiert */
-.au-hero-2__grid { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: clamp(1rem, 1vw, 2rem); text-align: left; }
-.au-hero-2__letter {
-  font-family: var(--font-display); font-weight: 800; line-height: 0.78; letter-spacing: -0.02em;
-  font-size: clamp(7.5rem, 5rem + 10vw, 13rem);
-  background-image: url('../img/jborn-uberuns.jpg'); background-size: cover; background-position: center 18%;
-  background-color: var(--ink-950); -webkit-background-clip: text; background-clip: text;
-  color: transparent; -webkit-text-fill-color: transparent; filter: grayscale(0.35) contrast(1.08);
-}
-.au-hero-2 .au-hero-eyebrow { justify-content: flex-start; }
-.au-hero-2 h1 { font-size: clamp(1.9rem, 1.3rem + 2.2vw, 2.7rem); max-width: 15ch; }
-.au-hero-2 p { margin-top: 1rem; font-size: 1.02rem; color: var(--ink-600); max-width: 46ch; }
+/* v2 — Split, Foto bleedet bis zum rechten Viewport-Rand. Das Foto
+   ist absolut positioniert; sein positionierender Vorfahre ist NICHT
+   der lokale Wrapper, sondern übersprungen bis zu .au-hero (die
+   volle Section, kein max-width) — dafür bleibt .au-hero-2__grid
+   bewusst ohne eigenes position:relative. */
+.au-hero-2 { text-align: left; }
+.au-hero-2__grid { display: flex; align-items: center; min-height: clamp(380px, 40vw, 500px); }
+.au-hero-2__text { max-width: 46%; padding-right: clamp(1rem, 3vw, 2.4rem); }
+.au-hero-2__photo { position: absolute; top: 50%; right: 0; transform: translateY(-50%); height: clamp(320px, 36vw, 460px); aspect-ratio: 4/5; }
+.au-hero-2__photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-/* v3 — Zeitungs-Titelseite: Masthead + Foto-Credit */
-.au-hero-3__masthead {
-  display: block; padding: 10px 0; margin-bottom: 1.6rem;
-  border-top: 2px solid var(--ink-950); border-bottom: 1px solid var(--ink-950);
-  font-family: var(--font-mono); font-size: 0.76rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-600);
-}
-.au-hero-3__masthead span { font-weight: 700; color: var(--ink-950); }
-.au-hero-3 h1 { max-width: 18ch; margin: 0 auto; font-size: clamp(2.2rem, 1.5rem + 3vw, 3.6rem); }
-.au-hero-3 p { max-width: 56ch; margin: 1.2rem auto 0; font-size: 1.05rem; color: var(--ink-600); }
-.au-hero-3__credit { display: inline-flex; align-items: center; gap: 10px; margin-top: 1.8rem; padding-top: 1.2rem; border-top: 1px solid var(--line); }
-.au-hero-3__thumb { width: 30px; height: 30px; border-radius: 3px; overflow: hidden; background: var(--ink-950); color: var(--paper); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; font-size: 0.62rem; flex-shrink: 0; }
-.au-hero-3__thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.au-hero-3__credit span:last-child { font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink-500); }
+/* v3 — Riesige Figur zentriert, Headline oben + unten */
+.au-hero-3 h1 { max-width: 20ch; margin: 1rem auto 0; font-size: clamp(2.1rem, 1.5rem + 2.6vw, 3.2rem); }
+.au-hero-3__photo { margin: clamp(1.6rem, 1.1rem + 2vw, 2.6rem) auto; height: clamp(280px, 32vw, 420px); aspect-ratio: 4/5; }
+.au-hero-3__photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.au-hero-3 p { max-width: 52ch; margin: 0 auto; font-size: 1.04rem; color: var(--ink-600); }
 
-/* v4 — Farbfeld-Split: Tinten-Panel mit Foto */
+/* v4 — Split mit überformatierter Headline + großem, rechteckigem Foto */
 .au-hero-4 { text-align: left; }
-.au-hero-4__grid { display: grid; grid-template-columns: 240px 1fr; align-items: stretch; gap: clamp(1.4rem, 1rem + 2vw, 2.6rem); }
-.au-hero-4__panel { background: var(--ink-950); border-radius: var(--radius-xl); padding: 18px; display: flex; flex-direction: column; }
-.au-hero-4__panel-photo { flex: 1; border-radius: var(--radius-md); overflow: hidden; background: rgba(255,255,255,0.06); }
-.au-hero-4__panel-photo img { width: 100%; height: 100%; object-fit: cover; display: block; filter: grayscale(0.5) sepia(0.15) hue-rotate(170deg) saturate(1.4); }
-.au-hero-4__panel-meta { display: block; margin-top: 12px; text-align: center; font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.05em; color: rgba(255,255,255,0.65); }
-.au-hero-4__text { display: flex; flex-direction: column; justify-content: center; }
-.au-hero-4 .au-hero-eyebrow { justify-content: flex-start; }
-.au-hero-4 h1 { font-size: clamp(2rem, 1.4rem + 2.4vw, 3rem); max-width: 15ch; }
-.au-hero-4 p { margin-top: 1rem; font-size: 1.02rem; color: var(--ink-600); max-width: 46ch; }
+.au-hero-4__grid { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: clamp(1.4rem, 1rem + 2vw, 2.4rem); min-height: 400px; }
+.au-hero-4 h1 { font-size: clamp(2.4rem, 1.6rem + 3.6vw, 4rem); max-width: 12ch; line-height: 0.98; letter-spacing: -0.02em; }
+.au-hero-4 p { margin-top: 1.1rem; font-size: 1.02rem; color: var(--ink-600); max-width: 40ch; }
+.au-hero-4__photo { align-self: stretch; min-height: 380px; }
+.au-hero-4__photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-/* v5 — Magazin-Umfluss: Foto als Drop-Bild im Fließtext */
+/* v5 — Weicher Farbfleck hinter dem großen, rahmenlosen Foto */
 .au-hero-5 { text-align: left; }
-.au-hero-5 .au-hero-eyebrow { justify-content: flex-start; }
-.au-hero-5 h1 { font-size: clamp(2.1rem, 1.5rem + 2.6vw, 3.2rem); max-width: 20ch; margin-bottom: 1.2rem; }
-.au-hero-5__body { max-width: 60ch; }
-.au-hero-5__drop {
-  float: left; width: 116px; height: 116px; margin: 4px 20px 10px 0; border-radius: 50%; overflow: hidden;
-  shape-outside: circle(50%); background: var(--bg-surface); display: flex; align-items: center; justify-content: center;
-  font-family: var(--font-display); font-weight: 600; font-size: 2rem; color: var(--ink-400); border: 1px solid var(--line);
-}
-.au-hero-5__drop img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.au-hero-5__body p { font-size: 1.04rem; color: var(--ink-600); line-height: 1.65; }
+.au-hero-5__grid { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: clamp(1.4rem, 1rem + 2vw, 2.4rem); min-height: 400px; }
+.au-hero-5__stage { position: relative; display: flex; align-items: center; justify-content: center; min-height: 340px; }
+.au-hero-5__blob { position: absolute; width: 84%; height: 84%; border-radius: 42% 58% 65% 35% / 45% 40% 60% 55%; background: var(--ink-100); z-index: 0; }
+.au-hero-5__photo { position: relative; z-index: 1; width: 76%; aspect-ratio: 4/5; }
+.au-hero-5__photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-/* v6 — Gründer-Memo mit Ausweis-Badge */
+/* v6 — Enger Bild-Crop (per object-position/scale gezoomt), Headline daneben */
 .au-hero-6 { text-align: left; }
-.au-hero-6__grid { display: grid; grid-template-columns: 1fr 170px; align-items: start; gap: clamp(1.4rem, 1rem + 2vw, 2.4rem); }
-.au-hero-6__stamp { display: inline-block; margin-bottom: 1rem; padding: 4px 12px; border: 1px dashed var(--ink-400); border-radius: var(--radius-full); font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-500); }
-.au-hero-6 h1 { font-size: clamp(2rem, 1.4rem + 2.4vw, 3rem); max-width: 17ch; }
-.au-hero-6 h1 mark { background: var(--gelb); color: var(--ink-950); padding: 0 4px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
-.au-hero-6 p { margin-top: 1rem; font-size: 1.02rem; color: var(--ink-600); max-width: 46ch; }
-.au-hero-6__badge { position: relative; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--bg-surface); box-shadow: var(--shadow-sm); padding: 20px 14px 14px; text-align: center; }
-.au-hero-6__badge-hole { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: 22px; height: 6px; border-radius: var(--radius-full); background: var(--bg-canvas); border: 1px solid var(--line); }
-.au-hero-6__badge-photo { width: 84px; height: 84px; margin: 6px auto 10px; border-radius: 50%; overflow: hidden; background: var(--ink-950); color: var(--paper); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; font-size: 1.4rem; }
-.au-hero-6__badge-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.au-hero-6__badge b { display: block; font-family: var(--font-display); font-size: 0.92rem; color: var(--ink-950); }
-.au-hero-6__badge span { display: block; font-size: 0.78rem; color: var(--ink-500); margin-top: 2px; }
+.au-hero-6__grid { display: grid; grid-template-columns: 1fr 1.1fr; align-items: center; gap: clamp(1.2rem, 1rem + 1.5vw, 2rem); min-height: 400px; }
+.au-hero-6__photo { align-self: stretch; min-height: 380px; overflow: hidden; }
+.au-hero-6__photo img { width: 100%; height: 100%; object-fit: cover; object-position: center 15%; display: block; transform: scale(1.18); }
+.au-hero-6 h1 { font-size: clamp(2rem, 1.4rem + 2.4vw, 3rem); max-width: 15ch; }
+.au-hero-6 p { margin-top: 1rem; font-size: 1.02rem; color: var(--ink-600); max-width: 40ch; }
 
-/* v7 — Scrapbook: Foto mit Washi-Tape auf Punktraster */
-.au-hero-7 {
-  text-align: left; padding: clamp(1.2rem, 1vw, 2rem); border-radius: var(--radius-xl);
-  background-image: radial-gradient(var(--ink-150) 1px, transparent 1px); background-size: 16px 16px;
-}
-.au-hero-7__grid { display: grid; grid-template-columns: 200px 1fr; align-items: center; gap: clamp(1.6rem, 1rem + 3vw, 3rem); }
-.au-hero-7__scrap { position: relative; }
-.au-hero-7__photo { width: 100%; aspect-ratio: 4/5; border: 6px solid var(--white); box-shadow: var(--shadow-lg); transform: rotate(-3deg); background: var(--bg-surface); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 600; font-size: 2rem; color: var(--ink-400); }
+/* v7 — Großes, leicht gedrehtes Foto überlappt die Headline */
+.au-hero-7 { text-align: left; }
+.au-hero-7__row { position: relative; min-height: clamp(260px, 26vw, 360px); padding-right: clamp(150px, 22vw, 260px); }
+.au-hero-7 h1 { position: relative; z-index: 0; font-size: clamp(2.2rem, 1.5rem + 3vw, 3.4rem); max-width: 10ch; }
+.au-hero-7__photo { position: absolute; top: 0; right: 0; z-index: 1; width: clamp(160px, 22vw, 280px); aspect-ratio: 4/5; transform: rotate(5deg); }
 .au-hero-7__photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.au-hero-7__tape { position: absolute; top: -14px; left: 30%; width: 74px; height: 26px; background: rgba(232, 185, 35, 0.55); transform: rotate(-8deg); box-shadow: var(--shadow-sm); z-index: 2; }
-.au-hero-7__caption { display: block; margin-top: 12px; text-align: center; transform: rotate(-3deg); font-family: var(--font-display); font-style: italic; font-size: 0.9rem; color: var(--ink-700); }
-.au-hero-7 .au-hero-eyebrow { justify-content: flex-start; }
-.au-hero-7 h1 { font-size: clamp(2rem, 1.4rem + 2.4vw, 3rem); max-width: 15ch; }
-.au-hero-7 p { margin-top: 1rem; font-size: 1.02rem; color: var(--ink-600); max-width: 46ch; }
+.au-hero-7 p { position: relative; z-index: 0; margin-top: 1.4rem; max-width: 46ch; font-size: 1.02rem; color: var(--ink-600); }
 
-/* v8 — Ticker-Leiste mit "Live"-Avatar */
-.au-hero-8__ticker { overflow: hidden; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 8px 0; margin-bottom: 1.6rem; white-space: nowrap; }
-.au-hero-8__ticker-track { display: inline-block; font-family: var(--font-mono); font-size: 0.76rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-500); animation: auTicker 16s linear infinite; }
-@keyframes auTicker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-.au-hero-8__lead { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 1rem; }
-.au-hero-8__avatar { width: 34px; height: 34px; font-size: 0.82rem; }
-.au-hero-8__live { display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem; font-weight: 600; color: var(--ink-600); }
-.au-hero-8__dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gruen); animation: auLiveDot 1.6s ease-in-out infinite; }
-@keyframes auLiveDot { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-.au-hero-8 h1 { max-width: 18ch; margin: 0 auto; font-size: clamp(2.2rem, 1.5rem + 3vw, 3.6rem); }
+/* v8 — Foto am unteren Rand angeschnitten (object-position: top im
+   festhohen Rahmen — reines Zuschneiden, keine Dekor-Umrandung) */
+.au-hero-8 h1 { max-width: 18ch; margin: 1rem auto 0; font-size: clamp(2.3rem, 1.6rem + 3vw, 3.6rem); }
 .au-hero-8 p { max-width: 56ch; margin: 1.2rem auto 0; font-size: 1.05rem; color: var(--ink-600); }
-@media (prefers-reduced-motion: reduce) { .au-hero-8__ticker-track, .au-hero-8__dot { animation: none; } }
+.au-hero-8__photo { margin-top: clamp(1.6rem, 1.1rem + 2vw, 2.6rem); height: clamp(240px, 30vw, 380px); overflow: hidden; }
+.au-hero-8__photo img { width: 100%; height: 100%; object-fit: cover; object-position: center top; display: block; }
 
-/* v9 — Foto-Maske im ersten Wort der Headline: das Wort steht groß
-   für sich allein (background-clip:text braucht viel Fläche, um
-   innerhalb der Buchstaben erkennbar zu bleiben), der Satz läuft
-   darunter in normaler Headline-Größe weiter. */
-.au-hero-9 h1 { margin: 1rem auto 0; max-width: 20ch; }
-.au-hero-9__masked {
-  display: block; font-weight: 800; letter-spacing: -0.02em; line-height: 0.92;
-  font-size: clamp(3.4rem, 2.2rem + 6vw, 6.2rem);
-  background-image: url('../img/jborn-uberuns.jpg'); background-size: cover; background-position: center 18%;
-  background-color: var(--ink-950); -webkit-background-clip: text; background-clip: text;
-  color: transparent; -webkit-text-fill-color: transparent; filter: grayscale(0.3) contrast(1.1);
-}
-.au-hero-9__rest { display: block; margin-top: 0.3rem; font-size: clamp(1.7rem, 1.2rem + 2vw, 2.4rem); font-weight: 700; color: var(--ink-950); }
-.au-hero-9 p { max-width: 58ch; margin: 1.3rem auto 0; font-size: 1.08rem; color: var(--ink-600); }
+/* v9 — Foto als vollflächiger, hoher Bildstreifen rechts (bleedet
+   Kante zu Kante über die ganze Section-Höhe statt nur mittig zu
+   sitzen wie in v2) — Text bleibt strikt in der linken Zone, damit
+   nichts über dem Foto steht und unleserlich wird. .au-hero-9 bleibt
+   position:static, damit der Backdrop bis zu .au-hero (volle Section)
+   durchgereicht wird statt nur die schmale Container-Spalte zu füllen. */
+.au-hero-9 { text-align: left; min-height: clamp(380px, 44vw, 560px); display: flex; align-items: center; }
+.au-hero-9__backdrop { position: absolute; inset: 0 0 0 auto; width: 56%; z-index: 0; }
+.au-hero-9__backdrop img { width: 100%; height: 100%; object-fit: cover; object-position: center 12%; display: block; }
+.au-hero-9__body { position: relative; z-index: 1; max-width: 40%; padding-block: clamp(1.4rem, 1rem + 2vw, 2.4rem); }
+.au-hero-9 h1 { font-size: clamp(2rem, 1.4rem + 2.6vw, 3.2rem); max-width: 14ch; }
+.au-hero-9 p { margin-top: 1rem; font-size: 1.02rem; color: var(--ink-600); }
 
-/* v10 — Interview-Karte mit Tonspur-Balken */
-.au-hero-10 { max-width: 620px; margin-inline: auto; }
-.au-hero-10__card { position: relative; border: 1px solid var(--line); border-radius: var(--radius-xl); background: var(--bg-surface); box-shadow: var(--shadow-sm); padding: clamp(1.6rem, 1.1rem + 2vw, 2.4rem); text-align: left; }
-.au-hero-10__tab { position: absolute; top: -13px; left: 24px; padding: 4px 12px; background: var(--ink-950); color: var(--paper); border-radius: var(--radius-full); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.04em; }
-.au-hero-10__row { display: flex; align-items: center; gap: 12px; margin-bottom: 1.2rem; }
-.au-hero-10__avatar { width: 40px; height: 40px; font-size: 0.9rem; }
-.au-hero-10__wave { display: flex; align-items: center; gap: 3px; height: 22px; }
-.au-hero-10__wave span { width: 3px; border-radius: 2px; background: var(--ink-300); animation: auWave 1.2s ease-in-out infinite; }
-.au-hero-10__wave span:nth-child(1) { height: 40%; animation-delay: 0s; }
-.au-hero-10__wave span:nth-child(2) { height: 90%; animation-delay: 0.1s; }
-.au-hero-10__wave span:nth-child(3) { height: 60%; animation-delay: 0.2s; }
-.au-hero-10__wave span:nth-child(4) { height: 100%; animation-delay: 0.3s; }
-.au-hero-10__wave span:nth-child(5) { height: 55%; animation-delay: 0.4s; }
-.au-hero-10__wave span:nth-child(6) { height: 80%; animation-delay: 0.5s; }
-.au-hero-10__wave span:nth-child(7) { height: 35%; animation-delay: 0.6s; }
-@keyframes auWave { 0%, 100% { transform: scaleY(0.6); } 50% { transform: scaleY(1); } }
-.au-hero-10__card h1 { margin: 0; font-size: clamp(1.7rem, 1.2rem + 2vw, 2.3rem); }
-.au-hero-10 > p { margin-top: 1.4rem; font-size: 1.02rem; color: var(--ink-600); text-align: left; }
-@media (prefers-reduced-motion: reduce) { .au-hero-10__wave span { animation: none; transform: scaleY(0.75); } }
+/* v10 — Foto zum Großteil außerhalb des Viewports (rechts abgeschnitten
+   von main.overflow-x-hidden). .au-hero-10__grid bleibt position:static,
+   damit die absolute Fotoposition bis zu .au-hero durchgereicht wird. */
+.au-hero-10__grid { display: flex; align-items: center; min-height: clamp(360px, 40vw, 480px); }
+.au-hero-10__text { max-width: 460px; text-align: left; }
+.au-hero-10__photo { position: absolute; top: 50%; right: -8vw; transform: translateY(-50%); height: clamp(300px, 36vw, 440px); aspect-ratio: 4/5; }
+.au-hero-10__photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
 @media (max-width: 720px) {
-  .au-hero-1__grid, .au-hero-4__grid, .au-hero-6__grid, .au-hero-7__grid { grid-template-columns: 1fr; }
-  .au-hero-1, .au-hero-4, .au-hero-6, .au-hero-7 { text-align: center; }
-  .au-hero-1__text, .au-hero-4__text, .au-hero-7__text { text-align: center; }
-  .au-hero-1 .au-hero-eyebrow, .au-hero-4 .au-hero-eyebrow, .au-hero-7 .au-hero-eyebrow { justify-content: center; }
-  .au-hero-1 h1, .au-hero-1 p, .au-hero-4 h1, .au-hero-4 p, .au-hero-6 h1, .au-hero-6 p, .au-hero-7 h1, .au-hero-7 p { margin-inline: auto; }
+  .au-hero-1__grid { grid-template-columns: 1fr; }
+  .au-hero-1 { text-align: center; }
+  .au-hero-1 .au-hero-eyebrow { justify-content: center; }
+  .au-hero-1 h1, .au-hero-1 p { margin-inline: auto; }
   .au-hero-1__photo { clip-path: none; min-height: 220px; order: -1; }
-  .au-hero-4__panel { max-width: 220px; margin-inline: auto; }
-  .au-hero-4__panel-photo { aspect-ratio: 4/5; }
-  .au-hero-2__grid { grid-template-columns: 1fr; text-align: center; justify-items: center; }
-  .au-hero-2 .au-hero-eyebrow { justify-content: center; }
-  .au-hero-2 h1, .au-hero-2 p { margin-inline: auto; }
-  .au-hero-6__badge { max-width: 200px; margin-inline: auto; }
-  .au-hero-7 { background-size: 12px 12px; }
-  .au-hero-7__scrap { max-width: 180px; margin-inline: auto; }
+  .au-hero-2, .au-hero-4, .au-hero-5, .au-hero-6, .au-hero-9 { text-align: center; }
+  .au-hero-2 .au-hero-eyebrow, .au-hero-4 .au-hero-eyebrow, .au-hero-6 .au-hero-eyebrow, .au-hero-7 .au-hero-eyebrow, .au-hero-9 .au-hero-eyebrow { justify-content: center; }
+  .au-hero-4__grid, .au-hero-5__grid, .au-hero-6__grid { grid-template-columns: 1fr; }
+  .au-hero-4 h1, .au-hero-4 p, .au-hero-6 h1, .au-hero-6 p { margin-inline: auto; }
+  .au-hero-2__grid { flex-direction: column; min-height: 0; }
+  .au-hero-2__text { max-width: 100%; padding-right: 0; }
+  .au-hero-2__photo { position: static; transform: none; height: 260px; margin-top: 1.4rem; width: 100%; aspect-ratio: auto; }
+  .au-hero-4__photo { min-height: 220px; order: -1; }
+  .au-hero-6__photo { min-height: 220px; order: -1; }
+  .au-hero-7__row { display: flex; flex-direction: column-reverse; align-items: center; gap: 1rem; padding-right: 0; min-height: 0; }
+  .au-hero-7__photo { position: static; transform: none; width: 160px; margin-inline: auto; }
+  .au-hero-7 h1, .au-hero-7 p { text-align: center; margin-inline: auto; }
+  .au-hero-9 { display: block; min-height: 0; }
+  .au-hero-9__backdrop { position: static; inset: auto; width: 100%; height: 220px; margin-bottom: 1.4rem; }
+  .au-hero-9__body { max-width: 100%; padding-block: 0; }
+  .au-hero-9 h1, .au-hero-9 p { margin-inline: auto; }
+  .au-hero-10__grid { flex-direction: column; min-height: 0; }
+  .au-hero-10__text { max-width: 100%; text-align: center; }
+  .au-hero-10 .au-hero-eyebrow { justify-content: center; }
+  .au-hero-10__photo { position: static; transform: none; right: auto; height: 240px; margin-top: 1.4rem; }
 }
 
 /* =========================================================

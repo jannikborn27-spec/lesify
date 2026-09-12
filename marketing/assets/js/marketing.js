@@ -28,28 +28,28 @@
      weiter unten bleibt vorerst inert (kein Nav-Eintrag mit .mega, keine
      Seite mit #feature-page). */
   var NAV_LINKS = [
-    { href: 'index.html', label: 'Home', page: 'index' },
-    { href: 'index.html#price', label: 'Preise' },
-    { href: 'ueber-uns.html', label: 'Über uns', page: 'ueber-uns' },
-    { href: 'index.html#faq', label: 'FAQ' }
+    { href: '/', label: 'Home', page: 'index' },
+    { href: '/#price', label: 'Preise' },
+    { href: '/ueber-uns/', label: 'Über uns', page: 'ueber-uns' },
+    { href: '/#faq', label: 'FAQ' }
   ];
 
   var FOOTER = [
     { title: 'Produkt', links: [
-      { href: 'index.html', label: 'Überblick' },
-      { href: 'index.html#kv', label: 'So funktioniert’s' },
-      { href: 'index.html#price', label: 'Preise' },
-      { href: 'index.html#faq', label: 'Häufige Fragen' }
+      { href: '/', label: 'Überblick' },
+      { href: '/#kv', label: 'So funktioniert’s' },
+      { href: '/#price', label: 'Preise' },
+      { href: '/#faq', label: 'Häufige Fragen' }
     ]},
     { title: 'Unternehmen', links: [
-      { href: 'ueber-uns.html', label: 'Über uns' },
-      { href: 'kontakt.html', label: 'Kontakt' },
-      { href: 'login.html', label: 'Anmelden' }
+      { href: '/ueber-uns/', label: 'Über uns' },
+      { href: '/kontakt/', label: 'Kontakt' },
+      { href: '/login/', label: 'Anmelden' }
     ]},
     { title: 'Rechtliches', links: [
-      { href: 'impressum.html', label: 'Impressum' },
-      { href: 'datenschutz.html', label: 'Datenschutz' },
-      { href: 'agb.html', label: 'AGB' }
+      { href: '/impressum/', label: 'Impressum' },
+      { href: '/datenschutz/', label: 'Datenschutz' },
+      { href: '/agb/', label: 'AGB' }
     ]}
   ];
 
@@ -74,7 +74,7 @@
     if (!host) return;
 
     var brand =
-      '<a class="brand" href="index.html" aria-label="Lesify — Startseite">' +
+      '<a class="brand" href="/" aria-label="Lesify — Startseite">' +
         '<span class="brand__mark">' + ICON.mark + '</span>' +
         '<span class="brand__word">Lesify</span>' +
       '</a>';
@@ -83,7 +83,7 @@
       host.className = 'mkt-nav mkt-nav--minimal';
       host.innerHTML =
         '<div class="mkt-nav__inner">' + brand +
-          '<a class="mkt-nav__back" href="index.html">' + ICON.back + ' Zur Website</a>' +
+          '<a class="mkt-nav__back" href="/">' + ICON.back + ' Zur Website</a>' +
         '</div>';
       return;
     }
@@ -130,16 +130,16 @@
         brand +
         '<nav class="mkt-nav__links">' + links + '</nav>' +
         '<div class="mkt-nav__actions">' +
-          '<a class="mkt-nav__link" href="login.html">Anmelden</a>' +
-          '<a class="btn btn-primary" href="registrieren.html">Kostenlos starten</a>' +
+          '<a class="mkt-nav__link" href="/login/">Anmelden</a>' +
+          '<a class="btn btn-primary" href="/registrieren/">Kostenlos starten</a>' +
           '<button class="nav-toggle" type="button" aria-label="Menü öffnen" aria-expanded="false">' + ICON.menu + '</button>' +
         '</div>' +
       '</div>' +
       '<div class="mkt-nav__sheet" id="nav-sheet">' +
         sheetLinks +
         '<div class="sheet-actions">' +
-          '<a class="btn btn-secondary btn-block" href="login.html">Anmelden</a>' +
-          '<a class="btn btn-primary btn-block" href="registrieren.html">Kostenlos starten</a>' +
+          '<a class="btn btn-secondary btn-block" href="/login/">Anmelden</a>' +
+          '<a class="btn btn-primary btn-block" href="/registrieren/">Kostenlos starten</a>' +
         '</div>' +
       '</div>';
 
@@ -273,7 +273,7 @@
       '<div class="container">' +
         '<div class="site-footer__grid">' +
           '<div class="site-footer__brand">' +
-            '<a class="brand" href="index.html">' +
+            '<a class="brand" href="/">' +
               '<span class="brand__mark">' + ICON.mark + '</span>' +
               '<span class="brand__word">Lesify</span>' +
             '</a>' +
@@ -1109,7 +1109,7 @@
     t: 'Zum ersten Mal hat meine Tochter abends von selbst den Chat aufgemacht, weil sie eine Matheaufgabe knacken wollte — nicht, weil ich sie erinnert habe.',
     by: 'Katrin R., Mutter, 8. Klasse'
   };
-  function chatCTA() { return '<div class="chat-cv__cta"><a class="btn btn-primary btn-on-dark btn-lg" href="registrieren.html">KI-Chat testen</a></div>'; }
+  function chatCTA() { return '<div class="chat-cv__cta"><a class="btn btn-primary btn-on-dark btn-lg" href="/registrieren/">KI-Chat testen</a></div>'; }
   function chatStripSmall() {
     return '<ul class="chat-cv__strip">' + CHAT_PERKS.map(function (p) {
       return '<li><span class="chat-perk__ico">' + p.icon + '</span><b>' + p.title + '</b></li>';
@@ -1515,7 +1515,7 @@
       '<div class="kvl-cv__facts">' + KVL.facts.map(function (f) {
         return '<div><b>' + f.n + '</b><span>' + f.l + '</span></div>';
       }).join('') + '</div>' +
-      (opts.noCta ? '' : '<a class="btn btn-primary btn-lg" href="registrieren.html">Klausur anlegen</a>') +
+      (opts.noCta ? '' : '<a class="btn btn-primary btn-lg" href="/registrieren/">Klausur anlegen</a>') +
       '</div>';
   }
   function kvlStepMarkup(day, i, active) {
@@ -1657,7 +1657,7 @@
           '<b>' + p.t + '</b><span>' + p.s + '</span></div>';
       }).join('') +
       '<div class="kvl-bento__cell kvl-bento__cell--cta"><b>In zwei Minuten startklar</b>' +
-      '<a class="btn btn-primary" href="registrieren.html">Klausur anlegen</a></div></div></div>');
+      '<a class="btn btn-primary" href="/registrieren/">Klausur anlegen</a></div></div></div>');
 
     /* 8 · Timeline — 7 Tage als horizontale Schiene, darunter der Fokus-Tag */
     if (v === '8') return lw('kv', v, '<div class="container container--mid kvl-cv kvl-cv--timeline">' + headC +
@@ -1938,7 +1938,7 @@
   function orgSwitchText(cta) {
     return '<div class="org-cv__text"><span class="eyebrow">' + ORG.eb + '</span><h2>' + ORG.h + '</h2>' +
       '<p class="lab-lead">' + ORG.lead + '</p>' + orgSwitchCards() +
-      (cta ? '<a class="btn btn-primary btn-lg" href="registrieren.html">Kostenlos starten</a>' : '') + '</div>';
+      (cta ? '<a class="btn btn-primary btn-lg" href="/registrieren/">Kostenlos starten</a>' : '') + '</div>';
   }
   function orgDots() {
     return '<div class="orgx-dots" role="tablist" aria-label="Seite wählen">' + ORG.steps.map(function (st, i) {
@@ -1959,9 +1959,9 @@
   function orgText(cta) {
     return '<div class="org-cv__text"><span class="eyebrow">' + ORG.eb + '</span><h2>' + ORG.h + '</h2>' +
       '<p class="lab-lead">' + ORG.lead + '</p>' + orgPoints('org-cv__points--stack') +
-      (cta ? '<a class="btn btn-primary btn-lg" href="registrieren.html">Kostenlos starten</a>' : '') + '</div>';
+      (cta ? '<a class="btn btn-primary btn-lg" href="/registrieren/">Kostenlos starten</a>' : '') + '</div>';
   }
-  function orgCTA() { return '<div class="org-cv__cta"><a class="btn btn-primary btn-lg" href="registrieren.html">Kostenlos starten</a></div>'; }
+  function orgCTA() { return '<div class="org-cv__cta"><a class="btn btn-primary btn-lg" href="/registrieren/">Kostenlos starten</a></div>'; }
   /* Fächer-Übersicht (früher eigene „Fächer & Klassenstufen"-Section) —
      jetzt in die Struktur-Section integriert, Kartendesign wie app/faecher.html. */
   function orgFaecher() {
@@ -2014,7 +2014,7 @@
           '><b>' + p.t + '</b><span>' + p.s + '</span></div>';
       }).join('') +
       '<div class="org-bento__cell org-bento__cell--cta"><b>Von Anfang an sortiert</b>' +
-      '<a class="btn btn-primary" href="registrieren.html">Kostenlos starten</a></div></div></div>');
+      '<a class="btn btn-primary" href="/registrieren/">Kostenlos starten</a></div></div></div>');
 
     /* 8 · Zebra — Punkte als volle Wechsel-Reihen unter der Demo */
     if (v === '8') return lw('org', v, '<div class="container container--mid org-cv org-cv--zebra">' + headC +
@@ -2127,7 +2127,7 @@
     ]
   };
   /* „Lesify"-Marker auf der Vergleichs-Karte = echtes Logo. */
-  var CMP_SPARK = '<img class="cmp-card__logo" src="assets/img/logo.png" alt="Lesify" width="24" height="24">';
+  var CMP_SPARK = '<img class="cmp-card__logo" src="/assets/img/logo.png" alt="Lesify" width="24" height="24">';
   var CMP_HONEST = 'In genau einem Punkt hat klassische Nachhilfe die Nase vorn: eine feste Bezugsperson, die dein Kind über Monate kennt und von außen motiviert.';
   function cmpMark(win, side) { return win === side ? '<span class="cmp-i cmp-i--y">' + LAB_CHECK + '</span>' : '<span class="cmp-i cmp-i--n">' + LAB_DASH + '</span>'; }
   function cmpCard(side, opts) {
@@ -2140,7 +2140,7 @@
         return '<li class="' + (r.w === side ? 'is-win' : 'is-lose') + '">' + cmpMark(r.w, side) +
           '<div><b>' + r.k + '</b><span>' + r[side] + '</span></div></li>';
       }).join('') + '</ul>' +
-      (side === 'a' && opts.cta !== false ? '<a class="btn btn-primary btn-block" href="registrieren.html">Kostenlos starten</a>' : '') +
+      (side === 'a' && opts.cta !== false ? '<a class="btn btn-primary btn-block" href="/registrieren/">Kostenlos starten</a>' : '') +
     '</article>';
   }
   function cmpHonest() { return '<p class="cmp-honest">' + CMP_HONEST + '</p>'; }
@@ -2172,13 +2172,13 @@
         return '<article class="cmp-card cmp-card--' + side + '"><h3>' + (side === 'a' ? '<span class="cmp-card__spark">' + CMP_SPARK + '</span>' : '') + (side === 'a' ? 'Lesify' : 'Klassische Nachhilfe') + '</h3><ul>' +
           CMP.rows.map(function (r) {
             return '<li><b>' + r.k + '</b><span class="cmp-pill ' + (r.w === side ? 'is-win' : '') + '">' + r[side] + '</span></li>';
-          }).join('') + '</ul>' + (side === 'a' ? '<a class="btn btn-on-dark btn-primary btn-block" href="registrieren.html">Kostenlos starten</a>' : '') + '</article>';
+          }).join('') + '</ul>' + (side === 'a' ? '<a class="btn btn-on-dark btn-primary btn-block" href="/registrieren/">Kostenlos starten</a>' : '') + '</article>';
       }).join('') + '</div></div>');
     if (v === '9') return lw('cmp', v, '<div class="container">' + headC +
       '<div class="cmp-cards">' + cmpCard('a', { cta: false }) + cmpCard('b') + '</div></div>');
     if (v === '10') return lw('cmp', v, '<div class="container container--narrow">' + head +
       '<div class="cmp-cards cmp-cards--compact">' + cmpCard('a', { cta: false }) + cmpCard('b') + '</div>' +
-      '<a class="btn btn-primary btn-lg" href="registrieren.html">Kostenlos starten</a></div>');
+      '<a class="btn btn-primary btn-lg" href="/registrieren/">Kostenlos starten</a></div>');
 
     return lw('cmp', v, '<div class="container">' + headC +
       '<div class="cmp-cards">' + cmpCard('a') + cmpCard('b') + '</div>' + cmpHonest() + '</div>');
@@ -2294,7 +2294,7 @@
     return '<article class="price-card' + (p.feat ? ' is-feat' : '') + (cls ? ' ' + cls : '') + '">' +
       (p.feat ? '<span class="price-card__tag"><span class="price-card__dot"></span>Bestseller</span>' : '') +
       '<h3>' + p.name + '</h3><p class="price-card__desc">' + p.desc + '</p>' + priceAmount(p) + priceFeats(p) +
-      '<a class="btn btn-primary btn-block" href="checkout.html?plan=' + p.name.toLowerCase() + '">' + p.name + ' testen</a></article>';
+      '<a class="btn btn-primary btn-block" href="/checkout/?plan=' + p.name.toLowerCase() + '">' + p.name + ' testen</a></article>';
   }
   /* Stimmen von Familien — direkt unter den Preisen. Fest gewählt
      (frühere v1): Avatar-Reihe + „+9.994" + ein hervorgehobenes Zitat,
@@ -2327,7 +2327,7 @@
         return '<div class="price-strip__cell' + (p.feat ? ' is-feat' : '') + '">' +
           (p.feat ? '<span class="price-card__tag"><span class="price-card__dot"></span>Bestseller</span>' : '') +
           '<b>' + p.name + '</b><span class="price-strip__desc">' + p.desc + '</span>' + priceAmount(p) +
-          '<a class="btn ' + (p.feat ? 'btn-primary' : 'btn-secondary') + ' btn-block" href="checkout.html?plan=' + p.name.toLowerCase() + '">Testen</a></div>';
+          '<a class="btn ' + (p.feat ? 'btn-primary' : 'btn-secondary') + ' btn-block" href="/checkout/?plan=' + p.name.toLowerCase() + '">Testen</a></div>';
       }).join('') + '</div></div>');
 
     return lw('price', v, '<div class="container">' + headC + priceControls() +
@@ -2624,7 +2624,7 @@
     if (v === '9') return lw('faq', v, '<div class="container container--narrow faq-centered">' + headC +
       FAQ.items.map(function (it, i) { return faqDetails('faq-item', i, it); }).join('') + '</div>');
     if (v === '10') return lw('faq', v, '<div class="container faq-ask">' +
-      '<div>' + head + '<p class="faq-ask__cta">Noch offen? <a href="kontakt.html">Schreib uns</a>.</p></div>' +
+      '<div>' + head + '<p class="faq-ask__cta">Noch offen? <a href="/kontakt/">Schreib uns</a>.</p></div>' +
       '<div class="faq-ask__list">' + FAQ.items.map(function (it, i) { return faqDetails('faq-item', i, it); }).join('') + '</div></div>');
     /* v1 · Bold — kräftige nummerierte Karten, Kreis-Toggle, Kontakt-Fuß */
     return lw('faq', v, '<div class="container container--narrow faq-bold">' +
@@ -2636,7 +2636,7 @@
           '<span class="faq-bcard__tog" aria-hidden="true"></span></summary>' +
           '<div class="faq-bcard__a">' + it.a + '</div></details>';
       }).join('') + '</div>' +
-      '<div class="faq-bold__foot"><b>Noch eine Frage offen?</b><a class="btn btn-secondary" href="kontakt.html">Schreib uns</a></div></div>');
+      '<div class="faq-bold__foot"><b>Noch eine Frage offen?</b><a class="btn btn-secondary" href="/kontakt/">Schreib uns</a></div></div>');
   }
 
   /* ---------- Abschluss-CTA (cta) ---------- */
@@ -2648,8 +2648,8 @@
   };
   function ctaBtns(dark) {
     var c = dark ? ' btn-on-dark' : '';
-    return '<div class="lab-cta"><a class="btn btn-primary' + c + ' btn-lg" href="registrieren.html">Kostenlos starten</a>' +
-      '<a class="btn btn-secondary' + c + ' btn-lg" href="index.html#price">Preise ansehen</a></div>';
+    return '<div class="lab-cta"><a class="btn btn-primary' + c + ' btn-lg" href="/registrieren/">Kostenlos starten</a>' +
+      '<a class="btn btn-secondary' + c + ' btn-lg" href="/#price">Preise ansehen</a></div>';
   }
   function renderCta(v) {
     var h = '<h2>' + CTA.h + '</h2>', lead = '<p>' + CTA.lead + '</p>', small = '<small>' + CTA.small + '</small>';
@@ -2659,8 +2659,8 @@
     if (v === '5') return lw('cta', v, '<div class="container container--narrow cta-big">' + h + lead + ctaBtns() + '</div>');
     if (v === '6') return lw('cta', v, '<div class="container"><div class="cta-box">' + h + lead + ctaBtns() + small + '</div></div>');
     if (v === '7') return lw('cta', v, '<div class="container"><div class="cta-mesh"><span class="cta-mesh__m1"></span><span class="cta-mesh__m2"></span><div class="cta-mesh__in">' + h + lead + ctaBtns(true) + '</div></div></div>');
-    if (v === '8') return lw('cta', v, '<div class="container container--narrow cta-stack">' + h + lead + '<a class="btn btn-primary btn-lg btn-block" href="registrieren.html">Kostenlos starten</a><a class="btn btn-secondary btn-lg btn-block" href="index.html#price">Preise ansehen</a>' + small + '</div>');
-    if (v === '9') return lw('cta', v, '<div class="container"><div class="cta-strip"><div><b>' + CTA.h + '</b><span>' + CTA.lead + '</span></div><a class="btn btn-primary btn-lg" href="registrieren.html">Kostenlos starten</a></div></div>');
+    if (v === '8') return lw('cta', v, '<div class="container container--narrow cta-stack">' + h + lead + '<a class="btn btn-primary btn-lg btn-block" href="/registrieren/">Kostenlos starten</a><a class="btn btn-secondary btn-lg btn-block" href="/#price">Preise ansehen</a>' + small + '</div>');
+    if (v === '9') return lw('cta', v, '<div class="container"><div class="cta-strip"><div><b>' + CTA.h + '</b><span>' + CTA.lead + '</span></div><a class="btn btn-primary btn-lg" href="/registrieren/">Kostenlos starten</a></div></div>');
     if (v === '10') return lw('cta', v, '<div class="container container--narrow cta-badge"><span class="cta-badge__b">14 Tage gratis</span>' + h + lead + ctaBtns() + '</div>');
     return lw('cta', v, '<div class="container"><div class="cta-band"><span class="eyebrow">' + CTA.eb + '</span>' + h + lead + ctaBtns(true) + small + '</div></div>');
   }
@@ -2700,7 +2700,7 @@
   };
   function tldrCta(dark) {
     var c = dark ? ' btn-on-dark' : '';
-    return '<div class="lab-cta"><a class="btn btn-primary' + c + ' btn-lg" href="registrieren.html">Kostenlos starten</a>' +
+    return '<div class="lab-cta"><a class="btn btn-primary' + c + ' btn-lg" href="/registrieren/">Kostenlos starten</a>' +
       '<a class="btn btn-secondary' + c + ' btn-lg" href="#how">So funktioniert&rsquo;s</a></div>';
   }
   function tldrItems(kind) {
@@ -3179,8 +3179,8 @@
           '<h2>' + data.h + '</h2>' +
           '<p>14 Tage kostenlos testen, danach ab 15,99 € im Monat. Keine Kreditkarte, monatlich kündbar.</p>' +
           '<div class="hero__cta">' +
-            '<a class="btn btn-on-dark btn-primary btn-lg" href="registrieren.html">Kostenlos starten</a>' +
-            '<a class="btn btn-on-dark btn-secondary btn-lg" href="index.html#price">Preise ansehen</a>' +
+            '<a class="btn btn-on-dark btn-primary btn-lg" href="/registrieren/">Kostenlos starten</a>' +
+            '<a class="btn btn-on-dark btn-secondary btn-lg" href="/#price">Preise ansehen</a>' +
           '</div>' +
           '<small>Prototyp mit Demo-Inhalten: die KI-Antworten sind derzeit simulierter Platzhaltertext.</small>' +
         '</div></div>' +
@@ -3303,11 +3303,13 @@
     return true;
   }
   function currentBasename() {
-    return location.pathname.split('/').pop() || 'index.html';
+    return location.pathname;
   }
   /* Liefert den #hash-Teil, wenn href auf ein Ziel auf DIESER Seite zeigt
-     (reines "#kv" oder "index.html#price" während man schon auf
-     index.html ist) — sonst null (normale Seiten-Navigation). */
+     (reines "#kv" oder "/#price" während man schon auf der Startseite
+     ist) — sonst null (normale Seiten-Navigation). Seit den sauberen
+     URLs (/pagename/ statt pagename.html) ist "Seite" der volle
+     location.pathname statt eines Dateinamens. */
   function samePageHash(href) {
     var i = href.indexOf('#');
     if (i === -1) return null;

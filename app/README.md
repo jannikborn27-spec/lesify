@@ -131,9 +131,20 @@ Fortschritt/Status/Abschluss-Meldung aktualisieren sich sofort, per
 `lernplan-lernzettel.html` sollten jetzt leichter fallen — sie nutzen
 dieselben Renderer.
 
-Nächste Seite: eigenes Ermessen, aber die Grundbausteine (Cache inkl.
+**`klausur.html` als sechste Seite umgestellt (2026-09-12) — wie erhofft
+deutlich leichter.** Die eingebettete Lernplan-Sektion läuft unverändert mit
+den Bausteinen aus `lernplan.html` weiter, **kein Backend-Change nötig für
+diese Seite**. Nur zwei Kleinigkeiten: `k.note` (eingebettet mit
+`GET /klausuren/:id`) ersetzt `Lesify.klausurNote()`; `Lesify.getThema(id)`
+lieferte Zählwerte unter `.stats.chats` statt der `anzahlChats`-Konvention —
+`api.js` spiegelt das jetzt zusätzlich und merged das Thema ins Themen-Cache.
+`renderAll()` awaitet `drawThemen()` zuerst (füllt den Themen-Cache), bevor
+die Lernplan-Sektion ihre Diagnose-Chips rendert.
+
+Nächste Seite: eigenes Ermessen. `lernplan-lernzettel.html` sollte ebenfalls
+leichter fallen (nutzt dieselben Lernplan-Grundbausteine). Cache inkl.
 `mergeCache`/`_faecherCache`/`_cache.lernplaene`, CORS inkl. PATCH/DELETE,
-echte Umgebung) stehen jetzt für alle ~15 verbleibenden Seiten bereit.
+echte Umgebung stehen jetzt für alle ~14 verbleibenden Seiten bereit.
 
 Basis-URL: `window.LESIFY_API_BASE` (Default `http://localhost:3000`).
 Session-Token: `localStorage['lesify:token']`.

@@ -1484,6 +1484,17 @@ Race Condition in `fach.html` selbst (nicht im Cache-Layer): mehrere
 Draw-Funktionen liefen per `Promise.all([…])` parallel, aber eine liest
 synchron aus einem Cache, den eine andere erst füllt — ohne Sequenzierung
 (die cache-füllende Funktion zuerst einzeln awaiten) manchmal noch leer.
+**Nachtrag `klausur.html` (2026-09-12) — deutlich leichter als erwartet:**
+kein Backend-Change nötig — die komplette eingebettete Lernplan-Sektion
+läuft unverändert mit den Bausteinen aus `lernplan.html` weiter. Zwei
+Kleinigkeiten in `api.js`: `k.note` (mit `GET /klausuren/:id` eingebettet)
+ersetzt den nicht existierenden `Lesify.klausurNote(kId)`. Und
+`Lesify.getThema(id)` lieferte Zählwerte unter `.stats.chats` statt der
+sonst genutzten `anzahlChats`-Konvention (dritte, andere Form neben
+`GET /themen` ohne Zähler und `GET /faecher/:id/themen` mit `anzahlX`) —
+`api.js` spiegelt `stats.*` jetzt zusätzlich als `anzahlChats`/… und merged
+das Thema ins Themen-Cache.
+
 **Nachtrag `lernplan.html` (2026-09-12) — mit Abstand der größte Umbau
 bisher:** `app.js`s komplettes Lernplan-Renderer-Bündel
 (`lernplanSeite`/`lpVariantSplit`/`lpTag1Body`…`lpTag7Body`/`wireLernplan`/

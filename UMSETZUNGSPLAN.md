@@ -2771,15 +2771,33 @@ sonst unverändert.
 > User-Cache (analog Fächer/Themen) nachgezogen. Tests: `api/src/routes/
 > flow2.test.ts` (+1, prüft die eingebetteten `klausur`/`testklausur1`-Felder).
 >
+> _2026-09-12: **`klausur.html` als sechste Seite umgestellt — wie erhofft
+> deutlich leichter**, weil die gesamte Lernplan-Sektion (`fmRailPills`,
+> `lernplanFocusTag`, `lernplanSplitMain`, `wireLernplan`,
+> `lernplanNaechsteAufgabe`) unverändert aus dem `lernplan.html`-Umbau
+> weiterläuft — **kein Backend-Change nötig für diese Seite.** Nur zwei neue
+> Kleinigkeiten: `k.note` kommt mit `GET /klausuren/:id` eingebettet, ersetzt
+> den nicht existierenden `Lesify.klausurNote(kId)`. Und `Lesify.getThema(id)`
+> (Thema-Detail für die „Zugehörige Themen"-Karten) lieferte Zählwerte unter
+> `.stats.chats` statt der sonst verwendeten `anzahlChats`-Konvention (dritte,
+> andere Form nach `GET /themen` ohne Zähler und `GET /faecher/:id/themen`
+> mit `anzahlX`) — `api.js` spiegelt `stats.*` jetzt zusätzlich als
+> `anzahlChats`/… und merged das Thema ins Themen-Cache (badge()/label()
+> finden es danach auch). `renderAll()` awaitet `drawThemen()` zuerst (füllt
+> den Themen-Cache über genau diese `getThema()`-Aufrufe), bevor die
+> Lernplan-Sektion ihre Tag-1/5-Diagnose-Chips rendert — dieselbe
+> Sequenzierungs-Faustregel wie bei `fach.html`/`klausuren.html`. Live
+> durchgeklickt: Kopf/Zähler/Themen-Karte, Schnellzugriff-Kacheln
+> („Nächste Lernplan-Aufgabe" korrekt verlinkt), eingebettete Lernplan-
+> Sektion inkl. Tag-Fokus-Wechsel — alles wie auf `lernplan.html`.
+>
 > Der Rest des `app/*.html`-Seiten-Cut-overs (`chat.html`, `thema.html`,
-> `klausur.html`, `testklausur.html`,
-> `lernplan-lernzettel.html`, `lernzettel.html`,
+> `testklausur.html`, `lernplan-lernzettel.html`, `lernzettel.html`,
 > `themen.html`, `dateien.html`, `suche.html`, `einstellungen.html`, die vier
-> `eltern-*.html`) bleibt offen. `klausur.html` und `lernplan-lernzettel.html`
-> sollten jetzt deutlich leichter fallen — sie nutzen dieselben
-> Lernplan-Renderer, die gerade fertig geworden sind. Grundbausteine (Cache
-> inkl. `mergeCache`/`_faecherCache`/`_cache.lernplaene` + CORS inkl.
-> PATCH/DELETE) stehen für alle bereit.
+> `eltern-*.html`) bleibt offen. `lernplan-lernzettel.html` sollte jetzt
+> ebenfalls leichter fallen — nutzt dieselben Lernplan-Grundbausteine.
+> Grundbausteine (Cache inkl. `mergeCache`/`_faecherCache`/
+> `_cache.lernplaene` + CORS inkl. PATCH/DELETE) stehen für alle bereit.
 
 - [x] **API-Client `assets/js/api.js`** — _`Lesify.*`-Namen wie `data.js`, aber
       Promise-basiert; `fetch`-Wrapper mit Bearer-Token
@@ -2791,8 +2809,8 @@ sonst unverändert.
 - [ ] **Seiten umstellen (pro Seite):** `data.js`→`api.js`+`auth-gate.js`,
       `Lesify.*`-Aufrufe `await`en, Renderer in `app.js` auf Promises anpassen.
       _(Teilfortschritt 2026-09-12: `dashboard.html` + `faecher.html` +
-      `fach.html` + `klausuren.html` + `lernplan.html` fertig + verifiziert,
-      siehe Progress-Notizen oben. 15 Seiten offen.)_
+      `fach.html` + `klausuren.html` + `lernplan.html` + `klausur.html`
+      fertig + verifiziert, siehe Progress-Notizen oben. 14 Seiten offen.)_
 - [x] **`assets/js/api.js` — Fächer-/Themen-Cache + reine Helfer nachgezogen**
       — _2026-09-12 (mit `dashboard.html`, siehe Progress-Notiz oben):
       `getFach`/`label` als sync Cache-Lookups, `prozentZuNote`/`noteAmpel`/

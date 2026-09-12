@@ -219,9 +219,20 @@ echten KI-Calls. Live durchgespielt: Revision gesendet, Nutzer- + KI-
 Nachricht im Thread, Gratis-Zähler korrekt runtergezählt. Details:
 `backend-planning.md` §9.
 
+**`dateien.html` als dreizehnte Seite umgestellt (2026-09-12).** Nutzt
+denselben echten Upload+Polling-Pfad wie `thema.html`, aber mit frei
+wählbarem Fach/Thema im Zuordnungs-Modal. **Seitenübergreifender Bug
+gefunden:** die geteilte `openDateiModal()` (app.js, betrifft auch
+`thema.html`) rief `Lesify.getDatei()` noch synchron auf — Fix per
+Thenable-Check (`renderDateiModal(d)`); ihr Download-Button rief das nur in
+`data.js` existierende `Lesify.downloadText()` — Fallback auf lokalen
+Blob-Download. Live durchgespielt: Upload mit frei gewähltem Fach/Thema,
+Polling bis "bereit", Datei-Modal + Download ohne Fehler, Grid-/Listenansicht
+geprüft. Details: `backend-planning.md` §9.
+
 Nächste Seite: eigenes Ermessen. Cache inkl.
 `mergeCache`/`_faecherCache`/`_cache.lernplaene`, CORS inkl. PATCH/DELETE,
-echte Umgebung stehen jetzt für alle ~8 verbleibenden Seiten bereit.
+echte Umgebung stehen jetzt für alle ~7 verbleibenden Seiten bereit.
 
 Basis-URL: `window.LESIFY_API_BASE` (Default `http://localhost:3000`).
 Session-Token: `localStorage['lesify:token']`.

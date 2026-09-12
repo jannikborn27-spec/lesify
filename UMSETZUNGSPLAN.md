@@ -2958,6 +2958,31 @@ sonst unverändert.
 > /themen/:id/lernzettel` erzeugt, Seite geladen (Titel/Inhalt/Fach-Badge
 > korrekt), eine echte Revision gesendet — Nutzernachricht + KI-Antwort im
 > Thread, Gratis-Zähler korrekt von "10 von 10" auf "9 von 10" runter.
+>
+> _2026-09-12: **`dateien.html` als dreizehnte Seite umgestellt.** Nutzt
+> denselben echten Upload+Polling-Pfad wie `thema.html`
+> (`Lesify.uploadDatei()` + `Lesify.pollDateiStatus()`), aber mit Fach/Thema
+> frei wählbar über das Zuordnungs-Modal statt fest vorgegeben — Fach-/
+> Themen-Selects nutzen jetzt `_faecherCache()`/`themenFuerFach()` wie
+> `chat.html`s Picker. Client-seitige MIME-aus-Dateiendung-Heuristik und
+> manuelle `groesse`-String-Berechnung entfallen (Server erkennt den
+> echten Typ, `mitDateiForm()` formatiert die Größe). **Nebenbei
+> gefundener, seitenübergreifender Bug:** die geteilte
+> `openDateiModal()` (app.js, von der globalen Klick-Delegation auf
+> `[data-datei-id]` ausgelöst — betrifft auch `thema.html`s Dateien-Tab)
+> rief `Lesify.getDatei()` noch **synchron** auf, obwohl das in `api.js`
+> ein Promise liefert — hätte beim Öffnen eine leere/kaputte Datei-Vorschau
+> gezeigt statt eines Fehlers (Promise hat kein `.themaId`/`.status` etc.,
+> alle Felder wären `undefined` gewesen). Fix: Thenable-Check wie bei
+> `themaCard()`/`klausurNoteBox()`, Rendering in neue `renderDateiModal(d)`
+> ausgelagert. Zweiter Fund in derselben Funktion: der Download-Button rief
+> `Lesify.downloadText()` auf, das es nur in `data.js` gibt — Fallback auf
+> lokalen Blob-Download, wenn die Funktion fehlt (das Dokument wird ohnehin
+> nur aus bereits geladenen Feldern zusammengesetzt, kein Server-Roundtrip
+> nötig). Live durchgespielt: echter PNG-Upload mit frei gewähltem
+> Fach/Thema, Polling bis "bereit", Datei-Modal geöffnet (zeigt jetzt
+> korrekt Fach/Thema/Größe/Status/Zusammenfassung), Download-Button ohne
+> Fehler ausgelöst, Grid-/Listenansicht-Umschalter geprüft.
 
 - [x] **API-Client `assets/js/api.js`** — _`Lesify.*`-Namen wie `data.js`, aber
       Promise-basiert; `fetch`-Wrapper mit Bearer-Token
@@ -2971,8 +2996,8 @@ sonst unverändert.
       _(Teilfortschritt 2026-09-12: `dashboard.html` + `faecher.html` +
       `fach.html` + `klausuren.html` + `lernplan.html` + `klausur.html` +
       `lernplan-lernzettel.html` + `thema.html` + `themen.html` + `chat.html` +
-      `testklausur.html` + `lernzettel.html` fertig + verifiziert, siehe
-      Progress-Notizen oben. 8 Seiten offen.)_
+      `testklausur.html` + `lernzettel.html` + `dateien.html` fertig +
+      verifiziert, siehe Progress-Notizen oben. 7 Seiten offen.)_
 - [x] **`assets/js/api.js` — Fächer-/Themen-Cache + reine Helfer nachgezogen**
       — _2026-09-12 (mit `dashboard.html`, siehe Progress-Notiz oben):
       `getFach`/`label` als sync Cache-Lookups, `prozentZuNote`/`noteAmpel`/

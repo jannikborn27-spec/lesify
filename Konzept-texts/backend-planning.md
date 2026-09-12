@@ -1559,6 +1559,15 @@ bekam `mitUpdated()` nachgezogen (fehlte bisher). Kein `id`-Fallback über eine
 eigene Bulk-Route, sondern über die ungefilterte `GET /lernzettel` (schon
 sortiert) — `[0]` ist der zuletzt bearbeitete.
 
+**Nachtrag `dateien.html` (2026-09-12) — seitenübergreifender Bug in
+`openDateiModal()` gefunden:** die geteilte Funktion (app.js, global per
+Klick-Delegation auf `[data-datei-id]` ausgelöst — betrifft auch
+`thema.html`s Dateien-Tab) rief `Lesify.getDatei()` noch synchron auf, obwohl
+das unter `api.js` ein Promise ist. Fix: Thenable-Check, Rendering in neue
+`renderDateiModal(d)` ausgelagert. Zweiter Fund: der Download-Button rief das
+nur in `data.js` existierende `Lesify.downloadText()` — Fallback auf lokalen
+Blob-Download, wenn die Funktion fehlt.
+
 **Nachtrag `klausur.html` (2026-09-12) — deutlich leichter als erwartet:**
 kein Backend-Change nötig — die komplette eingebettete Lernplan-Sektion
 läuft unverändert mit den Bausteinen aus `lernplan.html` weiter. Zwei

@@ -20,24 +20,26 @@
     check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
   };
 
-  /* Vier Seiten im Frontend: Home, Preise, Über uns, FAQ. Die früheren
-     Funktions-Unterseiten (feature-*.html) und der Vergleich sind
-     eingestellt — ihre Inhalte leben auf der Startseite. Das Mega-Menü-
-     und Feature-Seiten-Gerüst weiter unten bleibt vorerst inert (kein
-     Nav-Eintrag mit .mega, keine Seite mit #feature-page). */
+  /* Zwei eigenständige Seiten im Frontend: Home, Über uns. Preise und FAQ
+     sind KEINE eigenen Seiten mehr (Stand 2026-09-12) — wie zuvor schon die
+     Funktions-Unterseiten (feature-*.html) und der Vergleich leben ihre
+     Inhalte als Abschnitte auf der Startseite (#price / #faq); die Nav-
+     Einträge verlinken dorthin. Das Mega-Menü- und Feature-Seiten-Gerüst
+     weiter unten bleibt vorerst inert (kein Nav-Eintrag mit .mega, keine
+     Seite mit #feature-page). */
   var NAV_LINKS = [
     { href: 'index.html', label: 'Home', page: 'index' },
-    { href: 'preise.html', label: 'Preise', page: 'preise' },
+    { href: 'index.html#price', label: 'Preise' },
     { href: 'ueber-uns.html', label: 'Über uns', page: 'ueber-uns' },
-    { href: 'faq.html', label: 'FAQ', page: 'faq' }
+    { href: 'index.html#faq', label: 'FAQ' }
   ];
 
   var FOOTER = [
     { title: 'Produkt', links: [
       { href: 'index.html', label: 'Überblick' },
       { href: 'index.html#kv', label: 'So funktioniert’s' },
-      { href: 'preise.html', label: 'Preise' },
-      { href: 'faq.html', label: 'Häufige Fragen' }
+      { href: 'index.html#price', label: 'Preise' },
+      { href: 'index.html#faq', label: 'Häufige Fragen' }
     ]},
     { title: 'Unternehmen', links: [
       { href: 'ueber-uns.html', label: 'Über uns' },
@@ -2647,7 +2649,7 @@
   function ctaBtns(dark) {
     var c = dark ? ' btn-on-dark' : '';
     return '<div class="lab-cta"><a class="btn btn-primary' + c + ' btn-lg" href="registrieren.html">Kostenlos starten</a>' +
-      '<a class="btn btn-secondary' + c + ' btn-lg" href="preise.html">Preise ansehen</a></div>';
+      '<a class="btn btn-secondary' + c + ' btn-lg" href="index.html#price">Preise ansehen</a></div>';
   }
   function renderCta(v) {
     var h = '<h2>' + CTA.h + '</h2>', lead = '<p>' + CTA.lead + '</p>', small = '<small>' + CTA.small + '</small>';
@@ -2657,7 +2659,7 @@
     if (v === '5') return lw('cta', v, '<div class="container container--narrow cta-big">' + h + lead + ctaBtns() + '</div>');
     if (v === '6') return lw('cta', v, '<div class="container"><div class="cta-box">' + h + lead + ctaBtns() + small + '</div></div>');
     if (v === '7') return lw('cta', v, '<div class="container"><div class="cta-mesh"><span class="cta-mesh__m1"></span><span class="cta-mesh__m2"></span><div class="cta-mesh__in">' + h + lead + ctaBtns(true) + '</div></div></div>');
-    if (v === '8') return lw('cta', v, '<div class="container container--narrow cta-stack">' + h + lead + '<a class="btn btn-primary btn-lg btn-block" href="registrieren.html">Kostenlos starten</a><a class="btn btn-secondary btn-lg btn-block" href="preise.html">Preise ansehen</a>' + small + '</div>');
+    if (v === '8') return lw('cta', v, '<div class="container container--narrow cta-stack">' + h + lead + '<a class="btn btn-primary btn-lg btn-block" href="registrieren.html">Kostenlos starten</a><a class="btn btn-secondary btn-lg btn-block" href="index.html#price">Preise ansehen</a>' + small + '</div>');
     if (v === '9') return lw('cta', v, '<div class="container"><div class="cta-strip"><div><b>' + CTA.h + '</b><span>' + CTA.lead + '</span></div><a class="btn btn-primary btn-lg" href="registrieren.html">Kostenlos starten</a></div></div>');
     if (v === '10') return lw('cta', v, '<div class="container container--narrow cta-badge"><span class="cta-badge__b">14 Tage gratis</span>' + h + lead + ctaBtns() + '</div>');
     return lw('cta', v, '<div class="container"><div class="cta-band"><span class="eyebrow">' + CTA.eb + '</span>' + h + lead + ctaBtns(true) + small + '</div></div>');
@@ -3178,7 +3180,7 @@
           '<p>14 Tage kostenlos testen, danach ab 15,99 € im Monat. Keine Kreditkarte, monatlich kündbar.</p>' +
           '<div class="hero__cta">' +
             '<a class="btn btn-on-dark btn-primary btn-lg" href="registrieren.html">Kostenlos starten</a>' +
-            '<a class="btn btn-on-dark btn-secondary btn-lg" href="preise.html">Preise ansehen</a>' +
+            '<a class="btn btn-on-dark btn-secondary btn-lg" href="index.html#price">Preise ansehen</a>' +
           '</div>' +
           '<small>Prototyp mit Demo-Inhalten: die KI-Antworten sind derzeit simulierter Platzhaltertext.</small>' +
         '</div></div>' +
@@ -3285,19 +3287,53 @@
     document.body.appendChild(panel);
   }
 
-  /* ---------- Smooth-Scroll für #anker ---------- */
+  /* ---------- Smooth-Scroll für #anker (auch "seite.html#anker" auf
+     derselben Seite, z. B. Preise/FAQ aus der Nav) ---------- */
+  function navOffset() {
+    var nav = document.getElementById('mkt-nav');
+    return nav ? nav.offsetHeight + 12 : 0;
+  }
+  function scrollToHash(hash, behavior) {
+    if (!hash || hash.length < 2) return false;
+    var target;
+    try { target = document.querySelector(hash); } catch (e) { return false; }
+    if (!target) return false;
+    var top = target.getBoundingClientRect().top + window.pageYOffset - navOffset();
+    window.scrollTo({ top: top < 0 ? 0 : top, behavior: behavior || 'smooth' });
+    return true;
+  }
+  function currentBasename() {
+    return location.pathname.split('/').pop() || 'index.html';
+  }
+  /* Liefert den #hash-Teil, wenn href auf ein Ziel auf DIESER Seite zeigt
+     (reines "#kv" oder "index.html#price" während man schon auf
+     index.html ist) — sonst null (normale Seiten-Navigation). */
+  function samePageHash(href) {
+    var i = href.indexOf('#');
+    if (i === -1) return null;
+    var path = href.slice(0, i);
+    var hash = href.slice(i);
+    if (hash.length < 2) return null;
+    if (path === '' || path === currentBasename()) return hash;
+    return null;
+  }
   function initAnchors() {
-    document.querySelectorAll('a[href^="#"]').forEach(function (a) {
+    document.querySelectorAll('a[href*="#"]').forEach(function (a) {
       a.addEventListener('click', function (e) {
-        var id = a.getAttribute('href');
-        if (id.length < 2) return;
-        var target = document.querySelector(id);
-        if (!target) return;
+        var hash = samePageHash(a.getAttribute('href'));
+        if (hash === null) return; /* Ziel ist eine andere Seite */
         e.preventDefault();
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (scrollToHash(hash)) history.pushState(null, '', hash);
       });
     });
   }
+  /* Sections werden per JS gebaut (buildLabSections) — der native
+     Browser-Sprung zu #hash beim Laden trifft dadurch oft die falsche
+     Position, weil die Seite zu dem Zeitpunkt noch wächst. Nach
+     vollständigem Laden (inkl. Bilder) einmal korrigieren. */
+  window.addEventListener('load', function () {
+    if (location.hash) scrollToHash(location.hash, 'auto');
+  });
 
   document.addEventListener('DOMContentLoaded', function () {
     buildNav();

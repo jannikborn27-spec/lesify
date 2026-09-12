@@ -94,6 +94,19 @@ Blockiert alles Weitere. Erst die offenen Produktfragen klären, dann bauen.
         Inhalte auf die Startseite verlagert (`index.html#vergleich`).
         `ueber-uns.html` wird zur persönlichen Gründer-Seite. Details/Prüfung im
         Marketing-Block dieser Phase; `backend-planning.md` §11 nachgezogen.
+  - [x] **`preise.html` + `faq.html` eingestellt (2026-09-12):** Beide Nav-
+        Einträge bleiben („Preise", „FAQ"), verlinken jetzt aber auf die
+        bereits vorhandenen Startseiten-Abschnitte `index.html#price` /
+        `index.html#faq` statt auf eigene Seiten — dieselbe Konsolidierung
+        wie zuvor bei Funktions-Unterseiten/`vergleich.html`. Preis-Karten +
+        Sitzplatz-Rechner (`PRICE`-Objekt, `renderPrice`/`priceInit`) und
+        FAQ-Einträge (`FAQ`-Objekt, `renderFaq`) waren als Startseiten-
+        Abschnitte bereits vollständig vorhanden; nur `checkout.html`
+        (Zurück-Link) + Nav/Footer in `marketing.js` mussten umgehängt
+        werden. Die Familien-Feature-Matrix und die separate Abrechnungs-
+        FAQ von `preise.html` haben **kein** Äquivalent mehr auf der
+        Startseite — bewusst in Kauf genommen. `backend-planning.md`
+        nachgezogen.
   - [x] **Architekturfragen (chatMap, Datei-Status, Suche, Rate-Limiting):**
         entschieden am 2026-09-04 — siehe Abschnitt **„Architekturfragen"** unten.
   - [x] **Interim-Hosting für den Prototyp (2026-09-11):** `marketing/` +

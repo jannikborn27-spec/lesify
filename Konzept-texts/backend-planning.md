@@ -6,19 +6,23 @@
 > in `app/assets/js/data.js`).
 >
 > **Neu:** Der Ordner `marketing/` enthält jetzt die öffentliche Marketing-Website.
-> Vier Seiten in der Navigation (Stand 2026-09-08): **Home** (`index.html`),
-> **Preise** (`preise.html`), **Über uns** (`ueber-uns.html`), **FAQ** (`faq.html`);
-> dazu Utility-Seiten ohne Nav-Eintrag: Login, Registrierung, Passwort vergessen,
-> Checkout, Kontakt, Impressum, Datenschutz, AGB. Die früheren Funktions-Unterseiten
-> (`funktionen.html`, `feature-*.html`) und `vergleich.html` sind eingestellt — ihre
-> Inhalte liegen als Abschnitte auf der Startseite (Vergleich unter
-> `index.html#vergleich`). Sie ist ein
+> Vier Nav-Einträge (Stand 2026-09-12): **Home** (`index.html`), **Preise**
+> (Anker `index.html#price`), **Über uns** (`ueber-uns.html`), **FAQ** (Anker
+> `index.html#faq`); dazu Utility-Seiten ohne Nav-Eintrag: Login, Registrierung,
+> Passwort vergessen, Checkout, Kontakt, Impressum, Datenschutz, AGB. Eigene
+> Seiten `preise.html` und `faq.html` gibt es **nicht mehr** — beide Inhalte
+> sind Abschnitte auf der Startseite (wie zuvor schon Funktions-Unterseiten
+> und `vergleich.html`: Vergleich unter `index.html#cmp`). Preis-Karten +
+> Sitzplatz-Rechner leben als `PRICE`-Objekt direkt in
+> `marketing/assets/js/marketing.js` (`renderPrice`/`priceInit`), FAQ-Einträge
+> im `FAQ`-Objekt dort (`renderFaq`). Sie ist ein
 > eigenständiger statischer Prototyp (`marketing/assets/css/marketing.css`,
 > `marketing/assets/js/marketing.js`) im selben Design-System wie die eingeloggte
 > App, ohne Backend-Anbindung. Die daraus resultierenden Backend-Anforderungen
 > (Auth, Abo/Abrechnung, Kontaktformular, Paket-Limits) sind unten in §1, §4,
-> §5, §7, §8 und §11 eingearbeitet. Die auf `marketing/preise.html` genannten
-> Preise und Limits sind **Design-Platzhalter**, keine Produktentscheidung.
+> §5, §7, §8 und §11 eingearbeitet. Die im `PRICE`-Objekt (`marketing.js`)
+> genannten Preise und Limits sind **Design-Platzhalter**, keine
+> Produktentscheidung.
 >
 > **Preis-Modell (Stand 2026-09-03).** Kein dauerhaft kostenloser Tarif —
 > stattdessen **14 Tage kostenlose Testphase**. Tarif + Intervall werden **bei
@@ -140,7 +144,8 @@ ressourcengescopeter Account, verknüpft über `parentUserId` + gemeinsames `Abo
 | createdAt | timestamp | |
 
 ### Abo (Subscription)
-Nicht im Prototyp der App enthalten. Ergibt sich aus `marketing/preise.html` +
+Nicht im Prototyp der App enthalten. Ergibt sich aus dem `PRICE`-Objekt in
+`marketing/assets/js/marketing.js` (Preis-Abschnitt `index.html#price`) +
 `marketing/assets/js/stripe-config.js`: drei Tarife, Einzelplatz oder Familien-
 Paket (2–4 Sitze), monatliche oder jährliche Abrechnung, **14 Tage Trial mit
 automatischer Abbuchung danach** (Stripe), jederzeit kündbar.
@@ -946,7 +951,7 @@ Dev-Switch, `localStorage['lesify:search:v']` — nur Prototyp).
 | POST | `/auth/email-bestaetigen` | `{token}` → `emailVerifiedAt` setzen (Einmal-Token) |
 | GET | `/auth/me` | aktuelle Sitzung → `{user}` (`requireAuth`); für das Frontend-Auth-Gate (Phase 11) |
 
-### Abo & Abrechnung (neu — beliefert `marketing/preise.html` und den späteren Einstellungen-Bereich)
+### Abo & Abrechnung (neu — beliefert den Preis-Abschnitt `index.html#price` und den späteren Einstellungen-Bereich)
 | Methode | Pfad | Zweck |
 |---|---|---|
 | GET | `/abo` | Aktueller `paket`, `art`, `sitze`, `intervall`, `status`, `angebot`, `trialEndetAm`, `aktuellerZeitraumEnde` + abgeleitete Monatskontingente je Sitz |
@@ -1501,14 +1506,16 @@ Eigenständiger statischer Prototyp der öffentlichen Website, im selben
 Design-System wie die eingeloggte App (identische Tokens, Schriften Outfit +
 Hanken Grotesk, Ampel-Farben, „Fog Blue"-Tonleiter). Kein Build, Vanilla JS.
 
-- **Struktur (Stand 2026-09-08):** Vier Seiten in der Navigation —
-  `marketing/index.html` (Home/Landing), `preise.html`, `ueber-uns.html`
-  (persönliche Gründer-Seite), `faq.html`. Ohne Nav-Eintrag, aber vorhanden:
-  `kontakt.html`, `checkout.html`, `login.html`, `registrieren.html`,
-  `passwort-vergessen.html`, `impressum.html`, `datenschutz.html`, `agb.html`.
-  Eingestellt: `funktionen.html` + `feature-*.html` (Funktions-Unterseiten) und
-  `vergleich.html` — der Vergleich Lesify vs. klassische Nachhilfe lebt jetzt als
-  Abschnitt `index.html#vergleich`.
+- **Struktur (Stand 2026-09-12):** Vier Nav-Einträge, aber nur noch zwei
+  eigene Seiten — `marketing/index.html` (Home/Landing) und `ueber-uns.html`
+  (persönliche Gründer-Seite). „Preise" und „FAQ" verlinken auf Abschnitte der
+  Startseite (`index.html#price`, `index.html#faq`) statt auf eigene Seiten.
+  Ohne Nav-Eintrag, aber vorhanden: `kontakt.html`, `checkout.html`,
+  `login.html`, `registrieren.html`, `passwort-vergessen.html`,
+  `impressum.html`, `datenschutz.html`, `agb.html`. Eingestellt:
+  `funktionen.html` + `feature-*.html` (Funktions-Unterseiten), `vergleich.html`
+  (lebt als Abschnitt `index.html#cmp`), sowie `preise.html` + `faq.html`
+  (leben als Abschnitte `index.html#price` / `index.html#faq`).
 - **Shared:** `marketing/assets/css/marketing.css` (redeklariert den `:root`-
   Token-Block aus `app/assets/css/style.css` und ergänzt Marketing-Komponenten),
   `marketing/assets/js/marketing.js` (baut Navigation + Footer per JS, Scroll-
@@ -1528,9 +1535,9 @@ Hanken Grotesk, Ampel-Farben, „Fog Blue"-Tonleiter). Kein Build, Vanilla JS.
   Design-Platzhalter. Die daraus abgeleiteten echten Anforderungen stehen in
   §1 (User, Abo, KindProfil, Usage-Limits pro Paket), §4 (Auth-, Abo-, Kontakt-
   Endpunkte), §5 (Auth) und §7 (Limits).
-- **Backend-Pflege:** Ändern sich in `marketing/preise.html` die Pakete, Limits
-  oder Preise, müssen die Tabelle in §1 „Usage / Limits", §7 und die offenen
-  Punkte in §8 mitgezogen werden.
+- **Backend-Pflege:** Ändern sich im `PRICE`-Objekt (`marketing/assets/js/
+  marketing.js`) die Pakete, Limits oder Preise, müssen die Tabelle in §1
+  „Usage / Limits", §7 und die offenen Punkte in §8 mitgezogen werden.
 - **Design-Exploration entfernt** (Entscheidung 2026-09-04): `landing-lab.html`
   und `marketing/assets/js/landing-lab.js` sind gelöscht. `marketing/assets/css/landing-lab.css`
   bleibt vorerst, weil die aktuelle `index.html` seine `lab-*`-Klassen nutzt —

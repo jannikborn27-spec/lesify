@@ -24,15 +24,21 @@
   </div>
 </div>
 
-<script src="assets/js/data.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/auth-gate.js"></script>
 <script src="assets/js/app.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
   var I = LesifyUI.Icons, R = LesifyUI.Render;
   var params = new URLSearchParams(window.location.search);
   var lernplanId = params.get('lernplan') || params.get('id');
-  var lp = lernplanId ? Lesify.getLernplan(lernplanId) : null;
-  if (!lp && params.get('klausur')) lp = Lesify.getLernplanFuerKlausur(params.get('klausur'));
+  var lp = null;
+  try {
+    if (lernplanId) lp = await Lesify.getLernplan(lernplanId);
+    else if (params.get('klausur')) lp = await Lesify.getLernplanFuerKlausur(params.get('klausur'));
+  } catch (err) {
+    lp = null;
+  }
 
   if (!lp) {
     document.getElementById('sp-head').innerHTML =
@@ -42,7 +48,10 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   lernplanId = lp.id;
 
-  var k = Lesify.getKlausur(lp.klausurId);
+  // lp.klausur kommt bereits eingebettet (GET /lernplaene/:id) — kein
+  // eigener Lesify.getKlausur()-Aufruf nötig.
+  await Lesify.faecher();
+  var k = lp.klausur;
   var fach = k ? Lesify.getFach(k.fachId) : null;
   if (k) {
     var fachCol = fach ? Lesify.getFachColor(fach.farbe) : null;
@@ -69,8 +78,22 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('sp-doc').innerHTML = R.lernzettelSeite(lernplanId);
 
   var dl = document.getElementById('sp-download');
-  if (dl) dl.addEventListener('click', function () {
-    Lesify.downloadText('lernzettel-' + Lesify.slugify(k ? k.titel : 'lernplan') + '.md', Lesify.lernzettelDokument(lp));
+  if (dl) dl.addEventListener('click', async function () {
+    // GET /lernplaene/:id/lernzettel/dokument braucht den Authorization-
+    // Header (kein ?token=-Fallback wie bei Dateien) — darum per fetch +
+    // Blob statt einer einfachen <a href>-Navigation.
+    var text = await fetch(Lesify._base + '/lernplaene/' + lernplanId + '/lernzettel/dokument', {
+      headers: { Authorization: 'Bearer ' + Lesify._getToken() }
+    }).then(function (r) { return r.text(); });
+    var blob = new Blob([text], { type: 'text/markdown' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'lernzettel-' + Lesify.slugify(k ? k.titel : 'lernplan') + '.md';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
   });
 });
 </script>

@@ -1399,6 +1399,12 @@
   /* Lernzettel-Dokument (read-only) für lernplan-lernzettel.html. */
   function lernzettelSeite(lernplanId) {
     var lp = Lesify.getLernplan(lernplanId);
+    if (lp && typeof lp.then === 'function') {
+      // api.js: getLernplan() ist async — sync aus dem Cache lesen (braucht
+      // ein vorheriges `await Lesify.getLernplan(...)` auf der Seite).
+      var s = Lesify.lernplanStatus(lernplanId);
+      lp = s ? s.lernplan : null;
+    }
     if (!lp) return '<p class="text-sm text-muted">Lernplan nicht gefunden.</p>';
     if (!lp.lernzettel) {
       return '<div class="empty-state"><div class="es-icon">' + Icons.book + '</div>' +

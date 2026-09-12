@@ -56,29 +56,44 @@
   </div>
 </div>
 
-<script src="assets/js/data.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/auth-gate.js"></script>
 <script src="assets/js/app.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
   var I = LesifyUI.Icons, R = LesifyUI.Render;
   var params = new URLSearchParams(window.location.search);
-  var lzId = params.get('id') || Lesify.lernzettel()[0].id;
-  var lz = Lesify.getLernzettel(lzId) || Lesify.lernzettel()[0];
+  await Lesify.themen(); // Cache für R.badge()/Lesify.label() unten
+
+  // Kein `?id=` (Prototyp-Komfort): jüngsten Lernzettel des Users nehmen
+  // (GET /lernzettel ist bereits nach aktualisiertAm desc sortiert).
+  var lzId = params.get('id');
+  var lz;
+  try {
+    if (!lzId) {
+      var alle = await Lesify.lernzettel();
+      if (!alle.length) throw new Error('keine Lernzettel');
+      lzId = alle[0].id;
+    }
+    lz = await Lesify.getLernzettel(lzId);
+  } catch (err) {
+    window.location.href = 'dashboard.html';
+    return;
+  }
   lzId = lz.id;
-  var thema = Lesify.getThema(lz.themaId);
-  var fach = Lesify.getFach(lz.fachId);
+  var themaLabel = Lesify.label(lz.themaId);
 
   document.title = lz.titel + ' · Lesify';
   document.getElementById('lz-crumb').innerHTML =
-    '<a href="thema.html?id=' + thema.id + '&tab=lernzettel" style="color:var(--ink-500)">' + thema.name + '</a>' +
+    '<a href="thema.html?id=' + lz.themaId + '&tab=lernzettel" style="color:var(--ink-500)">' + themaLabel.thema + '</a>' +
     '<span style="color:var(--ink-400);margin:0 6px">/</span><span>Lernzettel</span>';
 
   document.getElementById('lz-head').innerHTML =
-    '<div>' + R.badge(thema.id) +
+    '<div>' + R.badge(lz.themaId) +
       '<h1 class="page-title" style="margin-top:14px;font-size:1.6rem">' + lz.titel + '</h1>' +
       '<p class="page-sub">Zuletzt bearbeitet ' + lz.updated + '</p>' +
     '</div>' +
-    '<div class="page-actions"><a href="thema.html?id=' + thema.id + '&tab=lernzettel" class="btn btn-ghost btn-sm">Zurück zum Thema</a></div>';
+    '<div class="page-actions"><a href="thema.html?id=' + lz.themaId + '&tab=lernzettel" class="btn btn-ghost btn-sm">Zurück zum Thema</a></div>';
 
   function renderDoc() {
     var html = lz.content.split('\n\n').map(function (block) {
@@ -101,12 +116,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function renderThread() {
     var thread = document.getElementById('lz-thread');
-    if (!lz.revisionMessages.length) {
+    if (!lz.revisionen.length) {
       thread.innerHTML = '<div class="empty-state"><p>Sag mir, was am Lernzettel angepasst werden soll — z. B. „füg ein Beispiel zu X hinzu" oder „kürze Abschnitt Y".</p></div>';
       return;
     }
-    thread.innerHTML = lz.revisionMessages.map(function (m) {
-      if (m.role === 'ai') return '<div class="lz-msg from-ai"><span class="lz-avatar">' + I.spark + '</span><span class="lz-bubble">' + m.text + '</span></div>';
+    thread.innerHTML = lz.revisionen.map(function (m) {
+      if (m.rolle === 'ai') return '<div class="lz-msg from-ai"><span class="lz-avatar">' + I.spark + '</span><span class="lz-bubble">' + m.text + '</span></div>';
       return '<div class="lz-msg from-user"><span class="lz-avatar">JB</span><span class="lz-bubble">' + m.text + '</span></div>';
     }).join('');
     thread.scrollTop = thread.scrollHeight;
@@ -120,23 +135,25 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('lz-send').innerHTML = I.send;
   document.getElementById('lz-send').addEventListener('click', send);
 
-  var AI_REPLIES = [
-    'Erledigt — ich habe den Abschnitt entsprechend ergänzt, schau mal links.',
-    'Angepasst. Ich habe ein zusätzliches Beispiel eingefügt, damit es klarer wird.',
-    'Gemacht — der Punkt ist jetzt kürzer und präziser formuliert.',
-    'Ich habe das ergänzt. Sag Bescheid, wenn noch etwas fehlt.'
-  ];
-  var replyIndex = 0;
-
-  function send() {
+  var sending = false;
+  async function send() {
+    if (sending) return;
     var text = input.value.trim();
     if (!text) return;
+    sending = true;
+    var sendBtn = document.getElementById('lz-send');
+    input.disabled = true; sendBtn.disabled = true;
     input.value = ''; input.style.height = 'auto';
-    var aiText = AI_REPLIES[replyIndex % AI_REPLIES.length];
-    replyIndex++;
-    var appended = '## Ergänzung\n' + text.charAt(0).toUpperCase() + text.slice(1);
-    lz = Lesify.addLernzettelRevision(lzId, text, aiText, appended);
-    renderDoc(); renderFreeCounter(); renderThread();
+    try {
+      lz = await Lesify.addLernzettelRevision(lzId, text);
+      renderDoc(); renderFreeCounter(); renderThread();
+    } catch (err) {
+      LesifyUI.toast(Lesify.fehlerText(err));
+    } finally {
+      sending = false;
+      input.disabled = false; sendBtn.disabled = false;
+      input.focus();
+    }
   }
 });
 </script>

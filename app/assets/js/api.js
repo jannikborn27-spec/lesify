@@ -473,7 +473,7 @@
     },
     /** Async — voller Inhalt + Revisionsverlauf (Lernzettel-Detailseite). */
     getLernzettel: function (id) {
-      return GET('/lernzettel/' + id);
+      return GET('/lernzettel/' + id).then(function (lz) { return mitUpdated(lz, 'aktualisiertAm'); });
     },
     addLernzettel: function (themaId) {
       return POST('/themen/' + themaId + '/lernzettel', {});

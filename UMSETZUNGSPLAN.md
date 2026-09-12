@@ -1917,6 +1917,19 @@ Blockiert alles Weitere. Erst die offenen Produktfragen klären, dann bauen.
       `margin-top:0px` per Computed Style bestätigt), Dashboard-
       Wasserzeichen oben rechts deutlich sichtbar, keine Konsolenfehler
       auf `ueber-uns/`, `index.html` oder `dashboard.html`.
+      · **Beide Ergebnisse laut Feedback trotzdem unzureichend
+      (2026-09-12, gleicher Tag, direkt danach):** Foto war trotz
+      Vergrößerung noch zu klein und stand nicht mehr bodenbündig,
+      Wasserzeichen war live auf `lesify.de/app/dashboard` weiterhin
+      praktisch unsichtbar. **Nachgebessert:**
+      `.au-hero-portrait__photo` von `clamp(150px,16vw,210px)` +
+      vertikal zentriert (`top:50%`+`translateY(-50%)`) auf
+      `clamp(260px,30vw,400px)` + `bottom:0` (bodenbündig an `.au-hero`)
+      umgestellt, `.au-hero-portrait__body`s `padding-left` passend auf
+      `clamp(290px,33vw,430px)` nachgezogen, mobiles Foto von 150px auf
+      220px. **Dashboard-Wasserzeichen** von `340px`/`opacity:0.12` auf
+      `480px`/`opacity:0.28` (mobil-breakpoint 240px→340px) — jetzt
+      unübersehbar statt nur „technisch vorhanden".
 
 ---
 

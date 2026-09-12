@@ -295,13 +295,14 @@ svg { display: block; }
 
 /* Dashboard: deutlich sichtbareres Wasserzeichen als auf den übrigen
    Seiten (dort bewusst kaum wahrnehmbar) — die Startseite der App
-   darf ruhig ein erkennbares Lesify-Symbol oben rechts zeigen. */
+   darf ruhig ein klar erkennbares Lesify-Symbol oben rechts zeigen,
+   kein kaum wahrnehmbares Hauch-von-Grau. */
 body[data-page="dashboard"] .page-watermark {
-  width: 340px; height: 340px;
-  top: -36px; right: -36px;
-  opacity: 0.12;
+  width: 480px; height: 480px;
+  top: -60px; right: -60px;
+  opacity: 0.28;
 }
-@media (max-width: 1180px) { body[data-page="dashboard"] .page-watermark { width: 240px; height: 240px; } }
+@media (max-width: 1180px) { body[data-page="dashboard"] .page-watermark { width: 340px; height: 340px; top: -40px; right: -40px; } }
 @media (max-width: 860px) { .page-watermark { display: none; } }
 
 .page-head {

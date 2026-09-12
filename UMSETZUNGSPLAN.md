@@ -32,6 +32,128 @@ Der Abgleich passiert **im selben Arbeitsschritt** wie die Änderung, nicht spä
 
 ---
 
+## Was jetzt noch von dir gebraucht wird (Stand 2026-09-13)
+
+**Alles, was ohne Rücksprache technisch entscheidbar war, ist gebaut, getestet
+und dokumentiert.** Die 15 regulären App-Seiten laufen komplett gegen die
+echte API (Phase 11), das Backend steht bis Phase 10, das Frontend-Cut-over
+ist bis auf den Eltern-Bereich fertig. Was unten steht, sind **Entscheidungen,
+Zugänge oder Texte, die nur du liefern kannst** — sortiert danach, was zuerst
+drankommt. Häk die Zeile ab, sobald sie geklärt ist; bei „ich brauche X von
+dir" trag die Antwort direkt in die Zeile ein oder sag mir Bescheid, dann
+setze ich sie um.
+
+### 1. Damit die App überhaupt live erreichbar ist (Hosting)
+
+- [ ] **Wo soll `api/` laufen?** Fastify braucht einen Node-Host mit
+      öffentlicher HTTPS-URL (Railway, Render, Fly.io, ein eigener VPS, …).
+      Ohne das bleibt der bereits live auf GitHub Pages laufende
+      `marketing/`+`app/`-Auftritt nutzlos, weil er nur gegen `localhost`
+      sprechen kann. **Blockiert alles andere in dieser Sektion.**
+- [ ] **Domain-Entscheidung + DNS.** GitHub Pages erlaubt nur eine Custom
+      Domain je Repo — `app/` bleibt entweder Unterpfad derselben Domain (wie
+      jetzt) oder `api/` bekommt eine eigene Subdomain beim gewählten Host.
+- [ ] **Supabase-Produktivprojekt.** Aktuell läuft alles gegen ein
+      Dev-Projekt — für Prod ein eigenes Supabase-Projekt anlegen und
+      `DATABASE_URL`/`DIRECT_URL` + Storage-Zugangsdaten dafür setzen.
+- [ ] **`CORS_ORIGINS` auf die echte Domain setzen**, sobald sie feststeht —
+      ohne die Variable blockt die Produktions-CORS-Konfiguration jeden
+      Request von der echten Website (siehe `backend-planning.md` §11).
+
+### 2. Eltern-Bereich fertigstellen (`eltern-*.html`, 4 Seiten)
+
+Diese vier Seiten hängen noch am Prototyp (`data.js`), weil sie echte
+Backend-Features brauchen, die es noch nicht gibt — reine Verdrahtung reicht
+hier nicht, das sind Produktentscheidungen:
+
+- [ ] **Aktivitäts-Ampel pro Kind (grün/gelb/rot):** ab welcher Anzahl
+      Nachrichten/Chats pro Woche gilt ein Kind als „aktiv" statt „wackelig"
+      oder „schwach"? Ich brauche konkrete Schwellenwerte oder eine
+      Faustregel, dann baue ich die Formel (analog zu `noteAmpel()` in
+      `shared/`) und hänge sie an `GET /abo/kinder/:id/zusammenfassung`.
+- [ ] **„Eingeladen"-Status pro Kind:** `GET /abo/kinder` liefert aktuell nur
+      `{id, name, klassenstufe}` — soll ich `email`/`emailVerifiedAt`
+      ergänzen, damit die UI zwischen „Einladung ausstehend" und „aktiv"
+      unterscheiden kann? (Kleine, unkritische Backend-Änderung — ich brauche
+      nur dein Ok, dass die Unterscheidung in der UI überhaupt gewünscht ist.)
+- [ ] **„Letzte Aktivität" pro Kind:** soll das echt getrackt werden (neues
+      Feld + Schreibpfad an mehreren Stellen) oder reicht eine Annäherung aus
+      vorhandenen Zeitstempeln (letzter Chat/letzte Nachricht)? Oder ganz
+      weglassen?
+- [ ] **Kind-Avatar-Farbe:** es gibt kein Datenfeld dafür im echten Backend
+      (anders als `Fach.farbe`). Lässt sich rein kosmetisch client-seitig
+      lösen (deterministisch aus der Kind-ID) — nur zur Kenntnis, keine
+      Entscheidung nötig, außer du willst es anders.
+- [ ] **Abo-Reaktivierung:** es gibt aktuell keinen Endpunkt, um ein
+      gekündigtes/pausiertes Abo wieder zu aktivieren (`eltern-abo.html`s
+      „Abo reaktivieren"-Button hat kein Gegenstück in `api/src/routes/
+      abo.ts`). Soll ich `POST /abo/reaktivieren` bauen, oder läuft
+      Reaktivierung später über ein Stripe-Customer-Portal?
+
+### 3. Recht & Texte (Phase 13) — keine Code-Aufgabe, blockiert aber den Launch
+
+- [ ] **Impressum / Datenschutzerklärung / AGB** mit echten Angaben füllen
+      (`marketing/impressum.html`, `datenschutz.html`, `agb.html`) und
+      juristisch prüfen lassen.
+- [ ] **Auftragsverarbeitungsverträge** mit Anthropic + Sub-Prozessoren
+      (Supabase, Stripe, Hoster) abschließen, fürs Verarbeitungsverzeichnis.
+- [ ] **KI-Nutzungshinweis-Text** ergänzen („Antworten können falsch sein,
+      keine Leistungsbewertung durch die Schule") — `chat.html` hat mit
+      „Lesify kann Fehler machen — prüfe wichtige Angaben nach." schon einen
+      Teil davon, der Rest ist eine kurze Textergänzung.
+
+### 4. Geld (Phase 9/16)
+
+- [ ] **Preis-Feinheiten:** Angebotsdauer/-verlängerung, Jahrespreis-Rundung,
+      ob der Rabattpreis dauerhaft an den Vertrag gebunden bleibt.
+- [ ] **Stripe Live-Modus** + Rechnungsstellung + Umgang mit fehlgeschlagenen
+      Zahlungen (Retry/Mahnlogik) — sinnvoll erst sobald `api/` öffentlich
+      läuft (Punkt 1).
+- [ ] **Anthropic-Produktions-Key mit Budget-Limit.** _Nebenbei entdeckt
+      (2026-09-13): der lokale Dev-Server (`pnpm dev`) lädt `api/.env` gar
+      nicht (nur die Testsuite tut das über `vitest.setup.ts`) — ein dort
+      gesetzter `ANTHROPIC_API_KEY` greift beim `dev`-Server also nicht, es
+      läuft automatisch der `FakeKiClient`. Rein technischer Fix (`dotenv` in
+      `api/src/index.ts` laden), keine Entscheidung nötig — sag Bescheid,
+      falls das gerade stört._
+
+### 5. E-Mail-Versand (bisher komplett zurückgestellt)
+
+- [ ] **E-Mail-Anbieter wählen** (Postmark, SES, Resend, …) für
+      Double-Opt-in-/Passwort-Reset-Mails. Aktuell gibt die API im
+      Dev-Modus den Reset-Token direkt in der Antwort zurück — funktioniert
+      zum Testen, aber ohne echten Versand nicht produktionsreif.
+- [ ] **Klausur-Erinnerung + Wöchentliche Zusammenfassung:** die Toggles
+      existieren in `einstellungen.html`, sind aber wirkungslos, bis ein
+      Versandweg feststeht.
+- [ ] **Kontaktformular-Zielsystem:** wohin sollen `POST /kontakt`-Nachrichten
+      tatsächlich gehen (Postfach/Ticketsystem)?
+
+### 6. Betrieb (Phase 15/16)
+
+- [ ] **Error-Tracking-Anbieter** (z. B. Sentry) — DSN besorgen, anschließen.
+- [ ] **DB-Backups:** Supabase-Feature aktivieren + einmal einen echten
+      Restore testen.
+- [ ] **Auth-Lockout-Policy bestätigen:** aktuell nur IP-Drosselung mit
+      exponentiellem Backoff, kein harter Account-Lockout nach X
+      Fehlversuchen — reicht das, oder soll ein Lockout dazu?
+
+### 7. Optionale Aufräumarbeiten (keine Entscheidung nötig, nur FYI)
+
+- [ ] **Datei-Viewer:** echte Bild-/PDF-Vorschau statt Text-Platzhalter in
+      `openDateiModal()` (app.js).
+- [ ] **Dev-Switcher entfernen** (Suche-Varianten, Testklausur-Phasen-
+      Umschalter, Pill-Style) — bewusst noch drin, weil sie aktuell die
+      einzige Möglichkeit sind, alle Design-Zustände ohne echte Testdaten zu
+      sehen. Sag Bescheid, wenn sie raus sollen.
+- [ ] **„Datenexport"/„Konto löschen"-Buttons in `einstellungen.html`:** das
+      Backend dafür (`GET /user/export`, `POST /user/loeschen`) ist fertig
+      und getestet, aber der Prototyp hatte dort nie eine UI. Ist eine
+      destruktive Aktion — baue ich bewusst nicht auf Verdacht, sondern erst
+      auf Zuruf.
+
+---
+
 ## Phase 0 — Bestandsaufnahme & Entscheidungen
 
 Blockiert alles Weitere. Erst die offenen Produktfragen klären, dann bauen.
@@ -3097,17 +3219,33 @@ sonst unverändert.
       vergessen → Dev-Reset-Link → neues Passwort → Login damit — alles
       geprüft, Test-User danach wieder gelöscht). Tests: `api/src/lib/
       cors.test.ts` (5) + `api/src/app.test.ts` (2)._
-- [ ] **Fehler-/Ladezustände + Guard-Popups:** `Lesify.fehlerText(err)` als
-      Toast (Limit, Datei zu groß, nicht schulrelevant, zu groß, Spam, Rate-Limit,
-      Offline).
+- [x] **Fehler-/Ladezustände + Guard-Popups:** _erledigt für alle 15
+      umgestellten Seiten (2026-09-12/13) — `Lesify.fehlerText(err)` als Toast
+      bei Limit/Datei-zu-groß/nicht-schulrelevant/Spam/Rate-Limit/allgemeinen
+      Fehlern, konsequent in `chat.html`, `testklausur.html`,
+      `lernzettel.html`, `dateien.html`, `einstellungen.html` (die Seiten mit
+      echten Mutations-Aufrufen). „Offline" (kein Netz) ist kein eigener
+      Fehlercode — `fetch()` wirft dann direkt, landet aber im selben
+      catch-Pfad und zeigt den generischen Fallback-Toast._
 - [ ] **Datei-Viewer** auf `Lesify.dateiInhaltUrl(id)` + `pollDateiStatus`
-      (`verarbeitung`→`bereit` ohne Reload) statt `.txt`-Ersatz.
-- [ ] **Abo-/Einstellungs-Bereich in der App:** `getAbo`/`aendernAbo`/
-      `kuendigenAbo`/`pausierenAbo`/`kinder`/`addKind`/`removeKind`, Ring aus
-      `usage()`.
+      (`verarbeitung`→`bereit` ohne Reload) statt `.txt`-Ersatz. _Weiterhin
+      offen — `openDateiModal()` (app.js) zeigt eine reine Text-Vorschau, kein
+      echtes Bild/PDF. Rein technisch, keine Entscheidung nötig._
+- [x] **Abo-/Einstellungs-Bereich in der App (Teil, 2026-09-12):**
+      `getAbo`/`aendernAbo` + Nutzungsring in `einstellungen.html` fertig
+      (siehe Phase-11-Progress-Notiz). `kuendigenAbo`/`pausierenAbo`/`kinder`/
+      `addKind`/`removeKind` bleiben offen — die betreffen nur den
+      Eltern-Bereich (`eltern-abo.html`/`eltern-kinder.html`), siehe „Was von
+      dir gebraucht wird" oben.
 - [ ] **Dev-Switcher entfernen/abschalten** (Suche-Varianten,
       Testklausur-Phasen-Umschalter, Pill-Style) — oder hinter Dev-Flag.
-- [ ] **Seed-Parität prüfen:** angebundene App auf `staging` == Prototyp mit `SEED`.
+      _Rein technisch, aber bewusst noch nicht gemacht: die Schalter sind
+      aktuell die einzige Möglichkeit, alle Design-Zustände ohne echte
+      Testdaten zu sehen — sinnvoll entweder kurz vor Launch oder auf
+      Zuruf zu entfernen._
+- [ ] **Seed-Parität prüfen:** angebundene App auf `staging` == Prototyp mit
+      `SEED`. _Braucht ein laufendes `staging` (Phase 16) — noch nicht
+      erreichbar._
 
 ---
 

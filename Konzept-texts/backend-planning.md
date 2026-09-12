@@ -894,7 +894,7 @@ Kein `PATCH /klausuren/:id` — eine `Klausur` hat keine editierbaren Felder (En
 | Methode | Pfad | Zweck |
 |---|---|---|
 | — | (`POST /klausuren`) | Der Lernplan entsteht **automatisch mit der Klausur** — kein separater Erstell-Aufruf durch den Client. Alternativ als eigener Schritt denkbar: `POST /klausuren/:id/lernplan` |
-| GET | `/lernplaene/:id` bzw. `/klausuren/:id/lernplan` | Voller berechneter Zustand (entspricht `Lesify.lernplanStatus`): aktueller Tag, schwache Themen, Tag-1↔Tag-5-Vergleich, ob Testklausur 2 nötig ist, Lernzettel |
+| GET | `/lernplaene/:id` bzw. `/klausuren/:id/lernplan` | Persistierte Felder + berechneter `status` (aktueller Tag, schwache Themen, Tag-1↔Tag-5-Vergleich, ob Testklausur 2 nötig ist) **+ (2026-09-12) volle `klausur`/`testklausur1`/`testklausur2`-Objekte** in der data.js-Prototyp-Form — `Lesify.lernplanStatus` im Frontend faltet das auf `{lernplan, klausur, testklausur1, testklausur2, tag1..tag7, aktuellerTag, letzteTestNote, letzteTestNr, gesamtnoteAktuell}` zusammen (§9 „api.js-Cache-Layer") |
 | POST | `/lernplaene/:id/testklausur2` | Startet Testklausur 2 (Tag 5), begrenzt auf die an Tag 1 schwachen/wackeligen Themen — intern derselbe `testklausurErstellen()` wie `POST /testklausuren` (**Phase 6 verdrahtet**), danach `Lernplan.testklausur2Id` gesetzt. `409`, wenn Tag 5 noch nicht verfügbar/nötig oder schon gestartet |
 | POST | `/lernplaene/:id/lernzettel` | `{themaIds}` → erzeugt/ergänzt den Lernzettel (Call 12, **Phase 6 verdrahtet**, hängt Markdown-Abschnitte an), gibt `Lernplan.lernzettel` zurück |
 | GET | `/lernplaene/:id/lernzettel/dokument` | Lernzettel als Markdown-Download |
@@ -1484,6 +1484,40 @@ Race Condition in `fach.html` selbst (nicht im Cache-Layer): mehrere
 Draw-Funktionen liefen per `Promise.all([…])` parallel, aber eine liest
 synchron aus einem Cache, den eine andere erst füllt — ohne Sequenzierung
 (die cache-füllende Funktion zuerst einzeln awaiten) manchmal noch leer.
+**Nachtrag `lernplan.html` (2026-09-12) — mit Abstand der größte Umbau
+bisher:** `app.js`s komplettes Lernplan-Renderer-Bündel
+(`lernplanSeite`/`lpVariantSplit`/`lpTag1Body`…`lpTag7Body`/`wireLernplan`/
+`lernplanNaechsteAufgabe`/`lernplanTeaser`/`lernplanFocusTag`/
+`lernplanSplitMain`) liest synchron `Lesify.lernplanStatus(id)` inkl. der
+darin verschachtelten vollen `s.klausur`/`s.testklausur1`/`s.testklausur2`-
+Objekte (data.js-Prototyp-Form) — nicht nur die reine
+`shared/src/lernplan.ts`-Berechnung, die `GET /lernplaene/:id` bis dahin als
+`status` lieferte. Fix in zwei Teilen: (1) **Backend:** neue
+`testklausurFuerLernplanUI()` (`api/src/lib/lernplan.ts`) lädt Aufgaben +
+Ergebnisse + Vorbereitung einer Testklausur und formt sie in die
+verschachtelte `{ergebnis: {note, prozent, proThema}, vorbereitung: {note,
+proThema}}`-Form um — **anders** als die flachen `ergebnisse`/
+`vorbereitung`-Arrays von `GET /testklausuren/:id`. `lernplaene.ts`s
+`mitStatus()` bettet jetzt zusätzlich `klausur`/`testklausur1`/
+`testklausur2` ein (rein additiv — die gut getestete `berechneLernplanStatus()`/
+`lernplanStatus()` bleibt unverändert). (2) **Frontend:** `api.js` bekam
+einen Lernplan-Cache (`_cache.lernplaene`, Objekt statt Array — immer
+Einzel-Lookup per ID) + einen sync `lernplanStatus(id)`, der die API-Antwort
+auf die exakte data.js-Form zusammenfaltet, plus `getLernplanChatId()`
+(liest `chatMap` **im Backend-Key-Format** `tag|modus|themaId`, leerer statt
+`"null"`-String bei fehlendem Modus — data.js nutzt dort `String(modus)`,
+das passt nicht zu dem, was der Server unter `chatMap` tatsächlich
+speichert). `wireLernplan()` (Checklisten-Haken, „Tag abschließen",
+Lernzettel starten, Testklausur 2 starten, Tag-Fokus wechseln) ist jetzt
+komplett `async` mit explizitem Re-Fetch (`Lesify.getLernplan(id)`) vor
+jedem Re-Render — `await` auf einem synchronen Rückgabewert (data.js) läuft
+einfach einen Mikrotask später durch, bei Klick-/Change-Events technisch
+folgenlos, darum **kein** Thenable-Check nötig (anders als `renderChrome()`,
+wo ein sichtbarer Lade-Flash vermieden werden sollte). **Bekannte,
+zurückgestellte Lücke:** `lpKlasse()` (Chat-Prompt „für die 8. Klasse")
+fällt unter api.js auf den Fach-Wert zurück, weil `Lesify.getUser()` dort
+async ist — betrifft nur die Prompt-Formulierung, keine Funktion.
+
 **Nachtrag `klausuren.html` (2026-09-12):** drei weitere generische Lücken,
 alle im Cache-/Seiten-Muster, nicht seitenspezifisch. (1) `fachFilterChips()`
 (app.js) rief `Lesify.faecher()` synchron auf — unter api.js ein Promise.

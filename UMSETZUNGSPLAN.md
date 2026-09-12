@@ -2724,14 +2724,62 @@ sonst unverändert.
 > einem Formular-Durchlauf, danach Weiterleitung zu `lernplan.html` mit
 > echter Lernplan-ID) — Testdaten/-user danach gelöscht.
 >
+> _2026-09-12: **`lernplan.html` als fünfte Seite umgestellt — mit Abstand
+> der größte Umbau bisher**, weil `app.js`s Lernplan-Renderer
+> (`lernplanSeite`/`lpVariantSplit`/`lpTag1Body`…`lpTag7Body`/`wireLernplan`/
+> `lernplanNaechsteAufgabe`/`lernplanTeaser`/`lernplanFocusTag`/
+> `lernplanSplitMain`) alle synchron auf `Lesify.lernplanStatus(id)` und
+> das darin verschachtelte `s.klausur`/`s.testklausur1`/`s.testklausur2`
+> zugreifen — genau die data.js-Prototyp-Form (`{lernplan, klausur,
+> testklausur1, testklausur2, tag1..tag7, aktuellerTag, letzteTestNote,
+> letzteTestNr, gesamtnoteAktuell}`), nicht nur die reine
+> `shared/src/lernplan.ts`-Berechnung. `GET /lernplaene/:id` lieferte bis
+> dahin nur `{...persistiert, status}` — **`status` allein reichte dem
+> UI nicht**, weil dort keine vollen `klausur`/`testklausur1`/`testklausur2`-
+> Objekte drinstecken (nur die daraus abgeleiteten `tag1..tag7`-Felder).
+> Backend-Fix: `api/src/lib/lernplan.ts` → neue `testklausurFuerLernplanUI()`
+> (lädt Aufgaben+Ergebnisse+Vorbereitung und formt sie in die verschachtelte
+> `{ergebnis: {note, prozent, proThema}, vorbereitung: {note, proThema}}`-
+> Form um — **anders** als die flachen `ergebnisse`/`vorbereitung`-Arrays von
+> `GET /testklausuren/:id`); `lernplaene.ts`s `mitStatus()` bettet jetzt
+> zusätzlich `klausur`/`testklausur1`/`testklausur2` ein (rein additiv, die
+> gut getestete reine `berechneLernplanStatus()`/`lernplanStatus()`-Funktion
+> bleibt unangetastet). `api.js` bekam dafür einen Lernplan-Cache
+> (`_cache.lernplaene`, Objekt statt Array — Lernpläne werden immer per ID
+> abgefragt, nie als Liste) + einen sync `lernplanStatus(id)`, der die
+> API-Antwort auf die exakte data.js-Form zusammenfaltet, plus
+> `getLernplanChatId()` (liest `chatMap` **im Backend-Key-Format**
+> `tag|modus|themaId` mit leerem statt `"null"`-String bei fehlendem Modus
+> — data.js verwendet dort `String(modus)`, das würde bei fehlendem Modus
+> nicht zu dem passen, was der Server tatsächlich unter `chatMap` speichert).
+> `wireLernplan()` (Checklisten-Haken, „Tag abschließen", Lernzettel starten,
+> Testklausur 2 starten, Tag-Fokus wechseln) ist jetzt komplett `async` mit
+> explizitem Re-Fetch (`Lesify.getLernplan(id)`) vor jedem Re-Render — auf
+> synchronen Rückgabewerten (data.js) läuft `await` einfach einen Mikrotask
+> später durch, technisch folgenlos bei Klick-/Change-Events, darum **kein**
+> Thenable-Check nötig (anders als bei `renderChrome()`, wo ein sichtbarer
+> Lade-Flash vermieden werden sollte). Live durchgeklickt: kompletter
+> Diagnose-Kurzschluss-Pfad (beide Themen nach Testklausur-1-Analyse grün →
+> Tag 2–6 „nichts zu tun", Tag 7 aktiv), Tag-Fokus-Umschalten, Checkbox
+> abhaken → Fortschrittsbalken/Status/„Lernplan abgeschlossen"-Meldung
+> aktualisieren sich sofort und korrekt, Server-seitig per direktem
+> `GET /lernplaene/:id` verifiziert. **Bekannte, bewusst zurückgestellte
+> Lücke:** `lpKlasse()` (Chat-Prompt-Formulierung „für die 8. Klasse")
+> fällt unter api.js auf den Fach-Wert zurück, weil `Lesify.getUser()` dort
+> async ist — der User-Klassenstufe-Fallback greift nicht mehr. Betrifft nur
+> die Prompt-Formulierung, keine Funktion; wird bei Bedarf mit einem
+> User-Cache (analog Fächer/Themen) nachgezogen. Tests: `api/src/routes/
+> flow2.test.ts` (+1, prüft die eingebetteten `klausur`/`testklausur1`-Felder).
+>
 > Der Rest des `app/*.html`-Seiten-Cut-overs (`chat.html`, `thema.html`,
-> `klausur.html`, `testklausur.html`, `lernplan.html`,
+> `klausur.html`, `testklausur.html`,
 > `lernplan-lernzettel.html`, `lernzettel.html`,
 > `themen.html`, `dateien.html`, `suche.html`, `einstellungen.html`, die vier
-> `eltern-*.html`) bleibt offen — jede Seite braucht denselben sorgfältigen
-> Umbau + Browser-Test wie die vier fertigen Seiten, jetzt aber ohne die
-> grundsätzlichen Blocker (Cache-Layer inkl. `mergeCache`/`_faecherCache` +
-> CORS inkl. PATCH/DELETE stehen bereits).
+> `eltern-*.html`) bleibt offen. `klausur.html` und `lernplan-lernzettel.html`
+> sollten jetzt deutlich leichter fallen — sie nutzen dieselben
+> Lernplan-Renderer, die gerade fertig geworden sind. Grundbausteine (Cache
+> inkl. `mergeCache`/`_faecherCache`/`_cache.lernplaene` + CORS inkl.
+> PATCH/DELETE) stehen für alle bereit.
 
 - [x] **API-Client `assets/js/api.js`** — _`Lesify.*`-Namen wie `data.js`, aber
       Promise-basiert; `fetch`-Wrapper mit Bearer-Token
@@ -2743,8 +2791,8 @@ sonst unverändert.
 - [ ] **Seiten umstellen (pro Seite):** `data.js`→`api.js`+`auth-gate.js`,
       `Lesify.*`-Aufrufe `await`en, Renderer in `app.js` auf Promises anpassen.
       _(Teilfortschritt 2026-09-12: `dashboard.html` + `faecher.html` +
-      `fach.html` + `klausuren.html` fertig + verifiziert, siehe
-      Progress-Notizen oben. 16 Seiten offen.)_
+      `fach.html` + `klausuren.html` + `lernplan.html` fertig + verifiziert,
+      siehe Progress-Notizen oben. 15 Seiten offen.)_
 - [x] **`assets/js/api.js` — Fächer-/Themen-Cache + reine Helfer nachgezogen**
       — _2026-09-12 (mit `dashboard.html`, siehe Progress-Notiz oben):
       `getFach`/`label` als sync Cache-Lookups, `prozentZuNote`/`noteAmpel`/

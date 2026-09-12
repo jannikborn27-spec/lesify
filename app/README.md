@@ -112,9 +112,28 @@ echter KI-Call für Testklausur 1). Drei weitere Lücken im selben Muster:
   + Lernplan in einem Request an — kein separates `starteLernplan()` mehr
   nötig, `ergebnis.lernplan.id` kommt direkt in der Antwort.
 
+**`lernplan.html` als fünfte Seite umgestellt (2026-09-12) — mit Abstand der
+größte Umbau bisher.** `app.js`s komplettes Lernplan-Renderer-Bündel
+(Split-Ansicht, 7-Tage-Checklisten, Tag-Fokus, Lernzettel-Start, Testklausur
+2 starten) liest synchron `Lesify.lernplanStatus(id)` inkl. voller
+`klausur`/`testklausur1`/`testklausur2`-Objekte (data.js-Form) — nicht nur
+die reine `shared/src/lernplan.ts`-Berechnung, die `GET /lernplaene/:id`
+bis dahin lieferte. Details + Backend-Fix (`testklausurFuerLernplanUI()`,
+neues eingebettetes `klausur`/`testklausur1`/`testklausur2`):
+`backend-planning.md` §9. In `api.js`: `_cache.lernplaene` (Objekt, keyed
+per ID) + sync `lernplanStatus(id)` + `getLernplanChatId()`.
+`wireLernplan()` ist jetzt komplett `async` mit explizitem Re-Fetch vor
+jedem Re-Render — für data.js unschädlich (`await` auf einem synchronen
+Wert läuft nur einen Mikrotask später durch). Live durchgeklickt:
+Diagnose-Auswertung, Tag-Fokus wechseln, Checkbox abhaken →
+Fortschritt/Status/Abschluss-Meldung aktualisieren sich sofort, per
+`GET /lernplaene/:id` serverseitig verifiziert. `klausur.html` und
+`lernplan-lernzettel.html` sollten jetzt leichter fallen — sie nutzen
+dieselben Renderer.
+
 Nächste Seite: eigenes Ermessen, aber die Grundbausteine (Cache inkl.
-`mergeCache`/`_faecherCache`, CORS inkl. PATCH/DELETE, echte Umgebung) stehen
-jetzt für alle ~16 verbleibenden Seiten bereit.
+`mergeCache`/`_faecherCache`/`_cache.lernplaene`, CORS inkl. PATCH/DELETE,
+echte Umgebung) stehen jetzt für alle ~15 verbleibenden Seiten bereit.
 
 Basis-URL: `window.LESIFY_API_BASE` (Default `http://localhost:3000`).
 Session-Token: `localStorage['lesify:token']`.

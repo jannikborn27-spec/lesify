@@ -17,25 +17,35 @@
   </div>
 </div>
 
-<script src="assets/js/data.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/auth-gate.js"></script>
 <script src="assets/js/app.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
   var R = LesifyUI.Render, I = LesifyUI.Icons;
 
-  var user = Lesify.getUser();
+  // Fächer/Themen zuerst (bzw. gleichzeitig) laden — R.badge()/fachColorVars()
+  // lesen Fach-/Thema-Daten synchron aus dem Cache, den faecher()/themen() füllen.
+  var geladen = await Promise.all([
+    Lesify.getUser(),
+    Lesify.klausuren(),
+    Lesify.faecher(),
+    Lesify.themen(),
+    Lesify.chats(),
+    Lesify.lernzettel(),
+    Lesify.dateien()
+  ]);
+  var user = geladen[0];
   var firstName = user.name.split(' ')[0];
 
   // Nur anstehende Klausuren — bereits geschriebene gehören nicht in „Nächste"/
   // „Anstehende Klausuren".
-  var allK = Lesify.klausuren().slice()
+  var allK = geladen[1].slice()
     .filter(function (k) { return !Lesify.klausurVergangen(k); })
     .sort(function (a, b) { return a.datum.localeCompare(b.datum); });
-  var faecher = Lesify.faecher();
-  var themen = Lesify.themen();
-  var chats = Lesify.chats();
-  var lernzettel = Lesify.lernzettel();
-  var dateien = Lesify.dateien();
+  var chats = geladen[4];
+  var lernzettel = geladen[5];
+  var dateien = geladen[6];
   var nextK = allK[0];
 
   var hour = new Date().getHours();
@@ -56,17 +66,25 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!searchInput || !searchDropdown) return;
     if (iconSlot) iconSlot.innerHTML = I.search;
 
+    // api.js hat keinen sync client-seitigen Suchindex (anders als data.js/
+    // LesifyUI.search) — GET /suche übernimmt das serverseitig, gleiche
+    // Gruppen-Form ({type,label,icon,items}). `anfrageN` verwirft veraltete
+    // Antworten, falls beim Tippen mehrere Anfragen gleichzeitig unterwegs sind.
+    var anfrageN = 0;
     function renderSearchDropdown() {
       var q = searchInput.value.trim();
       if (!q) { searchDropdown.classList.remove('is-open'); searchDropdown.innerHTML = ''; return; }
-      var groups = LesifyUI.search(q);
-      if (!groups.length) {
-        searchDropdown.innerHTML = '<div class="search-dd-empty">Keine Ergebnisse für „' + q + '"</div>';
+      var anfrage = ++anfrageN;
+      Lesify.suche(q).then(function (groups) {
+        if (anfrage !== anfrageN) return;
+        if (!groups.length) {
+          searchDropdown.innerHTML = '<div class="search-dd-empty">Keine Ergebnisse für „' + q + '"</div>';
+          searchDropdown.classList.add('is-open');
+          return;
+        }
+        searchDropdown.innerHTML = LesifyUI.searchDropdownHtml(groups, q);
         searchDropdown.classList.add('is-open');
-        return;
-      }
-      searchDropdown.innerHTML = LesifyUI.searchDropdownHtml(groups, q);
-      searchDropdown.classList.add('is-open');
+      }).catch(function () {});
     }
 
     searchInput.addEventListener('input', renderSearchDropdown);

@@ -96,6 +96,18 @@
     var items = eltern ? ELTERN_NAV_ITEMS : NAV_ITEMS;
     var homeHref = eltern ? 'eltern.html' : 'dashboard.html';
 
+    // Profil-Chip als eigene Funktion — api.js liefert Lesify.getUser() async
+    // (Promise statt Objekt); erst mit einem leeren Platzhalter rendern, dann
+    // den Chip-Slot nachfüllen, sobald die echten Daten da sind. data.js bleibt
+    // synchron und unverändert (istAsync greift dort nie).
+    function profileChipHtml(user) {
+      var chipHref = user.rolle === 'elternteil' ? 'eltern.html' : 'einstellungen.html';
+      return '<a href="' + chipHref + '" class="profile-chip">' +
+        '<span class="avatar-initials">' + (user.initials || '') + '</span>' +
+        '<span class="profile-meta"><span class="profile-name">' + (user.name || '') + '</span><span class="profile-role">' + (user.klasse || '') + '</span></span>' +
+      '</a>';
+    }
+
     if (sidebarRoot) {
       var navHtml = items.map(function (item) {
         var active = item.key === current ? ' is-active' : '';
@@ -105,21 +117,23 @@
           '<span>' + item.label + '</span></a>';
       }).join('');
 
-      var user = typeof Lesify !== 'undefined' ? Lesify.getUser() : { name: 'Jannik B.', klasse: '8. Klasse', initials: 'JB' };
-      var chipHref = user.rolle === 'elternteil' ? 'eltern.html' : 'einstellungen.html';
+      var userResult = typeof Lesify !== 'undefined' ? Lesify.getUser() : { name: 'Jannik B.', klasse: '8. Klasse', initials: 'JB' };
+      var istAsync = !!(userResult && typeof userResult.then === 'function');
 
       sidebarRoot.outerHTML =
         '<div class="sidebar-scrim" data-nav-scrim></div>' +
         '<aside class="sidebar">' +
           '<a href="' + homeHref + '" class="brand"><img src="assets/img/logo.png" alt="Lesify Logo"><span class="brand-word">Lesify</span></a>' +
           '<nav class="nav-group">' + navHtml + '</nav>' +
-          '<div class="sidebar-foot">' +
-            '<a href="' + chipHref + '" class="profile-chip">' +
-              '<span class="avatar-initials">' + user.initials + '</span>' +
-              '<span class="profile-meta"><span class="profile-name">' + user.name + '</span><span class="profile-role">' + user.klasse + '</span></span>' +
-            '</a>' +
-          '</div>' +
+          '<div class="sidebar-foot" data-profile-chip-slot>' + (istAsync ? '' : profileChipHtml(userResult)) + '</div>' +
         '</aside>';
+
+      if (istAsync) {
+        userResult.then(function (user) {
+          var slot = document.querySelector('[data-profile-chip-slot]');
+          if (slot) slot.innerHTML = profileChipHtml(user);
+        }).catch(function () {});
+      }
     }
 
     if (topbarRoot) {
@@ -770,7 +784,20 @@
     '</div>';
   }
 
-  function klausurNoteBox(klausurId) {
+  // Nimmt entweder eine Klausur-ID (data.js — sync Testklausur-Liste vorhanden)
+  // oder das volle Klausur-Objekt (api.js — `note` kommt mit GET /klausuren
+  // bereits eingebettet, ein flacher Testklausur-Index existiert dort nicht).
+  function klausurNoteBox(klausurOderId) {
+    // api.js liefert `note` bereits mit GET /klausuren eingebettet (kein
+    // flacher Testklausur-Index wie im data.js-Prototyp verfügbar) — daran
+    // erkennbar, dass das übergebene Objekt ein `note`-Feld trägt (auch wenn
+    // `null`, weil noch keine Testklausur analysiert ist).
+    if (klausurOderId && typeof klausurOderId === 'object' && 'note' in klausurOderId) {
+      return klausurOderId.note
+        ? testNoteBox(klausurOderId.note.note, klausurOderId.note.testNr)
+        : '<span class="chip">Testklausur läuft</span>';
+    }
+    var klausurId = typeof klausurOderId === 'object' ? klausurOderId.id : klausurOderId;
     var tks = Lesify.testklausurenForKlausur(klausurId);
     if (!tks.length) return '<span class="chip">Keine Testklausur</span>';
     var kn = Lesify.klausurNote(klausurId);
@@ -787,7 +814,7 @@
     var vergangen = Lesify.klausurVergangen(k);
     // Bereits geschriebene Klausuren zeigen keine Note — Lesify erfasst das
     // Klausur-Endergebnis bewusst nicht. Der „Geschrieben"-Flag genügt.
-    var foot = vergangen ? '' : klausurNoteBox(k.id);
+    var foot = vergangen ? '' : klausurNoteBox(k);
     return '<div class="card is-hoverable has-watermark klausur-card' + (vergangen ? ' klausur-card--erledigt' : '') + '" data-href="klausur.html?id=' + k.id + '" data-filter="' + k.fachId + '" tabindex="0" role="link" style="' + fachColorVars(k.fachId) + '">' +
       cardWatermark(k.fachId) +
       (vergangen ? '<span class="klausur-card-flag">' + Icons.check + 'Geschrieben</span>' : '') +

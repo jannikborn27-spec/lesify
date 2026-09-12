@@ -7,7 +7,15 @@ const keinPrisma = {} as unknown as PrismaClient;
 
 describe('kern-API — ohne Token → 401', () => {
   const app = buildApp({ prisma: keinPrisma, logger: false });
-  for (const url of ['/faecher', '/themen', '/dateien', '/usage', '/user', '/suche?q=x']) {
+  for (const url of [
+    '/faecher',
+    '/themen',
+    '/dateien',
+    '/lernzettel',
+    '/usage',
+    '/user',
+    '/suche?q=x',
+  ]) {
     it(`GET ${url} → 401`, async () => {
       const res = await app.inject({ method: 'GET', url });
       expect(res.statusCode).toBe(401);
@@ -174,6 +182,13 @@ describe.runIf(hatDb)('kern-API — Flow (Supabase)', () => {
     const fachGruppe = res.json().find((g: { type: string }) => g.type === 'fach');
     expect(fachGruppe.items[0].fachId).toBe(fachId);
     expect(fachGruppe.items[0].fachName).toBe('Mathematik');
+  });
+
+  it('GET /suche: href relativ (kein führender "/") — App läuft ggf. unter /app', async () => {
+    const res = await app.inject({ method: 'GET', url: '/suche?q=mathe', headers: auth() });
+    for (const gruppe of res.json() as { items: { href: string }[] }[]) {
+      for (const item of gruppe.items) expect(item.href.startsWith('/')).toBe(false);
+    }
   });
 
   it('GET /themen/:id fremd/unbekannt → 404', async () => {

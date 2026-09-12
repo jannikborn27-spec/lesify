@@ -135,6 +135,139 @@
     return (prefix || 'id') + '-' + Date.now().toString(36) + '-' + _uidN;
   }
 
+  /* ---------- Notenlogik (reine Formeln, 1:1 aus data.js/shared/src/noten.ts) ---------- */
+  function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
+  function prozentZuNote(prozent) {
+    var note = 6 - (clamp(prozent, 0, 100) / 100) * 5;
+    return Math.round(note * 10) / 10;
+  }
+  var AMPEL_GRUEN_MAX_NOTE = 2.5;
+  function noteLabel(note) {
+    if (note <= 1.5) return 'sehr gut';
+    if (note <= 2.5) return 'gut';
+    if (note <= 3.5) return 'befriedigend';
+    if (note <= 4.5) return 'ausreichend';
+    if (note <= 5.5) return 'mangelhaft';
+    return 'ungenügend';
+  }
+  function noteAmpel(note) {
+    if (note <= AMPEL_GRUEN_MAX_NOTE) return 'gruen';
+    if (note <= 4.0) return 'gelb';
+    return 'rot';
+  }
+  var TIER_LABEL = { gruen: 'stark', gelb: 'wackelig', rot: 'schwach' };
+  function tierLabel(ampel) { return TIER_LABEL[ampel] || ampel; }
+
+  // Eine Klausur gilt als „bereits geschrieben", sobald ihr Datum vor dem
+  // heutigen Tag liegt — reine Datumsableitung, kein eigenes Statusfeld.
+  function klausurVergangen(k) {
+    if (!k || !k.datum) return false;
+    var p = String(k.datum).split('-');
+    var d = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+    var heute = new Date();
+    heute.setHours(0, 0, 0, 0);
+    return d < heute;
+  }
+
+  /* ---------- Fach-Farben/-Icons (reine Design-Tokens, 1:1 aus data.js) ---------- */
+  var FACH_COLORS = [
+    { key: 'blue', name: 'Blau', base: '#007dae', ink: '#00699c', bg: '#e5f5fd' },
+    { key: 'rose', name: 'Rosé', base: '#c4334f', ink: '#b6143f', bg: '#ffebec' },
+    { key: 'amber', name: 'Amber', base: '#c26f00', ink: '#913b00', bg: '#ffeedd' },
+    { key: 'teal', name: 'Türkis', base: '#009176', ink: '#006e54', bg: '#e5f6f1' },
+    { key: 'terracotta', name: 'Terrakotta', base: '#985535', ink: '#89401c', bg: '#fdeee8' },
+    { key: 'violet', name: 'Violett', base: '#654db6', ink: '#5031a1', bg: '#f1efff' },
+    { key: 'pink', name: 'Pink', base: '#b84999', ink: '#931a77', bg: '#feecf7' },
+    { key: 'graphit', name: 'Graphit', base: '#516676', ink: '#101214', bg: '#edf1f3' }
+  ];
+  function getFachColor(key) {
+    var found = null;
+    for (var i = 0; i < FACH_COLORS.length; i++) { if (FACH_COLORS[i].key === key) { found = FACH_COLORS[i]; break; } }
+    return found || FACH_COLORS[FACH_COLORS.length - 1];
+  }
+  var FACH_ICONS = {
+    mathematik: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4" r="1.3" fill="currentColor" stroke="none"/><path d="M12 5.3 5.5 20"/><path d="M12 5.3 18.5 20"/><path d="M8.7 20H6.3"/><path d="M17.7 20h-2.4"/><path d="M8.8 12.6a4.6 4.6 0 0 1 6.4 0"/></svg>',
+    deutsch: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/><path d="M9 9h6"/><path d="M9 12h6"/><path d="M9 15h3"/></svg>',
+    englisch: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21V4"/><path d="M6 4.5c2-1.3 4-1.3 6 0s4 1.3 6 0v10c-2 1.3-4 1.3-6 0s-4-1.3-6 0Z"/></svg>',
+    franzoesisch: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21V4"/><path d="M6 4.5c2-1.3 4-1.3 6 0s4 1.3 6 0v10c-2 1.3-4 1.3-6 0s-4-1.3-6 0Z"/></svg>',
+    spanisch: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21V4"/><path d="M6 4.5c2-1.3 4-1.3 6 0s4 1.3 6 0v10c-2 1.3-4 1.3-6 0s-4-1.3-6 0Z"/></svg>',
+    latein: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M4 21V10.5M8 21V10.5M12 21V10.5M16 21V10.5M20 21V10.5"/><path d="M2.5 10.5h19L12 3Z"/></svg>',
+    biologie: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4C10 4 4 10 4 20c10 0 16-6 16-16Z"/><path d="M6 18c4-4 8-8 12-12"/></svg>',
+    chemie: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3h4"/><path d="M10.5 3v6.2L5.7 18a2 2 0 0 0 1.8 2.9h9a2 2 0 0 0 1.8-2.9L13.5 9.2V3"/><path d="M8 15.5h8"/></svg>',
+    physik: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><ellipse cx="12" cy="12" rx="9" ry="3.6"/><ellipse cx="12" cy="12" rx="9" ry="3.6" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="9" ry="3.6" transform="rotate(120 12 12)"/></svg>',
+    geschichte: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12M6 21h12"/><path d="M7.5 3c0 4 3 5 4.5 6-1.5 1-4.5 2-4.5 6M16.5 3c0 4-3 5-4.5 6 1.5 1 4.5 2 4.5 6"/></svg>',
+    erdkunde: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.5 2.4 3.8 5.6 3.8 9s-1.3 6.6-3.8 9c-2.5-2.4-3.8-5.6-3.8-9S9.5 5.4 12 3Z"/><path d="M4.5 7.5h15M4.5 16.5h15"/></svg>',
+    politik: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M12 5 4 8l3 6.5h-6L4 8"/><path d="M12 5l8 3-3 6.5h6L20 8"/><path d="M8 21h8"/></svg>',
+    religion: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c-1.8 2.4-2.8 4.6-2.8 6.6a2.8 2.8 0 1 0 5.6 0C14.8 6.6 13.8 4.4 12 2Z"/><path d="M6 21c0-4 2.7-6.5 6-6.5s6 2.5 6 6.5"/></svg>',
+    kunst: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 8 0 1 0 0 16c1 0 1.6-.7 1.6-1.5 0-.4-.2-.8-.2-1.2 0-.9.7-1.3 1.6-1.3H17a4 4 0 0 0 4-4c0-4.4-4-8-9-8Z"/><circle cx="7.5" cy="11" r="1" fill="currentColor" stroke="none"/><circle cx="9.5" cy="7.3" r="1" fill="currentColor" stroke="none"/><circle cx="14.5" cy="7.3" r="1" fill="currentColor" stroke="none"/><circle cx="16.5" cy="11" r="1" fill="currentColor" stroke="none"/></svg>',
+    musik: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5.5l10-2v12.5"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="15.5" r="2.5"/></svg>',
+    sport: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/><path d="M5.3 5.3c2 1.6 3 3.9 3 6.7s-1 5.1-3 6.7M18.7 5.3c-2 1.6-3 3.9-3 6.7s1 5.1 3 6.7"/></svg>',
+    informatik: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="12" rx="1.8"/><path d="M8 9.5 5.8 11l2.2 1.5M16 9.5l2.2 1.5-2.2 1.5M13.2 8.5l-2.4 7"/><path d="M9 21h6"/></svg>',
+    wirtschaft: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V6M16 20v-8M20 20v-4"/><path d="M4 20h18"/></svg>'
+  };
+  var FACH_PRESETS = [
+    { name: 'Mathematik', icon: 'mathematik' }, { name: 'Deutsch', icon: 'deutsch' },
+    { name: 'Englisch', icon: 'englisch' }, { name: 'Französisch', icon: 'franzoesisch' },
+    { name: 'Spanisch', icon: 'spanisch' }, { name: 'Latein', icon: 'latein' },
+    { name: 'Biologie', icon: 'biologie' }, { name: 'Chemie', icon: 'chemie' },
+    { name: 'Physik', icon: 'physik' }, { name: 'Geschichte', icon: 'geschichte' },
+    { name: 'Erdkunde', icon: 'erdkunde' }, { name: 'Politik', icon: 'politik' },
+    { name: 'Religion', icon: 'religion' }, { name: 'Kunst', icon: 'kunst' },
+    { name: 'Musik', icon: 'musik' }, { name: 'Sport', icon: 'sport' },
+    { name: 'Informatik', icon: 'informatik' }, { name: 'Wirtschaft', icon: 'wirtschaft' }
+  ];
+  function getFachIconSvg(iconKey) { return FACH_ICONS[iconKey] || null; }
+
+  /* ---------- Fächer-/Themen-Cache ----------
+     app.js' geteilte Renderer (badge/fachColorVars/fachBadge/cardWatermark/…)
+     lesen Fach-/Thema-Daten SYNCHRON per ID — genau wie im data.js-Prototyp.
+     Die Seite muss dafür einmal `Lesify.faecher()`/`Lesify.themen()` geawaitet
+     haben (macht jede Seite ohnehin für ihre Haupt-Daten); danach beantworten
+     `getFach`/`label` Lookups aus dem Cache, ohne einen weiteren Request. */
+  var _cache = { faecher: [], themen: [] };
+  function getFach(id) {
+    for (var i = 0; i < _cache.faecher.length; i++) if (_cache.faecher[i].id === id) return _cache.faecher[i];
+    return undefined;
+  }
+  function getFachIcon(fachId) {
+    var f = getFach(fachId);
+    return f ? getFachIconSvg(f.icon) : null;
+  }
+  function label(themaId) {
+    for (var i = 0; i < _cache.themen.length; i++) {
+      var t = _cache.themen[i];
+      if (t.id === themaId) return { fach: t.fachName || '—', thema: t.name, fachId: t.fachId, themaId: t.id };
+    }
+    return { fach: '—', thema: '—', fachId: '', themaId: themaId };
+  }
+
+  /* ---------- relative Zeit (z. B. "vor 2 Stunden") ----------
+     data.js hat das nur als Seed-Text fest verdrahtet; hier aus dem echten
+     Zeitstempel berechnet, damit Chats/Lernzettel/Dateien-Feeds dieselbe
+     Anzeigeform bekommen wie im Prototyp. */
+  function relativeTime(iso) {
+    if (!iso) return '';
+    var diffMin = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+    if (diffMin < 1) return 'gerade eben';
+    if (diffMin < 60) return 'vor ' + diffMin + ' Minute' + (diffMin === 1 ? '' : 'n');
+    var diffStd = Math.floor(diffMin / 60);
+    if (diffStd < 24) return 'vor ' + diffStd + ' Stunde' + (diffStd === 1 ? '' : 'n');
+    var diffTage = Math.floor(diffStd / 24);
+    if (diffTage === 1) return 'gestern';
+    if (diffTage < 7) return 'vor ' + diffTage + ' Tagen';
+    var diffWochen = Math.floor(diffTage / 7);
+    if (diffWochen < 5) return 'vor ' + diffWochen + ' Woche' + (diffWochen === 1 ? '' : 'n');
+    var diffMonate = Math.floor(diffTage / 30);
+    return 'vor ' + diffMonate + ' Monat' + (diffMonate === 1 ? '' : 'en');
+  }
+  function mitUpdated(item, isoFeld) {
+    item.updated = relativeTime(item[isoFeld]);
+    return item;
+  }
+  function initialen(name) {
+    return String(name || '').split(/\s+/).map(function (p) { return p.charAt(0); }).join('').slice(0, 2).toUpperCase();
+  }
+
   var Lesify = {
     /* Auth / Session -------------------------------------------------- */
     registrieren: function (d) {
@@ -175,11 +308,14 @@
 
     /* Fächer & Themen ---------------------------------------------- */
     faecher: function () {
-      return GET('/faecher');
+      return GET('/faecher').then(function (list) {
+        _cache.faecher = list;
+        return list;
+      });
     },
-    getFach: function (id) {
-      return GET('/faecher/' + id);
-    },
+    /** Synchroner Cache-Lookup (wie data.js) — braucht ein vorheriges `faecher()`. */
+    getFach: getFach,
+    getFachIcon: getFachIcon,
     addFach: function (d) {
       return POST('/faecher', d);
     },
@@ -190,18 +326,26 @@
       return GET('/faecher/' + fachId + '/themen');
     },
     themen: function () {
-      return GET('/themen');
+      return GET('/themen').then(function (list) {
+        _cache.themen = list;
+        return list;
+      });
     },
+    /** Async — volles Aggregat inkl. Zählwerten/Kurzlisten (Thema-Detailseite). */
     getThema: function (id) {
       return GET('/themen/' + id);
     },
     addThema: function (d) {
       return POST('/themen', d);
     },
+    /** Synchroner Cache-Lookup für Badges/Labels (wie data.js) — kein Netzwerk-Call. */
+    label: label,
 
     /* Chats -------------------------------------------------------- */
     chats: function (fachId) {
-      return GET('/chats' + qs({ fachId: fachId }));
+      return GET('/chats' + qs({ fachId: fachId })).then(function (list) {
+        return list.map(function (c) { return mitUpdated(c, 'aktualisiertAm'); });
+      });
     },
     getChat: function (id) {
       return GET('/chats/' + id);
@@ -217,6 +361,13 @@
     },
 
     /* Lernzettel ------------------------------------------------- */
+    /** Übersichts-Liste (Feeds/Dashboards), ohne Revisionsverlauf. */
+    lernzettel: function (themaId) {
+      return GET('/lernzettel' + qs({ themaId: themaId })).then(function (list) {
+        return list.map(function (l) { return mitUpdated(l, 'aktualisiertAm'); });
+      });
+    },
+    /** Async — voller Inhalt + Revisionsverlauf (Lernzettel-Detailseite). */
     getLernzettel: function (id) {
       return GET('/lernzettel/' + id);
     },
@@ -229,7 +380,9 @@
 
     /* Dateien --------------------------------------------------- */
     dateien: function (themaId) {
-      return GET('/dateien' + qs({ themaId: themaId }));
+      return GET('/dateien' + qs({ themaId: themaId })).then(function (list) {
+        return list.map(function (d) { return mitUpdated(d, 'erstelltAm'); });
+      });
     },
     getDatei: function (id) {
       return GET('/dateien/' + id);
@@ -365,8 +518,13 @@
     },
 
     /* Profil & Einstellungen ------------------------------- */
+    /** Wie data.js, plus die Rohdaten (`klassenstufe`, `email`, …) unverändert. */
     getUser: function () {
-      return GET('/user');
+      return GET('/user').then(function (u) {
+        u.klasse = u.klassenstufe;
+        u.initials = initialen(u.name);
+        return u;
+      });
     },
     updateUser: function (patch) {
       return PATCH('/user', patch);
@@ -394,6 +552,20 @@
     _setToken: setToken,
     _getToken: getToken,
     _base: BASE,
+
+    /* Notenlogik + Klausur-Status (reine Formeln, 1:1 aus data.js) ------- */
+    prozentZuNote: prozentZuNote,
+    noteLabel: noteLabel,
+    noteAmpel: noteAmpel,
+    tierLabel: tierLabel,
+    AMPEL_GRUEN_MAX_NOTE: AMPEL_GRUEN_MAX_NOTE,
+    klausurVergangen: klausurVergangen,
+
+    /* Fach-Farben/-Icons (reine Design-Tokens, 1:1 aus data.js) ---------- */
+    FACH_COLORS: FACH_COLORS,
+    getFachColor: getFachColor,
+    FACH_PRESETS: FACH_PRESETS,
+    getFachIconSvg: getFachIconSvg,
   };
 
   window.Lesify = Lesify;

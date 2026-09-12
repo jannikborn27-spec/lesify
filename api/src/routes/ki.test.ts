@@ -145,6 +145,25 @@ describe.runIf(hatDb)('Phase 6 — KI-Endpunkte gegen den FakeKiClient (Supabase
       lernzettelId = res.json().id;
     });
 
+    it('GET /lernzettel(?themaId=) listet ihn (Dashboard-/Übersichts-Feed)', async () => {
+      const alle = await app.inject({ method: 'GET', url: '/lernzettel', headers: auth() });
+      expect(alle.json().map((l: { id: string }) => l.id)).toContain(lernzettelId);
+
+      const gefiltert = await app.inject({
+        method: 'GET',
+        url: `/lernzettel?themaId=${themaAId}`,
+        headers: auth(),
+      });
+      expect(gefiltert.json().map((l: { id: string }) => l.id)).toContain(lernzettelId);
+
+      const andereThemaId = await app.inject({
+        method: 'GET',
+        url: `/lernzettel?themaId=${themaBId}`,
+        headers: auth(),
+      });
+      expect(andereThemaId.json().map((l: { id: string }) => l.id)).not.toContain(lernzettelId);
+    });
+
     it('erste Revision ist gratis (freeMessagesUsed 0 → 1), zählt nicht gegen Nachrichten', async () => {
       const vorher = (await app.inject({ method: 'GET', url: '/usage', headers: auth() })).json();
       const res = await app.inject({

@@ -82,7 +82,7 @@ export async function sucheRoutes(app: FastifyInstance): Promise<void> {
       faecher.map((f) => ({
         title: f.name,
         sub: f.klasse ?? 'Fach',
-        href: `/fach.html?id=${f.id}`,
+        href: `fach.html?id=${f.id}`,
         fachId: f.id,
         fachName: f.name,
       })),
@@ -94,7 +94,7 @@ export async function sucheRoutes(app: FastifyInstance): Promise<void> {
       themen.map((t) => ({
         title: t.name,
         sub: t.fach.name,
-        href: `/thema.html?id=${t.id}`,
+        href: `thema.html?id=${t.id}`,
         fachId: t.fachId,
         fachName: t.fach.name,
       })),
@@ -106,7 +106,7 @@ export async function sucheRoutes(app: FastifyInstance): Promise<void> {
       chats.map((c) => ({
         title: c.titel,
         sub: c.fach.name,
-        href: `/chat.html?chat=${c.id}`,
+        href: `chat.html?fach=${c.fachId}&thema=${c.themaId}&chat=${c.id}`,
         fachId: c.fachId,
         fachName: c.fach.name,
       })),
@@ -118,7 +118,7 @@ export async function sucheRoutes(app: FastifyInstance): Promise<void> {
       lernzettel.map((l) => ({
         title: l.titel,
         sub: l.fach.name,
-        href: `/lernzettel.html?id=${l.id}`,
+        href: `lernzettel.html?id=${l.id}`,
         fachId: l.fachId,
         fachName: l.fach.name,
       })),
@@ -130,7 +130,7 @@ export async function sucheRoutes(app: FastifyInstance): Promise<void> {
       dateien.map((d) => ({
         title: d.name,
         sub: d.typ,
-        href: `/dateien.html?datei=${d.id}`,
+        href: `thema.html?id=${d.themaId}&tab=dateien`,
         fachId: d.fachId,
         fachName: d.fach.name,
       })),
@@ -142,7 +142,7 @@ export async function sucheRoutes(app: FastifyInstance): Promise<void> {
       klausuren.map((k) => ({
         title: k.titel,
         sub: k.datum.toISOString().slice(0, 10),
-        href: `/klausur.html?id=${k.id}`,
+        href: `klausur.html?id=${k.id}`,
         fachId: k.fachId,
         fachName: k.fach.name,
       })),
@@ -154,7 +154,7 @@ export async function sucheRoutes(app: FastifyInstance): Promise<void> {
       testklausuren.map((t) => ({
         title: t.titel,
         sub: t.status,
-        href: `/testklausur.html?id=${t.id}`,
+        href: `testklausur.html?id=${t.id}`,
         fachId: t.fachId,
         fachName: t.fach.name,
       })),

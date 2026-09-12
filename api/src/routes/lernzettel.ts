@@ -33,6 +33,18 @@ export async function lernzettelRoutes(app: FastifyInstance): Promise<void> {
   const { prisma, ki } = app;
   app.addHook('preHandler', app.requireAuth);
 
+  // GET /lernzettel?themaId= — fächerübergreifende Liste (Feeds/Übersichten,
+  // z. B. Dashboard „Zuletzt bearbeitet"). Ohne Revisionsverlauf (der kommt
+  // nur über GET /lernzettel/:id) — hier reicht die Übersicht.
+  app.get('/lernzettel', async (req) => {
+    const { themaId } = parse(z.object({ themaId: z.string().uuid().optional() }), req.query);
+    const liste = await prisma.lernzettel.findMany({
+      where: { userId: req.userId, ...(themaId ? { themaId } : {}) },
+      orderBy: { aktualisiertAm: 'desc' },
+    });
+    return liste.map(lernzettelDTO);
+  });
+
   // GET /lernzettel/:id — Inhalt + Revisionsverlauf + freeMessagesUsed
   app.get<{ Params: { id: string } }>('/lernzettel/:id', async (req) => {
     const lz = oder404(

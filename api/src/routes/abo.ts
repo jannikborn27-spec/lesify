@@ -181,13 +181,36 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
       return aboDTO(neu);
     });
 
+    // POST /abo/reaktivieren — hebt Kündigung oder Pause auf, zurück zu `aktiv`
+    // (Entscheidung 2026-09-13: fehlte bisher, `eltern-abo.html` hatte einen
+    // Button ohne Gegenstück).
+    authed.post('/abo/reaktivieren', async (req) => {
+      const abo = oder404(await eigenesAbo(req.userId));
+      if (abo.status !== 'gekuendigt' && abo.status !== 'pausiert') {
+        throw new HttpError(409, 'abo_nicht_reaktivierbar', { status: abo.status });
+      }
+      await zahlung.subscriptionReaktivieren(abo.zahlungsanbieterRef ?? abo.id);
+      const neu = await prisma.abo.update({
+        where: { id: abo.id },
+        data: { status: 'aktiv' },
+      });
+      return aboDTO(neu);
+    });
+
     // ---- Kind-Profile im Familien-Abo (max. Abo.sitze) --------------------
     authed.get('/abo/kinder', async (req) => {
       const kinder = await prisma.user.findMany({
         where: { parentUserId: req.userId },
         orderBy: { createdAt: 'asc' },
       });
-      return kinder.map((k) => ({ id: k.id, name: k.name, klassenstufe: k.klassenstufe }));
+      return kinder.map((k) => ({
+        id: k.id,
+        name: k.name,
+        klassenstufe: k.klassenstufe,
+        // Einladung = E-Mail gesetzt (via POST .../einladung) — kein eigenes
+        // Statusfeld nötig, siehe Phase-11-Entscheidung 2026-09-13.
+        eingeladen: !!k.email,
+      }));
     });
 
     authed.post('/abo/kinder', async (req, reply) => {
@@ -287,6 +310,8 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
         lernzettel,
         testklausurenWoche,
         klausuren,
+        faecherRows,
+        klausurenRows,
       ] = await prisma.$transaction([
         prisma.fach.count({ where: { userId: kind.id } }),
         prisma.thema.count({ where: { userId: kind.id } }),
@@ -297,6 +322,20 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
         prisma.lernzettel.count({ where: { userId: kind.id } }),
         prisma.testklausur.count({ where: { userId: kind.id, erstelltAm: { gte: seit } } }),
         prisma.klausur.count({ where: { userId: kind.id, datum: { gte: new Date() } } }),
+        // Metadaten je Fach/Klausur (Name/Datum + Anzahl) — bewusst KEIN
+        // Chat-/Lernzettel-Inhalt und keine Noten (siehe Kartentext auf
+        // eltern-datenschutz.html).
+        prisma.fach.findMany({
+          where: { userId: kind.id },
+          orderBy: { name: 'asc' },
+          include: { _count: { select: { themen: true } } },
+        }),
+        prisma.klausur.findMany({
+          where: { userId: kind.id, datum: { gte: new Date() } },
+          orderBy: { datum: 'asc' },
+          take: 10,
+          include: { fach: true },
+        }),
       ]);
 
       return {
@@ -311,6 +350,15 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
         lernzettelGesamt: lernzettel,
         testklausurenDieWoche: testklausurenWoche,
         anstehendeKlausuren: klausuren,
+        faecherListe: faecherRows.map((f) => ({
+          name: f.name,
+          farbe: f.farbe,
+          themen: f._count.themen,
+        })),
+        anstehendeKlausurenListe: klausurenRows.map((k) => ({
+          fach: k.fach.name,
+          datum: k.datum.toISOString().slice(0, 10),
+        })),
       };
     });
   });

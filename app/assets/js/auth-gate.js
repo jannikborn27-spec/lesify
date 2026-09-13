@@ -28,10 +28,10 @@
   // Rollen-/Familie-Weiche: Ein Elternkonto MIT Familien-Abo (Kind-Profile
   // vorhanden) gehört in den Eltern-Bereich; ein Solo-Elternkonto
   // (rolle=elternteil, art=einzel) verhält sich wie ein Schüler-Account.
-  // Ein Schüler-Account hat auf eltern.html nichts verloren.
+  // Ein Schüler-Account hat auf keiner `eltern-*.html`-Seite etwas verloren.
   function weiche(user) {
     var hier = (location.pathname.split('/').pop() || '').toLowerCase();
-    var aufElternSeite = hier === ELTERN_SEITE;
+    var aufElternSeite = hier === ELTERN_SEITE || hier.indexOf('eltern-') === 0;
     if (user && user.rolle === 'elternteil') {
       window.Lesify.kinder().then(function (kinder) {
         var familienAbo = Array.isArray(kinder) && kinder.length > 0;

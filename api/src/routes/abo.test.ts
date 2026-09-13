@@ -147,11 +147,22 @@ describe.runIf(hatDb)('abo — Einzelplatz-Flow (Supabase)', () => {
     expect(res.json().fehler).toBe('ereignis_unbekannt');
   });
 
-  it('kuendigen → gekuendigt, pausieren → pausiert', async () => {
+  it('kuendigen → gekuendigt, pausieren → pausiert, reaktivieren → aktiv', async () => {
     const k = await app.inject({ method: 'POST', url: '/abo/kuendigen', headers: auth() });
     expect(k.json().status).toBe('gekuendigt');
+    const r1 = await app.inject({ method: 'POST', url: '/abo/reaktivieren', headers: auth() });
+    expect(r1.json().status).toBe('aktiv');
+
     const p = await app.inject({ method: 'POST', url: '/abo/pausieren', headers: auth() });
     expect(p.json().status).toBe('pausiert');
+    const r2 = await app.inject({ method: 'POST', url: '/abo/reaktivieren', headers: auth() });
+    expect(r2.json().status).toBe('aktiv');
+  });
+
+  it('reaktivieren auf einem bereits aktiven Abo → 409 abo_nicht_reaktivierbar', async () => {
+    const res = await app.inject({ method: 'POST', url: '/abo/reaktivieren', headers: auth() });
+    expect(res.statusCode).toBe(409);
+    expect(res.json().fehler).toBe('abo_nicht_reaktivierbar');
   });
 });
 
@@ -301,6 +312,13 @@ describe.runIf(hatDb)('abo — Eltern-Features Phase 12 (Supabase)', () => {
     expect(typeof login.json().token).toBe('string');
   });
 
+  it('GET /abo/kinder markiert eingeladene vs. nicht eingeladene Kinder', async () => {
+    const res = await app.inject({ method: 'GET', url: '/abo/kinder', headers: auth() });
+    const kinder = res.json() as { id: string; eingeladen: boolean }[];
+    expect(kinder.find((k) => k.id === kindAId)?.eingeladen).toBe(true);
+    expect(kinder.find((k) => k.id === kindCId)?.eingeladen).toBe(false);
+  });
+
   it('Kontext-Wechsel: /abo/kinder/:id/sitzung liefert eine Kind-Session', async () => {
     const s = await app.inject({
       method: 'POST',
@@ -317,7 +335,48 @@ describe.runIf(hatDb)('abo — Eltern-Features Phase 12 (Supabase)', () => {
     expect(wer.json().name).toBe('Kind A');
   });
 
-  it('Zusammenfassung: aggregierte Kennzahlen, kein Chat-Wortlaut', async () => {
+  it('Zusammenfassung: aggregierte Kennzahlen + Fach-/Klausur-Metadaten, kein Chat-Wortlaut', async () => {
+    // Fach + Klausur als Kind A anlegen (eigene Session), damit die
+    // Metadaten-Listen (Name/Datum + Anzahl, kein Inhalt) etwas zu zeigen haben.
+    const sitzung = await app.inject({
+      method: 'POST',
+      url: `/abo/kinder/${kindAId}/sitzung`,
+      headers: auth(),
+    });
+    const kindAuth = { authorization: `Bearer ${sitzung.json().token}` };
+    const fach = await app.inject({
+      method: 'POST',
+      url: '/faecher',
+      headers: kindAuth,
+      payload: { name: 'Physik' },
+    });
+    const fachId = fach.json().id;
+    await app.inject({
+      method: 'POST',
+      url: '/themen',
+      headers: kindAuth,
+      payload: { fachId, name: 'Mechanik' },
+    });
+    await app.inject({
+      method: 'POST',
+      url: '/klausuren',
+      headers: kindAuth,
+      payload: {
+        fachId,
+        themaIds: [
+          (
+            await app.inject({
+              method: 'GET',
+              url: '/faecher/' + fachId + '/themen',
+              headers: kindAuth,
+            })
+          ).json()[0].id,
+        ],
+        titel: 'Mechanik-Klausur',
+        datum: '2027-01-15',
+      },
+    });
+
     const z = await app.inject({
       method: 'GET',
       url: `/abo/kinder/${kindAId}/zusammenfassung`,
@@ -326,7 +385,9 @@ describe.runIf(hatDb)('abo — Eltern-Features Phase 12 (Supabase)', () => {
     expect(z.statusCode).toBe(200);
     const b = z.json();
     expect(b.name).toBe('Kind A');
-    expect(b).toMatchObject({ faecher: 0, themen: 0, anstehendeKlausuren: 0 });
+    expect(b).toMatchObject({ faecher: 1, themen: 1, anstehendeKlausuren: 1 });
+    expect(b.faecherListe).toEqual([{ name: 'Physik', farbe: expect.any(String), themen: 1 }]);
+    expect(b.anstehendeKlausurenListe).toEqual([{ fach: 'Physik', datum: '2027-01-15' }]);
     expect(JSON.stringify(b).toLowerCase()).not.toContain('wortlaut');
     expect(b).not.toHaveProperty('chats');
   });

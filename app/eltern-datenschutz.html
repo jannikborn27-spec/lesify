@@ -17,13 +17,12 @@
   </div>
 </div>
 
-<script src="assets/js/data.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/auth-gate.js"></script>
 <script src="assets/js/app.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
   var R = LesifyUI.Render, I = LesifyUI.Icons, main = document.getElementById('eltern-main');
-
-  if (!Lesify.istElternteil()) { window.location.href = 'eltern.html'; return; }
 
   function modal(title, sub, bodyHtml, onConfirm, confirmLabel, danger) {
     var scrim = document.createElement('div');
@@ -47,13 +46,15 @@ document.addEventListener('DOMContentLoaded', function () {
     scrim.querySelector('.modal-close').addEventListener('click', close);
     scrim.querySelector('[data-x]').addEventListener('click', close);
     scrim.querySelector('[data-ok]').addEventListener('click', function () {
-      if (onConfirm(scrim) !== false) close();
+      var ergebnis = onConfirm(scrim);
+      if (ergebnis && typeof ergebnis.then === 'function') ergebnis.then(function (r) { if (r !== false) close(); });
+      else if (ergebnis !== false) close();
     });
     return scrim;
   }
 
-  function render() {
-    var fam = Lesify.familie();
+  async function render() {
+    var user = await Lesify.getUser();
     main.innerHTML =
       '<div class="page-head"><div>' +
         '<div class="page-eyebrow">Eltern-Bereich</div>' +
@@ -63,9 +64,9 @@ document.addEventListener('DOMContentLoaded', function () {
       '<div class="card eltern-card">' +
         '<h3>Konto-Angaben</h3>' +
         '<div class="abo-row"><span class="lbl">Einwilligung erteilt am</span><span class="val">' +
-          (fam.einwilligungAm ? R.formatDatum(fam.einwilligungAm) : '—') + '</span></div>' +
-        '<div class="abo-row"><span class="lbl">Konto-E-Mail</span><span class="val">' + (fam.elternEmail || '—') + '</span></div>' +
-        '<div class="abo-row"><span class="lbl">Aufbewahrung</span><span class="val">1 Jahr nach letzter Aktivität</span></div>' +
+          (user.einwilligungAm ? R.formatDatum(user.einwilligungAm) : '—') + '</span></div>' +
+        '<div class="abo-row"><span class="lbl">Konto-E-Mail</span><span class="val">' + (user.email || '—') + '</span></div>' +
+        '<div class="abo-row"><span class="lbl">Aufbewahrung</span><span class="val">1 Jahr nach Erstellung</span></div>' +
         '<div class="kc-actions" style="margin-top:18px">' +
           '<button class="btn btn-sm btn-ghost" data-ds="export">Daten exportieren</button>' +
           '<button class="btn btn-sm btn-ghost" data-ds="loeschen" style="color:var(--rot)">Familienkonto löschen</button>' +
@@ -83,23 +84,53 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function wire() {
     LesifyUI.qsa('[data-ds]').forEach(function (b) {
-      b.addEventListener('click', function () {
+      b.addEventListener('click', async function () {
         var a = b.getAttribute('data-ds');
         if (a === 'export') {
-          LesifyUI.toast('Export wird erstellt — du bekommst eine E-Mail mit dem Download-Link.');
+          // GET /user/export braucht den Authorization-Header (kein
+          // `?token=`-Fallback) — per fetch + Blob statt `<a href>`, wie beim
+          // Lernzettel-/Testklausur-Download.
+          try {
+            var res = await fetch(Lesify._base + '/user/export', {
+              headers: { Authorization: 'Bearer ' + Lesify._getToken() }
+            });
+            if (!res.ok) throw new Error('export_fehlgeschlagen');
+            var text = await res.text();
+            var blob = new Blob([text], { type: 'application/json' });
+            var url = URL.createObjectURL(blob);
+            var link = document.createElement('a');
+            link.href = url;
+            link.download = 'lesify-datenexport.json';
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(url);
+            LesifyUI.toast('Export wird heruntergeladen.');
+          } catch (err) {
+            LesifyUI.toast('Export fehlgeschlagen — bitte erneut versuchen.');
+          }
         } else if (a === 'loeschen') {
           modal('Familienkonto löschen?', 'Unwiderruflich. Alle Kind-Profile und deren Inhalte werden gelöscht, das Abo endet sofort.',
-            '<div class="field mt-0"><label for="m-del">Zum Bestätigen „LÖSCHEN" eingeben</label><input class="input" id="m-del" type="text" autocomplete="off"></div>',
-            function (scrim) {
-              if (scrim.querySelector('#m-del').value.trim().toUpperCase() !== 'LÖSCHEN') { scrim.querySelector('#m-del').focus(); return false; }
-              LesifyUI.toast('Löschung beantragt — wir bestätigen per E-Mail.');
-            }, 'Löschung beantragen', true);
+            '<div class="field mt-0"><label for="m-pass">Zum Bestätigen dein Passwort eingeben</label><input class="input" id="m-pass" type="password" autocomplete="current-password"></div>',
+            async function (scrim) {
+              var passwort = scrim.querySelector('#m-pass').value;
+              if (!passwort) { scrim.querySelector('#m-pass').focus(); return false; }
+              try {
+                await Lesify.loeschenKonto(passwort);
+                LesifyUI.toast('Konto gelöscht.');
+                Lesify._setToken('');
+                window.location.href = '/';
+              } catch (err) {
+                LesifyUI.toast(Lesify.fehlerText(err));
+                return false;
+              }
+            }, 'Endgültig löschen', true);
         }
       });
     });
   }
 
-  render();
+  await render();
 });
 </script>
 </body>

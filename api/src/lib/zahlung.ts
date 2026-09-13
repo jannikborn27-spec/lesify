@@ -50,6 +50,8 @@ export interface ZahlungsGateway {
   ): Promise<{ aktuellerZeitraumEnde: Date }>;
   subscriptionKuendigen(ref: string): Promise<void>;
   subscriptionPausieren(ref: string): Promise<void>;
+  /** Hebt eine Kündigung (`cancel_at_period_end`) oder Pause auf — Ziel-Status `aktiv`. */
+  subscriptionReaktivieren(ref: string): Promise<void>;
   webhookVerarbeiten(rohBody: string, signatur: string | undefined): WebhookErgebnis;
 }
 
@@ -106,6 +108,10 @@ export class FakeZahlungsGateway implements ZahlungsGateway {
 
   async subscriptionPausieren(): Promise<void> {
     // no-op: bei Stripe `pause_collection`
+  }
+
+  async subscriptionReaktivieren(): Promise<void> {
+    // no-op: bei Stripe `cancel_at_period_end=false` + `pause_collection=null`
   }
 
   webhookVerarbeiten(rohBody: string): WebhookErgebnis {
@@ -252,6 +258,16 @@ export class StripeZahlungsGateway implements ZahlungsGateway {
 
   async subscriptionPausieren(ref: string): Promise<void> {
     await this.stripe.subscriptions.update(ref, { pause_collection: { behavior: 'void' } });
+  }
+
+  async subscriptionReaktivieren(ref: string): Promise<void> {
+    // Hebt beides gleichzeitig auf — je nachdem, ob das Abo gekündigt
+    // (`cancel_at_period_end`) oder pausiert (`pause_collection`) war,
+    // greift nur die jeweils passende Option; die andere ist ein No-op.
+    await this.stripe.subscriptions.update(ref, {
+      cancel_at_period_end: false,
+      pause_collection: null,
+    });
   }
 
   webhookVerarbeiten(rohBody: string, signatur: string | undefined): WebhookErgebnis {

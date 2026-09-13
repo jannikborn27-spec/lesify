@@ -73,7 +73,15 @@
   ];
 
   function istElternAnsicht() {
-    return typeof Lesify !== 'undefined' && Lesify.istElternteil && Lesify.istElternteil();
+    // data.js (Prototyp): echter Rollen-Check am Store.
+    if (typeof Lesify !== 'undefined' && Lesify.istElternteil) return Lesify.istElternteil();
+    // api.js: kein synchroner Rollen-Check möglich (renderChrome() baut die
+    // Sidebar sofort, ohne auf `GET /user` zu warten) — `auth-gate.js` hat
+    // vorher schon sichergestellt, dass nur ein echtes Elternkonto mit
+    // Familien-Abo auf einer `eltern-*.html`-Seite landet, also verrät die
+    // Seite selbst die Ansicht.
+    var hier = (location.pathname.split('/').pop() || '').toLowerCase();
+    return hier === 'eltern.html' || hier.indexOf('eltern-') === 0;
   }
 
   /* Dunkles Design — die Einstellung `darkMode` (nur eingeloggter Bereich).
@@ -156,24 +164,44 @@
      Elternkonto (Prototyp: `Lesify.zurueckZumElternkonto()`).
      --------------------------------------------------------- */
 
-  function renderElternBanner() {
-    if (typeof Lesify === 'undefined' || !Lesify.elternModus) return;
-    var em = Lesify.elternModus();
-    if (!em) return;
-    var bar = document.createElement('div');
-    bar.className = 'eltern-banner';
-    bar.innerHTML =
-      '<span class="eltern-banner-txt">' +
+  function elternBannerHtml(kindName) {
+    return '<span class="eltern-banner-txt">' +
         '<span class="spark" style="width:15px;height:15px">' + Icons.lock + '</span>' +
-        'Elternmodus — du siehst gerade <strong>' + em.kindName + '</strong>' +
+        'Elternmodus — du siehst gerade <strong>' + kindName + '</strong>' +
       '</span>' +
       '<button type="button" class="eltern-banner-btn" data-eltern-zurueck>Zurück zum Elternkonto</button>';
+  }
+  function mountElternBanner(kindName, onZurueck) {
+    var bar = document.createElement('div');
+    bar.className = 'eltern-banner';
+    bar.innerHTML = elternBannerHtml(kindName);
     document.body.insertBefore(bar, document.body.firstChild);
     document.body.classList.add('has-eltern-banner');
-    bar.querySelector('[data-eltern-zurueck]').addEventListener('click', function () {
-      Lesify.zurueckZumElternkonto();
-      window.location.href = 'eltern.html';
-    });
+    bar.querySelector('[data-eltern-zurueck]').addEventListener('click', onZurueck);
+  }
+
+  function renderElternBanner() {
+    if (typeof Lesify === 'undefined') return;
+    if (Lesify.elternModus) {
+      // data.js (Prototyp) — sync, liefert den Kind-Namen direkt mit.
+      var em = Lesify.elternModus();
+      if (!em) return;
+      mountElternBanner(em.kindName, function () {
+        Lesify.zurueckZumElternkonto();
+        window.location.href = 'eltern.html';
+      });
+      return;
+    }
+    // api.js — echter Kontextwechsel (Phase 11, 2026-09-13): `getUser()`
+    // liefert im Elternmodus das Profil des Kindes (eigene Session-Scope).
+    if (Lesify.elternModusAktiv && Lesify.elternModusAktiv() && Lesify.getUser) {
+      Lesify.getUser().then(function (u) {
+        mountElternBanner(u.name, function () {
+          Lesify.beendeElternModus();
+          window.location.href = 'eltern.html';
+        });
+      }).catch(function () { /* Token ungültig — auth-gate.js übernimmt den Redirect */ });
+    }
   }
 
   /* ---------------------------------------------------------

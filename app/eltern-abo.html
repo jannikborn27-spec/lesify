@@ -17,13 +17,12 @@
   </div>
 </div>
 
-<script src="assets/js/data.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/auth-gate.js"></script>
 <script src="assets/js/app.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
   var I = LesifyUI.Icons, main = document.getElementById('eltern-main');
-
-  if (!Lesify.istElternteil()) { window.location.href = 'eltern.html'; return; }
 
   function modal(title, sub, bodyHtml, onConfirm, confirmLabel, danger) {
     var scrim = document.createElement('div');
@@ -47,16 +46,29 @@ document.addEventListener('DOMContentLoaded', function () {
     scrim.querySelector('.modal-close').addEventListener('click', close);
     scrim.querySelector('[data-x]').addEventListener('click', close);
     scrim.querySelector('[data-ok]').addEventListener('click', function () {
-      if (onConfirm(scrim) !== false) close();
+      var ergebnis = onConfirm(scrim);
+      if (ergebnis && typeof ergebnis.then === 'function') ergebnis.then(function (r) { if (r !== false) close(); });
+      else if (ergebnis !== false) close();
     });
     return scrim;
   }
 
-  function render() {
-    var p = Lesify.plan();
-    var belegt = Lesify.kinder().length;
-    var statusMap = { aktiv: ['gruen', 'Aktiv'], gekuendigt: ['rot', 'Gekündigt — läuft zum Periodenende aus'], pausiert: ['gelb', 'Sommerpause'] };
-    var st = statusMap[p.status] || statusMap.aktiv;
+  async function render() {
+    var abo = await Lesify.getAbo();
+    var belegt = (await Lesify.kinder()).length;
+    // Vollständige Werte aus `AboStatus` (Prisma) — der Prototyp kannte nur
+    // aktiv/gekuendigt/pausiert, das echte Abo kann zusätzlich `test`
+    // (Trial) und `zahlung_offen` sein (Entscheidung 2026-09-13: hier
+    // nachgezogen, sonst widersprechen sich Status-Chip und Aktions-Buttons).
+    var statusMap = {
+      test: ['gruen', 'Testphase'],
+      aktiv: ['gruen', 'Aktiv'],
+      gekuendigt: ['rot', 'Gekündigt — läuft zum Periodenende aus'],
+      pausiert: ['gelb', 'Sommerpause'],
+      zahlung_offen: ['rot', 'Zahlung ausstehend'],
+    };
+    var st = statusMap[abo.status] || statusMap.aktiv;
+    var laeuft = abo.status === 'aktiv' || abo.status === 'test' || abo.status === 'zahlung_offen';
 
     main.innerHTML =
       '<div class="page-head"><div>' +
@@ -67,13 +79,13 @@ document.addEventListener('DOMContentLoaded', function () {
       '<div class="card eltern-card">' +
         '<h3>Aktueller Tarif</h3>' +
         '<p class="eltern-sub">Ein zusätzlicher Platz greift sofort; ein Platz weniger wird zum Ende des Abrechnungszeitraums wirksam.</p>' +
-        '<div class="abo-row"><span class="lbl">Tarif</span><span class="val">' + p.name + '</span></div>' +
-        '<div class="abo-row"><span class="lbl">Abrechnung</span><span class="val">' + (p.intervall === 'jaehrlich' ? 'Jährlich' : 'Monatlich') + '</span></div>' +
+        '<div class="abo-row"><span class="lbl">Tarif</span><span class="val">' + abo.planName + '</span></div>' +
+        '<div class="abo-row"><span class="lbl">Abrechnung</span><span class="val">' + (abo.intervall === 'jaehrlich' ? 'Jährlich' : 'Monatlich') + '</span></div>' +
         '<div class="abo-row"><span class="lbl">Plätze</span><span class="val">' +
           '<span class="seat-step">' +
-            '<button type="button" id="seat-minus"' + (p.familie.sitze <= Math.max(2, belegt) ? ' disabled' : '') + '>−</button>' +
-            '<span id="seat-count">' + p.familie.sitze + '</span>' +
-            '<button type="button" id="seat-plus"' + (p.familie.sitze >= 4 ? ' disabled' : '') + '>+</button>' +
+            '<button type="button" id="seat-minus"' + (abo.sitze <= Math.max(2, belegt) ? ' disabled' : '') + '>−</button>' +
+            '<span id="seat-count">' + abo.sitze + '</span>' +
+            '<button type="button" id="seat-plus"' + (abo.sitze >= 4 ? ' disabled' : '') + '>+</button>' +
           '</span>' +
           '<span class="text-xs text-muted">' + belegt + ' belegt</span>' +
         '</span></div>' +
@@ -81,24 +93,27 @@ document.addEventListener('DOMContentLoaded', function () {
           '<span class="ampel-chip ampel-chip-' + st[0] + '"><span class="ampel-dot ampel-' + st[0] + '"></span>' + st[1] + '</span>' +
         '</span></div>' +
         '<div class="kc-actions" style="margin-top:18px">' +
-          (p.status === 'aktiv'
+          (laeuft
             ? '<button class="btn btn-sm btn-ghost" data-abo="pausieren">Sommerpause</button>' +
               '<button class="btn btn-sm btn-ghost" data-abo="kuendigen" style="color:var(--rot)">Kündigen</button>'
             : '<button class="btn btn-sm btn-primary" data-abo="reaktivieren">Abo reaktivieren</button>') +
         '</div>' +
       '</div>';
-    wire();
+    wire(abo);
   }
 
-  function wire() {
+  function wire(abo) {
     var seatMinus = document.getElementById('seat-minus'), seatPlus = document.getElementById('seat-plus');
-    if (seatPlus) seatPlus.addEventListener('click', function () {
-      try { Lesify.setFamilieSitze(Lesify.plan().familie.sitze + 1); LesifyUI.toast('Ein Platz ergänzt.'); render(); }
-      catch (e) { LesifyUI.toast('Maximal 4 Plätze.'); }
+    if (seatPlus) seatPlus.addEventListener('click', async function () {
+      try { await Lesify.aendernAbo({ sitze: abo.sitze + 1 }); LesifyUI.toast('Ein Platz ergänzt.'); render(); }
+      catch (err) { LesifyUI.toast(Lesify.fehlerText(err)); }
     });
-    if (seatMinus) seatMinus.addEventListener('click', function () {
-      try { Lesify.setFamilieSitze(Lesify.plan().familie.sitze - 1); LesifyUI.toast('Platz wird zum Periodenende entfernt.'); render(); }
-      catch (e) { LesifyUI.toast('Zuerst ein Kind entfernen — der Platz ist belegt.'); }
+    if (seatMinus) seatMinus.addEventListener('click', async function () {
+      try {
+        var neu = await Lesify.aendernAbo({ sitze: abo.sitze - 1 });
+        LesifyUI.toast(neu.geplanteSitze != null ? 'Platz wird zum Periodenende entfernt.' : 'Platz entfernt.');
+        render();
+      } catch (err) { LesifyUI.toast(Lesify.fehlerText(err)); }
     });
     LesifyUI.qsa('[data-abo]').forEach(function (b) {
       b.addEventListener('click', function () {
@@ -106,17 +121,24 @@ document.addEventListener('DOMContentLoaded', function () {
         if (a === 'kuendigen') {
           modal('Abo kündigen?', 'Das Abo läuft bis zum Ende des bezahlten Zeitraums weiter — bis dahin bleibt alles nutzbar.',
             '<p class="text-sm" style="margin:0;color:var(--ink-700)">Danach werden die Inhalte gemäß Aufbewahrungsfrist gelöscht.</p>',
-            function () { Lesify.setAboStatus('gekuendigt'); LesifyUI.toast('Abo gekündigt.'); render(); }, 'Kündigen', true);
+            async function () {
+              try { await Lesify.kuendigenAbo(); LesifyUI.toast('Abo gekündigt.'); render(); }
+              catch (err) { LesifyUI.toast(Lesify.fehlerText(err)); return false; }
+            }, 'Kündigen', true);
         } else if (a === 'pausieren') {
-          Lesify.setAboStatus('pausiert'); LesifyUI.toast('Sommerpause aktiviert — Inhalte bleiben erhalten.'); render();
+          Lesify.pausierenAbo().then(function () {
+            LesifyUI.toast('Sommerpause aktiviert — Inhalte bleiben erhalten.'); render();
+          }).catch(function (err) { LesifyUI.toast(Lesify.fehlerText(err)); });
         } else if (a === 'reaktivieren') {
-          Lesify.setAboStatus('aktiv'); LesifyUI.toast('Abo wieder aktiv.'); render();
+          Lesify.reaktivierenAbo().then(function () {
+            LesifyUI.toast('Abo wieder aktiv.'); render();
+          }).catch(function (err) { LesifyUI.toast(Lesify.fehlerText(err)); });
         }
       });
     });
   }
 
-  render();
+  await render();
 });
 </script>
 </body>

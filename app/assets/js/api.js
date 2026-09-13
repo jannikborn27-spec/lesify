@@ -60,6 +60,10 @@
     anfrage_zu_gross: 'Die Anfrage ist zu lang — bitte kürzen.',
     spam_erkannt: 'Zu viele gleiche Anfragen kurz hintereinander.',
     rate_limit: 'Zu viele Anfragen — kurz warten und erneut versuchen.',
+    passwort_falsch: 'Falsches Passwort.',
+    abo_nicht_reaktivierbar: 'Das Abo ist bereits aktiv.',
+    sitze_ausgeschoepft: 'Alle Plätze sind belegt.',
+    kein_familienabo: 'Dafür ist ein Familien-Abo nötig.',
   };
   function fehlerText(err) {
     return (err && FEHLER_TEXT[err.code]) || 'Es ist ein Fehler aufgetreten.';
@@ -184,6 +188,14 @@
     var found = null;
     for (var i = 0; i < FACH_COLORS.length; i++) { if (FACH_COLORS[i].key === key) { found = FACH_COLORS[i]; break; } }
     return found || FACH_COLORS[FACH_COLORS.length - 1];
+  }
+  /** Kind-Profile haben kein eigenes Farbfeld im Backend (anders als
+      `Fach.farbe`) — rein kosmetischer Avatar-Ton, deterministisch aus der
+      Kind-ID gewählt, damit er über Reloads stabil bleibt. */
+  function getKindColor(kindId) {
+    var h = 0, s = String(kindId || '');
+    for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+    return FACH_COLORS[Math.abs(h) % FACH_COLORS.length];
   }
   var FACH_ICONS = {
     mathematik: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4" r="1.3" fill="currentColor" stroke="none"/><path d="M12 5.3 5.5 20"/><path d="M12 5.3 18.5 20"/><path d="M8.7 20H6.3"/><path d="M17.7 20h-2.4"/><path d="M8.8 12.6a4.6 4.6 0 0 1 6.4 0"/></svg>',
@@ -629,6 +641,9 @@
     pausierenAbo: function () {
       return POST('/abo/pausieren', {});
     },
+    reaktivierenAbo: function () {
+      return POST('/abo/reaktivieren', {});
+    },
     kinder: function () {
       return GET('/abo/kinder');
     },
@@ -657,6 +672,10 @@
       return GET('/user').then(function (u) {
         u.klasse = u.klassenstufe;
         u.initials = initialen(u.name);
+        // `einwilligungAm` kommt als volles ISO-Datetime — `R.formatDatum()`
+        // erwartet "YYYY-MM-DD" wie bei `Klausur.datum` (derselbe Bug wie
+        // bei `usage().resetDatum`, siehe api.js `usage()`).
+        if (u.einwilligungAm) u.einwilligungAm = String(u.einwilligungAm).slice(0, 10);
         return u;
       });
     },
@@ -678,6 +697,11 @@
     updateSettings: function (patch) {
       return PATCH('/user/einstellungen', patch);
     },
+    /** DSGVO Art. 17 — hartes Löschen des Kontos (bei `elternteil` inkl.
+        aller Kind-Profile). Passwort bestätigt die Anfrage serverseitig. */
+    loeschenKonto: function (passwort) {
+      return POST('/user/loeschen', { passwort: passwort });
+    },
 
     /* Suche & Kontakt ------------------------------------- */
     suche: function (q) {
@@ -695,6 +719,27 @@
     _setToken: setToken,
     _getToken: getToken,
     _base: BASE,
+    /** Elternmodus „Als Kind ansehen" (Phase 12/11): merkt das aktuelle
+        (Eltern-)Token, bevor auf die Kind-Session gewechselt wird — sonst
+        gäbe es keinen Weg zurück außer komplettem Neu-Login. */
+    startElternModus: function (kindToken) {
+      try { localStorage.setItem('lesify:elternToken', getToken()); } catch (e) {}
+      setToken(kindToken);
+    },
+    /** Stellt das gemerkte Eltern-Token wieder her. Gibt `true` zurück, wenn
+        tatsächlich ein Elternmodus aktiv war. */
+    beendeElternModus: function () {
+      var t;
+      try { t = localStorage.getItem('lesify:elternToken'); } catch (e) { t = null; }
+      if (!t) return false;
+      setToken(t);
+      try { localStorage.removeItem('lesify:elternToken'); } catch (e) {}
+      return true;
+    },
+    /** Sync-Check fürs Elternmodus-Banner (app.js). */
+    elternModusAktiv: function () {
+      try { return !!localStorage.getItem('lesify:elternToken'); } catch (e) { return false; }
+    },
     /** Sync-Snapshot des Fächer-Caches — für geteilte Renderer wie
         `fachFilterChips()`, die (wie im data.js-Prototyp) eine synchrone
         Liste erwarten. Braucht ein vorheriges `await Lesify.faecher()`. */
@@ -711,6 +756,7 @@
     /* Fach-Farben/-Icons (reine Design-Tokens, 1:1 aus data.js) ---------- */
     FACH_COLORS: FACH_COLORS,
     getFachColor: getFachColor,
+    getKindColor: getKindColor,
     FACH_PRESETS: FACH_PRESETS,
     getFachIconSvg: getFachIconSvg,
   };

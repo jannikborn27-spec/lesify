@@ -17,85 +17,57 @@
   </div>
 </div>
 
-<script src="assets/js/data.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/auth-gate.js"></script>
 <script src="assets/js/app.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
   var R = LesifyUI.Render, I = LesifyUI.Icons, main = document.getElementById('eltern-main');
 
-  /* ---- Gate: nur Elternkonto mit Familien-Abo ---- */
-  if (!Lesify.istElternteil()) {
-    main.innerHTML =
-      '<div class="card eltern-card eltern-gate">' +
-        '<span class="spark" style="width:26px;height:26px;color:var(--ink-400);display:inline-block">' + I.lock + '</span>' +
-        '<h1>Eltern-Bereich</h1>' +
-        '<p>Dieser Bereich ist Elternkonten mit einem Familien-Abo vorbehalten. ' +
-          'Ein Solo-Elternkonto lernt selbst und nutzt die normale Schüler-Ansicht.</p>' +
-        '<div style="display:flex;gap:10px;justify-content:center">' +
-          '<a class="btn btn-ghost" href="dashboard.html">Zur App</a>' +
-          '<button class="btn btn-primary" id="dev-eltern">Als Elternteil-Ansicht testen</button>' +
-        '</div>' +
-        '<p style="margin:16px 0 0;font-size:0.75rem;color:var(--ink-400)">Prototyp-Schalter — im Live-Betrieb ergibt sich die Rolle aus dem Konto.</p>' +
-      '</div>';
-    document.getElementById('dev-eltern').addEventListener('click', function () {
-      Lesify.setRolle('elternteil');
-      location.reload();
-    });
-    return;
-  }
-
-  function aktivChip(kind) {
-    var a = kind.aktivitaetAmpel;
-    return '<span class="ampel-chip ampel-chip-' + a + '"><span class="ampel-dot ampel-' + a + '"></span>' +
-      Lesify.kindAktivitaetLabel(a) + '</span>';
-  }
+  // Rollen-/Familie-Gate läuft in auth-gate.js (redirect vor dem Rendern);
+  // hier nur noch das echte Rendern für ein bestätigtes Elternkonto.
+  var user = await Lesify.getUser();
+  var kinder = await Lesify.kinder();
 
   function miniKarte(kind) {
-    var col = Lesify.getFachColor(kind.farbe);
-    var sub = kind.klasse + (kind.eingeladen
-      ? (kind.letzteAktivitaet ? ' · zuletzt aktiv ' + kind.letzteAktivitaet : ' · noch nicht gestartet')
-      : ' · Einladung ausstehend');
+    var col = Lesify.getKindColor(kind.id);
+    var sub = kind.klassenstufe + (kind.eingeladen ? '' : ' · Einladung ausstehend');
     return '<a class="card eltern-mini-card" href="eltern-kind.html?id=' + kind.id + '">' +
       '<span class="fach-avatar" style="width:38px;height:38px;flex-shrink:0;background:' + col.base + '"><span>' +
         kind.name.charAt(0).toUpperCase() + '</span></span>' +
       '<span class="kc-meta">' +
         '<span class="kc-name">' + kind.name + '</span>' +
         '<span class="kc-sub">' + sub + '</span>' +
-        (kind.eingeladen ? '<span style="display:inline-block;margin-top:6px">' + aktivChip(kind) + '</span>' : '') +
       '</span>' +
     '</a>';
   }
 
   /* ---- Familien-weite Kennzahlen — Summe über alle Kinder, aus denselben
-     Wochen-Daten wie die Einzelkarten, nur zusammengezählt. ---- */
-  function familienStats(kinder) {
-    var aktiveKinder = 0, nachrichten = 0, klausuren = 0;
-    kinder.forEach(function (k) {
-      var z = Lesify.kindZusammenfassung(k.id);
-      if (k.aktivitaetAmpel !== 'rot') aktiveKinder++;
-      nachrichten += z.nachrichtenDieWoche;
-      klausuren += z.anstehendeKlausuren;
-    });
+     Wochen-Daten wie die Einzelkarten, nur zusammengezählt. Bewusst keine
+     abgeleitete "aktiv"-Einstufung mehr (Entscheidung 2026-09-13) — nur die
+     rohen Zahlen, die auch auf den Kind-Seiten stehen. ---- */
+  async function familienStats(kinder) {
+    var nachrichten = 0, klausuren = 0;
+    var zs = await Promise.all(kinder.map(function (k) { return Lesify.kinderZusammenfassung(k.id); }));
+    zs.forEach(function (z) { nachrichten += z.nachrichtenDieWoche; klausuren += z.anstehendeKlausuren; });
     function stat(num, label) { return '<div class="eltern-stat"><div class="eltern-stat-num">' + num + '</div><div class="eltern-stat-label">' + label + '</div></div>'; }
     return '<div class="eltern-stats">' +
       stat(kinder.length, kinder.length === 1 ? 'Kind' : 'Kinder') +
-      stat(aktiveKinder, 'diese Woche aktiv') +
       stat(nachrichten, 'KI-Nachrichten diese Woche') +
       stat(klausuren, 'anstehende Klausuren') +
     '</div>';
   }
 
-  function render() {
-    var fam = Lesify.familie();
-    var kinder = Lesify.kinder();
+  async function render() {
+    var statsHtml = await familienStats(kinder);
     main.innerHTML =
       '<div class="page-head"><div>' +
         '<div class="page-eyebrow">Eltern-Bereich</div>' +
-        '<h1 class="page-title">Hallo, ' + fam.elternName.split(' ')[0] + '</h1>' +
+        '<h1 class="page-title">Hallo, ' + user.name.split(' ')[0] + '</h1>' +
         '<p class="page-sub">Überblick über deine Kinder — ob sie dranbleiben, ohne ihnen über die Schulter zu schauen.</p>' +
       '</div></div>' +
 
-      familienStats(kinder) +
+      statsHtml +
 
       '<div class="card eltern-card eltern-trust">' +
         '<span class="spark">' + I.lock + '</span>' +
@@ -125,7 +97,7 @@ document.addEventListener('DOMContentLoaded', function () {
       '</div>';
   }
 
-  render();
+  await render();
 });
 </script>
 </body>

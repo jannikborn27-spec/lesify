@@ -9,6 +9,7 @@ export function userDTO(u: User) {
     rolle: u.rolle,
     trialEndetAm: u.trialEndetAm,
     emailVerifiedAt: u.emailVerifiedAt,
+    einwilligungAm: u.einwilligungAm,
   };
 }
 

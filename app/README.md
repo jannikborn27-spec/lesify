@@ -260,9 +260,28 @@ persistiert, Dark Mode hält jetzt über einen Seitenwechsel, Tarifwechsel mit
 echtem `PATCH /abo` aktualisiert Kontingent + Nutzungsbalken sofort.
 Details: `backend-planning.md` §9.
 
-Die vier `eltern-*.html`-Seiten (eigenes Subsystem für Familien-Abos,
-Kind-Profile, Eltern-Zusammenfassungen) bleiben offen — nicht Teil der
-regulären Schüler-App-Seiten dieser Phase.
+**Die fünf `eltern-*.html`-Seiten umgestellt (2026-09-13) — Phase 11 damit
+vollständig abgeschlossen.** War zuvor an fünf Produktentscheidungen
+blockiert (Aktivitäts-Ampel, „Eingeladen"-Status, „letzte Aktivität",
+Kind-Avatar-Farbe, Abo-Reaktivierung), alle vom Nutzer beantwortet — siehe
+`UMSETZUNGSPLAN.md` „Was jetzt noch von dir gebraucht wird". **Backend:**
+neu `POST /abo/reaktivieren` + `ZahlungsGateway.subscriptionReaktivieren()`;
+`GET /abo/kinder` liefert `eingeladen: boolean`; `GET /abo/kinder/:id/
+zusammenfassung` liefert zusätzlich `faecherListe`/`anstehendeKlausurenListe`
+(reine Metadaten). Aktivitäts-Ampel bewusst nicht gebaut — die Seiten zeigen
+jetzt die rohen Wochenzahlen ohne Einstufung. **Frontend:** neue
+`Lesify.getKindColor()` (deterministischer Avatar-Ton) und
+`Lesify.loeschenKonto()` (seit 2026-09-13 auf `eltern-datenschutz.html`
+verdrahtet — Export/Löschung liefen im Prototyp nur als Fake-Toasts).
+**Drei Bugs beim Live-Testen gefunden:** `auth-gate.js`s Rollen-Weiche
+erkannte nur `eltern.html` als Eltern-Seite, nicht die anderen vier —
+Fix per Präfix-Check. `istElternAnsicht()` (entscheidet Eltern- vs.
+Schüler-Sidebar) hing an einer reinen data.js-Funktion, unter `api.js`
+hätte jede Eltern-Seite die falsche Sidebar gezeigt — Fix über den
+Seitennamen selbst. Der „Als Kind ansehen"-Kontextwechsel war ohne Weg
+zurück (kein Eltern-Token gesichert) — neue `Lesify.startElternModus()`/
+`beendeElternModus()`, `renderElternBanner()` unterstützt jetzt beide
+Welten. Details: `backend-planning.md` §9 „Nachtrag eltern-*.html".
 
 Basis-URL: `window.LESIFY_API_BASE` (Default `http://localhost:3000`).
 Session-Token: `localStorage['lesify:token']`.

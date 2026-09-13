@@ -970,11 +970,12 @@ Query-Parameter, die `chat.html`/`thema.html` aus dem client-seitigen
 | PATCH | `/abo` | `{paket?, intervall?, sitze?}` → Tarif-/Intervall-/Sitzwechsel (Up-/Downgrade, Proration). Sitzverringerung erst zum `aktuellerZeitraumEnde` |
 | POST | `/abo/kuendigen` | Kündigung zum `aktuellerZeitraumEnde`, kein sofortiger Zugriffsverlust |
 | POST | `/abo/pausieren` | Sommerpause (Status `pausiert`), Inhalte bleiben erhalten |
+| POST | `/abo/reaktivieren` | **Neu (2026-09-13).** Hebt Kündigung/Pause auf → `status = aktiv`; nur von `gekuendigt`/`pausiert` aus, sonst `409 abo_nicht_reaktivierbar`. Stripe: `cancel_at_period_end=false` + `pause_collection=null` |
 | POST | `/abo/webhook` | Callback des Zahlungsanbieters (Zahlung erfolgreich/fehlgeschlagen → `status`) |
-| GET | `/abo/kinder` · POST · DELETE | Kind-Profile im Familien-Abo verwalten (max. `Abo.sitze`, 2–4) |
+| GET | `/abo/kinder` · POST · DELETE | Kind-Profile im Familien-Abo verwalten (max. `Abo.sitze`, 2–4). `GET` liefert je Kind zusätzlich `eingeladen: boolean` (2026-09-13, aus `!!email`) |
 | POST | `/abo/kinder/:id/einladung` | `{email}` → E-Mail am Kind-Profil setzen + `emailVerifiedAt` (Elternkonto bürgt), Passwort-Token ausgeben; das Kind setzt sein Passwort über `POST /auth/passwort-zuruecksetzen` (Phase 12) |
 | POST | `/abo/kinder/:id/sitzung` | Kontext-Wechsel: gibt eine echte `Session` fürs Kind-Profil zurück (`{token, kindId}`); das Elternkonto handelt damit vollständig als Kind, Zurückwechseln = eigenes Token (Phase 12) |
-| GET | `/abo/kinder/:id/zusammenfassung` | Aggregierte Wochenkennzahlen (Fächer/Themen/Chats+Nachrichten der Woche/Lernzettel/Testklausuren/anstehende Klausuren) — **kein Chat-Wortlaut** (Phase 12). Prototyp (`data.js`, 2026-09-12) liefert zusätzlich `faecherListe` (Fach + Themen-Anzahl) und `anstehendeKlausurenListe` (Fach + Datum) für `eltern-kind.html` — reine Detaillierung derselben Zähler, kein neuer Content-Zugriff; **im echten Endpunkt noch nachzuziehen**, falls die Detailansicht so bleibt. |
+| GET | `/abo/kinder/:id/zusammenfassung` | Aggregierte Wochenkennzahlen (Fächer/Themen/Chats+Nachrichten der Woche/Lernzettel/Testklausuren/anstehende Klausuren) — **kein Chat-Wortlaut** (Phase 12). Liefert zusätzlich `faecherListe` (`{name, farbe, themen}[]`) und `anstehendeKlausurenListe` (`{fach, datum}[]`) für `eltern-kind.html` (2026-09-13) — reine Metadaten, kein neuer Content-Zugriff. |
 
 #### Umsetzungsstand (Phase 9, 2026-09-04; Stripe-Adapter 2026-09-12)
 
@@ -1597,6 +1598,56 @@ Sidebar-Verzweigung liest ohnehin direkt `user.rolle`. **Tarif ist jetzt
 echt** (`Lesify.getAbo()`/`aendernAbo({paket})` statt Prototyp-Toggle),
 Karte blendet sich aus ohne aktives Abo. `updateUser()` übersetzt
 `{name,klasse}` → `{name,klassenstufe}` und spiegelt `.klasse`/`.initials`.
+
+**Nachtrag `eltern-*.html` (2026-09-13) — alle fünf Seiten umgestellt,
+Phase 11 komplett:** war zuvor an fünf Produktentscheidungen blockiert
+(Aktivitäts-Ampel, „Eingeladen"-Status, „letzte Aktivität",
+Kind-Avatar-Farbe, Abo-Reaktivierung), alle vom Nutzer beantwortet.
+**Backend:** neuer Endpunkt `POST /abo/reaktivieren` + `ZahlungsGateway.
+subscriptionReaktivieren()` (Fake: No-op; Stripe: `cancel_at_period_end=
+false` + `pause_collection=null`), nur von `gekuendigt`/`pausiert` aus
+(sonst `409 abo_nicht_reaktivierbar`). `GET /abo/kinder` liefert
+`eingeladen: boolean` (`!!email`). `GET /abo/kinder/:id/zusammenfassung`
+liefert zusätzlich `faecherListe`/`anstehendeKlausurenListe` (reine
+Metadaten — Name/Farbe/Themenzahl bzw. Fach/Datum, kein Inhalt) — die
+Seite erwartete diese Listen schon vorher, der Endpunkt lieferte sie nie.
+`userDTO()` bekam `einwilligungAm` (fehlte). Aktivitäts-Ampel bewusst NICHT
+gebaut (Nutzer-Entscheidung: „kann komplett entfernt werden") — die Seiten
+zeigen jetzt die rohen Wochenzahlen ohne Einstufung. **Frontend:** neue
+`Lesify.getKindColor(kindId)` (deterministischer Hash) ersetzt den
+Kind-Farb-Picker im Prototyp; `Lesify.loeschenKonto(passwort)` neu, seit
+2026-09-13 auf `eltern-datenschutz.html` verdrahtet (Export/Löschung dort
+liefen im Prototyp nur als Fake-Toasts). „Als Kind ansehen" ist jetzt ein
+echter Kontextwechsel (`kinderSitzung()` → `_setToken()` → Redirect).
+**Zwei Bugs gefunden:** (1) `auth-gate.js`s Rollen-/Familie-Weiche kannte
+nur `eltern.html` als Eltern-Seite (`hier === 'eltern.html'`) — ein
+Schüler-Account auf z. B. `eltern-kinder.html` wäre nicht abgefangen
+worden; Fix: `hier.indexOf('eltern-') === 0` zusätzlich geprüft. (2)
+`eltern-abo.html`s Status-Anzeige kannte nur `aktiv`/`gekuendigt`/
+`pausiert` aus dem Prototyp, das echte `AboStatus`-Enum hat zusätzlich
+`test` (Trial) und `zahlung_offen` — ein Trial-Abo zeigte „Aktiv", aber den
+„Abo reaktivieren"-Button (der nur bei gekündigt/pausiert erscheinen
+soll); Fix: vollständige Status-Tabelle + `laeuft`-Flag für die
+Button-Logik. Außerdem derselbe `formatDatum`-Bug wie bei `chat.html`s
+`resetDatum`: `einwilligungAm` kam als volles ISO-Datetime — Fix in
+`getUser()`, auf die ersten 10 Zeichen gekürzt. Und der geteilte,
+fünffach duplizierte `modal()`-Helfer behandelte `onConfirm(scrim)` bisher
+synchron — mit den jetzt async gewordenen Bestätigungs-Callbacks
+(`await Lesify.…`) wäre das Modal immer sofort geschlossen worden, auch
+bei einem Validierungsfehler; Fix: Promise-Erkennung vor dem Schließen.
+**Zwei weitere Bugs beim „Als Kind ansehen"-Kontextwechsel gefunden:**
+(3) `istElternAnsicht()` (app.js, entscheidet Eltern- vs. Schüler-Sidebar)
+rief die data.js-only `Lesify.istElternteil()` auf — unter `api.js`
+`undefined`, jede Eltern-Seite hätte die falsche Sidebar gezeigt. Fix:
+unter `api.js` entscheidet der Seitenname selbst (`eltern.html`/
+`eltern-`-Präfix), `auth-gate.js` hat die Berechtigung ohnehin schon
+geprüft. (4) Der Kontextwechsel selbst war unvollständig:
+`kinderSitzung()` ersetzt das Token direkt, ohne das Eltern-Token vorher
+zu sichern — kein Weg zurück außer Neu-Login; das alte „Elternmodus"-
+Banner hing an rein data.js-Funktionen. Fix: neue
+`Lesify.startElternModus()`/`beendeElternModus()` (merkt/stellt das
+Eltern-Token in `localStorage['lesify:elternToken']` wieder her),
+`renderElternBanner()` unterstützt jetzt beide Welten.
 
 **Nachtrag `klausur.html` (2026-09-12) — deutlich leichter als erwartet:**
 kein Backend-Change nötig — die komplette eingebettete Lernplan-Sektion

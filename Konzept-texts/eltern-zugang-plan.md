@@ -40,6 +40,26 @@
 > Für den echten Cut-over bedeutet das: `GET /abo/kinder/:id/zusammenfassung`
 > müsste um dieselben zwei Felder erweitert werden (`backend-planning.md` §4
 > nachgezogen, Endpunkt-Erweiterung selbst noch offen).
+>
+> **Status 2026-09-13 — Cut-over auf `api.js` abgeschlossen, Plan
+> vollständig umgesetzt.** Alle fünf Seiten laufen jetzt gegen die echte
+> API. `GET /abo/kinder/:id/zusammenfassung` liefert `faecherListe`/
+> `anstehendeKlausurenListe` wie hier vorgesehen. Fünf offene
+> Produktentscheidungen aus dem Phase-11-Cut-over beantwortet und
+> umgesetzt: **Aktivitäts-Ampel komplett entfernt** (Nutzer-Entscheidung —
+> „Eltern können genaue Anzahl von jedem Feature einsehen, das reicht
+> aus"), kein `Lesify.kindAktivitaetLabel`/`aktivitaetAmpel`-Äquivalent
+> mehr nötig. **„Eingeladen"-Status** jetzt `GET /abo/kinder`s
+> `eingeladen: boolean`. **„Letzte Aktivität"** ersatzlos weggelassen.
+> **Kind-Avatar-Farbe** deterministisch aus der ID (`Lesify.getKindColor()`
+> in `api.js`) statt manuellem Picker. **Abo-Reaktivierung** neu gebaut
+> (`POST /abo/reaktivieren`). Die data.js-only Helfer aus der obigen Liste
+> (`familie/getKind/updateKind/wechsleZuKind/zurueckZumElternkonto/
+> getRolle/setRolle/istElternteil/setFamilieSitze/setAboStatus`) haben in
+> `api.js` **keine** Entsprechung mehr — die fünf Seiten nutzen
+> stattdessen direkt `Lesify.getUser()`/`getAbo()`/`aendernAbo()`/
+> `kuendigenAbo()`/`pausierenAbo()`/`reaktivierenAbo()`. Details:
+> `backend-planning.md` §9 „Nachtrag eltern-*.html", `app/README.md`.
 
 ## 0. Ausgangslage
 

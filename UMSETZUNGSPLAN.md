@@ -45,50 +45,64 @@ setze ich sie um.
 
 ### 1. Damit die App überhaupt live erreichbar ist (Hosting)
 
-- [ ] **Wo soll `api/` laufen?** Fastify braucht einen Node-Host mit
-      öffentlicher HTTPS-URL (Railway, Render, Fly.io, ein eigener VPS, …).
-      Ohne das bleibt der bereits live auf GitHub Pages laufende
-      `marketing/`+`app/`-Auftritt nutzlos, weil er nur gegen `localhost`
-      sprechen kann. **Blockiert alles andere in dieser Sektion.**
-- [ ] **Domain-Entscheidung + DNS.** GitHub Pages erlaubt nur eine Custom
-      Domain je Repo — `app/` bleibt entweder Unterpfad derselben Domain (wie
-      jetzt) oder `api/` bekommt eine eigene Subdomain beim gewählten Host.
-- [ ] **Supabase-Produktivprojekt.** Aktuell läuft alles gegen ein
-      Dev-Projekt — für Prod ein eigenes Supabase-Projekt anlegen und
-      `DATABASE_URL`/`DIRECT_URL` + Storage-Zugangsdaten dafür setzen.
-- [ ] **`CORS_ORIGINS` auf die echte Domain setzen**, sobald sie feststeht —
-      ohne die Variable blockt die Produktions-CORS-Konfiguration jeden
-      Request von der echten Website (siehe `backend-planning.md` §11).
+- [ ] **Wo soll `api/` laufen?** **Empfehlung (2026-09-13): Railway** —
+      deployt direkt aus dem GitHub-Repo (Root-Verzeichnis `api/`
+      einstellen), Env-Vars und Custom-Domains sind trivial, EU-Region
+      vorhanden; `api/package.json` hat mit `build`/`start`/`db:deploy`
+      bereits die passenden Skripte, keine Code-Änderung nötig. Alternative:
+      Fly.io, wenn der Server explizit auf Frankfurt gepinnt sein soll
+      (mehr Kontrolle, etwas mehr Setup). Noch offen: Railway-Konto
+      anlegen, Repo verbinden, Env-Vars setzen (siehe Punkt „Supabase"
+      unten). **Blockiert alles andere in dieser Sektion.**
+- [x] **Domain-Entscheidung:** `lesify.de` bleibt die Domain, `app/` bleibt
+      Unterpfad (`lesify.de/app`) wie im aktuellen GitHub-Pages-Setup —
+      keine Code-Änderung nötig, DNS/TLS-Einrichtung bleibt ein Ops-Schritt
+      (Phase 16).
+- [ ] **Supabase-Produktivprojekt anlegen** — Schritt für Schritt:
+      1. Auf supabase.com ein **neues** Projekt anlegen (getrennt vom
+         Dev-Projekt), EU-Region wählen (Frankfurt/Irland).
+      2. Dort **Connect → ORMs**: die gepoolte URL (Port 6543) als
+         `DATABASE_URL`, die direkte URL (Port 5432) als `DIRECT_URL`
+         kopieren.
+      3. **Settings → API**: Project URL als `SUPABASE_URL`, den
+         `service_role`-Key als `SUPABASE_SERVICE_KEY` kopieren.
+      4. Kein manueller Storage-Bucket-Schritt nötig —
+         `api/src/lib/storage.ts` legt ihn beim ersten Gebrauch automatisch
+         an (`SUPABASE_STORAGE_BUCKET`, Default `lesify-local`).
+      5. Einmalig `pnpm --filter ./api db:deploy` gegen die neue
+         `DATABASE_URL`/`DIRECT_URL` laufen lassen (wendet alle Migrationen
+         nicht-interaktiv an).
+      6. Alle Variablen aus `api/.env.example` beim gewählten Host (siehe
+         oben) setzen, plus `NODE_ENV=production`,
+         `CORS_ORIGINS=https://lesify.de`.
+- [ ] **`CORS_ORIGINS=https://lesify.de` setzen**, sobald `api/` gehostet
+      ist — ohne die Variable blockt die Produktions-CORS-Konfiguration
+      jeden Request von der echten Website (siehe `backend-planning.md`
+      §11).
 
-### 2. Eltern-Bereich fertigstellen (`eltern-*.html`, 4 Seiten)
+### 2. Eltern-Bereich fertigstellen (`eltern-*.html`, 5 Seiten) — ✅ erledigt 2026-09-13
 
-Diese vier Seiten hängen noch am Prototyp (`data.js`), weil sie echte
-Backend-Features brauchen, die es noch nicht gibt — reine Verdrahtung reicht
-hier nicht, das sind Produktentscheidungen:
+Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
 
-- [ ] **Aktivitäts-Ampel pro Kind (grün/gelb/rot):** ab welcher Anzahl
-      Nachrichten/Chats pro Woche gilt ein Kind als „aktiv" statt „wackelig"
-      oder „schwach"? Ich brauche konkrete Schwellenwerte oder eine
-      Faustregel, dann baue ich die Formel (analog zu `noteAmpel()` in
-      `shared/`) und hänge sie an `GET /abo/kinder/:id/zusammenfassung`.
-- [ ] **„Eingeladen"-Status pro Kind:** `GET /abo/kinder` liefert aktuell nur
-      `{id, name, klassenstufe}` — soll ich `email`/`emailVerifiedAt`
-      ergänzen, damit die UI zwischen „Einladung ausstehend" und „aktiv"
-      unterscheiden kann? (Kleine, unkritische Backend-Änderung — ich brauche
-      nur dein Ok, dass die Unterscheidung in der UI überhaupt gewünscht ist.)
-- [ ] **„Letzte Aktivität" pro Kind:** soll das echt getrackt werden (neues
-      Feld + Schreibpfad an mehreren Stellen) oder reicht eine Annäherung aus
-      vorhandenen Zeitstempeln (letzter Chat/letzte Nachricht)? Oder ganz
-      weglassen?
-- [ ] **Kind-Avatar-Farbe:** es gibt kein Datenfeld dafür im echten Backend
-      (anders als `Fach.farbe`). Lässt sich rein kosmetisch client-seitig
-      lösen (deterministisch aus der Kind-ID) — nur zur Kenntnis, keine
-      Entscheidung nötig, außer du willst es anders.
-- [ ] **Abo-Reaktivierung:** es gibt aktuell keinen Endpunkt, um ein
-      gekündigtes/pausiertes Abo wieder zu aktivieren (`eltern-abo.html`s
-      „Abo reaktivieren"-Button hat kein Gegenstück in `api/src/routes/
-      abo.ts`). Soll ich `POST /abo/reaktivieren` bauen, oder läuft
-      Reaktivierung später über ein Stripe-Customer-Portal?
+- [x] **Aktivitäts-Ampel entfernt** (deine Entscheidung: „kann komplett
+      entfernt werden … Eltern können genaue Anzahl von jedem Feature
+      einsehen, das reicht aus"). Kein neues Feld, keine Formel — die Seiten
+      zeigen jetzt die rohen Wochenzahlen aus `GET /abo/kinder/:id/
+      zusammenfassung` direkt, ohne abgeleitete Einstufung.
+- [x] **„Eingeladen"-Status ergänzt** (deine Entscheidung: „Ja"). `GET
+      /abo/kinder` liefert jetzt `eingeladen: boolean` (aus `!!email`).
+- [x] **„Letzte Aktivität" weggelassen** (deine Entscheidung: „kann ganz
+      weggelassen werden") — nirgends mehr referenziert.
+- [x] **Kind-Avatar-Farbe** (dir überlassen): deterministisch aus der
+      Kind-ID erzeugt (`Lesify.getKindColor()`, api.js), kein neues
+      Datenfeld nötig.
+- [x] **Abo-Reaktivierung gebaut** (deine Entscheidung: „ja baue
+      reaktivierung"). Neuer Endpunkt `POST /abo/reaktivieren` +
+      `ZahlungsGateway.subscriptionReaktivieren()` (Fake + echtes Stripe).
+      Zusätzlich `eltern-kind.html`s Fach-/Klausur-Metadatenlisten (Name +
+      Anzahl bzw. Datum, keine Inhalte) ergänzt, die die Seite schon vorher
+      erwartete, ohne dass der Endpunkt sie geliefert hatte. Details:
+      `backend-planning.md` §9 „Nachtrag eltern-*.html".
 
 ### 3. Recht & Texte (Phase 13) — keine Code-Aufgabe, blockiert aber den Launch
 
@@ -146,11 +160,13 @@ hier nicht, das sind Produktentscheidungen:
       Umschalter, Pill-Style) — bewusst noch drin, weil sie aktuell die
       einzige Möglichkeit sind, alle Design-Zustände ohne echte Testdaten zu
       sehen. Sag Bescheid, wenn sie raus sollen.
-- [ ] **„Datenexport"/„Konto löschen"-Buttons in `einstellungen.html`:** das
-      Backend dafür (`GET /user/export`, `POST /user/loeschen`) ist fertig
-      und getestet, aber der Prototyp hatte dort nie eine UI. Ist eine
-      destruktive Aktion — baue ich bewusst nicht auf Verdacht, sondern erst
-      auf Zuruf.
+- [ ] **„Datenexport"/„Konto löschen"-Buttons in `einstellungen.html`
+      (Schüler-Seite):** das Backend dafür (`GET /user/export`, `POST
+      /user/loeschen`) ist fertig und getestet, `Lesify.loeschenKonto()`
+      existiert seit 2026-09-13 in `api.js` — auf `eltern-datenschutz.html`
+      bereits live verdrahtet (dort hatte der Prototyp schon Buttons dafür).
+      `einstellungen.html` selbst hatte im Prototyp nie eine solche UI — baue
+      ich bewusst nicht auf Verdacht, sondern erst auf Zuruf.
 
 ---
 
@@ -3166,6 +3182,107 @@ sonst unverändert.
 > geprüft — hält jetzt tatsächlich über einen Seitenwechsel (`dashboard.html`
 > lädt dunkel), Tarifwechsel Starter → Premium mit echtem `PATCH /abo`
 > aktualisiert sowohl Kontingent-Text als auch die Nutzungsbalken sofort.
+>
+> _2026-09-13: **`eltern.html` + `eltern-kinder.html` + `eltern-kind.html` +
+> `eltern-abo.html` + `eltern-datenschutz.html` umgestellt — die letzten
+> fünf Seiten, Phase 11 damit vollständig abgeschlossen.** Blockiert war das
+> zuvor an fünf Produktentscheidungen (Aktivitäts-Ampel, „Eingeladen"-Status,
+> „letzte Aktivität", Kind-Avatar-Farbe, Abo-Reaktivierung) — alle vom
+> Nutzer beantwortet, siehe „Was jetzt noch von dir gebraucht wird" oben.
+> **Backend-Ergänzungen:** `POST /abo/reaktivieren` (neu, hebt Kündigung/
+> Pause auf) + `ZahlungsGateway.subscriptionReaktivieren()` (Fake: No-op;
+> Stripe: `cancel_at_period_end=false` + `pause_collection=null`) — nur von
+> `gekuendigt`/`pausiert` aus möglich, sonst `409
+> abo_nicht_reaktivierbar`. `GET /abo/kinder` liefert jetzt `eingeladen:
+> boolean` (aus `!!email`). `GET /abo/kinder/:id/zusammenfassung` liefert
+> zusätzlich `faecherListe` (`{name, farbe, themen}[]`) und
+> `anstehendeKlausurenListe` (`{fach, datum}[]`) — reine Metadaten, kein
+> Chat-/Lernzettel-Inhalt, wie schon in der Kartentext-Zusicherung auf
+> `eltern-datenschutz.html` versprochen; `eltern-kind.html` hatte diese
+> Listen schon im Prototyp erwartet, der Endpunkt lieferte sie nur nie.
+> `userDTO()` bekam `einwilligungAm` (fehlte, aber `eltern-datenschutz.html`
+> zeigt es an). **`auth-gate.js`-Bug gefunden:** die Rollen-/Familie-Weiche
+> erkannte nur `eltern.html` als Eltern-Seite (`hier === 'eltern.html'`) —
+> ein Schüler-Account, der direkt auf `eltern-kinder.html` o. Ä. navigiert,
+> wäre nicht abgefangen worden. Fix: `hier.indexOf('eltern-') === 0`
+> zusätzlich geprüft, deckt jetzt alle fünf Seiten ab. Die
+> Prototyp-Rollen-Umschalter (`Lesify.istElternteil()`-Gate-Karte auf
+> `eltern.html` mit „Als Elternteil-Ansicht testen"-Button,
+> `Lesify.setRolle`) sind komplett entfernt — `auth-gate.js` übernimmt das
+> jetzt allein, echte Konten können die Rolle ohnehin nicht selbst wechseln.
+> Kind-Avatar-Farbe: neue `Lesify.getKindColor(kindId)` in `api.js`
+> (deterministischer Hash in `FACH_COLORS`), ersetzt den manuellen
+> Farb-Picker im „Kind hinzufügen"-Modal. **„Benachrichtigungen"-Modal pro
+> Kind entfernt** (`erinnerungVorKlausuren`/`woechentlicheZusammenfassung`
+> je Kind) — es gibt keinen Endpunkt, über den ein Elternkonto die
+> `Einstellungen` eines Kindes fernsteuert, und die Toggles waren im
+> Prototyp selbst schon als „nur gemerkt, wirkt erst mit E-Mail-Versand"
+> deklariert; kein Funktionsverlust. **„Als Kind ansehen" jetzt ein echter
+> Kontextwechsel:** `Lesify.kinderSitzung(id)` → `Lesify._setToken(token)` →
+> Redirect auf `dashboard.html`, live mit echten Kind-Daten geprüft (Chat +
+> Klausur, die das Kind zuvor selbst angelegt hatte, erschienen korrekt).
+> **„Daten exportieren"/„Familienkonto löschen" auf `eltern-datenschutz.html`
+> von Fake-Toasts auf echte Endpunkte umgestellt** — `GET /user/export` per
+> `fetch`+Blob-Download (kein `?token=`-Fallback, gleiches Muster wie
+> `lernplan-lernzettel.html`/`testklausur.html`), `POST /user/loeschen`
+> jetzt mit echter Passwort-Bestätigung statt „LÖSCHEN" eintippen (neue
+> `Lesify.loeschenKonto(passwort)` in `api.js`). **Nebenbei gefundener,
+> zweiter `formatDatum`-Bug** (gleiche Ursache wie `usage().resetDatum` bei
+> `chat.html`): `userDTO().einwilligungAm` kommt als volles ISO-Datetime,
+> zeigte „NaN. undefined NaN" — Fix in `getUser()`: auf die ersten 10
+> Zeichen gekürzt. **Weiterer, unabhängig gefundener Bug in
+> `eltern-abo.html`:** die Status-Anzeige kannte nur `aktiv`/`gekuendigt`/
+> `pausiert` aus dem Prototyp, das echte `AboStatus`-Enum hat zusätzlich
+> `test` (Trial) und `zahlung_offen` — ein Trial-Abo zeigte den Chip
+> „Aktiv", aber den Button „Abo reaktivieren" (der nur bei gekündigt/
+> pausiert erscheinen soll) — Live-Test deckte den Widerspruch sofort auf.
+> Fix: vollständige `statusMap` + `laeuft`-Flag
+> (`aktiv`/`test`/`zahlung_offen`) für die Button-Logik. Auch der
+> geteilte `modal()`-Helfer (in allen fünf Seiten dupliziert) brauchte
+> einen Fix: er behandelte `onConfirm(scrim)` bisher synchron
+> (`!== false` schließt sofort) — mit den jetzt async gewordenen
+> Bestätigungs-Callbacks (`await Lesify.…`) wäre das Modal immer sofort
+> geschlossen worden, auch bei einem Validierungsfehler nach einem
+> `await`. Fix: Promise-Erkennung, schließt erst nach Auflösung.
+> **Zwei weitere Bugs beim Live-Testen des „Als Kind ansehen"-Kontextwechsels
+> gefunden:** (3) `istElternAnsicht()` (app.js, entscheidet ob die Sidebar
+> die Eltern- oder Schüler-Navigation zeigt) rief `Lesify.istElternteil()`
+> auf — eine reine data.js-Funktion, unter `api.js` schlicht `undefined` →
+> jede der fünf Eltern-Seiten hätte die **falsche** (Schüler-)Sidebar
+> gezeigt, mit Links auf Fächer/Klausuren statt Kinder/Abo/Datenschutz.
+> Fix: unter `api.js` entscheidet der Seitenname selbst (`eltern.html`
+> oder `eltern-`-Präfix) — `auth-gate.js` hat vorher ohnehin schon
+> sichergestellt, dass nur ein echtes Elternkonto mit Familien-Abo hier
+> landet. (4) **Der Kontextwechsel selbst war unvollständig:**
+> `Lesify.kinderSitzung()` ersetzt das Token direkt — ohne das Eltern-Token
+> vorher zu sichern, hätte ein Elternteil nach „Als Kind ansehen" **keinen
+> Weg zurück** außer komplettem Neu-Login (das alte „Elternmodus"-Banner
+> mit „Zurück zum Elternkonto" aus dem Prototyp hatte unter `api.js` gar
+> keine Grundlage mehr, da es an `Lesify.elternModus()`/
+> `zurueckZumElternkonto()`, ebenfalls reine data.js-Funktionen, hing).
+> Fix: neue `Lesify.startElternModus(kindToken)` (merkt das Eltern-Token in
+> `localStorage['lesify:elternToken']`, bevor gewechselt wird) +
+> `Lesify.beendeElternModus()` (stellt es wieder her) in `api.js`;
+> `renderElternBanner()` in `app.js` unterstützt jetzt beide Welten
+> (data.js sync, api.js via `Lesify.getUser()` fürs Kind-Namen-Anzeigen).
+> Live durchgespielt: Banner erscheint korrekt mit echtem Kind-Namen,
+> „Zurück zum Elternkonto" stellt den Eltern-Zugriff vollständig wieder her
+> (Sidebar zeigt wieder die Eltern-Navigation, `eltern.html` lädt mit den
+> richtigen Familien-Daten). Beide Fixes mussten wegen eines hartnäckigen
+> Browser-Cache-Artefakts im Testwerkzeug über `127.0.0.1` statt `localhost`
+> verifiziert werden (gleicher Server, andere Origin, damit ein frischer
+> `app.js` geladen wird) — kein Hinweis auf ein echtes Produktionsproblem.
+> Live komplett durchgespielt (echtes Familien-Abo, 2 Kinder, ein Kind mit
+> eigenem Fach/Thema/Chat/Klausur): `eltern.html` zeigt korrekte
+> Familien-Summen ohne Ampel **mit korrekter Eltern-Sidebar**,
+> `eltern-kinder.html` Einladung senden + vollständiger Kontextwechsel
+> (hin **und zurück**), `eltern-kind.html` Fächer-/Klausuren-
+> Metadatenlisten, `eltern-abo.html` Sitz-Erhöhung + Kündigen +
+> Reaktivieren (mit dem oben gefundenen Status-Fix),
+> `eltern-datenschutz.html` Export-Download + `Lesify.loeschenKonto()`
+> gegen einen separaten Wegwerf-Account verifiziert (echte Löschung, danach
+> kontrolliert nicht mehr eingeloggt). Testnutzer jeweils wieder gelöscht.
+> Details: `backend-planning.md` §9 „Nachtrag eltern-*.html".
 
 - [x] **API-Client `assets/js/api.js`** — _`Lesify.*`-Namen wie `data.js`, aber
       Promise-basiert; `fetch`-Wrapper mit Bearer-Token
@@ -3174,15 +3291,16 @@ sonst unverändert.
       `dateiInhaltUrl()`/`*DokumentUrl()`. Mapping-Liste aus §9 abgedeckt._
 - [x] **Auth-Gate `assets/js/auth-gate.js`** — _ohne Token bzw. bei fehlschlagendem
       `GET /auth/me` → `location.replace('../marketing/login.html?weiter=…')`._
-- [ ] **Seiten umstellen (pro Seite):** `data.js`→`api.js`+`auth-gate.js`,
+- [x] **Seiten umstellen (pro Seite):** `data.js`→`api.js`+`auth-gate.js`,
       `Lesify.*`-Aufrufe `await`en, Renderer in `app.js` auf Promises anpassen.
-      _(Teilfortschritt 2026-09-12: `dashboard.html` + `faecher.html` +
-      `fach.html` + `klausuren.html` + `lernplan.html` + `klausur.html` +
-      `lernplan-lernzettel.html` + `thema.html` + `themen.html` + `chat.html` +
-      `testklausur.html` + `lernzettel.html` + `dateien.html` + `suche.html` +
-      `einstellungen.html` fertig + verifiziert, siehe Progress-Notizen oben.
-      Verbleibend: die vier `eltern-*.html`-Seiten (separates Subsystem,
-      siehe Hinweis unten).)_
+      _Alle 20 `app/*.html`-Seiten fertig + live verifiziert: `dashboard.html`
+      + `faecher.html` + `fach.html` + `klausuren.html` + `lernplan.html` +
+      `klausur.html` + `lernplan-lernzettel.html` + `thema.html` +
+      `themen.html` + `chat.html` + `testklausur.html` + `lernzettel.html` +
+      `dateien.html` + `suche.html` + `einstellungen.html` (2026-09-12/13) +
+      `eltern.html` + `eltern-kinder.html` + `eltern-kind.html` +
+      `eltern-abo.html` + `eltern-datenschutz.html` (2026-09-13, siehe
+      Progress-Notiz unten) — **Phase 11 damit vollständig abgeschlossen.**_
 - [x] **`assets/js/api.js` — Fächer-/Themen-Cache + reine Helfer nachgezogen**
       — _2026-09-12 (mit `dashboard.html`, siehe Progress-Notiz oben):
       `getFach`/`label` als sync Cache-Lookups, `prozentZuNote`/`noteAmpel`/
@@ -3262,6 +3380,14 @@ sonst unverändert.
 > `app.js`, Dev-Ansichtsumschalter auf `einstellungen.html`. Die drei
 > `api.js`-Wrapper + die `auth-gate.js`-Rollenweiche sind für den späteren
 > Cut-over ebenfalls fertig verdrahtet._
+>
+> _2026-09-13: **Cut-over auf `api.js` abgeschlossen** (Phase 11, siehe
+> Progress-Notiz dort) — alle fünf Eltern-Seiten laufen jetzt gegen die
+> echte API statt `data.js`. Dabei `POST /abo/reaktivieren` ergänzt,
+> `GET /abo/kinder` um `eingeladen` und `GET /abo/kinder/:id/
+> zusammenfassung` um `faecherListe`/`anstehendeKlausurenListe` erweitert.
+> Der Prototyp-Rollen-Umschalter ist komplett entfernt, `auth-gate.js`
+> steuert die Rolle jetzt ausschließlich selbst._
 
 - [x] **Kind-Profil-Anlage & -Einladung** — _Direktanlage: `POST /abo/kinder`
       (Phase 9). Einladung: `POST /abo/kinder/:id/einladung {email}` setzt E-Mail
@@ -3270,7 +3396,8 @@ sonst unverändert.
 - [x] **Kontext-Wechsel:** _`POST /abo/kinder/:id/sitzung` → echte `Session`
       fürs Kind-Profil (`{token}`). Das Elternkonto nutzt dieses Token und
       arbeitet voll im `userId`-Scope des Kindes; Zurückwechseln = eigenes
-      Token. UI-Umschalter: Phase 11._
+      Token. UI-Umschalter: seit 2026-09-13 live in `eltern-kinder.html`/
+      `eltern-kind.html` (`Lesify.kinderSitzung()` → `Lesify._setToken()`)._
 - [x] **Eltern-Zusammenfassung:** _`GET /abo/kinder/:id/zusammenfassung` —
       Fächer, Themen, Chats/Nachrichten der Woche, Lernzettel, Testklausuren der
       Woche, anstehende Klausuren. **Kein Chat-Wortlaut.** Dediziertes

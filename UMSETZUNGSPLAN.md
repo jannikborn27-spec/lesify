@@ -251,13 +251,17 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       Umschalter, Pill-Style) — bewusst noch drin, weil sie aktuell die
       einzige Möglichkeit sind, alle Design-Zustände ohne echte Testdaten zu
       sehen. Sag Bescheid, wenn sie raus sollen.
-- [ ] **„Datenexport"/„Konto löschen"-Buttons in `einstellungen.html`
-      (Schüler-Seite):** das Backend dafür (`GET /user/export`, `POST
-      /user/loeschen`) ist fertig und getestet, `Lesify.loeschenKonto()`
-      existiert seit 2026-09-13 in `api.js` — auf `eltern-datenschutz.html`
-      bereits live verdrahtet (dort hatte der Prototyp schon Buttons dafür).
-      `einstellungen.html` selbst hatte im Prototyp nie eine solche UI — baue
-      ich bewusst nicht auf Verdacht, sondern erst auf Zuruf.
+- [x] **„Datenexport"/„Konto löschen"-Buttons in `einstellungen.html`
+      (Schüler-Seite)** — gebaut 2026-09-14, auf Zuruf. Karte „Daten &amp;
+      Aufbewahrung" um zwei Buttons ergänzt: „Daten exportieren" (`GET
+      /user/export` per `fetch` + Blob-Download, gleiches Muster wie
+      `eltern-datenschutz.html`) und „Konto löschen" (eigenes
+      Passwort-Bestätigungs-Modal → `Lesify.loeschenKonto(passwort)`, danach
+      Token gelöscht + Redirect auf `/`). Lokal gegen den echten Dev-Stack
+      end-to-end verifiziert: Export liefert echten JSON-Export, falsches
+      Passwort wird mit 401 abgefangen (Modal bleibt offen), richtiges
+      Passwort löscht das Konto wirklich (Login danach 401, E-Mail sofort
+      wieder frei registrierbar).
 
 ---
 

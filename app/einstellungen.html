@@ -117,6 +117,14 @@
           gelöscht</strong>. Lade dir Lernzettel rechtzeitig herunter, wenn du sie
           länger behalten möchtest.
         </p>
+        <div class="flex gap-2" style="margin-top:18px; flex-wrap:wrap">
+          <button type="button" class="btn btn-sm btn-ghost" data-konto="export">Daten exportieren</button>
+          <button type="button" class="btn btn-sm btn-ghost" data-konto="loeschen" style="color:var(--rot)">Konto löschen</button>
+        </div>
+        <p class="text-xs text-muted" style="margin:10px 0 0">
+          Eine Löschung entfernt dein Konto und alle Inhalte unwiderruflich, dein
+          Abo endet sofort.
+        </p>
       </div>
 
     </main>
@@ -234,6 +242,82 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   await renderPlan();
   await renderUsage();
+
+  /* Konto exportieren/löschen — gleiches Muster wie eltern-datenschutz.html,
+     hier für das eigene Schüler-Konto statt das Familienkonto. */
+  function kontoModal(title, sub, bodyHtml, onConfirm, confirmLabel, danger) {
+    var scrim = document.createElement('div');
+    scrim.className = 'modal-scrim';
+    scrim.innerHTML =
+      '<div class="modal" style="max-width:420px">' +
+        '<div class="modal-head"><div>' +
+          '<h3 class="modal-title">' + title + '</h3>' +
+          (sub ? '<p class="modal-sub">' + sub + '</p>' : '') +
+        '</div><button class="modal-close" type="button" aria-label="Schließen">' + LesifyUI.Icons.x + '</button></div>' +
+        '<div class="modal-body">' + bodyHtml + '</div>' +
+        '<div class="modal-foot">' +
+          '<button class="btn btn-ghost" type="button" data-x>Abbrechen</button>' +
+          '<button class="btn btn-primary" type="button" data-ok' + (danger ? ' style="background:var(--rot);border-color:var(--rot)"' : '') + '>' + (confirmLabel || 'Speichern') + '</button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(scrim);
+    requestAnimationFrame(function () { scrim.classList.add('is-open'); });
+    function close() { scrim.classList.remove('is-open'); setTimeout(function () { scrim.remove(); }, 200); }
+    scrim.addEventListener('click', function (e) { if (e.target === scrim) close(); });
+    scrim.querySelector('.modal-close').addEventListener('click', close);
+    scrim.querySelector('[data-x]').addEventListener('click', close);
+    scrim.querySelector('[data-ok]').addEventListener('click', function () {
+      var ergebnis = onConfirm(scrim);
+      if (ergebnis && typeof ergebnis.then === 'function') ergebnis.then(function (r) { if (r !== false) close(); });
+      else if (ergebnis !== false) close();
+    });
+    return scrim;
+  }
+
+  LesifyUI.qsa('[data-konto]').forEach(function (b) {
+    b.addEventListener('click', async function () {
+      var a = b.getAttribute('data-konto');
+      if (a === 'export') {
+        // GET /user/export braucht den Authorization-Header (kein
+        // `?token=`-Fallback) — per fetch + Blob statt `<a href>`.
+        try {
+          var res = await fetch(Lesify._base + '/user/export', {
+            headers: { Authorization: 'Bearer ' + Lesify._getToken() }
+          });
+          if (!res.ok) throw new Error('export_fehlgeschlagen');
+          var text = await res.text();
+          var blob = new Blob([text], { type: 'application/json' });
+          var url = URL.createObjectURL(blob);
+          var link = document.createElement('a');
+          link.href = url;
+          link.download = 'lesify-datenexport.json';
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          URL.revokeObjectURL(url);
+          LesifyUI.toast('Export wird heruntergeladen.');
+        } catch (err) {
+          LesifyUI.toast('Export fehlgeschlagen — bitte erneut versuchen.');
+        }
+      } else if (a === 'loeschen') {
+        kontoModal('Konto löschen?', 'Unwiderruflich. Alle deine Inhalte werden gelöscht, dein Abo endet sofort.',
+          '<div class="field mt-0"><label for="m-pass">Zum Bestätigen dein Passwort eingeben</label><input class="input" id="m-pass" type="password" autocomplete="current-password"></div>',
+          async function (scrim) {
+            var passwort = scrim.querySelector('#m-pass').value;
+            if (!passwort) { scrim.querySelector('#m-pass').focus(); return false; }
+            try {
+              await Lesify.loeschenKonto(passwort);
+              LesifyUI.toast('Konto gelöscht.');
+              Lesify._setToken('');
+              window.location.href = '/';
+            } catch (err) {
+              LesifyUI.toast(Lesify.fehlerText(err));
+              return false;
+            }
+          }, 'Endgültig löschen', true);
+      }
+    });
+  });
 
   function usageRow(label, data) {
     var unlimited = data.limit == null;

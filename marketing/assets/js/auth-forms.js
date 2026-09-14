@@ -8,7 +8,8 @@
    (gleicher Ansatz wie `checkout.js`) — die Marketing-Seite bleibt
    ein unabhängiger statischer Prototyp.
 
-   Konfiguration: `window.LESIFY_API_BASE` (Default http://localhost:3000).
+   Konfiguration: `window.LESIFY_API_BASE` (Default: auf lesify.de/www.lesify.de
+   die produktive Railway-API, sonst http://localhost:3000 für lokale Dev-Server).
    Session-Token liegt in `localStorage['lesify:token']` (gleicher
    Schlüssel wie `app/assets/js/api.js`, damit ein Login hier direkt
    in der App gilt).
@@ -16,7 +17,11 @@
 (function () {
   'use strict';
 
-  var API_BASE = (window.LESIFY_API_BASE || 'http://localhost:3000').replace(/\/$/, '');
+  var PROD_API_BASE = 'https://lesify-production.up.railway.app';
+  var istProdHost = /(^|\.)lesify\.de$/.test(location.hostname);
+  var API_BASE = (
+    window.LESIFY_API_BASE || (istProdHost ? PROD_API_BASE : 'http://localhost:3000')
+  ).replace(/\/$/, '');
   var TOKEN_KEY = 'lesify:token';
 
   function getToken() {

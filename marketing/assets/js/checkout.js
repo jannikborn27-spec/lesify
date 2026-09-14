@@ -12,13 +12,19 @@
   var CFG = window.LESIFY_PAYMENTS || {};
   var CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
 
-  // Lokale Entwicklung (pnpm dev / python http.server auf localhost) hat ein
-  // echtes Backend unter LESIFY_API_BASE — dort läuft der volle Stripe-Flow.
-  // Auf der öffentlich deployten Marketing-Seite (github.io/lesify.de) gibt
-  // es noch kein gehostetes `api/` (siehe UMSETZUNGSPLAN.md Phase 16), daher
-  // bleibt es dort beim reinen Validierungs-/Demo-Zustand.
+  // `api/` läuft seit 2026-09-14 produktiv auf Railway (siehe UMSETZUNGSPLAN.md
+  // Phase 16) — API_BASE zeigt auf lesify.de jetzt automatisch dorthin.
+  // `CFG.mode === 'demo'`-Gate unten bleibt bewusst unverändert (Stripe Live-
+  // Modus ist eine eigene offene Entscheidung, siehe UMSETZUNGSPLAN.md
+  // Abschnitt „Geld") — ohne STRIPE_SECRET_KEY läuft serverseitig ohnehin nur
+  // der FakeZahlungsGateway, aber ob die öffentliche Seite den echten
+  // `/abo`-Aufruf schon auslösen soll, ist noch nicht entschieden.
   var IST_LOKAL = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
-  var API_BASE = (window.LESIFY_API_BASE || 'http://localhost:3000').replace(/\/$/, '');
+  var PROD_API_BASE = 'https://lesify-production.up.railway.app';
+  var istProdHost = /(^|\.)lesify\.de$/.test(location.hostname);
+  var API_BASE = (
+    window.LESIFY_API_BASE || (istProdHost ? PROD_API_BASE : 'http://localhost:3000')
+  ).replace(/\/$/, '');
   var TOKEN_KEY = 'lesify:token';
   function sessionToken() { try { return localStorage.getItem(TOKEN_KEY) || ''; } catch (e) { return ''; } }
 

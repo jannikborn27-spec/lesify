@@ -12,13 +12,19 @@
    der Server mit den jeweiligen Ressourcen mit; die wenigen rein lokalen
    Helfer (`slugify`, `uid`, `getFachColor`, `label`) sind unten gespiegelt.
 
-   Konfiguration: `window.LESIFY_API_BASE` (Default: http://localhost:3000).
+   Konfiguration: `window.LESIFY_API_BASE` (Default: auf lesify.de/www.lesify.de
+   die produktive Railway-API, sonst http://localhost:3000 für lokale Dev-Server).
    Session-Token liegt in `localStorage['lesify:token']`.
    ========================================================= */
 (function () {
   'use strict';
 
-  var BASE = (window.LESIFY_API_BASE || 'http://localhost:3000').replace(/\/$/, '');
+  var PROD_API_BASE = 'https://lesify-production.up.railway.app';
+  var istProdHost = /(^|\.)lesify\.de$/.test(location.hostname);
+  var BASE = (window.LESIFY_API_BASE || (istProdHost ? PROD_API_BASE : 'http://localhost:3000')).replace(
+    /\/$/,
+    '',
+  );
   var TOKEN_KEY = 'lesify:token';
 
   function getToken() {

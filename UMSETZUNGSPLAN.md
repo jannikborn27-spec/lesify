@@ -83,35 +83,25 @@ setze ich sie um.
       Unterpfad (`lesify.de/app`) wie im aktuellen GitHub-Pages-Setup —
       keine Code-Änderung nötig, DNS/TLS-Einrichtung bleibt ein Ops-Schritt
       (Phase 16).
-- [ ] **Supabase-Produktivprojekt anlegen** (Teilfortschritt 2026-09-14: neues
-      Projekt `vmktsooagaoahvuoznfn` in eu-central-1 angelegt, `DATABASE_URL`/
-      `DIRECT_URL` besorgt, alle 7 Migrationen per `db:deploy` erfolgreich
-      dagegen angewandt — Schema ist live. Offen: `SUPABASE_URL`/
-      `SUPABASE_SERVICE_KEY` aus Settings → API kopieren, dann alles in
-      Railway setzen) — Schritt für Schritt:
-      1. Auf supabase.com ein **neues** Projekt anlegen (getrennt vom
-         Dev-Projekt), EU-Region wählen (Frankfurt/Irland). ✅
-      2. Dort **Connect → ORMs**: die gepoolte URL (Port 6543) als
-         `DATABASE_URL`, die direkte URL (Port 5432) als `DIRECT_URL`
-         kopieren. ✅
-      3. **Settings → API**: Project URL als `SUPABASE_URL`, den
-         `secret`-Key (neue Namensgebung für `service_role`) als
-         `SUPABASE_SERVICE_KEY` kopieren. ⏳ noch offen
-      4. Kein manueller Storage-Bucket-Schritt nötig —
-         `api/src/lib/storage.ts` legt ihn beim ersten Gebrauch automatisch
-         an. `SUPABASE_STORAGE_BUCKET` ist kein Wert, den man im Dashboard
-         sucht — frei wählbarer Name (z. B. `lesify-prod`), einfach als
-         Env-Var setzen.
-      5. Einmalig `pnpm --filter ./api db:deploy` gegen die neue
-         `DATABASE_URL`/`DIRECT_URL` laufen lassen (wendet alle Migrationen
-         nicht-interaktiv an). ✅ 2026-09-14, alle 7 Migrationen angewandt.
-      6. Alle Variablen aus `api/.env.example` beim gewählten Host (siehe
-         oben) setzen, plus `NODE_ENV=production`,
-         `CORS_ORIGINS=https://lesify.de`.
-- [ ] **`CORS_ORIGINS=https://lesify.de` setzen**, sobald `api/` gehostet
-      ist — ohne die Variable blockt die Produktions-CORS-Konfiguration
-      jeden Request von der echten Website (siehe `backend-planning.md`
-      §11).
+- [x] **Supabase-Produktivprojekt anlegen** — erledigt 2026-09-14. Neues
+      Projekt `vmktsooagaoahvuoznfn` in eu-central-1, alle 7 Migrationen per
+      `db:deploy` angewandt, `SUPABASE_URL`/`SUPABASE_SERVICE_KEY`/
+      `SUPABASE_STORAGE_BUCKET` bei Railway gesetzt — `/health` liefert
+      `db:true`, Storage-Client verbindet (siehe „ws"-Fix oben).
+- [x] **`CORS_ORIGINS=https://lesify.de` gesetzt** (2026-09-14, Teil der
+      Railway-Variablen aus Schritt 6 unten).
+- [x] **`window.LESIFY_API_BASE` verdrahtet** (2026-09-14): `app/assets/js/
+      api.js`, `marketing/assets/js/auth-forms.js` und `.../checkout.js`
+      erkennen jetzt selbst den Host (`/(^|\.)lesify\.de$/.test(location.
+      hostname)`) und zeigen auf `https://lesify-production.up.railway.app`
+      statt `localhost:3000` — keine Änderung an den HTML-Seiten nötig,
+      `window.LESIFY_API_BASE` überschreibt weiterhin beides, falls gebraucht.
+      **Offen, keine Code-Aufgabe, deine Entscheidung:** `checkout.js`s
+      `CFG.mode === 'demo'`-Gate (Zahlung nur validiert, kein `/abo`-Aufruf
+      auf der öffentlichen Seite) ist bewusst unverändert geblieben — ob die
+      Kasse jetzt live gegen die echte (aber ohne `STRIPE_SECRET_KEY`: Fake-)
+      API laufen soll, ist Teil von Abschnitt 4 „Geld" unten, nicht
+      automatisch mitentschieden.
 
 ### 2. Eltern-Bereich fertigstellen (`eltern-*.html`, 5 Seiten) — ✅ erledigt 2026-09-13
 

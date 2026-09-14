@@ -141,11 +141,39 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
 
 ### 4. Geld (Phase 9/16)
 
+- [ ] **Stripe Test-Modus produktiv verdrahten** (Entscheidung 2026-09-14:
+      erst Test-Modus, dann später separat auf Live umsteigen). Schritt für
+      Schritt:
+      1. [dashboard.stripe.com/test/apikeys](https://dashboard.stripe.com/test/apikeys)
+         (Test-Modus-Toggle oben rechts muss an sein) → **Secret key**
+         (`sk_test_…`, Gegenstück zum bereits im Client hinterlegten
+         `pk_test_…` aus `marketing/assets/js/stripe-config.js`) kopieren →
+         als `STRIPE_SECRET_KEY` bei Railway setzen.
+      2. [dashboard.stripe.com/test/webhooks](https://dashboard.stripe.com/test/webhooks)
+         → **Add endpoint** → URL `https://lesify-production.up.railway.app/abo/webhook`
+         → Events: `customer.subscription.created`, `.updated`, `.deleted`,
+         `invoice.paid`, `.payment_succeeded`, `.payment_failed` (siehe
+         `backend-planning.md` §4 „Abo & Abrechnung").
+      3. Nach dem Anlegen das **Signing secret** (`whsec_…`) des Endpoints
+         kopieren → als `STRIPE_WEBHOOK_SECRET` bei Railway setzen.
+      4. Railway redeployt automatisch — danach läuft serverseitig
+         `StripeZahlungsGateway` statt `FakeZahlungsGateway`.
+      5. Test: Registrieren → Kasse mit Stripe-Testkarte `4242 4242 4242 4242`
+         (beliebiges zukünftiges Datum, beliebige CVC) → Abo sollte bei
+         Stripe (Test-Modus-Dashboard) und in der DB (`status: test`) landen.
+- [x] **Öffentliche Kasse live geschaltet** (Entscheidung 2026-09-14):
+      `checkout.js`s `CFG.mode === 'demo'`-Gate entfernt — `lesify.de/checkout`
+      löst jetzt echte `POST /abo`-Aufrufe aus, nicht mehr nur „validiert,
+      kein Abschluss". Ohne `STRIPE_SECRET_KEY` (siehe Punkt oben) läuft
+      serverseitig weiterhin der `FakeZahlungsGateway` — es entsteht also
+      erst nach Schritt 1–4 oben eine echte (Test-)Stripe-Subscription.
+      `stripe-config.js`s `mode`-Feld ist jetzt rein informativ
+      (`'test'`/`'live'`), steuert nichts mehr im Code.
 - [ ] **Preis-Feinheiten:** Angebotsdauer/-verlängerung, Jahrespreis-Rundung,
       ob der Rabattpreis dauerhaft an den Vertrag gebunden bleibt.
 - [ ] **Stripe Live-Modus** + Rechnungsstellung + Umgang mit fehlgeschlagenen
-      Zahlungen (Retry/Mahnlogik) — sinnvoll erst sobald `api/` öffentlich
-      läuft (Punkt 1).
+      Zahlungen (Retry/Mahnlogik) — eigener Schritt nach dem Test-Modus oben,
+      sinnvoll erst wenn die Preis-Feinheiten (siehe oben) final sind.
 - [ ] **Anthropic-Produktions-Key mit Budget-Limit.** _Nebenbei entdeckt
       (2026-09-13): der lokale Dev-Server (`pnpm dev`) lädt `api/.env` gar
       nicht (nur die Testsuite tut das über `vitest.setup.ts`) — ein dort

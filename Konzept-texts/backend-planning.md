@@ -1033,12 +1033,16 @@ Stripe-Calls auslösen.
   localhost:3000/abo/webhook --events …`, `stripe trigger …`) gegen echtes
   Stripe Test-Mode: Anlegen (SetupIntent-Secret kam korrekt zurück), Wechsel,
   Pause, Kündigung, Webhook-Signaturprüfung — alle grün.
-- **`marketing/assets/js/checkout.js`:** ruft jetzt wirklich `POST /abo` auf
-  `LESIFY_API_BASE` (Default `http://localhost:3000`) mit
-  `Authorization: Bearer <lesify:token>`. Ohne Token → Hinweis, sich zuerst zu
-  registrieren/anmelden. `mode: 'demo'` in `stripe-config.js` gilt nur noch auf
-  der öffentlich deployten Seite (kein `api/` dort gehostet) — lokal
-  (`localhost`) läuft immer der echte Fluss, unabhängig vom gesetzten `mode`.
+- **`marketing/assets/js/checkout.js`:** ruft `POST /abo` auf `LESIFY_API_BASE`
+  mit `Authorization: Bearer <lesify:token>` — auf `lesify.de`/`www.lesify.de`
+  automatisch gegen die produktive Railway-API, sonst `http://localhost:3000`
+  (siehe §0 „API-Hosting"). Ohne Token → Hinweis, sich zuerst zu
+  registrieren/anmelden. **Das frühere `mode: 'demo'`-Gate ist entfernt
+  (Entscheidung 2026-09-14)** — die Kasse löst überall echte `POST
+  /abo`-Aufrufe aus, nicht mehr nur „validiert, kein Abschluss" auf der
+  öffentlichen Seite. `stripe-config.js`s `mode`-Feld ist jetzt rein
+  informativ (`'test'`/`'live'`, muss zum Präfix von `publishableKey`/
+  `STRIPE_SECRET_KEY` passen), steuert nichts mehr im Code.
 - **Neu:** `marketing/checkout-erfolg.html` (Erfolgsseite für
   `confirmSetup`/`confirmPayment`-`return_url`, existierte vorher nicht).
 - **2026-09-12 (Nachtrag):** `marketing/registrieren.html` und `login.html`
@@ -1046,11 +1050,15 @@ Stripe-Calls auslösen.
   siehe §11 „Formulare echt verdrahtet") — die Kasse bekommt ihr Token jetzt
   aus dem echten Flow statt von Hand besorgt. Ohne CORS-Freischaltung
   (ebenfalls 2026-09-12, siehe §11) hätte das nicht funktioniert, da Marketing
-  und API auf verschiedenen Origins laufen. **Weiterhin offen:**
-  Produktions-Hosting für `api/` (öffentliche HTTPS-URL fürs Stripe-Webhook-
-  Endpoint) fehlt weiterhin, siehe Phase 16 in `UMSETZUNGSPLAN.md`.
+  und API auf verschiedenen Origins laufen.
+- **2026-09-14:** `api/` läuft jetzt produktiv (siehe §0), das Kasse-Gate von
+  oben ist entfernt. **Weiterhin offen:** `STRIPE_SECRET_KEY`/
+  `STRIPE_WEBHOOK_SECRET` bei Railway setzen (Stripe Test-Modus zuerst, siehe
+  UMSETZUNGSPLAN.md Abschnitt „Geld") — ohne die Variablen läuft serverseitig
+  weiterhin der `FakeZahlungsGateway`, die Kasse ruft zwar echt `POST /abo`
+  auf, es entsteht aber noch keine echte Stripe-Subscription. Live-Modus,
   Rechnungsstellung / Umgang mit wiederholt fehlgeschlagenen Zahlungen (Retry,
-  Mahnlogik) ebenfalls offen.
+  Mahnlogik) weiterhin offen, als eigener Schritt nach dem Test-Modus.
 
 - **Preise/Regeln als Code:** `shared/src/abo.ts` spiegelt `stripe-config.js`
   (`EINZEL_PREISE`, `FAMILIE_PREISE` in Cent, `ABO_ANGEBOT`, `ABO_TRIAL_TAGE = 14`,

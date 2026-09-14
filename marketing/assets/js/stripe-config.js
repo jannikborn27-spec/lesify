@@ -6,14 +6,11 @@
    NIEMALS ins Frontend; er lebt nur im späteren Backend
    (siehe Konzept-texts/backend-planning.md §7a).
 
-   `mode: 'demo'` = kein Backend erreichbar. Gilt automatisch nur
-   auf der öffentlich deployten Seite (kein `api/` dort gehostet,
-   siehe UMSETZUNGSPLAN.md Phase 16) — die Kasse rendert ein
-   echtes Stripe Payment Element und validiert die Eingaben live,
-   kann ohne Server-Schritt aber nicht abschließen, es wird
-   nichts belastet. Lokal (`pnpm dev`, localhost) läuft der volle
-   Stripe-Flow gegen das lokale Backend, unabhängig vom hier
-   gesetzten `mode` (siehe `checkout.js`, `IST_LOKAL`).
+   `mode` ist rein informativ (`'test'`/`'live'`, muss zum Präfix von
+   `publishableKey`/serverseitigem `STRIPE_SECRET_KEY` passen) — steuert
+   seit 2026-09-14 nichts mehr im Code. `api/` läuft produktiv auf Railway,
+   die Kasse löst überall (lokal wie auf lesify.de) echt `POST /abo` aus
+   (siehe `checkout.js`).
 
    Preis-Modell (Design-Platzhalter, nicht final — die Werte
    spiegeln die Pricing-Tabelle in backend-planning.md §1/§7):
@@ -37,7 +34,7 @@
 window.LESIFY_PAYMENTS = {
   publishableKey: 'pk_test_51UAoE2IW4ucZsEH2zDkqHECbDOhvEeZzO1sDn83pore6Ce08nvTse86CMNDcJtjDiixaDrNdd5dcVdl80OXJCzkw00zHB5Sbs8',
   currency: 'eur',
-  mode: 'demo',
+  mode: 'test',
 
   /* Kostenlose Testphase statt kostenlosem Tarif. Danach automatische
      Abbuchung des gewählten Tarifs (Stripe Trial → Subscription). */

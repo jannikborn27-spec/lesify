@@ -13,13 +13,12 @@
   var CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
 
   // `api/` läuft seit 2026-09-14 produktiv auf Railway (siehe UMSETZUNGSPLAN.md
-  // Phase 16) — API_BASE zeigt auf lesify.de jetzt automatisch dorthin.
-  // `CFG.mode === 'demo'`-Gate unten bleibt bewusst unverändert (Stripe Live-
-  // Modus ist eine eigene offene Entscheidung, siehe UMSETZUNGSPLAN.md
-  // Abschnitt „Geld") — ohne STRIPE_SECRET_KEY läuft serverseitig ohnehin nur
-  // der FakeZahlungsGateway, aber ob die öffentliche Seite den echten
-  // `/abo`-Aufruf schon auslösen soll, ist noch nicht entschieden.
-  var IST_LOKAL = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+  // Phase 16) — API_BASE zeigt auf lesify.de jetzt automatisch dorthin. Das
+  // frühere `CFG.mode === 'demo'`-Gate (kein Server-Aufruf auf der öffentlichen
+  // Seite) ist entfernt (Entscheidung 2026-09-14, siehe UMSETZUNGSPLAN.md
+  // Abschnitt „Geld") — die Kasse ruft jetzt überall echt `POST /abo` auf.
+  // Stripe läuft dabei im Test-Modus (`pk_test_…`/`sk_test_…`), es wird
+  // nirgends echtes Geld bewegt.
   var PROD_API_BASE = 'https://lesify-production.up.railway.app';
   var istProdHost = /(^|\.)lesify\.de$/.test(location.hostname);
   var API_BASE = (
@@ -186,13 +185,6 @@
     elements.submit().then(function (result) {
       if (result.error) {
         message(result.error.message || 'Bitte Zahlungsdaten prüfen.', 'error');
-        setLoading(false);
-        return;
-      }
-
-      if (CFG.mode === 'demo' && !IST_LOKAL) {
-        message('Zahlungsdaten sind gültig und wurden von Stripe akzeptiert. Auf der öffentlichen Seite fehlt noch das gehostete Backend, das das Abo bei Stripe anlegt — es wird nichts belastet. Für den vollen Ablauf lokal `pnpm dev` starten.', 'info');
-        $('submit').innerHTML = 'Validiert &mdash; Server-Schritt fehlt';
         setLoading(false);
         return;
       }

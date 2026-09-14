@@ -46,6 +46,14 @@ document.addEventListener('DOMContentLoaded', function () {
   var input = document.getElementById('search-input');
   input.value = params.get('q') || '';
 
+  // Fach-Cache vorladen, sonst bleiben die Ergebnis-Zeilen grau statt
+  // fach-eingefärbt: `Lesify.getFach()` (genutzt für --fach-color in den
+  // Suchzeilen) ist ein reiner Cache-Lookup, kein eigener Server-Call — der
+  // Cache wird nur gefüllt, wenn irgendwo vorher `Lesify.faecher()` gelaufen
+  // ist. Auf dashboard.html passiert das nebenbei über das Fächer-Widget,
+  // suche.html hat kein äquivalentes Widget.
+  var faecherReady = Lesify.faecher().catch(function () {});
+
   // api.js hat keinen sync client-seitigen Suchindex (anders als data.js) —
   // GET /suche übernimmt das serverseitig, gleiche Gruppen-Form wie zuvor
   // LesifyUI.search() ({type,label,icon,items}) — Rendering unverändert.
@@ -73,8 +81,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   input.addEventListener('input', render);
-  render();
-  LesifyUI.mountSearchDev(render);
+  faecherReady.then(render);
 });
 </script>
 </body>

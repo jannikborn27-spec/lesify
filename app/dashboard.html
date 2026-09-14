@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', async function () {
       if (e.key === 'Enter' && searchInput.value.trim()) window.location.href = 'suche.html?q=' + encodeURIComponent(searchInput.value.trim());
     });
     document.addEventListener('click', function (e) {
-      if (!e.target.closest('.search-input-wrap') && !e.target.closest('.layout-dev')) searchDropdown.classList.remove('is-open');
+      if (!e.target.closest('.search-input-wrap')) searchDropdown.classList.remove('is-open');
     });
   }
 
@@ -203,10 +203,6 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   document.getElementById('dash-main').innerHTML = build();
   wireSearch();
-  LesifyUI.mountSearchDev(function () {
-    var el = document.getElementById('dash-search-input');
-    if (el && el.value.trim()) el.dispatchEvent(new Event('input'));
-  });
 });
 </script>
 </body>

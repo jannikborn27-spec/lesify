@@ -266,10 +266,36 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       (Bild- und PDF-Upload über die echte API, Vorschau im Browser bestätigt
       — Bild lädt mit korrekten Pixeldaten, PDF öffnet im nativen
       Browser-Viewer mit Download/Print-Toolbar).
-- [ ] **Dev-Switcher entfernen** (Suche-Varianten, Testklausur-Phasen-
-      Umschalter, Pill-Style) — bewusst noch drin, weil sie aktuell die
-      einzige Möglichkeit sind, alle Design-Zustände ohne echte Testdaten zu
-      sehen. Sag Bescheid, wenn sie raus sollen.
+- [x] **Dev-Switcher entfernt** (2026-09-14, nach deiner Durchsicht):
+      - **Suche → „Kachel" final.** `app.js` (`searchResultsHtml`/
+        `searchDropdownHtml`/`searchRow`) fest auf Variante 2, restliche
+        4 Varianten (Linie/Fläche/Badge/Punkt) samt CSS entfernt.
+        **Nebenbei gefunden:** Die volle Ergebnisseite (`suche.html`) hatte
+        zwei Bugs, die sie optisch von der Dropdown-Schnellsuche
+        (`dashboard.html`) unterschieden — (1) ein `card`/`divide-list`-
+        Rahmen um die Zeilen, den die Dropdown nie hatte, jetzt entfernt;
+        (2) `suche.html` lud nirgends `Lesify.faecher()`, wodurch der
+        Fach-Farb-Cache leer blieb und Zeilen immer grau statt fach-
+        eingefärbt waren (`dashboard.html` füllt den Cache nebenbei über
+        sein Fächer-Widget) — jetzt lädt `suche.html` den Cache selbst vor.
+        Beide Seiten sehen jetzt bit-genau gleich aus, live gegen den
+        Dev-Stack verifiziert.
+      - **Testklausur-Phasen-Umschalter entfernt.** `testklausur.html`
+        zeigt nur noch den echten Status (`t.status`), `stageOverride`/
+        `TK_STAGES`/`initStageDev()` komplett raus.
+      - **„Pill-Style"** war kein eigener Umschalter (nirgends im Code
+        gefunden) — vermutlich bereits fest verdrahtete Pill-Buttons bei
+        Preis-/Sitzplatz-Reglern, nichts zu entfernen.
+      - **Nebenbei gefunden, mit entschieden:** `marketing/ueber-uns/
+        index.html` hatte einen weiteren, bisher nicht gelisteten
+        Dev-Switcher (Hero, 10 Varianten). Final auf v2 gewählt, die
+        anderen 9 Varianten samt Umschalter-Script entfernt. Dabei
+        CSS-Bug gefixt: `.au-hero-portrait.au-img-2`s `min-height` nutzte
+        einen größeren `vw`-Clamp (46vw) als das Foto selbst (42vw) —
+        die Section war dadurch spürbar höher „gestreckt" als nötig.
+        `min-height` jetzt exakt auf den Foto-Clamp gesetzt (Foto-/
+        Textgröße unverändert), live verifiziert: Section-Höhe entspricht
+        jetzt exakt der Foto-Höhe (vorher spürbar mehr).
 - [x] **„Datenexport"/„Konto löschen"-Buttons in `einstellungen.html`
       (Schüler-Seite)** — gebaut 2026-09-14, auf Zuruf. Karte „Daten &amp;
       Aufbewahrung" um zwei Buttons ergänzt: „Daten exportieren" (`GET
@@ -3473,12 +3499,10 @@ sonst unverändert.
       `addKind`/`removeKind` bleiben offen — die betreffen nur den
       Eltern-Bereich (`eltern-abo.html`/`eltern-kinder.html`), siehe „Was von
       dir gebraucht wird" oben.
-- [ ] **Dev-Switcher entfernen/abschalten** (Suche-Varianten,
-      Testklausur-Phasen-Umschalter, Pill-Style) — oder hinter Dev-Flag.
-      _Rein technisch, aber bewusst noch nicht gemacht: die Schalter sind
-      aktuell die einzige Möglichkeit, alle Design-Zustände ohne echte
-      Testdaten zu sehen — sinnvoll entweder kurz vor Launch oder auf
-      Zuruf zu entfernen._
+- [x] **Dev-Switcher entfernt** (2026-09-14) — Suche final auf „Kachel",
+      Testklausur-Phasen-Umschalter komplett raus, dazu der bisher nicht
+      gelistete Über-uns-Hero-Umschalter final auf v2. Details siehe
+      Abschnitt 7 oben.
 - [ ] **Seed-Parität prüfen:** angebundene App auf `staging` == Prototyp mit
       `SEED`. _Braucht ein laufendes `staging` (Phase 16) — noch nicht
       erreichbar._

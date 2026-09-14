@@ -1654,32 +1654,14 @@
   /* ---------------------------------------------------------
      Such-Ergebnis-Darstellung — gemeinsam für die Dropdown-
      Schnellsuche (dashboard.html) und die volle Ergebnisseite
-     (suche.html). 5 Design-Varianten, umschaltbar über den
-     Dev-Switch unten rechts (localStorage['lesify:search:v']).
-     Der Such-Kern (searchAll) bleibt unberührt; hier wird nur
-     gerendert. Fach-Einfärbung über --fach-color/-ink/-bg pro Zeile.
+     (suche.html). Design final auf „Kachel" gewählt (2026-09-14,
+     vorher 5 Varianten per Dev-Switch) — beide Stellen rendern jetzt
+     bewusst identisch (kein `card`/`divide-list`-Rahmen auf der vollen
+     Seite mehr, damit sie nicht anders aussieht als die Dropdown-
+     Schnellsuche). Der Such-Kern (searchAll) bleibt unberührt; hier
+     wird nur gerendert. Fach-Einfärbung über --fach-color/-ink/-bg
+     pro Zeile.
      --------------------------------------------------------- */
-
-  var SEARCH_VARIANTS = [
-    ['1', 'Linie'], ['2', 'Kachel'], ['3', 'Fläche'], ['4', 'Badge'], ['5', 'Punkt']
-  ];
-
-  function searchVariant() {
-    try {
-      var v = localStorage.getItem('lesify:search:v');
-      if (v && /^[1-5]$/.test(v)) return v;
-    } catch (e) {}
-    return '1';
-  }
-
-  // Fach-Badge als <span> (kein <a>) — die Such-Zeile ist selbst ein <a>,
-  // verschachtelte Anker sind ungültig.
-  function fachBadgeStatic(fachId) {
-    var f = Lesify.getFach(fachId);
-    var name = f ? f.name : '—';
-    return '<span class="badge badge-static"' + fachColorStyle(fachId) + '>' +
-      '<span class="dot"></span><span class="badge-label">' + name + '</span></span>';
-  }
 
   // `GET /suche` (api.js) liefert Gruppen-Icon-Keys, die zu den Entity-Namen
   // passen (fach/thema/chat/lernzettel/datei/klausur/testklausur) statt zu
@@ -1688,15 +1670,12 @@
     fach: 'layers', thema: 'target', chat: 'chat', lernzettel: 'book',
     datei: 'file', klausur: 'docCheck', testklausur: 'target'
   };
-  function searchRow(item, groupIcon, variant, compact) {
+  function searchRow(item, groupIcon, compact) {
     var iconKey = SEARCH_ICON_MAP[groupIcon] || groupIcon;
     var vars = item.fachId ? fachColorVars(item.fachId) : '';
-    var lead = (variant === '4' && item.fachId)
-      ? fachBadgeStatic(item.fachId)
-      : '<span class="search-ico">' + (Icons[iconKey] || Icons.search) + '</span>';
     return '<a class="search-row' + (compact ? ' is-compact' : '') + '" href="' + item.href + '"' +
         (vars ? ' style="' + vars + '"' : '') + '>' +
-      lead +
+      '<span class="search-ico">' + (Icons[iconKey] || Icons.search) + '</span>' +
       '<span class="search-row-body">' +
         (item.fachName ? '<span class="search-row-fach">' + item.fachName + '</span>' : '') +
         '<span class="search-row-title">' + item.title + '</span>' +
@@ -1708,60 +1687,32 @@
 
   // Volle Ergebnisseite (suche.html) — nach Typ gruppiert.
   function searchResultsHtml(groups) {
-    var v = searchVariant();
-    var loose = (v === '3' || v === '5');
-    var wrapCls = 'search-group-list' + (loose ? '' : ' card divide-list');
     var body = groups.map(function (g) {
       return '<section class="search-group">' +
         '<div class="section-head"><span class="section-title">' + g.label +
           '<span class="search-count">' + g.items.length + '</span></span></div>' +
-        '<div class="' + wrapCls + '">' +
-          g.items.map(function (it) { return searchRow(it, g.icon, v, false); }).join('') +
+        '<div class="search-group-list">' +
+          g.items.map(function (it) { return searchRow(it, g.icon, false); }).join('') +
         '</div>' +
       '</section>';
     }).join('');
-    return '<div class="search-scope search-scope--' + v + '">' + body + '</div>';
+    return '<div class="search-scope">' + body + '</div>';
   }
 
   // Kompakte Dropdown-Schnellsuche (dashboard.html) — max. 6 Treffer + Fußzeile.
   function searchDropdownHtml(groups, q) {
-    var v = searchVariant();
-    var html = '<div class="search-scope search-scope--' + v + ' is-dropdown">';
+    var html = '<div class="search-scope is-dropdown">';
     var shown = 0;
     groups.forEach(function (g) {
       if (shown >= 6) return;
       var slice = g.items.slice(0, 6 - shown);
       if (!slice.length) return;
       html += '<div class="search-dd-label">' + g.label + '</div>';
-      slice.forEach(function (it) { shown++; html += searchRow(it, g.icon, v, true); });
+      slice.forEach(function (it) { shown++; html += searchRow(it, g.icon, true); });
     });
     html += '<a class="search-dd-footer" href="suche.html?q=' + encodeURIComponent(q) + '">' +
       'Alle Ergebnisse ansehen ' + Icons.arrowRight + '</a>';
     return html + '</div>';
-  }
-
-  // Dev-Switch (nur suche.html + dashboard.html). Umschalten ohne Reload —
-  // die Seite übergibt ihre Re-Render-Funktion.
-  function mountSearchDev(onChange) {
-    var path = (location.pathname || '').split('/').pop();
-    if (path !== 'suche.html' && path !== 'dashboard.html') return;
-    if (document.querySelector('.layout-dev.is-search')) return;
-    var panel = document.createElement('div');
-    panel.className = 'layout-dev is-search';
-    var active = searchVariant();
-    panel.innerHTML = '<span class="layout-dev-title">Suche-Design</span>' +
-      '<div class="layout-dev-row"><span>Variante</span><div class="layout-dev-seg">' +
-      SEARCH_VARIANTS.map(function (o) {
-        return '<button type="button" data-sv="' + o[0] + '"' + (o[0] === active ? ' class="is-on"' : '') + '>' + o[1] + '</button>';
-      }).join('') + '</div></div>';
-    panel.addEventListener('click', function (e) {
-      var b = e.target.closest('[data-sv]');
-      if (!b) return;
-      try { localStorage.setItem('lesify:search:v', b.getAttribute('data-sv')); } catch (err) {}
-      qsa('[data-sv]', panel).forEach(function (x) { x.classList.toggle('is-on', x === b); });
-      if (typeof onChange === 'function') onChange();
-    });
-    document.body.appendChild(panel);
   }
 
   /* ---------------------------------------------------------
@@ -1843,5 +1794,5 @@
     initUsageWidget();
   });
 
-  window.LesifyUI = { toast: toast, openModal: openModal, closeModal: closeModal, Icons: Icons, Render: Render, searchResultsHtml: searchResultsHtml, searchDropdownHtml: searchDropdownHtml, mountSearchDev: mountSearchDev, searchVariant: searchVariant, qs: qs, qsa: qsa, openFachColorPicker: openFachColorPicker, openDateiModal: openDateiModal, setPageWatermark: setPageWatermark };
+  window.LesifyUI = { toast: toast, openModal: openModal, closeModal: closeModal, Icons: Icons, Render: Render, searchResultsHtml: searchResultsHtml, searchDropdownHtml: searchDropdownHtml, qs: qs, qsa: qsa, openFachColorPicker: openFachColorPicker, openDateiModal: openDateiModal, setPageWatermark: setPageWatermark };
 })();

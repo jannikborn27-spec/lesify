@@ -13,9 +13,6 @@
      (ab 880px) vertikale Step-Schiene links, Inhalt rechts.
      DOM: .tkx-head · .tkx-steps · .tkx-panel · .tkx-result.
      Fach-Farbvariablen (--fach-color/-ink/-bg) inline auf .tkx.
-     Der Dev-Switcher unten rechts schaltet nur die angezeigte
-     PHASE um (erstellt/gelöst/analysiert), localStorage
-     ['lesify:tk:stage'] — ändert nichts am gespeicherten Zustand.
      ========================================================= */
   .note-pair { display: flex; gap: var(--sp-5); flex-wrap: wrap; margin-bottom: var(--sp-8); }
   .aufgabe-card { padding: 22px; border-left: 4px solid var(--apc-color, var(--ink-300)); }
@@ -149,23 +146,10 @@ document.addEventListener('DOMContentLoaded', async function () {
   var tkx = document.getElementById('tkx');
   tkx.setAttribute('style', R.fachColorVars(t.fachId));
 
-  /* =========================================================
-     Dev-Phasen-Umschalter — überschreibt nur die ANZEIGE
-     (erstellt/gelöst/analysiert), nicht den Store. „Live" = echter
-     Status. Fehlt einer Phase die Daten (z. B. Ergebnis), wird eine
-     lokale Vorschau erzeugt (nicht persistiert).
-     ========================================================= */
-  var TK_STAGES = [['erstellt', 'Erstellt'], ['geloest', 'Gelöst'], ['analysiert', 'Analysiert']];
-  var stageOverride = null;
-  (function () {
-    var v; try { v = localStorage.getItem('lesify:tk:stage'); } catch (e) {}
-    if (v === 'erstellt' || v === 'geloest' || v === 'analysiert') stageOverride = v;
-  })();
-  function saveStage() { try { localStorage.setItem('lesify:tk:stage', stageOverride || ''); } catch (e) {} }
-  function effStatus() { return stageOverride || t.status; }
-
   // Lokale Ergebnis-Vorschau (spiegelt Lesify.analysiereTestklausur, ohne
-  // Persistenz). Deterministisch, damit sie über Re-Renders stabil bleibt.
+  // Persistenz) — Fallback, falls eine als „analysiert" markierte
+  // Testklausur ausnahmsweise kein `ergebnis` mitliefert. Deterministisch,
+  // damit sie über Re-Renders stabil bleibt.
   function previewErgebnis() {
     var proThema = t.themaIds.map(function (themaId, i) {
       // Stabiler Pseudo-Lernstand je Thema (~40–89), analog data.js themaBasis().
@@ -199,7 +183,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   function stepIndex(status) { return STEPS.findIndex(function (s) { return s.key === status; }); }
 
   function drawSteps() {
-    var idx = stepIndex(effStatus());
+    var idx = stepIndex(t.status);
     document.getElementById('tk-steps').innerHTML = '<div class="stepper-mini">' + STEPS.map(function (s, i) {
       var cls = i < idx ? 'is-done' : (i === idx ? 'is-current' : '');
       // Nummer bleibt immer sichtbar (weiß auf Fachfarbe), kein Häkchen-Tausch.
@@ -261,7 +245,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   function drawPanel() {
     var el = document.getElementById('tk-panel');
-    var st = effStatus();
+    var st = t.status;
     tkx.setAttribute('data-status', st);
     // Bei „analysiert" braucht das Panel keinen Inhalt — das Ergebnis steht
     // direkt darunter. Leeres Panel wird per CSS (:empty) ausgeblendet.
@@ -285,7 +269,6 @@ document.addEventListener('DOMContentLoaded', async function () {
         t.status = res.status;
         t.geloesteDateiId = res.geloesteDateiId;
         t.geloesteDateiName = file.name;
-        stageOverride = null; saveStage();
         drawAll();
         LesifyUI.toast(res.hatLoesungsText ? 'Lösung hochgeladen — bereit zur Analyse.' : 'Lösung hochgeladen, aber kein Text erkannt.');
       } catch (err) {
@@ -301,7 +284,6 @@ document.addEventListener('DOMContentLoaded', async function () {
       analyseBtn.innerHTML = '<span class="skeleton" style="width:16px;height:16px;border-radius:50%;display:inline-block"></span>Wird ausgewertet…';
       try {
         t = await Lesify.analysiereTestklausur(tkId);
-        stageOverride = null; saveStage();
         drawAll();
         LesifyUI.toast('Analyse abgeschlossen.');
       } catch (err) {
@@ -320,7 +302,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   async function drawErgebnis() {
     var el = document.getElementById('tk-ergebnis');
-    if (effStatus() !== 'analysiert') { el.innerHTML = ''; return; }
+    if (t.status !== 'analysiert') { el.innerHTML = ''; return; }
     var erg = t.ergebnis || previewErgebnis();
 
     var hint = erg.__preview ? '<p class="tkx-preview-hint">Phasen-Vorschau — noch keine echte Auswertung.</p>' : '';
@@ -352,33 +334,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   async function drawAll() { drawHead(); drawSteps(); drawPanel(); await drawErgebnis(); }
 
-  function initStageDev() {
-    var panel = document.createElement('div');
-    panel.className = 'layout-dev';
-    function render() {
-      var eff = effStatus();
-      panel.innerHTML = '<span class="layout-dev-title">Testklausur-Phase</span>' +
-        '<div class="layout-dev-row"><span>Phase</span><div class="layout-dev-seg">' +
-        TK_STAGES.map(function (o) {
-          return '<button type="button" data-stage="' + o[0] + '"' + (o[0] === eff ? ' class="is-on"' : '') + '>' + o[1] + '</button>';
-        }).join('') +
-        '<button type="button" data-stage=""' + (stageOverride ? '' : ' class="is-on"') + '>Live</button>' +
-        '</div></div>';
-    }
-    render();
-    panel.addEventListener('click', function (e) {
-      var b = e.target.closest('[data-stage]');
-      if (!b) return;
-      stageOverride = b.getAttribute('data-stage') || null;
-      saveStage();
-      drawAll();
-      render();
-    });
-    document.body.appendChild(panel);
-  }
-
   await drawAll();
-  initStageDev();
 });
 </script>
 </body>

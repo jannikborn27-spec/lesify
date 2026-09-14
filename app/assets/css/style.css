@@ -1245,9 +1245,9 @@ textarea.input { height: auto; padding: 12px 14px; min-height: 90px; resize: ver
 /* =========================================================
    Such-Ergebnisse — gemeinsames System für die Dropdown-
    Schnellsuche (dashboard) und die volle Ergebnisseite (suche.html).
-   5 Fach-Einfärbungs-Varianten: .search-scope--1 … --5
-   (Dev-Switch unten rechts, localStorage['lesify:search:v']).
-   Jede Zeile trägt --fach-color / --fach-ink / --fach-bg inline.
+   Design final auf „Kachel" gewählt (2026-09-14) — beide Stellen
+   sehen bewusst identisch aus. Jede Zeile trägt
+   --fach-color / --fach-ink / --fach-bg inline.
    ========================================================= */
 
 .search-scope { text-align: left; }
@@ -1275,9 +1275,18 @@ textarea.input { height: auto; padding: 12px 14px; min-height: 90px; resize: ver
 .search-ico svg { width: 17px; height: 17px; }
 .search-row.is-compact .search-ico { width: 28px; height: 28px; border-radius: 7px; }
 .search-row.is-compact .search-ico svg { width: 15px; height: 15px; }
+/* Fach-Zeile (`style`-Attribut trägt --fach-color inline): Glyphe in voller
+   Fachfarbe + kleines Fach-Pill über dem Titel. */
+.search-row[style] .search-ico { background: var(--fach-color, var(--ink-400)); border-color: transparent; color: #fff; }
 
 .search-row-body { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 2px; }
-.search-row-fach { display: none; }
+.search-row-fach {
+  display: inline-block; align-self: flex-start;
+  font-size: 0.64rem; font-weight: 700; letter-spacing: 0.02em;
+  color: var(--fach-ink, var(--ink-600));
+  background: var(--fach-bg, var(--ink-100));
+  padding: 1px 7px; border-radius: var(--radius-full); margin-bottom: 1px;
+}
 .search-row-title {
   font-size: 0.9rem; font-weight: 600; color: var(--ink-950);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -1296,69 +1305,11 @@ textarea.input { height: auto; padding: 12px 14px; min-height: 90px; resize: ver
 .search-row:hover .search-row-go { opacity: 1; transform: translateX(0); }
 .search-row.is-compact .search-row-go { display: none; }
 
-/* --- V1 · Linie — dezenter Fach-Strich links + Fach-getönte Glyphe --- */
-.search-scope--1 .search-row { border-left: 3px solid transparent; }
-.search-scope--1 .search-row[style] { border-left-color: var(--fach-color, transparent); }
-.search-scope--1 .search-row[style] .search-ico {
-  background: var(--fach-bg, var(--ink-50));
-  border-color: color-mix(in srgb, var(--fach-color, var(--line)) 35%, var(--line));
-  color: var(--fach-ink, var(--ink-500));
-}
-.search-scope--1 .search-row[style]:hover { background: color-mix(in srgb, var(--fach-color) 7%, transparent); }
-
-/* --- V2 · Kachel — Glyphe in voller Fachfarbe + Fach-Pill in der Zeile --- */
-.search-scope--2 .search-row[style] .search-ico {
-  background: var(--fach-color, var(--ink-400)); border-color: transparent; color: #fff;
-}
-.search-scope--2 .search-row-fach {
-  display: inline-block; align-self: flex-start;
-  font-size: 0.64rem; font-weight: 700; letter-spacing: 0.02em;
-  color: var(--fach-ink, var(--ink-600));
-  background: var(--fach-bg, var(--ink-100));
-  padding: 1px 7px; border-radius: var(--radius-full); margin-bottom: 1px;
-}
-
-/* --- V3 · Fläche — ganze Zeile in Fach-Ton, als abgesetzte Blöcke --- */
-.search-scope--3 .search-group-list { display: flex; flex-direction: column; gap: 7px; }
-.search-scope--3 .search-row {
-  border-radius: var(--radius-md);
-  border: 1px solid color-mix(in srgb, var(--fach-color, var(--line)) 45%, var(--line));
-  background: color-mix(in srgb, var(--fach-bg, var(--ink-50)) 55%, var(--bg-surface));
-}
-.search-scope--3 .search-row:hover { background: var(--fach-bg, var(--ink-50)); }
-.search-scope--3 .search-row .search-ico {
-  background: var(--bg-surface);
-  border-color: color-mix(in srgb, var(--fach-color, var(--line)) 30%, var(--line));
-  color: var(--fach-ink, var(--ink-500));
-}
-.search-scope--3.is-dropdown { padding: 8px; display: flex; flex-direction: column; gap: 6px; }
-
-/* --- V4 · Badge — echtes Fach-Badge führt jede Zeile --- */
-.search-scope--4 .search-row > .badge { flex-shrink: 0; max-width: 200px; }
-.search-scope--4 .search-row.is-compact > .badge { max-width: 150px; }
-.search-scope--4 .search-row-sub { display: none; }
-.search-scope--4 .search-row.is-compact .search-row-title { font-size: 0.83rem; }
-
-/* --- V5 · Punkt — Fachfarb-Punkt + Fach-Eyebrow, kein Icon-Tile --- */
-.search-scope--5 .search-ico { display: none; }
-.search-scope--5 .search-row { padding-left: 8px; gap: 12px; }
-.search-scope--5 .search-row::before {
-  content: ""; flex-shrink: 0; width: 10px; height: 10px; border-radius: 50%;
-  background: var(--fach-color, var(--ink-300));
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--fach-color, var(--ink-300)) 15%, transparent);
-}
-.search-scope--5 .search-row-fach {
-  display: block; font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
-  letter-spacing: 0.07em; color: var(--fach-ink, var(--ink-400));
-}
-.search-scope--5 .search-row + .search-row { border-top: 1px solid var(--line); }
-
 /* --- Dropdown-Eigenheiten (Gruppen-Label, Fußzeile, Leerzustand) --- */
 .search-dd-label {
   font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
   color: var(--ink-400); padding: 11px 16px 5px;
 }
-.search-scope--3.is-dropdown .search-dd-label { padding-left: 4px; padding-right: 4px; }
 .search-dd-footer {
   display: flex; align-items: center; justify-content: center; gap: 6px;
   padding: 12px 16px; margin-top: 4px;

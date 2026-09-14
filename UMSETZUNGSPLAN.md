@@ -141,9 +141,14 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
 
 ### 4. Geld (Phase 9/16)
 
-- [ ] **Stripe Test-Modus produktiv verdrahten** (Entscheidung 2026-09-14:
-      erst Test-Modus, dann später separat auf Live umsteigen). Schritt für
-      Schritt:
+- [x] **Stripe Test-Modus produktiv verdrahtet** (Entscheidung 2026-09-14:
+      erst Test-Modus, dann später separat auf Live umsteigen; `STRIPE_SECRET_KEY`
+      + `STRIPE_WEBHOOK_SECRET` bei Railway gesetzt). End-to-End auf der echten
+      `lesify.de` verifiziert: Registrieren → Kasse → Testkarte
+      `4242 4242 4242 4242` → „Dein Abo ist startklar" — `stripe.confirmSetup`
+      lief gegen einen echten Stripe-SetupIntent durch (mit fehlendem/falschem
+      `STRIPE_SECRET_KEY` wäre das serverseitig ein Fake-Ref gewesen und
+      `confirmSetup` hätte im Browser einen Fehler geworfen). War:
       1. [dashboard.stripe.com/test/apikeys](https://dashboard.stripe.com/test/apikeys)
          (Test-Modus-Toggle oben rechts muss an sein) → **Secret key**
          (`sk_test_…`, Gegenstück zum bereits im Client hinterlegten

@@ -265,7 +265,23 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       Dummy-Daten ohne `api.js`). Lokal gegen den echten Dev-Stack verifiziert
       (Bild- und PDF-Upload über die echte API, Vorschau im Browser bestätigt
       — Bild lädt mit korrekten Pixeldaten, PDF öffnet im nativen
-      Browser-Viewer mit Download/Print-Toolbar).
+      Browser-Viewer mit Download/Print-Toolbar). **Nachtrag (2026-09-14):**
+      `renderDateiModal()` pollt jetzt selbst mit dem bereits vorhandenen
+      `Lesify.pollDateiStatus(id)` (dieselbe Funktion, die `dateien.html`/
+      `thema.html`/`chat.html` schon nach dem Upload nutzen), solange eine
+      im Modal geöffnete Datei noch `status: 'verarbeitung'` hat — Status-
+      Zeile, KI-Zusammenfassungs-Box und (bei DOC) der Vorschau-Text
+      aktualisieren sich live, sobald die Verarbeitung fertig ist, ohne dass
+      ein Reload nötig ist. Guard über `typeof Lesify.pollDateiStatus ===
+      'function'` (fehlt im Dummy-Daten-Pfad `data.js` — dort bleibt es beim
+      bisherigen Reload-Verhalten) + `document.body.contains(scrim)`-Check,
+      falls das Modal vorher geschlossen wurde. Syntaxgeprüft
+      (`node --check`) und die betroffene Seite (`dateien.html`) im
+      Dev-Stack ohne Konsolenfehler geladen; das eigentliche Live-Update
+      selbst ließ sich mit den verfügbaren Browser-Tools nicht automatisiert
+      auslösen (kein Datei-Upload-Automatisierungspfad) — bitte einmal
+      manuell gegenprüfen: Datei hochladen, Modal während der Verarbeitung
+      offen lassen, prüfen dass Status/Zusammenfassung ohne Reload umspringen.
 - [x] **Dev-Switcher entfernt** (2026-09-14, nach deiner Durchsicht):
       - **Suche → „Kachel" final.** `app.js` (`searchResultsHtml`/
         `searchDropdownHtml`/`searchRow`) fest auf Variante 2, restliche
@@ -3485,14 +3501,13 @@ sonst unverändert.
       echten Mutations-Aufrufen). „Offline" (kein Netz) ist kein eigener
       Fehlercode — `fetch()` wirft dann direkt, landet aber im selben
       catch-Pfad und zeigt den generischen Fallback-Toast._
-- [ ] **Datei-Viewer** auf `Lesify.dateiInhaltUrl(id)` + `pollDateiStatus`
-      (`verarbeitung`→`bereit` ohne Reload) statt `.txt`-Ersatz. _Teilerledigt
-      2026-09-14: `openDateiModal()` zeigt jetzt echte Bild-/PDF-Vorschau über
-      `dateiInhaltUrl` (Details siehe Abschnitt 7 oben). **Weiterhin offen:**
-      `pollDateiStatus` ist noch nicht eingebaut — der Modal-Status
-      („wird analysiert…"/Zusammenfassung) aktualisiert sich nicht live, wenn
-      die Datei während des offenen Modals fertig verarbeitet wird; dafür
-      weiterhin ein Reload nötig. Rein technisch, keine Entscheidung nötig._
+- [x] **Datei-Viewer** auf `Lesify.dateiInhaltUrl(id)` + `pollDateiStatus`
+      (`verarbeitung`→`bereit` ohne Reload) statt `.txt`-Ersatz. _2026-09-14:
+      `openDateiModal()` zeigt echte Bild-/PDF-Vorschau über `dateiInhaltUrl`;
+      `renderDateiModal()` pollt jetzt zusätzlich mit `Lesify.pollDateiStatus`,
+      solange die geöffnete Datei `status: 'verarbeitung'` hat — Status-Zeile
+      + KI-Zusammenfassung aktualisieren sich live. Details siehe Abschnitt 7
+      oben._
 - [x] **Abo-/Einstellungs-Bereich in der App (Teil, 2026-09-12):**
       `getAbo`/`aendernAbo` + Nutzungsring in `einstellungen.html` fertig
       (siehe Phase-11-Progress-Notiz). `kuendigenAbo`/`pausierenAbo`/`kinder`/
@@ -3625,8 +3640,10 @@ Kritisch, weil Zielgruppe minderjährig ist.
 - [x] **1-Jahres-Löschung** — _Job `inhalte-aufbewahrung` (Phase 10). Die Frist
       steht bereits sichtbar in `app/einstellungen.html` („Daten & Aufbewahrung",
       Phase 0) und muss in der Datenschutzerklärung genannt werden (siehe oben)._
-- [ ] **KI-Nutzungshinweis** für Schüler:innen/Eltern (Antworten können falsch
-      sein, keine Leistungsbewertung durch die Schule). _Kurzer UI-Text, Phase 11._
+- [x] **KI-Nutzungshinweis** für Schüler:innen/Eltern (Antworten können falsch
+      sein, keine Leistungsbewertung durch die Schule). _Umgesetzt 2026-09-14
+      in `chat.html` (Composer-Hinweis) + `testklausur.html` (unter der
+      eingefrorenen Note) — siehe Abschnitt 3 oben._
 
 ---
 

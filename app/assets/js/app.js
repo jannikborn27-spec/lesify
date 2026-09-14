@@ -442,8 +442,8 @@
   }
   function fileTextPreview(d, typLabel) {
     var lead = d.zusammenfassung
-      ? '<p class="dv-doc-lead">' + d.zusammenfassung + '</p>'
-      : '<p class="dv-doc-lead is-pending">Dieses Dokument wird noch gelesen und zusammengefasst…</p>';
+      ? '<p class="dv-doc-lead" data-dv-doclead>' + d.zusammenfassung + '</p>'
+      : '<p class="dv-doc-lead is-pending" data-dv-doclead>Dieses Dokument wird noch gelesen und zusammengefasst…</p>';
     var lineW = [96, 88, 92, 70, 84, 90, 62];
     return '<div class="dv-doc dv-doc-page">' +
       '<div class="dv-doc-h">' + d.name + '</div>' +
@@ -490,10 +490,10 @@
             '<div class="dv-meta-row"><span class="dv-meta-k">Dateityp</span><span class="dv-meta-v">' + typLabel + '</span></div>' +
             '<div class="dv-meta-row"><span class="dv-meta-k">Größe</span><span class="dv-meta-v">' + d.groesse + '</span></div>' +
             '<div class="dv-meta-row"><span class="dv-meta-k">Hochgeladen</span><span class="dv-meta-v">' + d.updated + '</span></div>' +
-            '<div class="dv-meta-row"><span class="dv-meta-k">Status</span><span class="dv-meta-v">' + (bereit ? 'Analysiert &amp; bereit' : 'Wird analysiert…') + '</span></div>' +
+            '<div class="dv-meta-row"><span class="dv-meta-k">Status</span><span class="dv-meta-v" data-dv-status>' + (bereit ? 'Analysiert &amp; bereit' : 'Wird analysiert…') + '</span></div>' +
             '<div class="dv-summary">' +
               '<span class="dv-meta-k">KI-Zusammenfassung</span>' +
-              '<p>' + (d.zusammenfassung || ('Sobald „' + d.name + '" fertig gelesen ist, erscheint hier die automatische Zusammenfassung.')) + '</p>' +
+              '<p data-dv-summary>' + (d.zusammenfassung || ('Sobald „' + d.name + '" fertig gelesen ist, erscheint hier die automatische Zusammenfassung.')) + '</p>' +
             '</div>' +
           '</div>' +
         '</div>' +
@@ -510,6 +510,25 @@
     if (imgEl) {
       imgEl.addEventListener('error', function () {
         qs('.dv-preview', scrim).innerHTML = fileIconPreview(typLabel);
+      });
+    }
+
+    // Datei wird gerade noch verarbeitet: live nachziehen statt Reload zu
+    // verlangen, falls sie fertig wird, während das Modal offen ist.
+    if (d.status === 'verarbeitung' && typeof Lesify.pollDateiStatus === 'function') {
+      Lesify.pollDateiStatus(d.id).then(function (updated) {
+        if (!document.body.contains(scrim)) return;
+        d = updated;
+        bereit = updated.status === 'bereit';
+        var statusEl = qs('[data-dv-status]', scrim);
+        if (statusEl) statusEl.innerHTML = bereit ? 'Analysiert &amp; bereit' : 'Verarbeitung fehlgeschlagen';
+        var summaryEl = qs('[data-dv-summary]', scrim);
+        if (summaryEl) summaryEl.textContent = updated.zusammenfassung || ('„' + updated.name + '" konnte nicht zusammengefasst werden.');
+        var docLeadEl = qs('[data-dv-doclead]', scrim);
+        if (docLeadEl && updated.zusammenfassung) {
+          docLeadEl.textContent = updated.zusammenfassung;
+          docLeadEl.classList.remove('is-pending');
+        }
       });
     }
 

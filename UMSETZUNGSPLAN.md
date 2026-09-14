@@ -234,8 +234,19 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
 
 ### 7. Optionale Aufräumarbeiten (keine Entscheidung nötig, nur FYI)
 
-- [ ] **Datei-Viewer:** echte Bild-/PDF-Vorschau statt Text-Platzhalter in
-      `openDateiModal()` (app.js).
+- [x] **Datei-Viewer** (2026-09-14): echte Bild-/PDF-Vorschau in
+      `openDateiModal()`/`renderDateiModal()` (app.js) über
+      `Lesify.dateiInhaltUrl(id)` (signierte Storage-URL, 302-Redirect) —
+      `<img>` für `typ: 'img'`, `<embed type="application/pdf">` für
+      `typ: 'pdf'`; DOC bleibt beim bisherigen Text-Mockup (Word lässt sich
+      nicht sinnvoll inline rendern). Bild-Ladefehler fallen automatisch auf
+      das alte Icon-Placeholder zurück. „Herunterladen" lädt jetzt ebenfalls
+      die echte Datei statt eines generierten Zusammenfassungs-`.txt`, wenn
+      `dateiInhaltUrl` verfügbar ist (sonst wie bisher der Fallback für
+      Dummy-Daten ohne `api.js`). Lokal gegen den echten Dev-Stack verifiziert
+      (Bild- und PDF-Upload über die echte API, Vorschau im Browser bestätigt
+      — Bild lädt mit korrekten Pixeldaten, PDF öffnet im nativen
+      Browser-Viewer mit Download/Print-Toolbar).
 - [ ] **Dev-Switcher entfernen** (Suche-Varianten, Testklausur-Phasen-
       Umschalter, Pill-Style) — bewusst noch drin, weil sie aktuell die
       einzige Möglichkeit sind, alle Design-Zustände ohne echte Testdaten zu
@@ -3426,9 +3437,13 @@ sonst unverändert.
       Fehlercode — `fetch()` wirft dann direkt, landet aber im selben
       catch-Pfad und zeigt den generischen Fallback-Toast._
 - [ ] **Datei-Viewer** auf `Lesify.dateiInhaltUrl(id)` + `pollDateiStatus`
-      (`verarbeitung`→`bereit` ohne Reload) statt `.txt`-Ersatz. _Weiterhin
-      offen — `openDateiModal()` (app.js) zeigt eine reine Text-Vorschau, kein
-      echtes Bild/PDF. Rein technisch, keine Entscheidung nötig._
+      (`verarbeitung`→`bereit` ohne Reload) statt `.txt`-Ersatz. _Teilerledigt
+      2026-09-14: `openDateiModal()` zeigt jetzt echte Bild-/PDF-Vorschau über
+      `dateiInhaltUrl` (Details siehe Abschnitt 7 oben). **Weiterhin offen:**
+      `pollDateiStatus` ist noch nicht eingebaut — der Modal-Status
+      („wird analysiert…"/Zusammenfassung) aktualisiert sich nicht live, wenn
+      die Datei während des offenen Modals fertig verarbeitet wird; dafür
+      weiterhin ein Reload nötig. Rein technisch, keine Entscheidung nötig._
 - [x] **Abo-/Einstellungs-Bereich in der App (Teil, 2026-09-12):**
       `getAbo`/`aendernAbo` + Nutzungsring in `einstellungen.html` fertig
       (siehe Phase-11-Progress-Notiz). `kuendigenAbo`/`pausierenAbo`/`kinder`/

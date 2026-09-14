@@ -433,28 +433,43 @@
     else if (maybe) renderDateiModal(maybe);
   }
 
+  /** Bild-/PDF-Vorschau übers echte Backend (`Lesify.dateiInhaltUrl`, signierte
+      Storage-URL) — Text-Mockup bleibt Fallback für DOC/Dummy-Daten (data.js
+      kennt `dateiInhaltUrl` nicht). */
+  function fileIconPreview(typLabel) {
+    return '<div class="dv-doc dv-doc-img">' + Icons.file +
+      '<span class="dv-doc-imgcap">Bildvorschau · ' + typLabel + '</span></div>';
+  }
+  function fileTextPreview(d, typLabel) {
+    var lead = d.zusammenfassung
+      ? '<p class="dv-doc-lead">' + d.zusammenfassung + '</p>'
+      : '<p class="dv-doc-lead is-pending">Dieses Dokument wird noch gelesen und zusammengefasst…</p>';
+    var lineW = [96, 88, 92, 70, 84, 90, 62];
+    return '<div class="dv-doc dv-doc-page">' +
+      '<div class="dv-doc-h">' + d.name + '</div>' +
+      lead +
+      '<div class="dv-doc-lines">' +
+        lineW.map(function (w) { return '<span style="width:' + w + '%"></span>'; }).join('') +
+      '</div>' +
+      '<div class="dv-doc-note">Vorschau für ' + typLabel + '-Dateien ist im Browser nicht möglich — herunterladen, um den Inhalt zu sehen.</div>' +
+    '</div>';
+  }
+
   function renderDateiModal(d) {
     var l = Lesify.label(d.themaId);
     var bereit = d.status === 'bereit';
     var typLabel = fileTypeLabel(d.typ);
+    var inhaltUrl = typeof Lesify.dateiInhaltUrl === 'function' ? Lesify.dateiInhaltUrl(d.id) : null;
 
     var preview;
-    if (d.typ === 'img') {
-      preview = '<div class="dv-doc dv-doc-img">' + Icons.file +
-        '<span class="dv-doc-imgcap">Bildvorschau · ' + typLabel + '</span></div>';
+    if (inhaltUrl && d.typ === 'img') {
+      preview = '<div class="dv-doc dv-doc-imgreal"><img class="dv-doc-img-el" src="' + inhaltUrl + '" alt="Vorschau"></div>';
+    } else if (inhaltUrl && d.typ === 'pdf') {
+      preview = '<div class="dv-doc dv-doc-pdfreal"><embed class="dv-doc-pdf-el" src="' + inhaltUrl + '" type="application/pdf"></div>';
+    } else if (d.typ === 'img') {
+      preview = fileIconPreview(typLabel);
     } else {
-      var lead = d.zusammenfassung
-        ? '<p class="dv-doc-lead">' + d.zusammenfassung + '</p>'
-        : '<p class="dv-doc-lead is-pending">Dieses Dokument wird noch gelesen und zusammengefasst…</p>';
-      var lineW = [96, 88, 92, 70, 84, 90, 62];
-      preview = '<div class="dv-doc dv-doc-page">' +
-        '<div class="dv-doc-h">' + d.name + '</div>' +
-        lead +
-        '<div class="dv-doc-lines">' +
-          lineW.map(function (w) { return '<span style="width:' + w + '%"></span>'; }).join('') +
-        '</div>' +
-        '<div class="dv-doc-note">Vorschau — der Original-Datei-Inhalt wird im Prototyp nicht geladen.</div>' +
-      '</div>';
+      preview = fileTextPreview(d, typLabel);
     }
 
     var scrim = document.createElement('div');
@@ -491,6 +506,13 @@
     requestAnimationFrame(function () { scrim.classList.add('is-open'); });
     document.body.style.overflow = 'hidden';
 
+    var imgEl = qs('.dv-doc-img-el', scrim);
+    if (imgEl) {
+      imgEl.addEventListener('error', function () {
+        qs('.dv-preview', scrim).innerHTML = fileIconPreview(typLabel);
+      });
+    }
+
     function close() {
       scrim.classList.remove('is-open');
       document.body.style.overflow = '';
@@ -503,6 +525,13 @@
     document.addEventListener('keydown', onEsc);
 
     qs('[data-dv-download]', scrim).addEventListener('click', function () {
+      if (inhaltUrl) {
+        var a2 = document.createElement('a');
+        a2.href = inhaltUrl; a2.download = d.name;
+        document.body.appendChild(a2); a2.click(); a2.remove();
+        toast('„' + d.name + '" wird heruntergeladen…');
+        return;
+      }
       var doc = [
         d.name, '',
         'Fach: ' + l.fach,

@@ -225,6 +225,16 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
 
 ### 6. Betrieb (Phase 15/16)
 
+- [x] **Bug (2026-09-14, live gemeldet & behoben): Zufällige Logouts beim
+      Seitenwechsel.** `app/assets/js/auth-gate.js` warf bei **jedem**
+      Fehlschlag von `GET /auth/me` sofort zum Login raus (`raus()`) —
+      nicht nur bei einer echten `401`/ungültigen Session, sondern auch bei
+      Netzwerkfehlern, `429` (Rate-Limit) oder `5xx`. Auf Railway (echte
+      Netzwerklatenz statt `localhost`) reicht schon ein kurzer Hänger beim
+      Seitenwechsel, um rauszufliegen, obwohl die Session noch gültig ist.
+      Fix: nur noch bei `err.status === 401` ausloggen, alles andere lässt
+      die Seite normal weiterlaufen. Lokal (Logik-Check aller vier
+      Fehlerfälle) und live gegen `lesify.de` verifiziert.
 - [ ] **Error-Tracking-Anbieter** (z. B. Sentry) — DSN besorgen, anschließen.
 - [ ] **DB-Backups:** Supabase-Feature aktivieren + einmal einen echten
       Restore testen.

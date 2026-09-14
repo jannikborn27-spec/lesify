@@ -45,7 +45,11 @@
 
   window.Lesify.me().then(function (r) {
     weiche(r && r.user);
-  }).catch(function () {
-    raus();
+  }).catch(function (err) {
+    // Nur bei einer wirklich ungültigen Session (401/`nicht_angemeldet`)
+    // ausloggen. Alles andere — Netzwerkfehler, 429 (Rate-Limit), 5xx — ist
+    // kein Auth-Problem; sonst fliegt man bei jedem Hoppel auf dem Weg
+    // zwischen zwei Seiten aus einer noch gültigen Session raus.
+    if (err && err.status === 401) raus();
   });
 })();

@@ -1,3 +1,9 @@
+// Muss vor jedem anderen Import stehen: `env.js` liest `process.env` beim
+// Modul-Laden, `dotenv` muss also schon vorher gelaufen sein. `pnpm dev`
+// (tsx) lädt sonst kein `api/.env` — nur die Testsuite tat das bisher über
+// `vitest.setup.ts` (2026-09-13 entdeckt). In Produktion (Railway) liegt
+// keine `.env`-Datei vor, `dotenv` ist dort ein no-op.
+import 'dotenv/config';
 import { buildApp } from './app.js';
 import { env } from './env.js';
 

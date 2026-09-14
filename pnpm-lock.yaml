@@ -53,6 +53,9 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.115.0
         version: 2.115.0
+      dotenv:
+        specifier: ^17.4.2
+        version: 17.4.2
       fastify:
         specifier: ^5.1.0
         version: 5.12.1
@@ -87,9 +90,6 @@ importers:
       docx:
         specifier: ^9.7.1
         version: 9.7.1
-      dotenv:
-        specifier: ^17.4.2
-        version: 17.4.2
       pdfkit:
         specifier: ^0.20.2
         version: 0.20.2

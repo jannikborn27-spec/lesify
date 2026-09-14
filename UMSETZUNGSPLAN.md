@@ -134,10 +134,13 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       juristisch prüfen lassen.
 - [ ] **Auftragsverarbeitungsverträge** mit Anthropic + Sub-Prozessoren
       (Supabase, Stripe, Hoster) abschließen, fürs Verarbeitungsverzeichnis.
-- [ ] **KI-Nutzungshinweis-Text** ergänzen („Antworten können falsch sein,
-      keine Leistungsbewertung durch die Schule") — `chat.html` hat mit
-      „Lesify kann Fehler machen — prüfe wichtige Angaben nach." schon einen
-      Teil davon, der Rest ist eine kurze Textergänzung.
+- [x] **KI-Nutzungshinweis-Text ergänzt** (2026-09-14): `chat.html`s
+      Composer-Hinweis erweitert auf „Lesify kann Fehler machen — prüfe
+      wichtige Angaben nach. Antworten sind keine offizielle
+      Leistungsbewertung durch die Schule." Zusätzlich in `testklausur.html`
+      denselben Hinweis unter der eingefrorenen Note ergänzt (dort war er
+      vorher noch gar nicht vorhanden, obwohl die KI-Note dort am direktesten
+      wie eine echte Bewertung wirkt).
 
 ### 4. Geld (Phase 9/16)
 
@@ -203,13 +206,19 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
 - [ ] **Stripe Live-Modus** + Rechnungsstellung + Umgang mit fehlgeschlagenen
       Zahlungen (Retry/Mahnlogik) — eigener Schritt nach dem Test-Modus oben,
       sinnvoll erst wenn die Preis-Feinheiten (siehe oben) final sind.
-- [ ] **Anthropic-Produktions-Key mit Budget-Limit.** _Nebenbei entdeckt
-      (2026-09-13): der lokale Dev-Server (`pnpm dev`) lädt `api/.env` gar
-      nicht (nur die Testsuite tut das über `vitest.setup.ts`) — ein dort
-      gesetzter `ANTHROPIC_API_KEY` greift beim `dev`-Server also nicht, es
-      läuft automatisch der `FakeKiClient`. Rein technischer Fix (`dotenv` in
-      `api/src/index.ts` laden), keine Entscheidung nötig — sag Bescheid,
-      falls das gerade stört._
+- [ ] **Anthropic-Produktions-Key mit Budget-Limit** — weiterhin deine
+      Entscheidung/dein Account (Anthropic-Konsole: Key erzeugen, Budget-Cap
+      setzen, dann `ANTHROPIC_API_KEY` bei Railway eintragen; ohne Key läuft
+      weiter der `FakeKiClient`, kein Blocker).
+      **Technischer Teil erledigt (2026-09-14):** `pnpm dev` lud `api/.env`
+      bisher gar nicht (nur die Testsuite tat das über `vitest.setup.ts`) —
+      `api/src/index.ts` importiert jetzt `dotenv/config` als allerersten
+      Import (muss vor `env.js` laufen). `dotenv` von `devDependencies` zu
+      `dependencies` verschoben, da der Import jetzt auch im produktiven
+      Build (`dist/index.js`) mitläuft (in Produktion no-op, da dort keine
+      `.env`-Datei liegt). Isoliert verifiziert: frisch gestarteter
+      `tsx`-Prozess ganz ohne mitgegebene Env-Vars (nur `PORT` override) zeigt
+      `db:true` unter `/health`.
 
 ### 5. E-Mail-Versand (bisher komplett zurückgestellt)
 

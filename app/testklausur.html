@@ -324,7 +324,8 @@ document.addEventListener('DOMContentLoaded', async function () {
     var erg = t.ergebnis || previewErgebnis();
 
     var hint = erg.__preview ? '<p class="tkx-preview-hint">Phasen-Vorschau — noch keine echte Auswertung.</p>' : '';
-    var notePair = '<div class="note-pair">' + frozenNoteBoxHtml(erg) + '</div>';
+    var notePair = '<div class="note-pair">' + frozenNoteBoxHtml(erg) + '</div>' +
+      '<p class="text-xs text-muted" style="margin:8px 0 0">KI-Einschätzung — keine offizielle Leistungsbewertung durch die Schule.</p>';
 
     var aufgabenHtml = '<div class="section-head"><span class="section-title">Aufgabe für Aufgabe</span></div>' +
       t.aufgaben.map(function (a) {

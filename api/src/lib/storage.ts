@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import WebSocket from 'ws';
 import { env } from '../env.js';
 
 /**
@@ -40,7 +41,15 @@ export class SupabaseStorageGateway implements StorageGateway {
   private bereitPromise: Promise<void> | undefined;
 
   constructor(url: string, serviceKey: string, bucket: string) {
-    this.client = createClient(url, serviceKey, { auth: { persistSession: false } });
+    // Wir nutzen Supabase nur für Storage, nie Realtime — der Client
+    // initialisiert intern trotzdem einen RealtimeClient, der ab Node <22
+    // eine WebSocket-Implementierung braucht (kein natives `WebSocket`
+    // global). `ws` deckt das ab, ohne Node-Version-Zwang (2026-09-14,
+    // Railway-Absturz "Node.js detected but native WebSocket not found").
+    this.client = createClient(url, serviceKey, {
+      auth: { persistSession: false },
+      realtime: { transport: WebSocket as unknown as SupabaseClient['realtime']['transport'] },
+    });
     this.bucket = bucket;
   }
 

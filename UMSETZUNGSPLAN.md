@@ -69,6 +69,16 @@ setze ich sie um.
       (siehe `backend-planning.md` §0 „Umsetzungs-Ebene"). Lokal verifiziert:
       `pnpm --filter @lesify/shared build && pnpm --filter @lesify/api build
       && node api/dist/index.js` startet jetzt sauber (kein Importfehler mehr).
+
+      **Dritter Bug (2026-09-14, behoben):** Danach crashte der Start mit
+      `Error: Node.js detected but native WebSocket not found` beim Aufbau
+      des `SupabaseStorageGateway` (`api/src/lib/storage.ts`) — `@supabase/
+      supabase-js` legt intern immer einen Realtime-Client an (obwohl wir nur
+      Storage nutzen), der ab Node 22 das native `WebSocket`-Global braucht;
+      Railway läuft auf Node 20. Fix (von der Supabase-Fehlermeldung selbst
+      vorgeschlagen): `ws`-Paket als `@lesify/api`-Dependency ergänzt, in
+      `createClient(..., { realtime: { transport: WebSocket } })` durchgereicht
+      — kein Node-Versions-Zwang nötig.
 - [x] **Domain-Entscheidung:** `lesify.de` bleibt die Domain, `app/` bleibt
       Unterpfad (`lesify.de/app`) wie im aktuellen GitHub-Pages-Setup —
       keine Code-Änderung nötig, DNS/TLS-Einrichtung bleibt ein Ops-Schritt

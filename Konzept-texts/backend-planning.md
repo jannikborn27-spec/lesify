@@ -20,9 +20,10 @@
 > `marketing/assets/js/marketing.js`) im selben Design-System wie die eingeloggte
 > App, ohne Backend-Anbindung. Die daraus resultierenden Backend-Anforderungen
 > (Auth, Abo/Abrechnung, Kontaktformular, Paket-Limits) sind unten in §1, §4,
-> §5, §7, §8 und §11 eingearbeitet. Die im `PRICE`-Objekt (`marketing.js`)
-> genannten Preise und Limits sind **Design-Platzhalter**, keine
-> Produktentscheidung.
+> §5, §7, §8 und §11 eingearbeitet. Die Preise im `PRICE`-Objekt
+> (`marketing.js`) sind seit 2026-09-14 **final** (siehe §8 „Entschieden am
+> 2026-09-14"), nicht mehr Design-Platzhalter — nur die Monatskontingente
+> (`limits`) bleiben es weiterhin.
 >
 > **Preis-Modell (Stand 2026-09-03).** Kein dauerhaft kostenloser Tarif —
 > stattdessen **14 Tage kostenlose Testphase**. Tarif + Intervall werden **bei
@@ -1402,9 +1403,21 @@ Themen-Guard-Treffer, viele fehlgeschlagene Logins, Upload-Flooding.
 - [x] **Familien-Abo-Sichtbarkeit**: Der Eltern-Bereich zeigt je Kind **nur aggregierte Wochenkennzahlen** aus `GET /abo/kinder/:id/zusammenfassung` (Fächer, Themen, Chats/Nachrichten der Woche, Lernzettel gesamt, Testklausuren der Woche, anstehende Klausuren) plus eine daraus abgeleitete Aktivitäts-Ampel. **Kein** Chat-Wortlaut, **keine** Lernzettel-Inhalte, **keine** Noten. Frequenz vorerst rein in-app (Pull beim Öffnen); E-Mail-Digest hängt am projektweit zurückgestellten E-Mail-Versand. Dediziertes Kind-Opt-out bleibt Nach-Launch-Thema (Phase 17). **2026-09-12:** Eltern-Bereich auf vier Seiten aufgeteilt (`app/eltern.html`, `eltern-kinder.html`, `eltern-kind.html?id=…`, `eltern-abo.html`, `eltern-datenschutz.html`, siehe `app/README.md`); die neue Einzelansicht je Kind zeigt zusätzlich Fach- und Klausur-*Metadaten* (Name/Datum + Anzahl, siehe Endpunkt-Zeile oben) — weiterhin ohne Inhalte oder Ergebnisse.
 - [x] **Kontext-Wechsel „Als Kind ansehen"**: Elternkonto kann per `POST /abo/kinder/:id/sitzung` eine eigene Kind-Session ziehen und voll im `userId`-Scope des Kindes arbeiten; Rückweg = eigenes Eltern-Token. UI: dauerhaftes „Elternmodus"-Banner auf allen Schüler-Seiten (`app.js` → `renderElternBanner`), `localStorage`-Flag statt Token im Prototyp.
 
+### Entschieden am 2026-09-14
+
+- [x] **Preistabelle final**: komplette Tabelle (Einzel + Familie × 2/3/4
+  Sitze, monatlich/jährlich, normal/Angebot) von dir geliefert und in
+  `shared/src/abo.ts` (maßgeblich für die tatsächliche Abrechnung),
+  `marketing/assets/js/stripe-config.js` (Kasse) und
+  `marketing/assets/js/marketing.js` (Preis-Seite, vorher nur eine
+  `seatFactor`-Näherung für Familienpreise) synchronisiert. Dabei mehrere
+  vorbestehende Inkonsistenzen zwischen den drei Preisquellen korrigiert
+  (echte Bugs, siehe `UMSETZUNGSPLAN.md` Abschnitt „Geld"). Die Beträge sind
+  damit **kein Design-Platzhalter mehr**.
+
 ### Weiterhin offen
 
-- [ ] **Preis-Feinheiten**: Angebotsdauer/-verlängerung, Jahrespreis-Rundung, Bindung des Angebotspreises an den Vertrag. Die Beträge selbst liegen jetzt code-seitig in `shared/src/abo.ts` (Spiegel `stripe-config.js`), bleiben aber Design-Platzhalter.
+- [ ] **Preis-Feinheiten**: Angebotsdauer/-verlängerung, Jahrespreis-Rundung, Bindung des Angebotspreises an den Vertrag — reine Geschäftsentscheidungen, unabhängig von der jetzt finalen Preistabelle.
 - [x] **Stripe-Adapter (2026-09-12):** `StripeZahlungsGateway` (Trial/Wechsel/
       Kündigung/Pause/Webhook-HMAC-Prüfung), aktiv sobald `STRIPE_SECRET_KEY`
       gesetzt ist — siehe „Umsetzungsstand" oben.

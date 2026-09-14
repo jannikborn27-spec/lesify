@@ -174,8 +174,32 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       erst nach Schritt 1–4 oben eine echte (Test-)Stripe-Subscription.
       `stripe-config.js`s `mode`-Feld ist jetzt rein informativ
       (`'test'`/`'live'`), steuert nichts mehr im Code.
-- [ ] **Preis-Feinheiten:** Angebotsdauer/-verlängerung, Jahrespreis-Rundung,
-      ob der Rabattpreis dauerhaft an den Vertrag gebunden bleibt.
+- [x] **Preistabelle final** (2026-09-14, komplette Tabelle von dir geliefert:
+      Einzel + Familie × 2/3/4 Sitze, monatlich/jährlich, normal/Angebot).
+      Dabei mehrere vorbestehende Dateninkonsistenzen über alle drei
+      Preisquellen hinweg korrigiert (waren sich teils untereinander
+      uneins — echte Bugs, nicht nur Platzhalter):
+      - `shared/src/abo.ts` (**bestimmt die tatsächlich abgerechneten
+        Beträge**): alle Jahres-Familienpreise waren falsch (z. B. Starter×3
+        jährlich: 405,48 € statt korrekt 395,88 €), alle `normal`-Listenpreise
+        falsch/verschoben.
+      - `marketing/assets/js/stripe-config.js` (Kasse): gleiches Muster,
+        jetzt korrigiert; `normal`/`normalPerMonth` für Familien-Jahrespreise
+        ergänzt (fehlten komplett).
+      - `marketing/assets/js/marketing.js` (Preis-Seite `index.html#price`):
+        rechnete Familienpreise bisher nur **näherungsweise** über einen
+        `seatFactor` (`[1, 1.8, 2.5, 3.1]`) hoch, statt die echten
+        Tarif×Sitz-Beträge zu zeigen — jetzt exakte Tabelle pro Tarif/Sitz,
+        `seatFactor` entfernt. Lokal gegen alle Tarif×Sitz×Intervall-
+        Kombinationen verifiziert (stimmt exakt mit deiner Tabelle überein).
+      - Dein Wunsch „bei Jahresabos immer den Monatsbetrag zeigen (Gesamt pro
+        Monat)" war UI-seitig auf der Preis-Seite schon so gebaut (Jährlich-
+        Toggle zeigte schon `/ Monat`) — jetzt mit den korrekten Zahlen
+        dahinter statt der `seatFactor`-Näherung. Kasse (`checkout.js`) zeigt
+        bei Jahresabos zusätzlich „(entspricht X € / Monat)" im Fließtext.
+      Weiterhin offen, reine Geschäftsentscheidung: Angebotsdauer/
+      -verlängerung, ob der Rabattpreis dauerhaft an den Vertrag gebunden
+      bleibt.
 - [ ] **Stripe Live-Modus** + Rechnungsstellung + Umgang mit fehlgeschlagenen
       Zahlungen (Retry/Mahnlogik) — eigener Schritt nach dem Test-Modus oben,
       sinnvoll erst wenn die Preis-Feinheiten (siehe oben) final sind.

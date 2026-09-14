@@ -49,51 +49,49 @@ window.LESIFY_PAYMENTS = {
     note: 'Angebot zum Schuljahresstart — Normalpreis durchgestrichen.'
   },
 
-  /* ---- Einzelplätze ---- */
+  /* ---- Einzelplätze (Preistabelle final, Stand 2026-09-14) ---- */
   plans: {
     starter: {
       name: 'Starter',
       desc: 'Der Einstieg für ein Fach mit klarer Struktur.',
       monthly: { amount: 1599,  display: '15,99 €',  normal: '19,99 €' },
-      yearly:  { amount: 15588, display: '155,88 €', normal: '191,88 €', perMonth: '12,99 €', normalPerMonth: '15,99 €' }
+      yearly:  { amount: 15588, display: '155,88 €', normal: '239,88 €', perMonth: '12,99 €', normalPerMonth: '19,99 €' }
     },
     premium: {
       name: 'Premium',
       badge: 'Bestseller',
       desc: 'Alles für ein Schuljahr mit Plan.',
       monthly: { amount: 1999,  display: '19,99 €',  normal: '24,99 €' },
-      yearly:  { amount: 19188, display: '191,88 €', normal: '239,88 €', perMonth: '15,99 €', normalPerMonth: '19,99 €' }
+      yearly:  { amount: 19188, display: '191,88 €', normal: '299,88 €', perMonth: '15,99 €', normalPerMonth: '24,99 €' }
     },
     infinite: {
       name: 'Infinite',
       desc: 'Kein Nachdenken über Kontingente.',
       monthly: { amount: 3599,  display: '35,99 €',  normal: '44,99 €' },
-      yearly:  { amount: 33588, display: '335,88 €', normal: '431,88 €', perMonth: '27,99 €', normalPerMonth: '35,99 €' }
+      yearly:  { amount: 33588, display: '335,88 €', normal: '539,88 €', perMonth: '27,99 €', normalPerMonth: '44,99 €' }
     }
   },
 
-  /* ---- Familien-Pakete: Tarif × Sitzplätze ----
-     Jeder Sitz = ein eigenes Kind-Profil mit dem vollen
-     Monatskontingent des Tarifs (`limits` unten). Die Familien-
-     Tabelle nennt keinen Jahres-Normalpreis, daher steht bei
-     `yearly` kein `normal`. */
+  /* ---- Familien-Pakete: Tarif × Sitzplätze (Preistabelle final, Stand
+     2026-09-14) ---- Jeder Sitz = ein eigenes Kind-Profil mit dem vollen
+     Monatskontingent des Tarifs (`limits` unten). */
   family: {
     seatOptions: [2, 3, 4],
     tiers: {
       starter: {
-        2: { monthly: { amount: 2899,  display: '28,99 €', normal: '35,99 €' },  yearly: { amount: 27588, display: '275,88 €', perMonth: '22,99 €' }, perSeat: '11,69 €' },
-        3: { monthly: { amount: 4199,  display: '41,99 €', normal: '51,99 €' },  yearly: { amount: 39588, display: '395,88 €', perMonth: '32,99 €' }, perSeat: '11,26 €' },
-        4: { monthly: { amount: 5499,  display: '54,99 €', normal: '67,99 €' },  yearly: { amount: 52788, display: '527,88 €', perMonth: '43,99 €' }, perSeat: '11,05 €' }
+        2: { monthly: { amount: 2899,  display: '28,99 €',  normal: '32,99 €'  }, yearly: { amount: 27588,  display: '275,88 €', normal: '359,88 €', perMonth: '22,99 €', normalPerMonth: '29,99 €' } },
+        3: { monthly: { amount: 4199,  display: '41,99 €',  normal: '45,99 €'  }, yearly: { amount: 39588,  display: '395,88 €', normal: '479,88 €', perMonth: '32,99 €', normalPerMonth: '39,99 €' } },
+        4: { monthly: { amount: 5499,  display: '54,99 €',  normal: '58,99 €'  }, yearly: { amount: 51588,  display: '515,88 €', normal: '599,88 €', perMonth: '42,99 €', normalPerMonth: '49,99 €' } }
       },
       premium: {
-        2: { monthly: { amount: 3599,  display: '35,99 €', normal: '44,99 €' },  yearly: { amount: 33588, display: '335,88 €', perMonth: '27,99 €' }, perSeat: '14,39 €' },
-        3: { monthly: { amount: 5199,  display: '51,99 €', normal: '64,99 €' },  yearly: { amount: 49908, display: '499,08 €', perMonth: '40,99 €' }, perSeat: '13,86 €' },
-        4: { monthly: { amount: 6799,  display: '67,99 €', normal: '84,99 €' },  yearly: { amount: 64788, display: '647,88 €', perMonth: '53,99 €' }, perSeat: '13,60 €' }
+        2: { monthly: { amount: 3599,  display: '35,99 €',  normal: '40,99 €'  }, yearly: { amount: 33188,  display: '331,88 €', normal: '443,88 €', perMonth: '27,66 €', normalPerMonth: '36,99 €' } },
+        3: { monthly: { amount: 5199,  display: '51,99 €',  normal: '56,99 €'  }, yearly: { amount: 47588,  display: '475,88 €', normal: '587,88 €', perMonth: '39,66 €', normalPerMonth: '48,99 €' } },
+        4: { monthly: { amount: 6799,  display: '67,99 €',  normal: '72,99 €'  }, yearly: { amount: 61988,  display: '619,88 €', normal: '731,88 €', perMonth: '51,66 €', normalPerMonth: '60,99 €' } }
       },
       infinite: {
-        2: { monthly: { amount: 6499,  display: '64,99 €',  normal: '80,99 €' },  yearly: { amount: 59988,  display: '599,88 €',   perMonth: '49,99 €' }, perSeat: '25,20 €' },
-        3: { monthly: { amount: 9399,  display: '93,99 €',  normal: '116,99 €' }, yearly: { amount: 86388,  display: '863,88 €',   perMonth: '71,99 €' }, perSeat: '24,26 €' },
-        4: { monthly: { amount: 12299, display: '122,99 €', normal: '152,99 €' }, yearly: { amount: 113988, display: '1.139,88 €', perMonth: '94,99 €' }, perSeat: '23,80 €' }
+        2: { monthly: { amount: 6499,  display: '64,99 €',  normal: '73,99 €'  }, yearly: { amount: 59988,  display: '599,88 €',   normal: '803,88 €',   perMonth: '49,99 €', normalPerMonth: '66,99 €'  } },
+        3: { monthly: { amount: 9399,  display: '93,99 €',  normal: '102,99 €' }, yearly: { amount: 86388,  display: '863,88 €',   normal: '1.067,88 €', perMonth: '71,99 €', normalPerMonth: '88,99 €'  } },
+        4: { monthly: { amount: 12299, display: '122,99 €', normal: '131,99 €' }, yearly: { amount: 112788, display: '1.127,88 €', normal: '1.331,88 €', perMonth: '93,99 €', normalPerMonth: '110,99 €' } }
       }
     }
   },

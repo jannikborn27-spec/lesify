@@ -2247,15 +2247,47 @@
   }
 
   /* ---------- Preise (price) ---------- */
+  /* Preise je Tarif × Sitzplatz (1 = Einzelplatz, 2-4 = Familie), exakt
+     gespiegelt aus `stripe-config.js` (`plans`/`family.tiers`) — Quelle ist
+     die Preistabelle vom 2026-09-14. `m`/`mWas` = Monatspreis (Angebot/
+     Normalpreis), `y`/`yWas` = Jahresabo umgerechnet auf den Monat (Angebot/
+     Normalpreis) — bei „Jährlich" zeigt die Karte immer den Monatsbetrag,
+     nie die Jahressumme. */
   var PRICE = {
     eb: 'Preise',
     h: 'Ein Bruchteil einer Nachhilfestunde, pro Monat.',
     lead: '14 Tage kostenlos testen, danach automatisch der gewählte Tarif. Monatlich kündbar. Aktuell −20 % zum Schuljahresstart. Für Geschwister: Familien-Pakete mit Sitzen für 2 bis 4 Kinder.',
-    seatFactor: [1, 1.8, 2.5, 3.1],
     plans: [
-      { name: 'Starter', desc: 'Der Einstieg für ein Fach.', m: 15.99, y: 12.99, was: 19.99, feats: ['Alle Fächer', '100 KI-Nachrichten / Monat', '1 Testklausur / Monat'] },
-      { name: 'Premium', desc: 'Für ein Schuljahr mit Plan.', m: 19.99, y: 15.99, was: 24.99, feat: true, feats: ['250 KI-Nachrichten / Monat', '5 Testklausuren + Nachtests', 'Action Plan & Lernplan'] },
-      { name: 'Infinite', desc: 'Kein Nachdenken über Kontingente.', m: 35.99, y: 27.99, was: 44.99, feats: ['Unbegrenzt KI-Nachrichten', '15 Testklausuren / Monat', 'Bevorzugter Support'] }
+      {
+        name: 'Starter', desc: 'Der Einstieg für ein Fach.',
+        feats: ['Alle Fächer', '100 KI-Nachrichten / Monat', '1 Testklausur / Monat'],
+        seats: {
+          1: { m: 15.99, mWas: 19.99, y: 12.99, yWas: 19.99 },
+          2: { m: 28.99, mWas: 32.99, y: 22.99, yWas: 29.99 },
+          3: { m: 41.99, mWas: 45.99, y: 32.99, yWas: 39.99 },
+          4: { m: 54.99, mWas: 58.99, y: 42.99, yWas: 49.99 }
+        }
+      },
+      {
+        name: 'Premium', desc: 'Für ein Schuljahr mit Plan.', feat: true,
+        feats: ['250 KI-Nachrichten / Monat', '5 Testklausuren + Nachtests', 'Action Plan & Lernplan'],
+        seats: {
+          1: { m: 19.99, mWas: 24.99, y: 15.99, yWas: 24.99 },
+          2: { m: 35.99, mWas: 40.99, y: 27.66, yWas: 36.99 },
+          3: { m: 51.99, mWas: 56.99, y: 39.66, yWas: 48.99 },
+          4: { m: 67.99, mWas: 72.99, y: 51.66, yWas: 60.99 }
+        }
+      },
+      {
+        name: 'Infinite', desc: 'Kein Nachdenken über Kontingente.',
+        feats: ['Unbegrenzt KI-Nachrichten', '15 Testklausuren / Monat', 'Bevorzugter Support'],
+        seats: {
+          1: { m: 35.99, mWas: 44.99, y: 27.99, yWas: 44.99 },
+          2: { m: 64.99, mWas: 73.99, y: 49.99, yWas: 66.99 },
+          3: { m: 93.99, mWas: 102.99, y: 71.99, yWas: 88.99 },
+          4: { m: 122.99, mWas: 131.99, y: 93.99, yWas: 110.99 }
+        }
+      }
     ]
   };
   function eur(n) { return n.toFixed(2).replace('.', ',') + ' €'; }
@@ -2286,9 +2318,11 @@
       '<p class="price-seatnote" data-seats-note></p>';
   }
   function priceAmount(p) {
-    return '<div class="price-amt">' +
-      '<del data-wasbase-m="' + p.was + '" data-wasbase-y="' + p.m + '">' + eur(p.was) + '</del>' +
-      '<b data-base-m="' + p.m + '" data-base-y="' + p.y + '">' + eur(p.m) + '</b>' +
+    var idx = PRICE.plans.indexOf(p);
+    var d1 = p.seats[1];
+    return '<div class="price-amt" data-plan="' + idx + '">' +
+      '<del data-was>' + eur(d1.mWas) + '</del>' +
+      '<b data-amt>' + eur(d1.m) + '</b>' +
       '<span>/ Monat</span></div>';
   }
   function priceFeats(p) { return '<ul class="price-feats">' + p.feats.map(function (f) { return '<li>' + LAB_CHECK + f + '</li>'; }).join('') + '</ul>'; }
@@ -2342,15 +2376,15 @@
     var note = host.querySelector('[data-seats-note]');
     var valEl = host.querySelector('[data-seats-val]');
     var dotsEl = host.querySelector('[data-seats-dots]');
-    var SEAT_MAX = PRICE.seatFactor.length; /* 4 */
+    var SEAT_MAX = 4;
     var state = { i: 'm', s: 1 };
     function apply() {
-      var f = PRICE.seatFactor[state.s - 1];
-      host.querySelectorAll('[data-base-' + state.i + ']').forEach(function (el) {
-        el.textContent = eur(parseFloat(el.getAttribute('data-base-' + state.i)) * f);
-      });
-      host.querySelectorAll('[data-wasbase-' + state.i + ']').forEach(function (el) {
-        el.textContent = eur(parseFloat(el.getAttribute('data-wasbase-' + state.i)) * f);
+      host.querySelectorAll('[data-plan]').forEach(function (el) {
+        var idx = parseInt(el.getAttribute('data-plan'), 10);
+        var d = PRICE.plans[idx].seats[state.s];
+        var was = el.querySelector('[data-was]'), amt = el.querySelector('[data-amt]');
+        if (was) was.textContent = eur(d[state.i + 'Was']);
+        if (amt) amt.textContent = eur(d[state.i]);
       });
       if (valEl) valEl.textContent = state.s === 1 ? '1 Kind' : state.s + ' Kinder';
       if (dotsEl) dotsEl.innerHTML = priceSeatDots(state.s);

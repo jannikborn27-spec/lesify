@@ -4,9 +4,9 @@
  * `trialDays`). Beträge in **Cent**. `amount` ist der aktuell fällige Betrag
  * (bereits mit Angebot), `normal` der durchgestrichene Listenpreis.
  *
- * Weiterhin **Design-Platzhalter** (backend-planning.md §8): offen sind
- * Angebotsdauer, Jahrespreis-Rundung und ob der Angebotspreis dauerhaft an den
- * Vertrag gebunden bleibt.
+ * Preistabelle final (Stand 2026-09-14). Weiterhin offen (backend-planning.md
+ * §8): Angebotsdauer/-verlängerung, Jahrespreis-Rundung, ob der Angebotspreis
+ * dauerhaft an den Vertrag gebunden bleibt.
  */
 
 export type AboPaketKey = 'starter' | 'premium' | 'infinite';
@@ -40,34 +40,37 @@ interface PaketPreis {
 export const EINZEL_PREISE: Record<AboPaketKey, PaketPreis> = {
   starter: {
     monatlich: { amount: 1599, normal: 1999 },
-    jaehrlich: { amount: 15588, normal: 19188 },
+    jaehrlich: { amount: 15588, normal: 23988 },
   },
   premium: {
     monatlich: { amount: 1999, normal: 2499 },
-    jaehrlich: { amount: 19188, normal: 23988 },
+    jaehrlich: { amount: 19188, normal: 29988 },
   },
   infinite: {
     monatlich: { amount: 3599, normal: 4499 },
-    jaehrlich: { amount: 33588, normal: 43188 },
+    jaehrlich: { amount: 33588, normal: 53988 },
   },
 };
 
-/** Familien-Preise je Paket und Sitzzahl (2–4). Jahrespreis ohne `normal`. */
+/** Familien-Preise je Paket und Sitzzahl (2–4), Stand 2026-09-14. */
 export const FAMILIE_PREISE: Record<AboPaketKey, Record<number, PaketPreis>> = {
   starter: {
-    2: { monatlich: { amount: 2899, normal: 3599 }, jaehrlich: { amount: 28068 } },
-    3: { monatlich: { amount: 4199, normal: 5199 }, jaehrlich: { amount: 40548 } },
-    4: { monatlich: { amount: 5499, normal: 6799 }, jaehrlich: { amount: 53028 } },
+    2: { monatlich: { amount: 2899, normal: 3299 }, jaehrlich: { amount: 27588, normal: 35988 } },
+    3: { monatlich: { amount: 4199, normal: 4599 }, jaehrlich: { amount: 39588, normal: 47988 } },
+    4: { monatlich: { amount: 5499, normal: 5899 }, jaehrlich: { amount: 51588, normal: 59988 } },
   },
   premium: {
-    2: { monatlich: { amount: 3599, normal: 4499 }, jaehrlich: { amount: 34548 } },
-    3: { monatlich: { amount: 5199, normal: 6499 }, jaehrlich: { amount: 49908 } },
-    4: { monatlich: { amount: 6799, normal: 8499 }, jaehrlich: { amount: 65268 } },
+    2: { monatlich: { amount: 3599, normal: 4099 }, jaehrlich: { amount: 33188, normal: 44388 } },
+    3: { monatlich: { amount: 5199, normal: 5699 }, jaehrlich: { amount: 47588, normal: 58788 } },
+    4: { monatlich: { amount: 6799, normal: 7299 }, jaehrlich: { amount: 61988, normal: 73188 } },
   },
   infinite: {
-    2: { monatlich: { amount: 6499, normal: 8099 }, jaehrlich: { amount: 60468 } },
-    3: { monatlich: { amount: 9399, normal: 11699 }, jaehrlich: { amount: 87348 } },
-    4: { monatlich: { amount: 12299, normal: 15299 }, jaehrlich: { amount: 114228 } },
+    2: { monatlich: { amount: 6499, normal: 7399 }, jaehrlich: { amount: 59988, normal: 80388 } },
+    3: { monatlich: { amount: 9399, normal: 10299 }, jaehrlich: { amount: 86388, normal: 106788 } },
+    4: {
+      monatlich: { amount: 12299, normal: 13199 },
+      jaehrlich: { amount: 112788, normal: 133188 },
+    },
   },
 };
 

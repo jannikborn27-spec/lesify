@@ -29,10 +29,10 @@ describe('aboPreis — Spiegel stripe-config.js', () => {
     expect(p.normalCent).toBe(2499);
     expect(p.angebotKey).toBe(ABO_ANGEBOT.key);
   });
-  it('Familie Starter × 3 jährlich = 405,48 €, ohne Normalpreis', () => {
+  it('Familie Starter × 3 jährlich = 395,88 € (Angebot), Normalpreis 479,88 €', () => {
     const p = aboPreis({ paket: 'starter', art: 'familie', sitze: 3, intervall: 'jaehrlich' });
-    expect(p.betragCent).toBe(40548);
-    expect(p.normalCent).toBe(null);
+    expect(p.betragCent).toBe(39588);
+    expect(p.normalCent).toBe(47988);
   });
   it('ungültige Kombination wirft', () => {
     expect(() =>

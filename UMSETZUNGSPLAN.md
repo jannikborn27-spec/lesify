@@ -45,15 +45,30 @@ setze ich sie um.
 
 ### 1. Damit die App überhaupt live erreichbar ist (Hosting)
 
-- [ ] **Wo soll `api/` laufen?** **Empfehlung (2026-09-13): Railway** —
-      deployt direkt aus dem GitHub-Repo (Root-Verzeichnis `api/`
-      einstellen), Env-Vars und Custom-Domains sind trivial, EU-Region
-      vorhanden; `api/package.json` hat mit `build`/`start`/`db:deploy`
-      bereits die passenden Skripte, keine Code-Änderung nötig. Alternative:
-      Fly.io, wenn der Server explizit auf Frankfurt gepinnt sein soll
-      (mehr Kontrolle, etwas mehr Setup). Noch offen: Railway-Konto
-      anlegen, Repo verbinden, Env-Vars setzen (siehe Punkt „Supabase"
-      unten). **Blockiert alles andere in dieser Sektion.**
+- [x] **Wo soll `api/` laufen?** **Railway** (Entscheidung 2026-09-13,
+      Service läuft seit 2026-09-14). **Wichtig, abweichend vom ersten Plan:**
+      Root Directory bleibt **Repo-Wurzel**, NICHT `api/` — mit `api/` als
+      Root sieht Railpack `pnpm-workspace.yaml`/`pnpm-lock.yaml` nicht, fällt
+      auf `npm install` zurück, und `npm` kann `workspace:*`
+      (`@lesify/shared`-Abhängigkeit) nicht auflösen (Build-Fehler
+      2026-09-14). Stattdessen Build/Start-Commands im Service auf den
+      `api`-Workspace gescoped:
+      - Build Command: `pnpm install --frozen-lockfile && pnpm --filter
+        @lesify/shared build && pnpm --filter @lesify/api db:generate &&
+        pnpm --filter @lesify/api build`
+      - Start Command: `pnpm --filter @lesify/api start`
+
+      **Zweiter Bug (2026-09-14, behoben):** `shared/package.json` zeigte mit
+      `main`/`types`/`exports` direkt auf `src/index.ts` statt auf ein
+      kompiliertes `dist/`. Lokal (`tsx`) und in Vitest fiel das nie auf, aber
+      der produktive `node dist/index.js`-Start crashte in einer Endlosschleife
+      mit `ERR_UNKNOWN_FILE_EXTENSION: Unknown file extension ".ts"`, weil
+      Node `.ts`-Dateien nicht nativ importieren kann. Fix: `shared/` hat jetzt
+      einen echten `build`-Script (`tsc -p tsconfig.json` → `shared/dist/`),
+      `main`/`types`/`exports` zeigen auf `dist/index.js`/`dist/index.d.ts`
+      (siehe `backend-planning.md` §0 „Umsetzungs-Ebene"). Lokal verifiziert:
+      `pnpm --filter @lesify/shared build && pnpm --filter @lesify/api build
+      && node api/dist/index.js` startet jetzt sauber (kein Importfehler mehr).
 - [x] **Domain-Entscheidung:** `lesify.de` bleibt die Domain, `app/` bleibt
       Unterpfad (`lesify.de/app`) wie im aktuellen GitHub-Pages-Setup —
       keine Code-Änderung nötig, DNS/TLS-Einrichtung bleibt ein Ops-Schritt

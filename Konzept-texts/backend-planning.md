@@ -82,9 +82,18 @@ späteren API-Clients.
   `lint-staged`.
 - **CI:** GitHub Actions — bei jedem Push Lint + Typecheck + Tests. Deploy erst
   Phase 16.
-- **API-Hosting:** noch offen (Phase 16). Pflicht: **EU-Region**. Kandidaten mit
-  EU-Rechenzentrum: Railway, Render, Fly.io (Region `fra`), Scaleway
-  Containers. Nicht jetzt festlegen.
+- **API-Hosting:** **Railway** (Entscheidung 2026-09-14), Root Directory bleibt
+  Repo-Wurzel (nicht `api/` — sonst sieht Railpack `pnpm-workspace.yaml`/
+  `pnpm-lock.yaml` nicht und fällt auf `npm` zurück, das `workspace:*` nicht
+  auflösen kann). Build Command: `pnpm install --frozen-lockfile && pnpm
+  --filter @lesify/shared build && pnpm --filter @lesify/api db:generate &&
+  pnpm --filter @lesify/api build`. Start Command: `pnpm --filter @lesify/api
+  start`. `shared/` hat jetzt (2026-09-14) einen echten Build-Schritt
+  (`shared/package.json` `main`/`types`/`exports` zeigen auf `dist/`, Script
+  `build`: `tsc -p tsconfig.json`) — vorher zeigte `main` direkt auf
+  `src/index.ts`, was lokal (`tsx`) unbemerkt blieb, aber `node dist/index.js`
+  in Produktion mit `ERR_UNKNOWN_FILE_EXTENSION` crashen ließ, weil Node
+  `.ts`-Dateien nicht nativ lädt.
 
 ### Ziel-Ordnerstruktur (Monorepo)
 

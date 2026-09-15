@@ -531,22 +531,22 @@
   function pad(i) { return ('0' + (i + 1)).slice(-2); }
 
   var HERO_FEATURES = [
-    { key: 'chat', label: 'KI-Chat', url: 'app.lesify.de/ki-chat', accent: 'var(--fach-blue)',
-      title: 'KI-Chat für jedes Fach',
+    { key: 'klausurvorbereitung', label: 'Klausurvorbereitung', url: 'app.lesify.de/lernplan', accent: 'var(--fach-teal)',
+      title: 'mit Lernplan und Testklausuren',
+      desc: 'Ein Testklausur-Ergebnis wird automatisch zum Tagesplan für die Woche vor der nächsten Klausur.',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a1.5 1.5 0 0 0-1.5 1.5v15A1.5 1.5 0 0 0 7 21h10a1.5 1.5 0 0 0 1.5-1.5V8L14 3Z"></path><path d="m9 14 2 2 4-4"></path></svg>' },
+    { key: 'chat', label: 'KI Chat', url: 'app.lesify.de/ki-chat', accent: 'var(--fach-blue)',
+      title: 'Verständlich, sicher, für Schüler entwickelt',
       desc: 'Erklären, üben, mündlich abfragen, Hausaufgaben besprechen: vier Modi, passend zu Fach und Thema.',
       icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5C4 4.67 4.67 4 5.5 4h13c.83 0 1.5.67 1.5 1.5v10c0 .83-.67 1.5-1.5 1.5H9l-4 3.5v-3.5H5.5C4.67 16.5 4 15.83 4 15V5.5Z"></path></svg>' },
-    { key: 'plan', label: 'Lernpläne', url: 'app.lesify.de/lernplan', accent: 'var(--fach-amber)',
-      title: 'Lernpläne &amp; Klausurvorbereitung',
-      desc: 'Ein Tagesplan über die Woche vor der Klausur: welches Thema wann dran ist, welche Nachtests offen sind.',
-      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"></rect><line x1="16" y1="3" x2="16" y2="7"></line><line x1="8" y1="3" x2="8" y2="7"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>' },
-    { key: 'klausur', label: 'Testklausuren', url: 'app.lesify.de/klausur', accent: 'var(--fach-teal)',
-      title: 'Testklausuren mit echter Note',
-      desc: 'Freie Antworten statt Ankreuzen. Lesify korrigiert aufgabenweise und rechnet eine Note auf der Skala 1–6 aus.',
-      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a1.5 1.5 0 0 0-1.5 1.5v15A1.5 1.5 0 0 0 7 21h10a1.5 1.5 0 0 0 1.5-1.5V8L14 3Z"></path><path d="m9 14 2 2 4-4"></path></svg>' },
-    { key: 'struktur', label: 'Strukturierung', url: 'app.lesify.de/faecher', accent: 'var(--fach-violet)',
-      title: 'Klare Strukturierung',
+    { key: 'struktur', label: 'Organisation', url: 'app.lesify.de/faecher', accent: 'var(--fach-violet)',
+      title: 'immer nach Fach und Thema geordnet',
       desc: 'Jedes Fach in Themen sortiert, jedes Thema mit eigenen Chats, Lernzetteln und Dateien am gleichen Ort.',
-      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 8l9 5 9-5-9-5Z"></path><path d="M3 12l9 5 9-5"></path></svg>' }
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 8l9 5 9-5-9-5Z"></path><path d="M3 12l9 5 9-5"></path></svg>' },
+    { key: 'lernzettel', label: 'Lernzettel', url: 'app.lesify.de/lernzettel', accent: 'var(--fach-amber)',
+      title: 'die wichtigsten Infos automatisch notiert',
+      desc: 'Vor jeder Klausur fasst ein Lernzettel alle wichtigen Themen kompakt auf einem Blatt zusammen.',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"></rect><line x1="16" y1="3" x2="16" y2="7"></line><line x1="8" y1="3" x2="8" y2="7"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>' }
   ];
 
   function hsAttrs(f) {
@@ -729,22 +729,19 @@
      (CHAT_DEMO, chatDemoMarkup/initChatDemo) auf.
      ========================================================= */
   var CHAT_EYEBROW = 'Der KI-Chat';
-  var CHAT_H = 'Eine KI, die erklärt — nicht vorsagt.';
-  var CHAT_LEAD = 'Kein Antwort-Automat: Der Lesify-Chat führt dein Kind durch den Stoff, bleibt beim Thema und beim richtigen Niveau — und Eltern behalten den Fortschritt im Blick.';
+  var CHAT_H = 'Für Schüler entwickelt: eine KI, die erklärt statt vorsagt.';
+  var CHAT_LEAD = 'Kein Abschreiben, sondern echtes Verstehen: Unsere KI begleitet Ihr Kind durch den Stoff und erklärt, statt Lösungen vorzusagen – so lernt Ihr Kind aus jeder Aufgabe, statt sie nur mit KI zu lösen.';
 
   var CHAT_PERKS = [
-    { title: 'Erklärt den Weg, nicht die Lösung',
-      text: 'Der Chat zeigt den Lösungsweg Schritt für Schritt und stellt Rückfragen, statt nur ein Ergebnis auszugeben. Jede Antwort bleibt auf dem Niveau der Jahrgangsstufe.',
+    { title: 'Erklärt den Weg, gibt keine Lösung',
+      text: 'Unsere KI zeigt den Lösungsweg und erklärt jeden Schritt. Die fertige Antwort erarbeitet sich Ihr Kind dann aber selbst.',
       icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 8l9 5 9-5-9-5Z"></path><path d="M3 12l9 5 9-5"></path></svg>' },
-    { title: 'Sicher und beim Schulstoff',
-      text: 'Ein fester Themen-Riegel hält jeden Chat beim Fach und Thema — keine Abschweifungen. Verarbeitung DSGVO-konform auf Servern in der EU.',
-      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 5 3.4 7.7 8 9 4.6-1.3 8-4 8-9V6l-8-3Z"></path><path d="m9 12 2 2 4-4"></path></svg>' },
-    { title: 'Für Eltern nachvollziehbar',
-      text: 'Das Elternkonto bekommt eine wöchentliche Zusammenfassung zu Fortschritt und offenen Themen — den Chat-Wortlaut selbst sieht nur das Kind.',
-      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17 20a5 5 0 0 0-10 0"></path><circle cx="12" cy="9" r="4"></circle></svg>' },
     { title: 'Kennt das Thema',
-      text: 'Jeder Chat kennt die Lernzettel und Dateien des Themas — dein Kind fragt nie im luftleeren Raum. Aus den Antworten wächst automatisch der Lernzettel.',
-      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5C4 4.67 4.67 4 5.5 4h13c.83 0 1.5.67 1.5 1.5v10c0 .83-.67 1.5-1.5 1.5H9l-4 3.5v-3.5H5.5C4.67 16.5 4 15.83 4 15V5.5Z"></path></svg>' }
+      text: 'Der Chat weiß, welches Fach und Thema gerade dran ist. So bleiben die Erklärungen immer beim aktuellen Stoff Ihres Kindes.',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5C4 4.67 4.67 4 5.5 4h13c.83 0 1.5.67 1.5 1.5v10c0 .83-.67 1.5-1.5 1.5H9l-4 3.5v-3.5H5.5C4.67 16.5 4 15.83 4 15V5.5Z"></path></svg>' },
+    { title: 'Sicher und beim Schulstoff',
+      text: 'Die KI bleibt beim Schulstoff und auf dem richtigen Niveau. Keine Ablenkung, keine unpassenden Inhalte.',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 5 3.4 7.7 8 9 4.6-1.3 8-4 8-9V6l-8-3Z"></path><path d="m9 12 2 2 4-4"></path></svg>' }
   ];
 
   var CHAT_INTRO_MSG = 'Wähle unten ein Beispiel — oder schreib mir, wo du gerade nicht weiterkommst.';
@@ -1053,11 +1050,11 @@
   var CHAT_MODES = [
     { l: 'Erklären', d: 'Konzepte Schritt für Schritt verstehen, mit Rückfragen zwischendurch.',
       i: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 8l9 5 9-5-9-5Z"></path><path d="M3 12l9 5 9-5"></path></svg>' },
-    { l: 'Hausaufgaben', d: 'Die konkrete Aufgabe lösen — der Weg wird erklärt, nicht vorgesagt.',
-      i: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a1.5 1.5 0 0 0-1.5 1.5v15A1.5 1.5 0 0 0 7 21h10a1.5 1.5 0 0 0 1.5-1.5V8L14 3Z"></path><path d="m9 14 2 2 4-4"></path></svg>' },
     { l: 'Üben', d: 'Mündlich abgefragt werden, sofort Rückmeldung zu jeder Antwort.',
       i: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="4"></circle><circle cx="12" cy="12" r="0.6" fill="currentColor"></circle></svg>' },
-    { l: 'Zusammenfassen', d: 'Inhalte kompakt bündeln — das Ergebnis wird zum Lernzettel.',
+    { l: 'Hausaufgabenhilfe', d: 'Fragen klären, Lösungsweg erklären, keine Lösungen ausgegeben.',
+      i: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a1.5 1.5 0 0 0-1.5 1.5v15A1.5 1.5 0 0 0 7 21h10a1.5 1.5 0 0 0 1.5-1.5V8L14 3Z"></path><path d="m9 14 2 2 4-4"></path></svg>' },
+    { l: 'Zusammenfassen', d: 'Inhalte kompakt und verständlich bündeln.',
       i: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"></path><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20"></path></svg>' }
   ];
   var CHAT_STATS = [
@@ -1458,17 +1455,17 @@
      sie weiter.) */
   var KVL = {
     eb: 'Klausurvorbereitung',
-    h: 'Ein Lernplan, der rückwärts vom Klausurtag denkt.',
-    lead: 'Zwei Testklausuren, sieben Lerntage und ein mitwachsender Lernzettel greifen ineinander: Lesify misst den Stand, verteilt die Themen auf die Tage vor der Klausur und führt jeden Tag direkt in den passenden KI-Chat.',
+    h: 'Mit strukturierter Klausurvorbereitung zu besseren Noten.',
+    lead: 'Zwei Testklausuren, sieben Lerntage und ein mitwachsender Lernzettel greifen ineinander: So werden Schwachstellen gezielt ausgemerzt und Ihr Kind gewinnt Schritt für Schritt Sicherheit für den Klausurtag.',
     fach: 'Mathe',
     titel: 'Bruchterme & Gleichungen',
     countdown: '14. Sep · noch 5 Tage',
     doneDays: 2,
     points: [
-      { ic: 'cal', t: 'Rückwärts geplant', s: 'Sieben Lerntage bis zum Klausurtag — schwache Themen zuerst und mit den meisten Einheiten.' },
-      { ic: 'check', t: 'Zwei echte Testklausuren', s: 'Diagnose zu Beginn, Kontrolle am Ende — Note auf der Skala 1–6 und eine Ampel pro Thema.' },
-      { ic: 'chat', t: 'Jeder Tag führt in den Chat', s: 'Erklären, üben, mündlich abfragen — der KI-Chat ist im richtigen Thema schon vorbereitet.' },
-      { ic: 'doc', t: 'Lernzettel schreibt sich mit', s: 'Definitionen, Formeln und typische Fehler wachsen automatisch aus den Lern-Chats.' }
+      { ic: 'check', t: 'Testklausuren', s: 'Eine Testklausur an Tag 1 deckt die Schwachstellen auf, eine zweite an Tag 5 prüft, wo noch letzte kleine Lücken liegen.' },
+      { ic: 'chat', t: 'Schwachstelle erklären', s: 'Nach jeder Testklausur werden die Schwachstellen aufgelistet und die Fehler im Detail verständlich erklärt.' },
+      { ic: 'cal', t: 'Lernplan', s: 'Der Plan bündelt Aufgaben, Erklärungen und Abfragen, um die erkannten Schwachstellen gezielt zu verbessern.' },
+      { ic: 'doc', t: 'Lernzettel', s: 'Der Lernzettel entsteht Schritt für Schritt und fasst am Ende alle wichtigen Themen und Erklärungen zusammen.' }
     ],
     facts: [{ n: '7', l: 'Lerntage' }, { n: '2', l: 'Testklausuren' }, { n: '1', l: 'Lernzettel' }],
     themen: [
@@ -1753,18 +1750,18 @@
     upload: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M8 8l4-4 4 4"></path><path d="M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"></path></svg>'
   };
   var ORG = {
-    eb: 'Struktur',
-    h: 'Von Fach zu Thema zu Datei — nichts geht verloren.',
-    lead: 'Jedes Thema gehört zu einem Fach, und jeder Chat, jeder Lernzettel und jede hochgeladene Datei zu genau einem Thema. Dein Kind sucht nichts — es findet.',
+    eb: 'Organisation',
+    h: 'Ob Chats, Lernzettel, Dokumente — alles nach Fach und Thema geordnet.',
+    lead: 'Schluss mit unordentlichen Ordnern, Collegeblöcken und Zettelwirtschaft: Jeder Chat, jedes Dokument und jeder Lernzettel wird einem Fach und Thema zugeordnet — alles leicht auffindbar, alles am richtigen Platz.',
     steps: [
       { l: 'Fach', s: 'Deutsch' },
       { l: 'Thema', s: 'Bruchrechnung' },
       { l: 'Dateien', s: 'automatisch zugeordnet' }
     ],
     points: [
-      { ic: 'fach', t: 'Jedes Fach bündelt seine Themen', s: 'Themen, Klausuren und der Fortschritt eines Fachs liegen auf einer Seite — nicht verstreut.' },
-      { ic: 'topic', t: 'Jedes Thema ist der Arbeitsplatz', s: 'Chats, Lernzettel, Dateien und Klausuren zum Thema stehen zusammen, einen Klick entfernt.' },
-      { ic: 'file', t: 'Jede Datei kennt ihr Fach und Thema', s: 'Beim Hochladen einmal zugeordnet — danach taucht die Datei überall dort auf, wo sie hingehört.' }
+      { ic: 'fach', t: 'Nach Fach geordnet', s: 'Jedes Fach hat seinen eigenen Bereich, in dem alle Themen und Klausuren übersichtlich aufgelistet sind.' },
+      { ic: 'topic', t: 'Nach Thema sortiert', s: 'Innerhalb jedes Themas sind die Inhalte nach Chats, Lernzetteln, Dateien und Klausuren gebündelt.' },
+      { ic: 'file', t: 'Alle Dateien am Platz', s: 'Alle Dokumente werden klar identifizierbar nach Fach und Thema gespeichert und sind sofort auffindbar.' }
     ],
     fach: {
       name: 'Deutsch', meta: '8. Klasse · 3 Themen · 2 Klausuren',
@@ -1976,7 +1973,7 @@
       { n: 'Geschichte', t: 'var(--fach-terracotta)', m: '2 Themen · 0 Klausuren', i: SUBJ_LIST[7].i }
     ];
     return '<div class="org-faecher"><div class="org-faecher__h"><b>Alle Fächer an einem Ort</b>' +
-      '<span>Neun Schulfächer für die 8. und 9. Klasse — jedes bündelt seine Themen, Klausuren und den Fortschritt. Fehlt eins, legt dein Kind es selbst an. Farbe frei wählbar.</span></div>' +
+      '<span>18 Schulfächer sind bereits vorinstalliert. Jedes bündelt Themen, Klausuren und Fortschritt, und eigene Fächer lassen sich jederzeit mit einem Klick anlegen.</span></div>' +
       '<div class="org-faecher__grid">' + items.map(function (f) {
         return '<article class="org-fach" style="--t:' + f.t + '"><span class="org-fach__av">' + f.i + '</span>' +
           '<b>' + f.n + '</b><span class="org-fach__m">' + f.m + '</span></article>';
@@ -2115,17 +2112,15 @@
   /* ---------- Vergleich zu Nachhilfe (cmp) ---------- */
   var CMP = {
     eb: 'Lesify oder klassische Nachhilfe?',
-    h: 'Ein ehrlicher Vergleich — nicht jeder Punkt geht an Lesify.',
-    lead: 'Für die meisten Familien entscheidet die Mischung aus Kosten, Verfügbarkeit und messbarer Vorbereitung. In einem Punkt hat klassische Nachhilfe klar die Nase vorn.',
+    h: 'Die Vorteile von Lesify gegenüber klassischer Nachhilfe.',
+    lead: 'Preis, Verfügbarkeit, Flexibilität, messbare Ergebnisse u. v. m. – Punkt für Punkt zeigt sich, dass Lesify der klassischen Nachhilfe überall einen Schritt voraus ist.',
     rows: [
-      { k: 'Kosten pro Monat', a: 'ab 15,99 €, 14 Tage gratis', b: 'meist 80 bis 160 € (2×/Woche)', w: 'a' },
+      { k: 'Kosten pro Monat', a: 'ab 12,99 €, 14 Tage gratis', b: 'meist 80 bis 160 € (2×/Woche)', w: 'a' },
       { k: 'Verfügbarkeit', a: 'rund um die Uhr, sofort', b: 'feste Termine, 1 bis 2×/Woche', w: 'a' },
       { k: 'Zeit bis zur Hilfe', a: 'Sekunden', b: 'Tage bis zum nächsten Termin', w: 'a' },
       { k: 'Alle Fächer abgedeckt', a: 'ja, gleicher Zugang', b: 'meist eine Lehrkraft, ein Fach', w: 'a' },
       { k: 'Messbare Klausurvorbereitung', a: 'Testklausur, Notenprognose, Ampel', b: 'mündliche Einschätzung', w: 'a' },
-      { k: 'Fahrweg & Organisation', a: 'keiner, vom Schreibtisch aus', b: 'Hin- und Rückweg, feste Uhrzeit', w: 'a' },
-      { k: 'Vertragsbindung', a: 'monatlich kündbar', b: 'oft 6 bis 12 Monate Laufzeit', w: 'a' },
-      { k: 'Feste Bezugsperson', a: 'eine KI, kein Mensch', b: 'eine Person, die das Kind kennt', w: 'b' }
+      { k: 'Fahrweg & Organisation', a: 'keiner, vom Schreibtisch aus', b: 'Hin- und Rückweg, feste Uhrzeit', w: 'a' }
     ]
   };
   /* „Lesify"-Marker auf der Vergleichs-Karte = echtes Logo. */
@@ -2255,12 +2250,12 @@
      nie die Jahressumme. */
   var PRICE = {
     eb: 'Preise',
-    h: 'Ein Bruchteil einer Nachhilfestunde, pro Monat.',
+    h: '60 Minuten Nachhilfe oder ein ganzer Monat Lesify Premium.',
     lead: '14 Tage kostenlos testen, danach automatisch der gewählte Tarif. Monatlich kündbar. Aktuell −20 % zum Schuljahresstart. Für Geschwister: Familien-Pakete mit Sitzen für 2 bis 4 Kinder.',
     plans: [
       {
         name: 'Starter', desc: 'Der Einstieg für ein Fach.',
-        feats: ['Alle Fächer', '100 KI-Nachrichten / Monat', '1 Testklausur / Monat'],
+        feats: ['100 KI-Nachrichten / Monat', '20 Dokumente / Monat', '1 Klausurvorbereitung / Monat'],
         seats: {
           1: { m: 15.99, mWas: 19.99, y: 12.99, yWas: 19.99 },
           2: { m: 28.99, mWas: 32.99, y: 22.99, yWas: 29.99 },
@@ -2270,7 +2265,7 @@
       },
       {
         name: 'Premium', desc: 'Für ein Schuljahr mit Plan.', feat: true,
-        feats: ['250 KI-Nachrichten / Monat', '5 Testklausuren + Nachtests', 'Action Plan & Lernplan'],
+        feats: ['250 KI-Nachrichten / Monat', '50 Dokumente / Monat', '5 Klausurvorbereitungen / Monat'],
         seats: {
           1: { m: 19.99, mWas: 24.99, y: 15.99, yWas: 24.99 },
           2: { m: 35.99, mWas: 40.99, y: 27.66, yWas: 36.99 },
@@ -2280,7 +2275,7 @@
       },
       {
         name: 'Infinite', desc: 'Kein Nachdenken über Kontingente.',
-        feats: ['Unbegrenzt KI-Nachrichten', '15 Testklausuren / Monat', 'Bevorzugter Support'],
+        feats: ['Unbegrenzt KI-Nachrichten', '100 Dokumente / Monat', '15 Klausurvorbereitungen / Monat'],
         seats: {
           1: { m: 35.99, mWas: 44.99, y: 27.99, yWas: 44.99 },
           2: { m: 64.99, mWas: 73.99, y: 49.99, yWas: 66.99 },
@@ -2530,7 +2525,7 @@
      tote Helfer für die (inerten) Feature-Unterseiten stehen. ---------- */
   var PARENT = {
     eb: 'Eltern-Zugang',
-    h: 'Sie sehen, dass Ihr Kind dranbleibt — nicht, was es schreibt.',
+    h: 'Immer im Bild, ohne über die Schulter zu schauen.',
     lead: 'Ein Eltern-Konto bündelt alle Kinder. Pro Kind ein ruhiger Wochenüberblick: Aktivität, offene Lerntage, anstehende Klausuren — bewusst ohne Chat-Inhalte, ohne Lernzettel, ohne Noten.',
     kpis: [
       { n: '4', l: 'Fächer aktiv' },
@@ -2542,7 +2537,6 @@
     ],
     cards: [
       { t: 'Ein Konto, mehrere Kinder', d: 'Familien-Paket mit 2 bis 4 Plätzen. Jedes Kind mit vollem eigenem Kontingent und getrenntem Lernbereich.' },
-      { t: 'Kein Betreuungsaufwand', d: 'Ihr Kind richtet Lesify selbst ein. Sie stellen nichts ein, korrigieren nichts, moderieren nichts.' },
       { t: 'Datenschutz von Haus aus', d: 'Server in der EU, jede Familie sieht nur die eigenen Inhalte, Datei-Links laufen nach 60 Sekunden ab.' }
     ],
     /* 1:1 aus SEED.familie.kinder (app/assets/js/data.js) — inkl. der
@@ -2629,7 +2623,7 @@
     h: 'Was Eltern vor dem Start wissen wollen.',
     items: [
       { q: 'Ersetzt Lesify die Nachhilfe komplett?', a: 'Für Verständnisfragen und Klausurvorbereitung in der Regel ja. Bei tiefen, über Jahre gewachsenen Lücken oder wenn Ihr Kind die Verbindlichkeit eines festen Termins braucht, bleibt persönliche Förderung sinnvoll.' },
-      { q: 'Für welche Klassenstufen ist Lesify gemacht?', a: 'Für die 8. und 9. Klasse an Gymnasium, Real- und Gesamtschule. Inhalte und Tonfall der KI orientieren sich an diesem Niveau.' },
+      { q: 'Für welche Klassenstufen ist Lesify geeignet?', a: 'Lesify ist für alle Klassenstufen ab dem 5. Schuljahr geeignet. Die KI passt sich dabei automatisch der Klassenstufe an.' },
       { q: 'Macht die KI die Hausaufgaben einfach fertig?', a: 'Nein. Der Hausaufgaben-Modus erklärt den Lösungsweg und stellt Rückfragen, statt nur ein Ergebnis auszugeben.' },
       { q: 'Wie steht es um den Datenschutz?', a: 'Daten werden auf Servern in der EU verarbeitet, jede Familie sieht nur die eigenen Inhalte, hochgeladene Dateien sind nur über kurz gültige Links erreichbar.' },
       { q: 'Was kostet Lesify nach der Testphase?', a: 'Nach 14 Tagen wählst du einen Tarif: Starter, Premium oder Infinite. Im Angebot ab 15,99 € im Monat, monatlich kündbar. Familien-Pakete für 2 bis 4 Kinder.' }
@@ -2679,7 +2673,7 @@
   var CTA = {
     eb: 'Loslegen',
     h: 'Testen Sie Lesify diese Woche kostenlos.',
-    lead: 'Konto in zwei Minuten, ein Fach anlegen, erste Frage stellen. Keine Kreditkarte, keine Kündigungsfrist.',
+    lead: '14 Tage kostenlos testen und Lesify in Ruhe kennenlernen. Jederzeit kündbar, ganz ohne Risiko.',
     small: 'Prototyp mit Demo-Inhalten: die KI-Antworten sind derzeit simulierter Platzhaltertext.'
   };
   function ctaBtns(dark) {
@@ -2715,16 +2709,16 @@
     shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6l7-3z"></path><path d="m9 12 2 2 4-4"></path></svg>'
   };
   var TLDR = {
-    eb: 'Das Wichtigste zuerst',
+    eb: 'Alle Vorteile auf einen Blick',
     h: 'Alles, was Lesify besonders macht — auf einen Blick.',
-    lead: 'Ein Werkzeug für die komplette Strecke zwischen zwei Klausuren: erklären, zusammenfassen, üben und die Note vorab prüfen. Ohne Fahrweg, ohne festen Termin.',
+    lead: 'Statt Chaos aus Heften, Apps, KI-Chats und Erklär-Videos gibt es bei uns alles an einem Ort – strukturiertes lernen statt planlos büffeln.',
     points: [
-      { ic: 'chat', t: 'KI-Chat pro Fach & Thema', s: 'Vier Modi, kennt Lernzettel & Dateien des Themas.', m: 'Vier Modi — erklären, Hausaufgaben, üben, abfragen — und jeder Chat kennt die Lernzettel und Dateien des Themas.', d: 'Vier Modi — erklären, Hausaufgaben, üben, abfragen. Jeder Chat kennt die Lernzettel und Dateien des Themas und bleibt auf dem Niveau der Jahrgangsstufe.' },
-      { ic: 'doc', t: 'Lernzettel schreiben sich selbst', s: 'Entstehen automatisch aus den Chats.', m: 'Aus den Gesprächen entsteht automatisch eine kompakte Zusammenfassung, die per Chat weiter anpassbar bleibt.', d: 'Aus den Gesprächen entsteht automatisch eine kompakte Zusammenfassung — danach per Chat weiter anpassbar.' },
-      { ic: 'check', t: 'Testklausur mit echter Note', s: 'Freie Antworten, Note 1–6, Ampel pro Thema.', m: 'Freie Antworten werden aufgabenweise korrigiert und ergeben eine Note auf der Skala 1–6 plus eine Ampel pro Thema.', d: 'Freie Antworten statt Ankreuzen, aufgabenweise korrigiert, Note auf der deutschen Skala 1–6 und eine Ampel pro Thema.' },
-      { ic: 'cal', t: 'Lernplan bis zum Klausurtag', s: 'Tagesplan, schwache Themen zuerst.', m: 'Nach der Analyse baut Lesify einen Tagesplan über die Woche vor der Arbeit — schwache Themen zuerst, Nachtests inklusive.', d: 'Nach der Analyse baut Lesify einen Tagesplan über die Woche vor der Arbeit: schwache Themen zuerst, offene Nachtests inklusive.' },
-      { ic: 'folder', t: 'Dateien & Fotos als Kontext', s: 'Arbeitsblätter & Hefteinträge in jedem Chat.', m: 'Arbeitsblätter, Skripte und abfotografierte Hefteinträge fließen als Kontext in jeden Chat des Themas ein.', d: 'Arbeitsblätter, Skripte und abfotografierte Hefteinträge fließen in jeden Chat des Themas ein.' },
-      { ic: 'shield', t: 'Zu Hause und DSGVO-konform', s: '9 Fächer, 24/7, Server in der EU.', m: 'Neun Fächer, rund um die Uhr erreichbar, Server in der EU — jede Familie sieht nur die eigenen Inhalte.', d: 'Neun Fächer, rund um die Uhr erreichbar, Server in der EU. Jede Familie sieht nur die eigenen Inhalte.' }
+      { ic: 'cal', t: 'Klausurvorbereitung mit Plan', s: 'Ein fester Lernplan plus Testklausuren führt Ihr Kind Schritt für Schritt bis zur Prüfung.', m: 'Ein fester Lernplan plus Testklausuren führt Ihr Kind Schritt für Schritt bis zur Prüfung.', d: 'Ein fester Lernplan plus Testklausuren führt Ihr Kind Schritt für Schritt bis zur Prüfung.' },
+      { ic: 'check', t: 'Testklausuren mit echter Note', s: 'Realistische Probeklausuren decken Schwachstellen auf, damit Ihr Kind sie gezielt verbessern kann.', m: 'Realistische Probeklausuren decken Schwachstellen auf, damit Ihr Kind sie gezielt verbessern kann.', d: 'Realistische Probeklausuren decken Schwachstellen auf, damit Ihr Kind sie gezielt verbessern kann.' },
+      { ic: 'cal', t: 'Automatisch erstellte Lernpläne', s: 'Der Lernplan entsteht aus dem Testklausur-Ergebnis und verbessert gezielt die Schwachstellen.', m: 'Der Lernplan entsteht aus dem Testklausur-Ergebnis und verbessert gezielt die Schwachstellen.', d: 'Der Lernplan entsteht aus dem Testklausur-Ergebnis und verbessert gezielt die Schwachstellen.' },
+      { ic: 'chat', t: 'Für Schüler entwickelte KI', s: 'Eine KI, die altersgerecht erklärt und beim Verstehen hilft, aber keine fertigen Lösungen ausgibt.', m: 'Eine KI, die altersgerecht erklärt und beim Verstehen hilft, aber keine fertigen Lösungen ausgibt.', d: 'Eine KI, die altersgerecht erklärt und beim Verstehen hilft, aber keine fertigen Lösungen ausgibt.' },
+      { ic: 'folder', t: 'Organisation nach Fach und Thema', s: 'Alle Chats, Lernzettel und Dokumente sind immer sauber nach Fach und Thema geordnet.', m: 'Alle Chats, Lernzettel und Dokumente sind immer sauber nach Fach und Thema geordnet.', d: 'Alle Chats, Lernzettel und Dokumente sind immer sauber nach Fach und Thema geordnet.' },
+      { ic: 'doc', t: 'Erstellung von Lernzetteln', s: 'Vor jeder Klausur fasst ein Lernzettel alle wichtigen Themen kompakt auf einem Blatt zusammen.', m: 'Vor jeder Klausur fasst ein Lernzettel alle wichtigen Themen kompakt auf einem Blatt zusammen.', d: 'Vor jeder Klausur fasst ein Lernzettel alle wichtigen Themen kompakt auf einem Blatt zusammen.' }
     ],
     stats: [
       { n: '9', l: 'Schulfächer' },
@@ -2737,7 +2731,7 @@
   function tldrCta(dark) {
     var c = dark ? ' btn-on-dark' : '';
     return '<div class="lab-cta"><a class="btn btn-primary' + c + ' btn-lg" href="/registrieren/">Kostenlos starten</a>' +
-      '<a class="btn btn-secondary' + c + ' btn-lg" href="#how">So funktioniert&rsquo;s</a></div>';
+      '<a class="btn btn-secondary' + c + ' btn-lg" href="#kv">Mehr erfahren</a></div>';
   }
   function tldrItems(kind) {
     return TLDR.points.map(function (p, i) {

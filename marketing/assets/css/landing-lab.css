@@ -676,7 +676,7 @@ body[data-header="2"] .hv9[data-hero-bg="9"] .hv9__panel::after {
 .chat-perk__ico svg { width: 18px; height: 18px; }
 .chat-perks b { display: block; font-size: 0.98rem; letter-spacing: -0.01em; margin-bottom: 3px; }
 .chat-perks p { font-size: 0.86rem; line-height: 1.55; color: var(--ink-600); margin: 0; }
-.chat-perks--row, .chat-perks--cards, .chat-perks--2x2 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin: 0; }
+.chat-perks--row, .chat-perks--cards, .chat-perks--2x2 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin: 0; }
 .chat-perks--2x2 { grid-template-columns: 1fr 1fr; }
 .chat-perks--row li, .chat-perks--cards li, .chat-perks--2x2 li { flex-direction: column; gap: 10px; }
 .chat-perks--cards li { background: var(--bg-surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 18px; }

@@ -1958,9 +1958,8 @@
      Section) — jetzt in die Struktur-Section integriert. Zeigt bewusst nur
      6 kuratierte Fächer + eine "und X weitere"-Karte (18 Fächer insgesamt
      laut Subheadline, aber 18 Karten wären unübersichtlich) + "Eigenes Fach"-
-     Karte. 10 Layout-Varianten für die "weitere"-Karte/Anordnung, per
-     Dev-Panel umschaltbar (data-orgfaecher, localStorage['lesify:orgfaecher:v']),
-     siehe LAB_SECTIONS/mountLabDev. ---------- */
+     Karte. Final auf v2 (Ghost) gewählt (2026-09-16, siehe LAB_SECTIONS),
+     die anderen 9 Layout-Varianten bleiben als toter Code stehen. ---------- */
   /* Lazy statt Modul-Konstante: SUBJ_LIST wird erst weiter unten im Skript
      deklariert, ist zur Ladezeit dieser Zeile also noch undefined — daher
      als Funktion, die erst beim ersten renderOrgFaecher()-Aufruf läuft. */
@@ -2241,26 +2240,37 @@
   }
   function cmpHonest() { return '<p class="cmp-honest">' + CMP_HONEST + '</p>'; }
 
-  /* ---------- Preisvergleich (cmp, NEU) — "gleicher Preis, was bekommt
-     man dafür": 30 Tage Lesify Premium vs. eine einzelne Nachhilfestunde,
-     gleicher Preispunkt (~20 €). 10 neue Layout-Varianten + v11 = die
-     bisherige "Lesify vs. klassische Nachhilfe"-Section unverändert
-     (siehe CMP/cmpCard oben), damit beide Ansätze im Dev-Panel
-     verglichen werden können, bevor final entschieden wird. ---------- */
+  /* ---------- Preisvergleich (cmp) — "gleicher Preis, was bekommt man
+     dafür": 30 Tage Lesify Premium vs. eine einzelne Nachhilfestunde,
+     gleicher Preispunkt (~20 €). Final auf v1 (Cards) gewählt (2026-09-16),
+     die alte "Lesify vs. klassische Nachhilfe"-Section (CMP/cmpCard oben,
+     ehem. v11) bleibt als toter Code stehen, ebenso die anderen
+     Layout-Varianten v2–v10. ---------- */
   var CMP_VALUE = {
     eb: 'Gleicher Preis, mehr Wert',
     h: '30 Tage Lesify Premium oder eine Stunde Nachhilfe.',
-    lead: 'Für ungefähr denselben Preis bekommen Sie entweder eine einzelne Nachhilfestunde — oder einen ganzen Monat Lesify Premium mit allen Fächern, KI-Chat und Klausurvorbereitung.',
-    note: 'Preise für Nachhilfestunden variieren nach Region und Fach — 20 € pro Stunde ist ein üblicher Richtwert.',
+    lead: 'Preis, Verfügbarkeit, Flexibilität, messbare Ergebnisse u. v. m. – Punkt für Punkt zeigt sich, dass Lesify der klassischen Nachhilfe überall einen Schritt voraus ist.',
     rows: [
       { k: 'Preis', a: '19,99 € im Monat', b: 'ca. 20 € pro Stunde', w: 'x' },
-      { k: 'Nutzungsdauer', a: '30 Tage lang verfügbar', b: '60 Minuten, ein Termin', w: 'a' },
-      { k: 'Fächer', a: 'Alle Fächer inklusive', b: 'Ein Fach, eine Lehrkraft', w: 'a' },
-      { k: 'KI-Chat-Nachrichten', a: '250 Nachrichten', b: 'keine', w: 'a' },
-      { k: 'Klausurvorbereitung', a: '5 Testklausuren + Lernplan', b: 'nach Absprache mit der Lehrkraft', w: 'a' },
-      { k: 'Verfügbarkeit', a: '24/7, sofort', b: 'nur zum gebuchten Termin', w: 'a' }
+      { k: 'Nutzungsdauer', a: '30 Tage lang rund um die Uhr verfügbar', b: 'einmalig 60 Minuten pro Termin', w: 'a' },
+      { k: 'Erreichbarkeit', a: '24/7 sofort verfügbar bei jeder Frage', b: 'erst nach vorheriger Terminabsprache', w: 'a' },
+      { k: 'Fächer', a: '18 vorinstalliert, weitere jederzeit kostenlos ergänzbar', b: 'meist nur ein Fach pro Nachhilfelehrer', w: 'a' },
+      { k: 'Themen', a: 'unbegrenzt viele Themen anlegbar', b: 'nur 2–3 Themen pro Sitzung', w: 'a' },
+      { k: 'Klausurvorbereitung', a: 'bis zu 5 Klausurvorbereitungen pro Monat', b: 'mehrere Stunden für eine einzige Klausur', w: 'a' },
+      { k: 'Organisation', a: 'sortiert alle Dokumente und Dateien automatisch', b: 'die Zettelwirtschaft wird nur noch größer', w: 'a' },
+      { k: 'Selbstständigkeit', a: 'Ihr Kind lernt, sich Inhalte selbst zu erarbeiten', b: 'Ihr Kind bleibt auf den Nachhilfelehrer angewiesen', w: 'a' },
+      { k: 'Motivation', a: 'sichtbare Fortschritte halten Ihr Kind von allein bei der Sache', b: 'die Motivation hängt stark von Terminen und Druck ab', w: 'a' }
     ]
   };
+  /* Gewinner-Markierung: grüner Haken beim Gewinner, roter X-Akzent bei der
+     unterlegenen Seite (deutlicher als der neutrale Strich), echtes
+     Unentschieden (w:'x', z. B. beim Preis) bleibt neutral grau. */
+  var LAB_X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"></line><line x1="18" y1="6" x2="6" y2="18"></line></svg>';
+  function cmpValueMark(win, side) {
+    if (win === side) return '<span class="cmp-i cmp-i--y">' + LAB_CHECK + '</span>';
+    if (win === 'x') return '<span class="cmp-i cmp-i--n">' + LAB_DASH + '</span>';
+    return '<span class="cmp-i cmp-i--x">' + LAB_X + '</span>';
+  }
   function cmpValueCard(side, opts) {
     opts = opts || {};
     var name = side === 'a' ? '30 Tage Lesify Premium' : '60 Minuten Nachhilfe';
@@ -2268,13 +2278,12 @@
       (opts.tag && side === 'a' ? '<span class="cmp-card__tag">Mehr für Ihr Geld</span>' : '') +
       '<h3>' + (side === 'a' ? CMP_SPARK : '') + name + '</h3><ul>' +
       CMP_VALUE.rows.map(function (r) {
-        return '<li class="' + (r.w === side ? 'is-win' : 'is-lose') + '">' + cmpMark(r.w, side) +
+        return '<li class="' + (r.w === side ? 'is-win' : 'is-lose') + '">' + cmpValueMark(r.w, side) +
           '<div><b>' + r.k + '</b><span>' + r[side] + '</span></div></li>';
       }).join('') + '</ul>' +
       (side === 'a' && opts.cta !== false ? '<a class="btn btn-primary btn-block" href="/registrieren/">Premium jetzt testen</a>' : '') +
     '</article>';
   }
-  function cmpValueNote() { return '<p class="cmp-honest">' + CMP_VALUE.note + '</p>'; }
   function renderCmp(v) {
     var head = lh(CMP_VALUE.eb, CMP_VALUE.h, CMP_VALUE.lead), headC = lh(CMP_VALUE.eb, CMP_VALUE.h, CMP_VALUE.lead, true);
     var aw = CMP_VALUE.rows.filter(function (r) { return r.w === 'a'; }).length;
@@ -2282,11 +2291,11 @@
 
     /* 2 · Empfohlen — große, hervorgehobene Premium-Karte + Tag. */
     if (v === '2') return lw('cmp', v, '<div class="container">' + headC +
-      '<div class="cmp-cards cmp-cards--feat">' + cmpValueCard('a', { tag: true, cls: 'cmp-card--big' }) + cmpValueCard('b') + '</div>' + cmpValueNote() + '</div>');
+      '<div class="cmp-cards cmp-cards--feat">' + cmpValueCard('a', { tag: true, cls: 'cmp-card--big' }) + cmpValueCard('b') + '</div>' + '</div>');
 
     /* 3 · Gleichung — "="-Zeichen statt "vs", betont den identischen Preis. */
     if (v === '3') return lw('cmp', v, '<div class="container">' + headC +
-      '<div class="cmp-cards cmp-cards--vs">' + cmpValueCard('a') + '<span class="cmp-vs cmp-vs--eq">=</span>' + cmpValueCard('b') + '</div>' + cmpValueNote() + '</div>');
+      '<div class="cmp-cards cmp-cards--vs">' + cmpValueCard('a') + '<span class="cmp-vs cmp-vs--eq">=</span>' + cmpValueCard('b') + '</div>' + '</div>');
 
     /* 4 · Tabelle — Zeile für Zeile nebeneinander ausgerichtet. */
     if (v === '4') return lw('cmp', v, '<div class="container">' + head +
@@ -2299,7 +2308,7 @@
 
     /* 5 · Dark. */
     if (v === '5') return lw('cmp', v, '<div class="container">' + headC +
-      '<div class="cmp-cards cmp-cards--dark">' + cmpValueCard('a') + cmpValueCard('b') + '</div>' + cmpValueNote() + '</div>');
+      '<div class="cmp-cards cmp-cards--dark">' + cmpValueCard('a') + cmpValueCard('b') + '</div>' + '</div>');
 
     /* 6 · Lead-in — Premium breit und betont, Nachhilfe schmal/gedämpft. */
     if (v === '6') return lw('cmp', v, '<div class="container">' + head +
@@ -2342,7 +2351,7 @@
 
     /* 1 · Cards (Default) — je eine Karte, Hinweis zur Preisspanne darunter. */
     return lw('cmp', v, '<div class="container">' + headC +
-      '<div class="cmp-cards">' + cmpValueCard('a') + cmpValueCard('b') + '</div>' + cmpValueNote() + '</div>');
+      '<div class="cmp-cards">' + cmpValueCard('a') + cmpValueCard('b') + '</div>' + '</div>');
   }
 
   /* ---------- Fächer & Klassenstufen (subj) ---------- */
@@ -2414,7 +2423,7 @@
      nie die Jahressumme. */
   var PRICE = {
     eb: 'Preise',
-    h: '60 Minuten Nachhilfe oder ein ganzer Monat Lesify Premium.',
+    h: 'Monatlich kündbar, 14 Tage kostenlos testen.',
     lead: '14 Tage kostenlos testen, danach automatisch der gewählte Tarif. Monatlich kündbar. Aktuell −20 % zum Schuljahresstart. Für Geschwister: Familien-Pakete mit Sitzen für 2 bis 4 Kinder.',
     plans: [
       {
@@ -3042,8 +3051,8 @@
     { key: 'tldr', render: renderTldr, fixed: '16' },
     { key: 'kv', render: renderKv, init: kvlInit, fixed: '5' },
     { key: 'org', render: renderOrg, init: orgInit, fixed: '11' },
-    { key: 'orgfaecher', render: renderOrgFaecher },
-    { key: 'cmp', render: renderCmp, def: '11' },
+    { key: 'orgfaecher', render: renderOrgFaecher, fixed: '2' },
+    { key: 'cmp', render: renderCmp, fixed: '1' },
     { key: 'price', render: renderPrice, init: priceInit, fixed: '4' },
     { key: 'parent', render: renderParent, fixed: '1' },
     { key: 'faq', render: renderFaq, fixed: '1' },
@@ -3439,11 +3448,11 @@
   }
 
   /* Header, Karte, Hero-Farbe, KI-Chat (v3), TLDR (v16), Preise (v4),
-     KV (v5), Struktur/org (v11), Parent (v1), FAQ (v1) und CTA (v1) final
-     gewählt — Sections mit `fixed` (siehe LAB_SECTIONS) erscheinen
-     nicht als Achse. Offen im Dev-Panel (2026-09-16): "orgfaecher"
-     (Fächer-Kachel-Layout, 10 Varianten) und "cmp" (Preisvergleich-
-     Redesign, 10 neue Varianten + v11 = bisherige Section). */
+     KV (v5), Struktur/org (v11), Fächer-Kachel-Layout/orgfaecher (v2),
+     Preisvergleich/cmp (v1), Parent (v1), FAQ (v1) und CTA (v1) final
+     gewählt — Sections mit `fixed` (siehe LAB_SECTIONS) erscheinen nicht
+     als Achse. Aktuell keine offenen Achsen, `mountLabDev()` bleibt als
+     toter Helfer (siehe DOMContentLoaded). */
   var LAB_DEV_AXES = LAB_API.filter(function (a) { return !a.fixed; }).map(function (a) {
     return { key: a.key, label: a.key, ls: 'lesify:' + a.key + ':v', list: a.list, get: a.get, apply: a.apply };
   });
@@ -3550,11 +3559,8 @@
     initHeroSlides();
     buildChatSection();
     buildLabSections();
-    /* Dev-Tool (2026-09-16 wieder aktiviert) — nur noch "orgfaecher" (Fächer-
-       Kachel-Layout) und "cmp" (Preisvergleich-Redesign) sind offene Achsen,
-       alle anderen Sections bleiben `fixed` (siehe LAB_SECTIONS) und
-       erscheinen daher nicht im Panel. Wieder entfernen, sobald ein Layout
-       final gewählt und in LAB_SECTIONS auf `fixed` gesetzt ist. */
-    mountLabDev();
+    /* Dev-Tool (2026-09-16 aktiviert, 2026-09-16 final entfernt) — "orgfaecher"
+       auf v2 (Ghost) und "cmp" auf v1 (Cards, mit neuem 9-Zeilen-Content)
+       final gewählt (siehe LAB_SECTIONS `fixed`), kein Dev-Panel mehr. */
   });
 })();

@@ -351,6 +351,31 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
         gewinnt Nutzungsdauer/Fächer/KI-Nachrichten/Klausurvorbereitung/
         Verfügbarkeit). Sobald eine Richtung final ist: `LAB_SECTIONS`-Eintrag
         auf `fixed` setzen.
+- [x] **Beide offenen Layout-Fragen final entschieden** (2026-09-16, nach
+      deiner Durchsicht) — `LAB_SECTIONS` auf `fixed` gesetzt, `mountLabDev()`
+      wieder aus `DOMContentLoaded` entfernt, kein Dev-Panel mehr:
+  - [x] **„Fächer"-Kachel-Raster:** **v2 „Ghost"** gewählt (`orgfaecher`
+        `fixed: '2'`) — „+12 weitere" als gestrichelte Karte mit
+        Auslassungs-Icon statt Zahlen-Kachel.
+  - [x] **Vergleichs-Section:** **v1 „Cards"** gewählt (`cmp` `fixed: '1'`),
+        die alte "Lesify vs. klassische Nachhilfe"-Section (ehem. v11) ist
+        damit vom Netz. Content von 6 auf **9 Zeilen** erweitert (Preis,
+        Nutzungsdauer, Erreichbarkeit, Fächer, Themen, Klausurvorbereitung,
+        Organisation, Selbstständigkeit, Motivation — Wortlaut von dir
+        geliefert). Kopf: Eyebrow/Headline aus dem neuen `CMP_VALUE` bleiben
+        ("Gleicher Preis, mehr Wert" / "30 Tage Lesify Premium oder eine
+        Stunde Nachhilfe."), Subheadline bewusst auf den bisherigen Text
+        zurückgesetzt ("Preis, Verfügbarkeit, Flexibilität, messbare
+        Ergebnisse u. v. m. …"). Der Preisspannen-Hinweis unter den Karten
+        ist raus. Gewinner-Markierung: grüner Haken bleibt, die unterlegene
+        Seite bekommt jetzt einen **roten X-Akzent** (`--rot`/`--rot-bg`,
+        `.cmp-i--x`) statt des neutralen grauen Strichs — nur die echte
+        Unentschieden-Zeile (Preis) bleibt neutral grau.
+- [x] **Preise-Headline entschärft** (2026-09-16): überschnitt sich inhaltlich
+      mit der neuen Vergleichs-Section ("60 Minuten Nachhilfe oder ein ganzer
+      Monat Lesify Premium." stand an beiden Stellen) — `PRICE.h` jetzt
+      „Monatlich kündbar, 14 Tage kostenlos testen.", Rest der Preise-Section
+      unverändert.
 
 ---
 

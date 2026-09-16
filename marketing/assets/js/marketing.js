@@ -22,16 +22,16 @@
     check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
   };
 
-  /* Zwei eigenständige Seiten im Frontend: Home, Über uns. Preise und FAQ
-     sind KEINE eigenen Seiten mehr (Stand 2026-09-12) — wie zuvor schon die
-     Funktions-Unterseiten (feature-*.html) und der Vergleich leben ihre
-     Inhalte als Abschnitte auf der Startseite (#price / #faq); die Nav-
-     Einträge verlinken dorthin. Das Mega-Menü- und Feature-Seiten-Gerüst
-     weiter unten bleibt vorerst inert (kein Nav-Eintrag mit .mega, keine
-     Seite mit #feature-page). */
+  /* Drei eigenständige Seiten im Frontend: Home, Über uns, Preise (seit
+     2026-09-16 — eigene Route statt Homepage-Anker, siehe UMSETZUNGSPLAN.md
+     „Preise-Seite"). FAQ bleibt eine Sektion auf der Startseite (#faq); wie
+     zuvor schon die Funktions-Unterseiten (feature-*.html) und der
+     Vergleich lebt ihr Inhalt als Abschnitt dort. Das Mega-Menü- und
+     Feature-Seiten-Gerüst weiter unten bleibt vorerst inert (kein Nav-
+     Eintrag mit .mega, keine Seite mit #feature-page). */
   var NAV_LINKS = [
     { href: '/', label: 'Home', page: 'index' },
-    { href: '/#price', label: 'Preise' },
+    { href: '/preise/', label: 'Preise', page: 'preise' },
     { href: '/ueber-uns/', label: 'Über uns', page: 'ueber-uns' },
     { href: '/#faq', label: 'FAQ' }
   ];
@@ -40,7 +40,7 @@
     { title: 'Produkt', links: [
       { href: '/', label: 'Überblick' },
       { href: '/#kv', label: 'So funktioniert’s' },
-      { href: '/#price', label: 'Preise' },
+      { href: '/preise/', label: 'Preise' },
       { href: '/#faq', label: 'Häufige Fragen' }
     ]},
     { title: 'Unternehmen', links: [
@@ -91,7 +91,10 @@
     }
 
     host.className = 'mkt-nav';
-    applyHeaderVariant('4a'); /* final gewählt, nicht mehr umschaltbar */
+    /* final gewählt, nicht mehr umschaltbar — außer /preise/: eigener
+       dunkler, nicht scrollender Seitenhintergrund, deshalb "5" (immer
+       die helle Pille, kein transparent-über-Hero/Scroll-Umschalten). */
+    applyHeaderVariant(current === 'preise' ? '5' : '4a');
 
     var CARET = '<svg class="mkt-nav__caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>';
 
@@ -133,7 +136,7 @@
         '<nav class="mkt-nav__links">' + links + '</nav>' +
         '<div class="mkt-nav__actions">' +
           '<a class="mkt-nav__link" href="/login/">Anmelden</a>' +
-          '<a class="btn btn-primary" href="/registrieren/">Kostenlos starten</a>' +
+          '<a class="btn btn-primary" href="/preise/">Kostenlos starten</a>' +
           '<button class="nav-toggle" type="button" aria-label="Menü öffnen" aria-expanded="false">' + ICON.menu + '</button>' +
         '</div>' +
       '</div>' +
@@ -141,7 +144,7 @@
         sheetLinks +
         '<div class="sheet-actions">' +
           '<a class="btn btn-secondary btn-block" href="/login/">Anmelden</a>' +
-          '<a class="btn btn-primary btn-block" href="/registrieren/">Kostenlos starten</a>' +
+          '<a class="btn btn-primary btn-block" href="/preise/">Kostenlos starten</a>' +
         '</div>' +
       '</div>';
 
@@ -1111,7 +1114,7 @@
     t: 'Zum ersten Mal hat meine Tochter abends von selbst den Chat aufgemacht, weil sie eine Matheaufgabe knacken wollte — nicht, weil ich sie erinnert habe.',
     by: 'Katrin R., Mutter, 8. Klasse'
   };
-  function chatCTA() { return '<div class="chat-cv__cta"><a class="btn btn-primary btn-on-dark btn-lg" href="/registrieren/">KI-Chat testen</a></div>'; }
+  function chatCTA() { return '<div class="chat-cv__cta"><a class="btn btn-primary btn-on-dark btn-lg" href="/preise/">KI-Chat testen</a></div>'; }
   function chatStripSmall() {
     return '<ul class="chat-cv__strip">' + CHAT_PERKS.map(function (p) {
       return '<li><span class="chat-perk__ico">' + p.icon + '</span><b>' + p.title + '</b></li>';
@@ -1517,7 +1520,7 @@
       '<div class="kvl-cv__facts">' + KVL.facts.map(function (f) {
         return '<div><b>' + f.n + '</b><span>' + f.l + '</span></div>';
       }).join('') + '</div>' +
-      (opts.noCta ? '' : '<a class="btn btn-primary btn-lg" href="/registrieren/">Klausur anlegen</a>') +
+      (opts.noCta ? '' : '<a class="btn btn-primary btn-lg" href="/preise/">Klausur anlegen</a>') +
       '</div>';
   }
   function kvlStepMarkup(day, i, active) {
@@ -1659,7 +1662,7 @@
           '<b>' + p.t + '</b><span>' + p.s + '</span></div>';
       }).join('') +
       '<div class="kvl-bento__cell kvl-bento__cell--cta"><b>In zwei Minuten startklar</b>' +
-      '<a class="btn btn-primary" href="/registrieren/">Klausur anlegen</a></div></div></div>');
+      '<a class="btn btn-primary" href="/preise/">Klausur anlegen</a></div></div></div>');
 
     /* 8 · Timeline — 7 Tage als horizontale Schiene, darunter der Fokus-Tag */
     if (v === '8') return lw('kv', v, '<div class="container container--mid kvl-cv kvl-cv--timeline">' + headC +
@@ -1933,7 +1936,7 @@
   function orgSwitchText(cta) {
     return '<div class="org-cv__text"><span class="eyebrow">' + ORG.eb + '</span><h2>' + ORG.h + '</h2>' +
       '<p class="lab-lead">' + ORG.lead + '</p>' + orgSwitchCards() +
-      (cta ? '<a class="btn btn-primary btn-lg" href="/registrieren/">Kostenlos starten</a>' : '') + '</div>';
+      (cta ? '<a class="btn btn-primary btn-lg" href="/preise/">Kostenlos starten</a>' : '') + '</div>';
   }
   function orgDots() {
     return '<div class="orgx-dots" role="tablist" aria-label="Seite wählen">' + ORG.steps.map(function (st, i) {
@@ -1954,9 +1957,9 @@
   function orgText(cta) {
     return '<div class="org-cv__text"><span class="eyebrow">' + ORG.eb + '</span><h2>' + ORG.h + '</h2>' +
       '<p class="lab-lead">' + ORG.lead + '</p>' + orgPoints('org-cv__points--stack') +
-      (cta ? '<a class="btn btn-primary btn-lg" href="/registrieren/">Kostenlos starten</a>' : '') + '</div>';
+      (cta ? '<a class="btn btn-primary btn-lg" href="/preise/">Kostenlos starten</a>' : '') + '</div>';
   }
-  function orgCTA() { return '<div class="org-cv__cta"><a class="btn btn-primary btn-lg" href="/registrieren/">Kostenlos starten</a></div>'; }
+  function orgCTA() { return '<div class="org-cv__cta"><a class="btn btn-primary btn-lg" href="/preise/">Kostenlos starten</a></div>'; }
   /* ---------- Fächer-Übersicht (früher eigene „Fächer & Klassenstufen"-
      Section) — jetzt in die Struktur-Section integriert. Zeigt bewusst nur
      6 kuratierte Fächer + eine "und X weitere"-Karte (18 Fächer insgesamt
@@ -2021,7 +2024,7 @@
       '<ul class="org-fpills">' + items.map(function (f) {
         return '<li class="org-fpill" style="--t:' + f.t + '"><span class="org-fpill__ico">' + f.i + '</span>' + f.n + '</li>';
       }).join('') + '<li class="org-fpill org-fpill--more">+' + ORG_FAECHER_MORE + ' weitere</li></ul>' +
-      '<a class="btn btn-secondary" href="/registrieren/">Eigenes Fach anlegen</a></div>');
+      '<a class="btn btn-secondary" href="/preise/">Eigenes Fach anlegen</a></div>');
 
     /* 5 · Bento — ein Fach groß, Rest kompakt, "weitere" als breite Zeile
        am Fuß des Rasters. */
@@ -2055,7 +2058,7 @@
         return '<li style="--t:' + f.t + '"><span class="org-fach__av">' + f.i + '</span><b>' + f.n + '</b><span>' + f.m + '</span></li>';
       }).join('') +
       '<li class="org-flist__more"><b>und ' + ORG_FAECHER_MORE + ' weitere Fächer</b><span>von Kunst bis Wirtschaft</span></li></ul>' +
-      '<a class="btn btn-secondary" href="/registrieren/">Eigenes Fach anlegen</a></div>');
+      '<a class="btn btn-secondary" href="/preise/">Eigenes Fach anlegen</a></div>');
 
     /* 9 · Ring — kreisrunde Avatare statt Kacheln. */
     if (v === '9') return lw('orgfaecher', v, '<div class="org-faecher">' + orgFachHead('is-center') +
@@ -2071,7 +2074,7 @@
       return lw('orgfaecher', v, '<div class="org-faecher org-faecher--editorial">' + orgFachHead('is-center') +
         '<p class="org-fedit">' + names + ' und ' + ORG_FAECHER_MORE + ' weitere Fächer — <b>18 insgesamt</b>, ' +
         'jederzeit um ein eigenes ergänzbar.</p>' +
-        '<a class="btn btn-primary" href="/registrieren/">Eigenes Fach anlegen</a></div>');
+        '<a class="btn btn-primary" href="/preise/">Eigenes Fach anlegen</a></div>');
     }
 
     /* 1 · Zahlen-Kachel (Default) — gleiches Raster wie bisher, "weitere"
@@ -2114,7 +2117,7 @@
           '><b>' + p.t + '</b><span>' + p.s + '</span></div>';
       }).join('') +
       '<div class="org-bento__cell org-bento__cell--cta"><b>Von Anfang an sortiert</b>' +
-      '<a class="btn btn-primary" href="/registrieren/">Kostenlos starten</a></div></div></div>');
+      '<a class="btn btn-primary" href="/preise/">Kostenlos starten</a></div></div></div>');
 
     /* 8 · Zebra — Punkte als volle Wechsel-Reihen unter der Demo */
     if (v === '8') return lw('org', v, '<div class="container container--mid org-cv org-cv--zebra">' + headC +
@@ -2238,7 +2241,7 @@
         return '<li class="' + (r.w === side ? 'is-win' : 'is-lose') + '">' + cmpMark(r.w, side) +
           '<div><b>' + r.k + '</b><span>' + r[side] + '</span></div></li>';
       }).join('') + '</ul>' +
-      (side === 'a' && opts.cta !== false ? '<a class="btn btn-primary btn-block" href="/registrieren/">Kostenlos starten</a>' : '') +
+      (side === 'a' && opts.cta !== false ? '<a class="btn btn-primary btn-block" href="/preise/">Kostenlos starten</a>' : '') +
     '</article>';
   }
   function cmpHonest() { return '<p class="cmp-honest">' + CMP_HONEST + '</p>'; }
@@ -2284,7 +2287,7 @@
         return '<li class="' + (r.w === side ? 'is-win' : 'is-lose') + '">' + cmpValueMark(r.w, side) +
           '<div><b>' + r.k + '</b><span>' + r[side] + '</span></div></li>';
       }).join('') + '</ul>' +
-      (side === 'a' && opts.cta !== false ? '<a class="btn btn-primary btn-block" href="/registrieren/">Premium jetzt testen</a>' : '') +
+      (side === 'a' && opts.cta !== false ? '<a class="btn btn-primary btn-block" href="/preise/">Premium jetzt testen</a>' : '') +
     '</article>';
   }
   function renderCmp(v) {
@@ -2329,7 +2332,7 @@
         return '<article class="cmp-card cmp-card--' + side + '"><h3>' + (side === 'a' ? '<span class="cmp-card__spark">' + CMP_SPARK + '</span>' : '') + (side === 'a' ? '30 Tage Premium' : '60 Min. Nachhilfe') + '</h3><ul>' +
           CMP_VALUE.rows.map(function (r) {
             return '<li><b>' + r.k + '</b><span class="cmp-pill ' + (r.w === side ? 'is-win' : '') + '">' + r[side] + '</span></li>';
-          }).join('') + '</ul>' + (side === 'a' ? '<a class="btn btn-on-dark btn-primary btn-block" href="/registrieren/">Premium jetzt testen</a>' : '') + '</article>';
+          }).join('') + '</ul>' + (side === 'a' ? '<a class="btn btn-on-dark btn-primary btn-block" href="/preise/">Premium jetzt testen</a>' : '') + '</article>';
       }).join('') + '</div></div>');
 
     /* 9 · Preisschild — großer, zentrierter Preis-Anker über den zwei Karten. */
@@ -2345,7 +2348,7 @@
           '<span class="cmp-vbento__side' + (r.w === 'a' ? ' is-win' : '') + '">' + cmpMark(r.w, 'a') + r.a + '</span>' +
           '<span class="cmp-vbento__side' + (r.w === 'b' ? ' is-win' : '') + '">' + cmpMark(r.w, 'b') + r.b + '</span></div>';
       }).join('') + '</div>' +
-      '<div class="lab-cta"><a class="btn btn-primary btn-lg" href="/registrieren/">Premium jetzt testen</a></div></div>');
+      '<div class="lab-cta"><a class="btn btn-primary btn-lg" href="/preise/">Premium jetzt testen</a></div></div>');
 
     /* 11 · Aktuell — die bisherige Section unverändert: "Lesify oder
        klassische Nachhilfe?" mit den 6 allgemeinen Vorteils-Zeilen. */
@@ -2866,8 +2869,8 @@
   };
   function ctaBtns(dark) {
     var c = dark ? ' btn-on-dark' : '';
-    return '<div class="lab-cta"><a class="btn btn-primary' + c + ' btn-lg" href="/registrieren/">Kostenlos starten</a>' +
-      '<a class="btn btn-secondary' + c + ' btn-lg" href="/#price">Preise ansehen</a></div>';
+    return '<div class="lab-cta"><a class="btn btn-primary' + c + ' btn-lg" href="/preise/">Kostenlos starten</a>' +
+      '<a class="btn btn-secondary' + c + ' btn-lg" href="/preise/">Preise ansehen</a></div>';
   }
   function renderCta(v) {
     var h = '<h2>' + CTA.h + '</h2>', lead = '<p>' + CTA.lead + '</p>', small = '<small>' + CTA.small + '</small>';
@@ -2877,8 +2880,8 @@
     if (v === '5') return lw('cta', v, '<div class="container container--narrow cta-big">' + h + lead + ctaBtns() + '</div>');
     if (v === '6') return lw('cta', v, '<div class="container"><div class="cta-box">' + h + lead + ctaBtns() + small + '</div></div>');
     if (v === '7') return lw('cta', v, '<div class="container"><div class="cta-mesh"><span class="cta-mesh__m1"></span><span class="cta-mesh__m2"></span><div class="cta-mesh__in">' + h + lead + ctaBtns(true) + '</div></div></div>');
-    if (v === '8') return lw('cta', v, '<div class="container container--narrow cta-stack">' + h + lead + '<a class="btn btn-primary btn-lg btn-block" href="/registrieren/">Kostenlos starten</a><a class="btn btn-secondary btn-lg btn-block" href="/#price">Preise ansehen</a>' + small + '</div>');
-    if (v === '9') return lw('cta', v, '<div class="container"><div class="cta-strip"><div><b>' + CTA.h + '</b><span>' + CTA.lead + '</span></div><a class="btn btn-primary btn-lg" href="/registrieren/">Kostenlos starten</a></div></div>');
+    if (v === '8') return lw('cta', v, '<div class="container container--narrow cta-stack">' + h + lead + '<a class="btn btn-primary btn-lg btn-block" href="/preise/">Kostenlos starten</a><a class="btn btn-secondary btn-lg btn-block" href="/preise/">Preise ansehen</a>' + small + '</div>');
+    if (v === '9') return lw('cta', v, '<div class="container"><div class="cta-strip"><div><b>' + CTA.h + '</b><span>' + CTA.lead + '</span></div><a class="btn btn-primary btn-lg" href="/preise/">Kostenlos starten</a></div></div>');
     if (v === '10') return lw('cta', v, '<div class="container container--narrow cta-badge"><span class="cta-badge__b">14 Tage gratis</span>' + h + lead + ctaBtns() + '</div>');
     return lw('cta', v, '<div class="container"><div class="cta-band"><span class="eyebrow">' + CTA.eb + '</span>' + h + lead + ctaBtns(true) + small + '</div></div>');
   }
@@ -2916,7 +2919,7 @@
   };
   function tldrCta(dark) {
     var c = dark ? ' btn-on-dark' : '';
-    return '<div class="lab-cta"><a class="btn btn-primary' + c + ' btn-lg" href="/registrieren/">Kostenlos starten</a>' +
+    return '<div class="lab-cta"><a class="btn btn-primary' + c + ' btn-lg" href="/preise/">Kostenlos starten</a>' +
       '<a class="btn btn-secondary' + c + ' btn-lg" href="#kv">Mehr erfahren</a></div>';
   }
   function tldrItems(kind) {
@@ -3397,8 +3400,8 @@
           '<h2>' + data.h + '</h2>' +
           '<p>14 Tage kostenlos testen, danach ab 15,99 € im Monat. Keine Kreditkarte, monatlich kündbar.</p>' +
           '<div class="hero__cta">' +
-            '<a class="btn btn-on-dark btn-primary btn-lg" href="/registrieren/">Kostenlos starten</a>' +
-            '<a class="btn btn-on-dark btn-secondary btn-lg" href="/#price">Preise ansehen</a>' +
+            '<a class="btn btn-on-dark btn-primary btn-lg" href="/preise/">Kostenlos starten</a>' +
+            '<a class="btn btn-on-dark btn-secondary btn-lg" href="/preise/">Preise ansehen</a>' +
           '</div>' +
           '<small>Prototyp mit Demo-Inhalten: die KI-Antworten sind derzeit simulierter Platzhaltertext.</small>' +
         '</div></div>' +
@@ -3525,7 +3528,7 @@
     return location.pathname;
   }
   /* Liefert den #hash-Teil, wenn href auf ein Ziel auf DIESER Seite zeigt
-     (reines "#kv" oder "/#price" während man schon auf der Startseite
+     (reines "#kv" oder "/#faq" während man schon auf der Startseite
      ist) — sonst null (normale Seiten-Navigation). Seit den sauberen
      URLs (/pagename/ statt pagename.html) ist "Seite" der volle
      location.pathname statt eines Dateinamens. */

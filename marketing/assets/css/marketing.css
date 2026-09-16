@@ -527,6 +527,15 @@ main { display: block; }
 .mkt-nav[data-hd="2"].is-scrolled .nav-toggle,
 .mkt-nav[data-hd="4a"].is-scrolled .nav-toggle { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.18); color: #fff; }
 
+/* 5 · Immer helle Pille — für Seiten mit eigenem, bereits dunklem,
+   nicht scrollendem Hintergrund (aktuell nur /preise/, siehe
+   marketing.js applyHeaderVariant). Kein Transparent-über-Hero-Zustand
+   und kein Scroll-Umschalten wie bei 4a: die Basis-Pille (heller BG,
+   dunkler Text, siehe .mkt-nav__inner oben) ist hier schon die
+   "invertierte" Variante der sonst dunklen Scroll-Pille — nur etwas
+   deckender, weil kein heller Hero mehr durchscheinen muss. */
+.mkt-nav[data-hd="5"] .mkt-nav__inner { background: var(--paper); box-shadow: var(--shadow-md); }
+
 /* 3 · Links — Nav-Links linksbündig neben dem Logo (über weißem Hero-BG),
    Aktionen bleiben rechts. Sonst = 1. */
 .mkt-nav[data-hd="3"] .mkt-nav__links { margin: 0; }
@@ -1915,6 +1924,41 @@ select.input {
   .checkout__form { order: 1; }
   .checkout__summary-body { max-width: none; }
   .co-trust { margin-top: 2rem; }
+}
+
+/* =========================================================
+   Preise-Seite (/preise/, seit 2026-09-16) — eigene Route statt
+   Homepage-Anker, alle CTAs führen jetzt hierher. Dunkler Hintergrund
+   wie die Kasse, ab Desktop-Breite auf Viewport-Höhe fixiert (kein
+   Scroll) — darunter (schmale Screens) braucht die 3er-Kartenreihe Platz
+   zum Scrollen, deshalb dort kein Viewport-Lock. Nutzt dieselbe Preis-
+   Sektion wie die Startseite (LAB_SECTIONS `price`, fixed v4, siehe
+   marketing.js) — Einfärbung fürs dunkle Umfeld in landing-lab.css.
+   ========================================================= */
+body[data-page="preise"] { background: var(--ink-950); }
+.pricepage {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  background: var(--ink-950);
+  color: var(--paper);
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.pricepage::before {
+  content: "";
+  position: absolute; inset: 0; z-index: -1;
+  background:
+    radial-gradient(circle at 15% 10%, rgba(255,255,255,0.10), transparent 45%),
+    radial-gradient(circle at 100% 100%, rgba(255,255,255,0.08), transparent 45%);
+}
+.pricepage__inner {
+  width: 100%;
+  padding: clamp(5.5rem, 4.5rem + 3vw, 7rem) var(--gutter) clamp(2rem, 1.5rem + 2vw, 3rem);
+}
+@media (min-width: 780px) {
+  .pricepage { height: 100dvh; overflow: hidden; }
 }
 
 /* =========================================================

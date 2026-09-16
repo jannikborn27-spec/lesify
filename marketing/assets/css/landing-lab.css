@@ -2116,6 +2116,30 @@ body[data-page="ueber-uns"] .site-footer::before {
   background: #fff; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.24);
 }
 
+/* /preise/-Seite: dieselbe v4-Sektion, aber auf dunklem Seiten-
+   Hintergrund (siehe marketing.css .pricepage) statt dem hellen
+   Startseiten-Abschnitt — Überschrift/Umschalter/Hinweistext neu
+   eingefärbt, die Stimmen-Sektion entfällt (Platz für die
+   Viewport-Höhe). Die Preiskarten selbst bleiben unverändert: die 2
+   hellen Karten wirken auf Schwarz wie die hellen Eingabefelder auf der
+   Kasse, die "Bestseller"-Karte war ohnehin schon schwarz. */
+body[data-page="preise"] #price-section .eyebrow { color: rgba(255,255,255,0.6); }
+body[data-page="preise"] #price-section .eyebrow::before { background: rgba(255,255,255,0.4); }
+body[data-page="preise"] #price-section h2 { color: var(--paper); }
+body[data-page="preise"] #price-section .lab-head p { color: rgba(255,255,255,0.7); }
+body[data-page="preise"] #price-section .price-toggle { background: rgba(255,255,255,0.08); }
+body[data-page="preise"] #price-section .price-toggle button { color: rgba(255,255,255,0.65); }
+body[data-page="preise"] #price-section .price-toggle button.is-on { background: var(--paper); color: var(--ink-950); }
+body[data-page="preise"] #price-section .price-seats { border-color: rgba(255,255,255,0.18); background: rgba(255,255,255,0.06); }
+body[data-page="preise"] #price-section .price-seats__cap { color: rgba(255,255,255,0.6); }
+body[data-page="preise"] #price-section .price-seats__val b { color: var(--paper); }
+body[data-page="preise"] #price-section .price-seats__dots i { background: rgba(255,255,255,0.25); }
+body[data-page="preise"] #price-section .price-seats__dots i.is-on { background: rgba(255,255,255,0.8); }
+body[data-page="preise"] #price-section .price-seats__btn { border-color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.85); }
+body[data-page="preise"] #price-section .price-seats__btn:hover:not(:disabled) { border-color: #fff; color: #fff; }
+body[data-page="preise"] #price-section .price-seatnote { color: rgba(255,255,255,0.55); }
+body[data-page="preise"] #price-section .price-voices { display: none; }
+
 /* v5 · Glow */
 .sv--price5 .price-grid--glow .price-card { transition: opacity 200ms var(--ease-out); }
 .sv--price5 .price-grid--glow .price-card:not(.is-feat) { opacity: 0.82; }

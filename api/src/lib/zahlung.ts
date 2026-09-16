@@ -7,7 +7,7 @@ import {
   type AboIntervallKey,
   type AboPaketKey,
 } from '@lesify/shared';
-import { env } from '../env.js';
+import { env, istProd } from '../env.js';
 import { HttpError } from './http.js';
 
 export interface SubAnlegenInput {
@@ -213,6 +213,14 @@ export class StripeZahlungsGateway implements ZahlungsGateway {
       customer: customer.id,
       items: [{ price_data: this.preisDaten(produkt, input.intervall, input.betragCent) }],
       trial_period_days: ABO_TRIAL_TAGE,
+      // Ohne `trial_settings.end_behavior` erzeugt Stripe bei einer
+      // Trial-Subscription KEIN `pending_setup_intent` — die Trial-Rechnung
+      // ist 0 € und braucht serverseitig keine Zahlungsbestätigung, also
+      // bleibt `clientSecret` null und das Frontend kann `confirmSetup` nie
+      // aufrufen (checkout.js wirft dann `kein_client_secret`). Erst
+      // `missing_payment_method: 'cancel'` weist Stripe an, die Zahlungsdaten
+      // schon jetzt zu verlangen und dafür den SetupIntent auszustellen.
+      trial_settings: { end_behavior: { missing_payment_method: 'cancel' } },
       payment_behavior: 'default_incomplete',
       payment_settings: { save_default_payment_method: 'on_subscription' },
       expand: ['pending_setup_intent', 'latest_invoice.confirmation_secret'],
@@ -325,9 +333,26 @@ let instanz: ZahlungsGateway | undefined;
 /** Prozessweiter Gateway (in Tests via buildApp ersetzbar). */
 export function getZahlungsGateway(): ZahlungsGateway {
   if (!instanz) {
-    instanz = env.STRIPE_SECRET_KEY
-      ? new StripeZahlungsGateway(env.STRIPE_SECRET_KEY)
-      : new FakeZahlungsGateway();
+    if (env.STRIPE_SECRET_KEY) {
+      instanz = new StripeZahlungsGateway(env.STRIPE_SECRET_KEY);
+    } else {
+      // In Produktion würde das bedeuten: POST /abo antwortet 201 mit einer
+      // in der DB angelegten Abo-Zeile, aber ohne clientSecret — checkout.js
+      // kann dann nie `confirmSetup`/`confirmPayment` aufrufen und zeigt dem
+      // Nutzer einen generischen Fehler, ohne dass am eigentlichen Code etwas
+      // kaputt ist. Laut lautes Log statt eines stillen Fallbacks, damit das
+      // sofort im Deploy-Log auffällt statt erst beim nächsten Checkout-Bugreport.
+      if (istProd) {
+        console.error(
+          JSON.stringify({
+            zahlungFakeGatewayInProd: true,
+            warnung:
+              'STRIPE_SECRET_KEY fehlt in Produktion — POST /abo liefert kein clientSecret, Kasse kann nicht abschließen.',
+          }),
+        );
+      }
+      instanz = new FakeZahlungsGateway();
+    }
   }
   return instanz;
 }

@@ -144,6 +144,48 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
 
 ### 4. Geld (Phase 9/16)
 
+- [ ] **Bug (2026-09-16, gemeldet): Kasse scheitert mit „Die Zahlung konnte
+      nicht abgeschlossen werden" nach dem Absenden der Kartendaten.**
+      Untersucht, zwei Änderungen gemacht, **Ursache aber noch nicht
+      abschließend bestätigt** — dein nächster Test entscheidet:
+      1. **`trial_settings` ergänzt** (`api/src/lib/zahlung.ts`,
+         `subscriptionAnlegen`): `payment_behavior: 'default_incomplete'`
+         + Trial ohne `trial_settings.end_behavior.missing_payment_method:
+         'cancel'` garantiert laut Stripe-Doku *nicht*, dass ein
+         `pending_setup_intent` entsteht — ohne den ist `clientSecret` null
+         und `checkout.js` wirft `kein_client_secret`. Live gegen die echte
+         Test-Stripe-API verifiziert: **in diesem Account kam auch ohne die
+         Option bereits ein SetupIntent zurück** — die Ergänzung ist trotzdem
+         drin (macht das Verhalten explizit statt von einem impliziten
+         Stripe-Default abhängig), war hier aber nachweislich **nicht** die
+         Ursache des gemeldeten Bugs.
+      2. **Wahrscheinlichere Ursache gefunden:** `getZahlungsGateway()`
+         (`zahlung.ts`) fällt still auf `FakeZahlungsGateway` zurück, sobald
+         `STRIPE_SECRET_KEY` leer/nicht gesetzt ist — **auch in Produktion**,
+         keine Umgebungsprüfung. Der Fake liefert kein `clientSecret`; `POST
+         /abo` antwortet dann trotzdem `201` mit einer echten Abo-Zeile in
+         der DB, nur ohne funktionierende Zahlungsbestätigung — exakt das
+         Symptom. Der komplette Server-Flow (registrieren → login → `POST
+         /abo`) lokal gegen die echte Test-Stripe-API durchgespielt: liefert
+         sauber einen `clientSecret` (`seti_…`). Da lokal alles funktioniert,
+         liegt der Verdacht auf der **Railway-Umgebungsvariable
+         `STRIPE_SECRET_KEY`** — bitte im Railway-Dashboard prüfen, ob sie
+         (noch) korrekt gesetzt ist (kein führendes/nachgestelltes
+         Leerzeichen, kein Anführungszeichen mitkopiert, richtiger Name).
+         Falls sie fehlt/falsch ist: neu setzen → Railway redeployt
+         automatisch → Kasse erneut testen.
+      3. **Diagnose-Hilfen ergänzt, damit der nächste Fehlschlag sofort
+         sichtbar ist:** `getZahlungsGateway()` loggt jetzt
+         `zahlungFakeGatewayInProd` (strukturiertes `console.error`), falls
+         das in Produktion (`NODE_ENV=production`) passiert — im
+         Railway-Log direkt sichtbar. `checkout.js`s Catch-Block loggt den
+         echten Fehler jetzt zusätzlich per `console.error('[checkout] …')`
+         in die Browser-Konsole, statt ihn nur als generische Toast-Meldung
+         zu verstecken — beim nächsten Fehlschlag bitte die Browser-Konsole
+         (F12 → Console) mitschicken, das verrät sofort den echten
+         Fehlercode.
+      **Noch offen:** von dir bestätigen, ob Punkt 2 die tatsächliche
+      Ursache war (Railway-Var prüfen + erneut testen).
 - [x] **Stripe Test-Modus produktiv verdrahtet** (Entscheidung 2026-09-14:
       erst Test-Modus, dann später separat auf Live umsteigen; `STRIPE_SECRET_KEY`
       + `STRIPE_WEBHOOK_SECRET` bei Railway gesetzt). End-to-End auf der echten

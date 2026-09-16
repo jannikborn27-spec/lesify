@@ -227,6 +227,9 @@
         if (res && res.error) message(res.error.message, 'error');
         setLoading(false);
       }).catch(function (err) {
+        // Echter Fehlercode landet in der Konsole (Popup bleibt bewusst generisch) —
+        // z. B. `kein_client_secret`, wenn Stripe keinen SetupIntent ausstellt.
+        console.error('[checkout] Abo/Zahlung fehlgeschlagen:', err);
         message(err && err.message === 'abo_vorhanden'
           ? 'Für dieses Konto besteht bereits ein Abo.'
           : 'Die Zahlung konnte nicht abgeschlossen werden. Bitte später erneut versuchen.', 'error');

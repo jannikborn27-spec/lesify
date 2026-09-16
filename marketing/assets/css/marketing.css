@@ -1748,7 +1748,7 @@ select.input {
 .checkout {
   min-height: 100dvh;
   display: grid;
-  grid-template-columns: minmax(0, 480px) minmax(0, 1fr);
+  grid-template-columns: 1fr 1fr;
 }
 .checkout__summary {
   background: var(--ink-950);
@@ -1767,8 +1767,11 @@ select.input {
     radial-gradient(circle at 12% 8%, rgba(255,255,255,0.12), transparent 42%),
     radial-gradient(circle at 100% 100%, rgba(255,255,255,0.08), transparent 45%);
 }
-.checkout__summary .brand__word { color: var(--paper); }
-.checkout__summary .brand__mark { background: var(--white); color: var(--ink-950); }
+.checkout__summary .brand { gap: 14px; margin-bottom: 0; }
+.checkout__summary .brand__word { color: var(--paper); font-size: 1.55rem; }
+.checkout__summary .brand__mark { width: 44px; height: 44px; border-radius: 12px; background: var(--white); color: var(--ink-950); }
+.checkout__summary .brand__mark svg,
+.checkout__summary .brand__mark img { width: 26px; height: 26px; }
 .checkout__summary-body { margin-top: clamp(2rem, 6vw, 3.5rem); max-width: 380px; }
 .checkout__summary .eyebrow { color: rgba(255,255,255,0.6); }
 .checkout__summary .eyebrow::before { background: rgba(255,255,255,0.4); }
@@ -1815,6 +1818,16 @@ select.input {
   color: rgba(255,255,255,0.82);
 }
 .co-line b { font-family: var(--font-display); font-size: 1.15rem; font-weight: 700; letter-spacing: -0.02em; }
+.co-line b del,
+.co-total b del {
+  font-family: var(--font-body);
+  font-size: 0.6em;
+  font-weight: 500;
+  letter-spacing: normal;
+  color: rgba(255,255,255,0.4);
+  text-decoration-color: rgba(255,255,255,0.4);
+  margin-right: 5px;
+}
 .co-billing { margin-top: 6px; font-size: 0.82rem; color: rgba(255,255,255,0.55); }
 
 .co-feats { margin: 1.6rem 0; display: flex; flex-direction: column; gap: 10px; }
@@ -1885,6 +1898,16 @@ select.input {
 
 .co-fineprint { margin-top: 14px; font-size: 0.76rem; color: var(--ink-500); line-height: 1.55; }
 .co-fineprint a { color: var(--ink-900); text-decoration: underline; text-underline-offset: 2px; }
+
+/* Wie bei „registrieren": die dunkle Zusammenfassungs-Spalte bleibt auf
+   Viewport-Höhe fixiert (kein Scroll), nur die Formular-Spalte rechts
+   scrollt für sich. Nur ab der Breite, ab der beide Spalten
+   nebeneinander stehen (siehe max-width:900px unten). */
+@media (min-width: 901px) {
+  .checkout { height: 100dvh; overflow: hidden; }
+  .checkout__summary { height: 100%; overflow: hidden; }
+  .checkout__form { height: 100%; overflow-y: auto; }
+}
 
 @media (max-width: 900px) {
   .checkout { grid-template-columns: 1fr; }

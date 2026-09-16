@@ -335,6 +335,32 @@
     document.body.style.overflow = '';
   }
 
+  // Dialog-Semantik + Anfangsfokus für JEDES `.modal-scrim` — egal ob als
+  // statisches Markup vorhanden oder von einer der vielen `document.
+  // createElement('div')`-Stellen (Fach-Farbwähler, Datei-Modal, die
+  // Eltern-Seiten-Bestätigungsdialoge, …) zur Laufzeit erzeugt. Zentral hier
+  // statt an jeder Erzeugungsstelle einzeln, damit neue Modals das automatisch
+  // mitbekommen.
+  var modalTitelZaehler = 0;
+  function modalA11yHerstellen(scrim) {
+    var dialog = scrim.querySelector ? scrim.querySelector('.modal') : null;
+    if (!dialog || dialog.hasAttribute('role')) return;
+    dialog.setAttribute('role', 'dialog');
+    dialog.setAttribute('aria-modal', 'true');
+    var titel = scrim.querySelector('.modal-title');
+    if (titel) {
+      if (!titel.id) titel.id = 'modal-title-' + (++modalTitelZaehler);
+      dialog.setAttribute('aria-labelledby', titel.id);
+    }
+  }
+  function modalFokusHinein(scrim) {
+    var ziel = qs(
+      'input, select, textarea, button.btn-primary, [data-ok], .modal-close',
+      scrim,
+    );
+    if (ziel) setTimeout(function () { ziel.focus(); }, 70);
+  }
+
   function initModals() {
     qsa('[data-modal-open]').forEach(function (btn) {
       btn.addEventListener('click', function () { openModal(btn.getAttribute('data-modal-open')); });
@@ -343,11 +369,25 @@
       btn.addEventListener('click', function () { closeModal(btn); });
     });
     qsa('.modal-scrim').forEach(function (scrim) {
+      modalA11yHerstellen(scrim);
       scrim.addEventListener('click', function (e) { if (e.target === scrim) closeModal(scrim); });
     });
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') qsa('.modal-scrim.is-open').forEach(closeModal);
     });
+    if (typeof MutationObserver !== 'undefined') {
+      new MutationObserver(function (mutations) {
+        mutations.forEach(function (mut) {
+          for (var i = 0; i < mut.addedNodes.length; i++) {
+            var node = mut.addedNodes[i];
+            if (node.nodeType === 1 && node.classList && node.classList.contains('modal-scrim')) {
+              modalA11yHerstellen(node);
+              modalFokusHinein(node);
+            }
+          }
+        });
+      }).observe(document.body, { childList: true });
+    }
   }
 
   /* ---------------------------------------------------------
@@ -589,6 +629,10 @@
     if (!stack) {
       stack = document.createElement('div');
       stack.className = 'toast-stack';
+      // Screenreader-Ansage ohne Fokusklau: role="status" + aria-live="polite"
+      // lassen jeden neu angehängten Toast automatisch vorgelesen werden.
+      stack.setAttribute('role', 'status');
+      stack.setAttribute('aria-live', 'polite');
       document.body.appendChild(stack);
     }
     return stack;

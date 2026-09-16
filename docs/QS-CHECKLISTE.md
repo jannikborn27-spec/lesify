@@ -75,11 +75,44 @@ Vorlage für den QS-Durchlauf vor dem Launch (Phase 16).
 
 ## 5. Barrierefreiheit & Responsiveness
 
-- [ ] Tastatur-Navigation + sichtbare Fokuszustände (im Design angelegt) auf allen Seiten
-- [ ] Kontrastwerte (Fog-Blue-Palette, Ampel-Farben) gegen WCAG AA prüfen
-- [ ] Screenreader: Nav, Modals, Toasts, Usage-Ring mit sinnvollen Labels
+- [x] Tastatur-Navigation + sichtbare Fokuszustände — _bereits im Design
+      angelegt (`:focus-visible`-Regeln in `style.css`/`marketing.css`); die
+      `[data-href]`-Kartenlinks (Klausur-/Datei-Karten) sind zusätzlich per
+      `tabindex="0"`/`role="link"` + eigenem Enter/Space-Handler bedienbar
+      (`app.js` `initCardLinks()`)._
+- [ ] Kontrastwerte (Fog-Blue-Palette, Ampel-Farben) gegen WCAG AA prüfen —
+      _der Dark-Mode-Lesbarkeitsdurchlauf (Phase 0, 2026-09-08) hat einen
+      Kontrast-Audit gemacht, aber nicht formal gegen WCAG-AA-Werte
+      gerechnet; noch offen._
+- [x] **Statischer Audit + Fixes (2026-09-16):** alle `<img>` (statisch +
+      dynamisch in `app.js`/`marketing.js`) haben bereits `alt`; 8
+      Formularfelder ohne erreichbaren Namen gefunden und gefixt
+      (`aria-label`/`aria-labelledby` ergänzt: Suche auf `dashboard.html`/
+      `suche.html`, „Neues Fach"/„Neues Thema" auf `chat.html`/
+      `klausuren.html`/`thema.html`, Lösch-Bestätigungsfeld auf
+      `eltern-kind.html`/`eltern-kinder.html`). Toasts (`app.js`
+      `ensureToastStack`, `marketing.js` `toast`) bekommen jetzt
+      `role="status"`/`aria-live="polite"` — vorher wurden sie von
+      Screenreadern gar nicht angekündigt. **Modals ohne Dialog-Semantik**
+      (kein `role="dialog"`, kein Anfangsfokus) war der größte Fund: alle
+      ~10 Erzeugungsstellen (Fach-Farbwähler, Datei-Modal, 4× Eltern-
+      Bestätigungsdialoge, …) bauen `.modal-scrim` dynamisch per
+      `document.createElement` — statt jede Stelle einzeln zu patchen, jetzt
+      **zentral** in `initModals()` gelöst: ein `MutationObserver` auf
+      `document.body` erkennt jedes neu eingefügte `.modal-scrim`, setzt
+      `role="dialog"`/`aria-modal="true"`/`aria-labelledby` (verlinkt auf den
+      `.modal-title`) und verschiebt den Fokus auf das erste sinnvolle
+      Element. Escape-Handling gab es schon global, blieb unverändert. Live
+      gegen den Dev-Stack verifiziert (`faecher.html` → Farbe ändern:
+      korrektes `role`/`aria-modal`/`aria-labelledby`, Fokus im Modal,
+      Escape schließt; Toast-Stack trägt `role="status"`). Kein Build/keine
+      Tests für `app/`/`marketing/` (Vanilla JS) — reiner Code-Review +
+      Live-Check, kein automatisierter Test.
+- [ ] Screenreader: Nav, Usage-Ring — noch offener manueller Durchgang mit
+      echtem Screenreader (VoiceOver/NVDA); Modals/Toasts siehe oben.
 - [ ] Mobile Breakpoints: `app/` und `marketing/` bis ~360 px Breite
-- [ ] `prefers-reduced-motion` respektieren
+- [x] `prefers-reduced-motion` respektieren — _bereits vorhanden (22
+      Fundstellen in CSS/JS), im Audit nur bestätigt, keine Lücke gefunden._
 
 ## 6. Fehler-Budget
 

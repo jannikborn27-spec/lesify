@@ -135,8 +135,8 @@ document.addEventListener('DOMContentLoaded', async function () {
         }).catch(function (err) { LesifyUI.toast(Lesify.fehlerText(err)); });
       } else if (act === 'entfernen') {
         modal('„' + kind.name + '" entfernen?', 'Alle Fächer, Chats, Lernzettel, Dateien und Klausuren dieses Kindes werden unwiderruflich gelöscht. Der Platz wird wieder frei.',
-          '<p class="text-sm" style="margin:0;color:var(--ink-700)">Zum Bestätigen bitte den Vornamen <strong>' + kind.name.split(' ')[0] + '</strong> eingeben.</p>' +
-          '<div class="field mt-0" style="margin-top:10px"><input class="input" id="m-confirm" type="text" autocomplete="off"></div>',
+          '<p class="text-sm" id="m-confirm-hint" style="margin:0;color:var(--ink-700)">Zum Bestätigen bitte den Vornamen <strong>' + kind.name.split(' ')[0] + '</strong> eingeben.</p>' +
+          '<div class="field mt-0" style="margin-top:10px"><input class="input" id="m-confirm" type="text" autocomplete="off" aria-labelledby="m-confirm-hint"></div>',
           async function (scrim) {
             if (scrim.querySelector('#m-confirm').value.trim() !== kind.name.split(' ')[0]) { scrim.querySelector('#m-confirm').focus(); return false; }
             try {

@@ -163,7 +163,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     widget.innerHTML =
       '<div class="tp-pills"' + (fcVars ? ' style="' + fcVars + '"' : '') + '>' + pills + '</div>' +
       '<div class="thema-add">' +
-        '<input class="input" data-tp-new type="text" placeholder="Neues Thema hinzufügen">' +
+        '<input class="input" data-tp-new type="text" placeholder="Neues Thema hinzufügen" aria-label="Neues Thema">' +
         '<button type="button" class="btn btn-secondary btn-sm" data-tp-add>Hinzufügen</button>' +
       '</div>';
   }

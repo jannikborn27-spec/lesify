@@ -3727,8 +3727,21 @@ Kritisch, weil Zielgruppe minderjährig ist.
       (2026-09-16, siehe unten) ✅; Security-Header für `app/`+`marketing/`
       bleibt offen — **blockiert von GitHub Pages** (kein Custom-Header-
       Support), lösbar erst mit dem echten Hosting-Wechsel (Phase 16)._
-- [ ] **Barrierefreiheit & Responsiveness** — _Checkliste `docs/QS-CHECKLISTE.md`
-      §5; manueller Durchgang mit dem Frontend-Cut-over (Phase 11)._
+- [ ] **Barrierefreiheit & Responsiveness** (statischer Audit erledigt
+      2026-09-16, Rest offen) — _Checkliste `docs/QS-CHECKLISTE.md` §5.
+      Statischer Code-Audit + Fixes: fehlende Formularfeld-Labels ergänzt
+      (`aria-label`/`aria-labelledby`, 8 Stellen über `app/`), Toasts
+      bekommen `role="status"`/`aria-live="polite"` (`app.js`/
+      `marketing.js`), alle dynamisch erzeugten `.modal-scrim`-Dialoge
+      bekommen jetzt zentral über einen `MutationObserver` in `initModals()`
+      (`app.js`) `role="dialog"`/`aria-modal="true"`/`aria-labelledby` +
+      Anfangsfokus, statt jede der ~10 Erzeugungsstellen einzeln zu patchen.
+      `<img>`-Alt-Texte, `:focus-visible`- und `prefers-reduced-motion`-
+      Abdeckung waren im Audit bereits vollständig. Live gegen den Dev-Stack
+      verifiziert. **Noch offen:** WCAG-AA-Kontrastprüfung (Dark-Mode-Audit
+      aus Phase 0 war informell, nicht gegen AA-Werte gerechnet), formaler
+      Screenreader-Durchgang mit echtem VoiceOver/NVDA, Mobile-Breakpoint-
+      Durchgang bis ~360px._
 - [x] **Fehler-Budget definiert** — _`docs/QS-CHECKLISTE.md` §6 (Launch-Blocker
       vs. Post-Launch-Fix)._
 

@@ -472,6 +472,9 @@
     if (!stack) {
       stack = document.createElement('div');
       stack.className = 'toast-stack';
+      // Screenreader-Ansage ohne Fokusklau (analog app/assets/js/app.js).
+      stack.setAttribute('role', 'status');
+      stack.setAttribute('aria-live', 'polite');
       document.body.appendChild(stack);
     }
     var t = document.createElement('div');

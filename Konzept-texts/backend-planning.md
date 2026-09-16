@@ -1358,9 +1358,20 @@ Themen-Guard-Treffer, viele fehlgeschlagene Logins, Upload-Flooding.
   `stripe-signature` entfernt); Bodys werden nicht geloggt.
 - **Healthchecks:** `GET /health/live` (ohne DB), `GET /health` + `/health/ready`
   (inkl. `SELECT 1`, `uptimeSek`, `zeit`).
-- **Offen (Phase 6 / Phase 16):** KI-Vorab-Filter (Themen-/Größen-/Spam-Guard),
-  Missbrauchs-Signale + temporäre Sperren, Error-Tracker-DSN, Log-Sink,
-  KI-Kosten-Dashboard, Backup-Restore-Test. Runbook: `docs/RUNBOOK.md`.
+- **KI-Vorab-Filter** (Themen-/Größen-/Spam-Guard): `api/src/lib/ki/guard.ts`
+  (Phase 6), vor `POST /chats/:id/nachrichten` und
+  `POST /lernzettel/:id/revisionen`. Tests: `api/src/routes/ki.test.ts`.
+- **KI-Kosten-Dashboard** (2026-09-16): `api/src/lib/ki/kosten.ts` —
+  `response.usage` je Call in Euro-Millionstel umgerechnet (Anthropic-
+  Listenpreise, Stand 2026-09, vor echten Ausgaben gegenprüfen) und in
+  `KiKosten` je Monat/Call-Typ/Modell aggregiert (`onUsage` in
+  `AnthropicKiClient`, fire-and-forget). Wartungs-Job `ki-kosten-alarm`
+  vergleicht die Monatssumme gegen das aus `PLAN_ECONOMICS` (§7 oben,
+  Backend-Spiegel in `shared/src/index.ts`) abgeleitete Budget und loggt
+  einen Alarm bei > 1,5× Überschreitung. Tests: `api/src/lib/ki/kosten.test.ts`.
+- **Missbrauchs-Signale:** siehe §3 „Wo/wann KI-Calls passieren" oben.
+- **Offen (Phase 16):** Error-Tracker-DSN, Log-Sink, Backup-Restore-Test,
+  Scheduler-Anbindung für alle fünf Wartungs-Jobs. Runbook: `docs/RUNBOOK.md`.
 
 ---
 

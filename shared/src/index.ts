@@ -71,6 +71,22 @@ export const PLAN_NAMES: Record<Paket, string> = {
 /** Während der 14-Tage-Testphase gelten die Premium-Kontingente (Phase 0 / §7). */
 export const TRIAL_PAKET: Paket = 'premium';
 
+// --- Interne Planungswerte (data.js PLAN_ECONOMICS) — API-Kosten & LTV je
+// Sitz/Monat in €, nur für die Kosten-Kalibrierung (§7/Phase 15/RUNBOOK.md
+// „KI-Kosten"), nie in der Schüler-UI zeigen. Backend-Spiegel von
+// `app/assets/js/data.js` PLAN_ECONOMICS — bei Änderung dort auch hier nachziehen. */
+export interface PlanEconomics {
+  /** Kalkulierte KI-API-Kosten je Sitz/Monat in Euro (Planungsannahme, kein Ist-Wert). */
+  apiKostenMonat: number;
+  /** Erwarteter Customer-Lifetime-Value je Sitz in Euro. */
+  ltv: number;
+}
+export const PLAN_ECONOMICS: Record<Paket, PlanEconomics> = {
+  starter: { apiKostenMonat: 1.57, ltv: 110 },
+  premium: { apiKostenMonat: 4.13, ltv: 130 },
+  infinite: { apiKostenMonat: 11.28, ltv: 180 },
+};
+
 // --- Usage-Zähler & Ring (§7, Phase 8) ---
 
 /** Die vier monatlichen Usage-Zähler pro Sitz (§7). */

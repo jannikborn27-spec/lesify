@@ -1,6 +1,7 @@
 import type { PrismaClient } from '@prisma/client';
 import { monatsSchluessel } from '@lesify/shared';
 import { getStorageGateway, type StorageGateway } from './storage.js';
+import { kiKostenAlarmPruefen } from './ki/kosten.js';
 
 /**
  * Wiederkehrende Wartungs-Jobs (Phase 10). Reine Funktionen — der echte
@@ -143,6 +144,7 @@ export const JOBS = {
   'usage-historie': alteUsageZeilenLoeschen,
   'token-hygiene': abgelaufeneTokenLoeschen,
   'abo-geplante-aenderungen': geplanteAboAenderungenAnwenden,
+  'ki-kosten-alarm': kiKostenAlarmPruefen,
 } as const;
 
 export type JobName = keyof typeof JOBS;

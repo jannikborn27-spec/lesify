@@ -1,6 +1,8 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { env } from '../../env.js';
+import { getPrisma } from '../../db.js';
 import { ClaudeAgentSdkKiClient } from './devAgentSdkClient.js';
+import { kostenEurMikroAus, protokolliereKiKosten } from './kosten.js';
 
 /**
  * Anthropic-Client-Kapselung (Phase 6): Retry + Timeout kommen aus den
@@ -74,7 +76,11 @@ type OnUsage = (info: { callTyp: string; model: string; usage: KiUsage }) => voi
 
 const standardOnUsage: OnUsage = (info) => {
   // Kosten-Kalibrierung (§7/docs/RUNBOOK.md): strukturiertes Log, kein PII.
-  console.log(JSON.stringify({ kiUsage: true, ...info }));
+  const kostenEurMikro = kostenEurMikroAus(info.model, info.usage);
+  console.log(JSON.stringify({ kiUsage: true, kostenEurMikro, ...info }));
+  // Aggregation in `KiKosten` fürs Kosten-Dashboard (Phase 15) — fire-and-forget,
+  // Fehler werden in `protokolliereKiKosten` selbst geloggt, nie geworfen.
+  void protokolliereKiKosten(getPrisma(), info);
 };
 
 export class AnthropicKiClient implements KiClient {

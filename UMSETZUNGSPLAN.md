@@ -2917,14 +2917,16 @@ bis das Thema wieder aufgemacht wird.
       räumt Kind-Tabellen; seit Phase 5 räumt der Job danach auch die
       zugehörigen Objektspeicher-Objekte auf, best effort), `usage-historie`
       (Usage-Zeilen > 12 Monate), `token-hygiene` (abgelaufene
-      Sessions/Verification-Token). Aufruf:
-      `pnpm --filter @lesify/api job inhalte-aufbewahrung|usage-historie|token-hygiene|all`._
+      Sessions/Verification-Token), `abo-geplante-aenderungen` (Phase 12),
+      `ki-kosten-alarm` (2026-09-16, siehe Phase 15 unten). Aufruf:
+      `pnpm --filter @lesify/api job inhalte-aufbewahrung|usage-historie|token-hygiene|abo-geplante-aenderungen|ki-kosten-alarm|all`._
 - [x] **Usage-Reset** — _kein eigener Job nötig: der Monatszähler resettet
       implizit über den `Usage.monat`-Schlüssel (Phase 8). `usage-historie`
       räumt nur die Altlasten weg._
-- [ ] **Scheduler + Monitoring** — _die drei Kommandos in Hosting-Cron/`pg_cron`
-      eintragen (Vorschlag: `inhalte-aufbewahrung`/`usage-historie` täglich,
-      `token-hygiene` stündlich), Exit-Code != 0 alarmiert. → Phase 16._
+- [ ] **Scheduler + Monitoring** — _die fünf Kommandos in Hosting-Cron/`pg_cron`
+      eintragen (Vorschlag: `inhalte-aufbewahrung`/`usage-historie`/
+      `abo-geplante-aenderungen`/`ki-kosten-alarm` täglich, `token-hygiene`
+      stündlich), Exit-Code != 0 alarmiert. → Phase 16._
 - [ ] _(zurückgestellt)_ `erinnerungVorKlausuren`, `woechentlicheZusammenfassung`,
       Trial-Reminder.
 
@@ -3733,8 +3735,8 @@ Kritisch, weil Zielgruppe minderjährig ist.
 
 > _2026-09-04: die App-seitigen Bausteine sind drin (`api/src/lib/ratelimit.ts`,
 > pino-Redaction, `/health/*`, `docs/RUNBOOK.md`). Was einen externen Dienst
-> braucht (Log-Sink, Error-Tracker, Uptime-Monitor, Backup-Restore-Test,
-> KI-Kosten-Dashboard) ist in Phase 16 / der Schlussliste._
+> braucht (Log-Sink, Error-Tracker, Uptime-Monitor, Backup-Restore-Test) ist
+> in Phase 16 / der Schlussliste._
 
 - [x] **Strukturiertes Logging** — _pino-JSON; `redact` entfernt
       `authorization`/`cookie`/`stripe-signature`; Bodys werden nicht geloggt
@@ -3745,8 +3747,23 @@ Kritisch, weil Zielgruppe minderjährig ist.
       `/health/ready` (inkl. `SELECT 1`, `uptimeSek`). Externer Monitor = Phase 16._
 - [ ] **DB-Backups** — _Supabase-Feature aktivieren + Restore einmal echt testen
       (Phase 16 / Schlussliste)._
-- [ ] **KI-Kosten-Dashboard** — _Phase 6: `response.usage` je Call-Typ loggen,
-      gegen `PLAN_ECONOMICS` aggregieren, Alarm bei Ausreißern._
+- [x] **KI-Kosten-Dashboard** (2026-09-16) — _`response.usage` (Phase 6) wird
+      pro Call in Euro-Millionsteln umgerechnet (`api/src/lib/ki/kosten.ts`,
+      Anthropic-Listenpreise Stand 2026-09, **vor echten Ausgaben
+      gegenprüfen**) und in einer neuen Tabelle `KiKosten` je
+      Monat/Call-Typ/Modell aggregiert (`protokolliereKiKosten`, aufgerufen
+      aus `AnthropicKiClient`s `onUsage`, fire-and-forget, Fehler brechen nie
+      den eigentlichen KI-Call). `PLAN_ECONOMICS` (apiKostenMonat/ltv je
+      Paket) als Backend-Spiegel von `data.js` neu in `shared/src/index.ts`.
+      Neuer Wartungs-Job `ki-kosten-alarm` (`kiKostenAlarmPruefen`) vergleicht
+      die bisherigen Monatskosten gegen das aus `PLAN_ECONOMICS` abgeleitete
+      Budget (aktive Sitze × geplante API-Kosten/Sitz, auf den Tagesanteil
+      hochgerechnet) und loggt `kiKostenAlarm`, wenn Ist > 1,5× Budget.
+      Migration `ki_kosten_dashboard` + `ki_kosten_mikro_einheit`. Tests:
+      `api/src/lib/ki/kosten.test.ts` (7, inkl. Rundungs-Regressionstest —
+      eine Cent-genaue erste Fassung hätte die meisten Einzel-Chats als „0 €"
+      gezählt und die Monatssumme unterschätzt). `docs/RUNBOOK.md` +
+      Scheduler-Abschnitt (Phase 10 oben) nachgezogen._
 - [x] **Rate-Limiting** — _`RateLimiter` als `onRequest`-Hook nach §7:
       auth 10/min·IP, ki 20/min, io 120/min, kontakt 3/min·IP; `/health*` +
       `/abo/webhook` frei. `429` + `Retry-After`. Ad-hoc-Limit in `/kontakt`

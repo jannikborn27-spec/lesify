@@ -4,6 +4,8 @@
  *   pnpm --filter @lesify/api job inhalte-aufbewahrung
  *   pnpm --filter @lesify/api job usage-historie
  *   pnpm --filter @lesify/api job token-hygiene
+ *   pnpm --filter @lesify/api job abo-geplante-aenderungen
+ *   pnpm --filter @lesify/api job ki-kosten-alarm
  *   pnpm --filter @lesify/api job all
  *
  * Der echte Scheduler (Hosting-Cron / pg_cron / Worker, Phase 16) ruft genau

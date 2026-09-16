@@ -507,3 +507,27 @@ model Usage {
   @@unique([userId, monat])
   @@index([userId])
 }
+
+// KI-Kosten-Aggregation (Phase 15 „KI-Kosten-Dashboard"): eine Zeile je
+// Monat/Call-Typ/Modell, wird bei jedem echten Anthropic-Call inkrementiert
+// (siehe api/src/lib/ki/kosten.ts). Absichtlich nicht userId-scoped — für die
+// Kosten-vs-Budget-Auswertung (gegen PLAN_ECONOMICS) reicht die Aggregation
+// je Monat, kein Per-User-Tracking nötig.
+model KiKosten {
+  id                  String @id @default(uuid()) @db.Uuid
+  monat               String // YYYY-MM
+  callTyp             String
+  model               String
+  calls               Int    @default(0)
+  inputTokens         Int    @default(0)
+  outputTokens        Int    @default(0)
+  cacheReadTokens     Int    @default(0)
+  cacheCreationTokens Int    @default(0)
+  // Euro-Millionstel (1 EUR = 1_000_000) statt Cent: Einzelcalls kosten oft
+  // deutlich unter einem Cent, Rundung auf Cent-Ebene je Call würde die
+  // Summe systematisch unterschätzen — erst beim Lesen/Loggen auf Cent/€ runden.
+  kostenEurMikro Int @default(0)
+
+  @@unique([monat, callTyp, model])
+  @@index([monat])
+}

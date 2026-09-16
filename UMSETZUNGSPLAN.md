@@ -204,6 +204,73 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       sonst als `?plan=<tarif>&interval=…`. Mit Node gegen `checkout.js`s
       Parameter-Logik durchgerechnet (Jährlich+Infinite+3 Kinder →
       korrekt `family`/`infinite`/`3`/`yearly`).
+- [x] **Preise-Seite (`/preise/`) + Eltern-only Signup** (2026-09-16, auf
+      Nutzer-Feedback „Preise/Payment-System ist eine Katastrophe" — Auswahl
+      ging beim Umweg über die Kasse verloren, Konto-/Kinder-Anlegen-Prozess
+      war unübersichtlich):
+      1. **Eigene Preise-Route statt Homepage-Anker.** `marketing/preise/`
+         (neu) rendert dieselbe Preis-Sektion wie zuvor die Startseite
+         (`LAB_SECTIONS` `price`, fixed v4 in `marketing.js`) — nur auf
+         eigener, dunkler Seite (`.pricepage` in `marketing.css`), ab
+         Desktop-Breite fest auf Viewport-Höhe (kein Scroll, siehe
+         `min-width:780px`-Regel). Header wird zur immer-hellen Pille
+         (neuer `data-hd="5"`-Header-Zustand) statt transparent-über-Hero,
+         weil die Seite selbst schon dunkel ist und nicht scrollt.
+         Preis-Sektion für den dunklen Hintergrund neu eingefärbt
+         (`landing-lab.css`, `body[data-page="preise"] #price-section …`),
+         Stimmen-Sektion ausgeblendet (Platz für die Viewport-Höhe).
+      2. **Alle CTAs zeigen jetzt auf `/preise/`** statt direkt auf
+         `/registrieren/` bzw. `/#price` — Nav (`NAV_LINKS`), Footer
+         (`FOOTER`), Header-„Kostenlos starten", alle `.lab-cta`/`.cta-*`-
+         Buttons in `marketing.js` (per `replace_all` auf
+         `href="/registrieren/"` → `href="/preise/"`, 22 Stellen), die
+         Hero-Buttons in `index.html`/`ueber-uns/index.html`, der
+         „Kostenlos registrieren"-Link auf `login/` und der „Zurück zu den
+         Preisen"-Link auf `checkout/`.
+      3. **Registrierung ist jetzt Eltern-only.** `marketing/registrieren/`
+         hat keinen Rollen-Picker und keine Kind-Name/Klassenstufe-Felder
+         mehr, nur noch „Ihr Name" + E-Mail + Passwort. Backend:
+         `registrierenBody` (`api/src/routes/auth.ts`) nimmt nur noch
+         `{name, email, passwort, einwilligung}`, `rolle` ist serverseitig
+         fest `elternteil`. `User.klassenstufe` in `schema.prisma` auf
+         `String?` gesetzt (Migration `20260916160602_klassenstufe_optional`,
+         nur `DROP NOT NULL` — additiv, gegen die echte Supabase-DB gefahren)
+         und bleibt nur bei Kind-Profilen (`rolle = schueler`, weiterhin
+         Pflichtfeld in `POST /abo/kinder`) gesetzt.
+         `auth.test.ts` entsprechend angepasst (Rollen-Validierungstest
+         entfernt, da `rolle` kein Client-Input mehr ist), lief grün gegen
+         die echte Supabase-DB.
+      4. **Kasse schickt ohne Konto sofort zur Registrierung** (`checkout.js`,
+         `location.href = '/registrieren/' + location.search`), statt erst
+         nach dem Ausfüllen der Zahlungsdaten mit „zuerst
+         registrieren/anmelden" zu scheitern. `auth-forms.js`s
+         Registrierung→Kasse-Redirect trägt jetzt zusätzlich `tier`/`seats`
+         mit (vorher nur `plan`/`interval` — derselbe Fehlerklasse wie der
+         Kasse-Link-Bug oben, hier vor dem Live-Auftreten gefixt) — end-to-
+         end mit einer echten Test-Registrierung gegen die Supabase-DB
+         verifiziert (Jährlich+Infinite+3 Kinder → landet exakt so in der
+         Kassen-Zusammenfassung „Lesify Familie · Infinite · 3 Kinder",
+         Test-User danach wieder gelöscht).
+      5. **Korrigierte Altentscheidung:** die frühere Regel „Solo-Elternteil
+         (1 Sitz) hat kein Kind-Profil, der Account ist selbst der
+         Lernaccount" ist gestrichen (siehe `backend-planning.md` §1
+         „Eltern-Kind-Modell" für die Korrektur-Notiz). `app/assets/js/
+         auth-gate.js`s Weiche leitet jetzt **jedes** `rolle = elternteil`-
+         Konto immer in den Eltern-Bereich (ohne Kind-Profil →
+         `eltern-kinder.html`, sonst `eltern.html`) statt Solo-Konten wie
+         Schüler-Accounts direkt auf `dashboard.html` zu lassen.
+         `checkout-erfolg/` verlinkt jetzt „Erstes Kind hinzufügen" →
+         `eltern-kinder.html` statt „Zur App" → `dashboard.html`.
+      6. **Nebenbei-Fix:** `app/einstellungen.html` blendete für
+         Eltern-Accounts das jetzt leere `klassenstufe`-Feld als literalen
+         Text „null" ein (JS-`input.value = null` → String „null") und hätte
+         beim Speichern mit leerem String an der Backend-Validierung
+         (`min(1)`) scheitern können — Feld wird für `rolle = elternteil`
+         jetzt ausgeblendet und beim Speichern gar nicht erst mitgeschickt.
+
+      Kind-Profile anlegen/entfernen (`eltern-kinder.html`, Sitz-Deckel) und
+      Sitze nachträglich hinzufügen/entfernen (`eltern-abo.html`, `PATCH
+      /abo`) waren bereits vollständig gebaut — hier nicht angefasst.
 - [x] **Stripe Test-Modus produktiv verdrahtet** (Entscheidung 2026-09-14:
       erst Test-Modus, dann später separat auf Live umsteigen; `STRIPE_SECRET_KEY`
       + `STRIPE_WEBHOOK_SECRET` bei Railway gesetzt). End-to-End auf der echten

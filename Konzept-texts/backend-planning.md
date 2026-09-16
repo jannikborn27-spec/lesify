@@ -134,20 +134,27 @@ Multi-User). Backend braucht echte Multi-User-Fähigkeit von Anfang an —
 clientseitig aus `name` abgeleitet (erste Buchstaben der ersten zwei Wörter),
 nicht separat gespeichert.
 
-Die Marketing-Registrierung (`marketing/registrieren.html`) fragt zusätzlich eine
-**Rolle** ab (Elternteil vs. Schüler:in). Bei einem Elternkonto ist die
-`email` die der/des Sorgeberechtigten, `name`/`klassenstufe` beziehen sich auf
-das Kind. Ein Familien-Abo kann mehrere Kind-Profile bündeln (siehe
-`KindProfil` unten); technisch ist jedes Kind-Profil ein eigener,
-ressourcengescopeter Account, verknüpft über `parentUserId` + gemeinsames `Abo`.
+**Seit 2026-09-16 legt die öffentliche Registrierung (`marketing/registrieren/`)
+NUR noch ein Elternkonto an** — kein Rollen-Picker mehr, kein Kind-Name/
+Klassenstufe im Formular. `POST /auth/registrieren` nimmt nur noch
+`{name, email, passwort, einwilligung}` entgegen und setzt `rolle` serverseitig
+fest auf `elternteil`; `klassenstufe` bleibt `null`. Das gilt **auch bei
+Einzelplatz (1 Sitz)** — die frühere Ausnahme „Solo-Elternteil = ist selbst der
+Lernaccount" ist gestrichen (siehe UMSETZUNGSPLAN.md „Eltern-only Signup" für
+die Entscheidung). Kind-Profile entstehen ausschließlich danach, im Konto,
+über `POST /abo/kinder` (dort weiterhin mit eigener `klassenstufe` und
+`rolle = schueler`, siehe `KindProfil`/§4) — bis zu `Abo.sitze` Stück, auch bei
+`sitze = 1` genau eines. `app/assets/js/auth-gate.js` erzwingt das: jedes
+`rolle = elternteil`-Konto landet immer im Eltern-Bereich (`eltern-kinder.html`
+ohne Kind-Profil, sonst `eltern.html`), nie auf `dashboard.html`.
 
 | Feld | Typ | Hinweis |
 |---|---|---|
 | id | uuid | |
-| name | string | editierbar über Profil-Formular; bei Elternkonto = Name des Kindes |
-| klassenstufe | string | z. B. „8. Klasse", editierbar |
+| name | string | editierbar über Profil-Formular; bei Elternkonto der/die Sorgeberechtigte, bei Kind-Profil das Kind |
+| klassenstufe | string, nullable | nur bei Kind-Profilen (`rolle = schueler`) gesetzt, z. B. „8. Klasse"; bei Elternkonten `null` |
 | email | string | Login-Kennung; bei Kind-Profilen im Familien-Abo optional/leer |
-| rolle | enum | `schueler` \| `elternteil` — aus der Registrierung, steuert u. a. die Eltern-Zusammenfassung |
+| rolle | enum | `schueler` \| `elternteil` — bei öffentlicher Registrierung immer `elternteil`; `schueler` nur für Kind-Profile (`POST /abo/kinder`) |
 | parentUserId | uuid (FK, nullable) | gesetzt bei Kind-Profilen, die zu einem Elternkonto/Familien-Abo gehören |
 | aboId | uuid (FK, nullable) | aktives `Abo` (siehe unten). Wird i. d. R. **schon bei der Registrierung** gesetzt (Tarif-Wahl + Zahlungsart), `Abo.status` startet auf `test`. `null` nur, falls kein Checkout abgeschlossen wurde |
 | trialEndetAm | timestamp (nullable) | Ende der **14-tägigen** kostenlosen Testphase (`createdAt + 14 Tage`). Danach bucht Stripe automatisch ab (→ `Abo.status = aktiv`), außer es wurde vorher gekündigt — dann sind die Schreib-Aktionen (Chat, Uploads, Testklausuren) gesperrt |
@@ -932,7 +939,7 @@ Kein `PATCH /klausuren/:id` — eine `Klausur` hat keine editierbaren Felder (En
 | Methode | Pfad | Zweck |
 |---|---|---|
 | GET | `/user` | Aktuelles Profil (Name, Klassenstufe) — füllt Seitenleiste, Dashboard-Begrüßung und Profil-Formular |
-| PATCH | `/user` | `{name, klassenstufe}` → Profil aktualisieren |
+| PATCH | `/user` | `{name?, klassenstufe?}` → Profil aktualisieren (beide optional, mind. eines nötig); `klassenstufe` nur bei Kind-Profilen sinnvoll — leerer String schlägt an der Validierung fehl, Eltern-Accounts lassen das Feld weg |
 | GET | `/user/einstellungen` | Aktuelle Einstellungen (Benachrichtigungen, KI-Tonfall) |
 | PATCH | `/user/einstellungen` | Teilupdate einzelner Einstellungen (jeder Toggle/jede Auswahl speichert für sich, kein Sammel-Formular) |
 | GET | `/user/export` | **DSGVO Art. 15** — kompletter JSON-Export aller zum Konto gespeicherten Daten (ohne `passwordHash`), `Content-Disposition: attachment` (Phase 13) |
@@ -967,7 +974,7 @@ Query-Parameter, die `chat.html`/`thema.html` aus dem client-seitigen
 ### Auth (neu — beliefert `marketing/login.html`, `registrieren.html`, `passwort-vergessen.html`)
 | Methode | Pfad | Zweck |
 |---|---|---|
-| POST | `/auth/registrieren` | `{rolle, name, klassenstufe, email, passwort, einwilligung: true}` → Konto anlegen, Double-Opt-in-Token erzeugen (Mail-Versand zurückgestellt), **14-Tage-Testphase** starten (`User.trialEndetAm = createdAt + 14 Tage`). `einwilligung` (Eltern-/Minderjährigen-Einwilligung, Jugendschutz) ist **Pflicht** — fehlt sie → `400`; der Zeitpunkt landet als `User.einwilligungAm` (Nachweis, Phase 13). Tarif-Wahl + Zahlungsart laufen über den Checkout (`POST /abo`) |
+| POST | `/auth/registrieren` | `{name, email, passwort, einwilligung: true}` → **Eltern-Konto** anlegen (`rolle` server-seitig fest `elternteil`, `klassenstufe = null` — kein Client-Input mehr seit 2026-09-16), Double-Opt-in-Token erzeugen (Mail-Versand zurückgestellt), **14-Tage-Testphase** starten (`User.trialEndetAm = createdAt + 14 Tage`). `einwilligung` (Zustimmung zu Nutzungsbedingungen/Datenschutz) ist **Pflicht** — fehlt sie → `400`; der Zeitpunkt landet als `User.einwilligungAm`. Tarif-Wahl + Zahlungsart laufen über den Checkout (`POST /abo`); Kind-Profile kommen erst danach über `POST /abo/kinder` |
 | POST | `/auth/login` | `{email, passwort, angemeldetBleiben?}` → Session/JWT |
 | POST | `/auth/logout` | Session invalidieren |
 | POST | `/auth/passwort-vergessen` | `{email}` → Reset-Token (immer 200, keine Konto-Enumeration; Versandweg zurückgestellt) |
@@ -1115,10 +1122,12 @@ Die **Marketing-Website** (`marketing/`) enthält jetzt aber `login.html`,
 ohne Backend (Formulare zeigen nur einen Toast). Für das echte Backend:
 - E-Mail/Passwort als Standard (Formulare in `marketing/` sind darauf ausgelegt),
   plus Double-Opt-in und Passwort-Reset per Token (Endpunkte in §4).
-- Rolle bei der Registrierung: `elternteil` vs. `schueler` (siehe §1 `User.rolle`).
-  Bei Elternkonten richtet die/der Sorgeberechtigte das Konto ein und willigt in
-  die Verarbeitung der Daten des Kindes ein. Die genaue Eltern-Kind-Mechanik ist
-  zurückgestellt (Entscheidung 2026-09-03).
+- Öffentliche Registrierung legt **nur** ein Elternkonto an (`rolle` fest
+  `elternteil`, siehe §1 `User.rolle`) — die/der Sorgeberechtigte richtet das
+  Konto ein und willigt in die Nutzungsbedingungen ein. `rolle = schueler`
+  existiert nur für Kind-Profile, die danach im Konto entstehen (§1 „Eltern-
+  Kind-Modell", Entscheidung 2026-09-16, korrigiert die frühere Zurückstellung
+  vom 2026-09-03).
 - **Schul-SSO entfällt** (Entscheidung 2026-09-03) — kein `GET /auth/sso/schule`,
   der Button ist aus `marketing/login.html` entfernt.
 - Session/JWT, an jeden Endpunkt gebunden.
@@ -1439,7 +1448,16 @@ fehlgeschlagene Logins/Upload-Flooding weiterhin offen (§8).
 
 ### Entschieden am 2026-09-08
 
-- [x] **Eltern-Kind-Modell**: **getrennte, verknüpfte Accounts.** Das Elternkonto (`User.rolle = elternteil`) besitzt das `Abo` (`ownerUserId`) und verwaltet 1–4 Kind-Profile — eigene `User`-Zeilen mit `rolle = schueler`, `parentUserId` = Elternkonto, gemeinsames `aboId`. Kein „ein Account mit Unterprofilen". Ein Solo-Elternteil (`Abo.art = einzel`) hat **kein** Kind-Profil — dieser eine Account *ist* der Lern-Account. Die Endpunkte (`/abo/kinder`, `.../einladung`, `.../sitzung`, `.../zusammenfassung`) waren bereits so gebaut (Phase 12); die Frontend-Weiche steht (`app/assets/js/auth-gate.js`: nur `rolle = elternteil` **mit** vorhandenen Kind-Profilen landet im Eltern-Bereich). Prototyp-Umsetzung: `app/eltern.html` + Familien-Modell in `data.js` (`Lesify.familie/kinder/kindZusammenfassung/wechsleZuKind/…`), Plan `Konzept-texts/eltern-zugang-plan.md`.
+- [x] **Eltern-Kind-Modell**: **getrennte, verknüpfte Accounts.** Das Elternkonto (`User.rolle = elternteil`) besitzt das `Abo` (`ownerUserId`) und verwaltet 1–4 Kind-Profile — eigene `User`-Zeilen mit `rolle = schueler`, `parentUserId` = Elternkonto, gemeinsames `aboId`. Kein „ein Account mit Unterprofilen". Die Endpunkte (`/abo/kinder`, `.../einladung`, `.../sitzung`, `.../zusammenfassung`) waren bereits so gebaut (Phase 12). Prototyp-Umsetzung: `app/eltern.html` + Familien-Modell in `data.js` (`Lesify.familie/kinder/kindZusammenfassung/wechsleZuKind/…`), Plan `Konzept-texts/eltern-zugang-plan.md`.
+      **Korrektur 2026-09-16 (Entscheidung, siehe UMSETZUNGSPLAN.md „Eltern-only
+      Signup"):** die frühere Ausnahme „Solo-Elternteil (`Abo.art = einzel`) hat
+      kein Kind-Profil — der Account *ist* selbst der Lern-Account" ist
+      **gestrichen**. Auch bei 1 Sitz legt der Elternteil danach ein eigenes
+      Kind-Profil an (`POST /abo/kinder`) — die öffentliche Registrierung
+      erstellt nie direkt einen Lernaccount. `app/assets/js/auth-gate.js`s
+      Weiche wurde entsprechend angepasst: **jedes** `rolle = elternteil`-Konto
+      landet immer im Eltern-Bereich (ohne Kind-Profil → `eltern-kinder.html`
+      zum Anlegen, sonst `eltern.html`), nie auf `dashboard.html`.
 - [x] **Familien-Abo-Sichtbarkeit**: Der Eltern-Bereich zeigt je Kind **nur aggregierte Wochenkennzahlen** aus `GET /abo/kinder/:id/zusammenfassung` (Fächer, Themen, Chats/Nachrichten der Woche, Lernzettel gesamt, Testklausuren der Woche, anstehende Klausuren) plus eine daraus abgeleitete Aktivitäts-Ampel. **Kein** Chat-Wortlaut, **keine** Lernzettel-Inhalte, **keine** Noten. Frequenz vorerst rein in-app (Pull beim Öffnen); E-Mail-Digest hängt am projektweit zurückgestellten E-Mail-Versand. Dediziertes Kind-Opt-out bleibt Nach-Launch-Thema (Phase 17). **2026-09-12:** Eltern-Bereich auf vier Seiten aufgeteilt (`app/eltern.html`, `eltern-kinder.html`, `eltern-kind.html?id=…`, `eltern-abo.html`, `eltern-datenschutz.html`, siehe `app/README.md`); die neue Einzelansicht je Kind zeigt zusätzlich Fach- und Klausur-*Metadaten* (Name/Datum + Anzahl, siehe Endpunkt-Zeile oben) — weiterhin ohne Inhalte oder Ergebnisse.
 - [x] **Kontext-Wechsel „Als Kind ansehen"**: Elternkonto kann per `POST /abo/kinder/:id/sitzung` eine eigene Kind-Session ziehen und voll im `userId`-Scope des Kindes arbeiten; Rückweg = eigenes Eltern-Token. UI: dauerhaftes „Elternmodus"-Banner auf allen Schüler-Seiten (`app.js` → `renderElternBanner`), `localStorage`-Flag statt Token im Prototyp.
 

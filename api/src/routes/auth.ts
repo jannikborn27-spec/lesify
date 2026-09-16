@@ -49,7 +49,7 @@ let dummyHashP: Promise<string> | undefined;
 const dummyHash = () => (dummyHashP ??= hashPasswort('timing-abgleich-kein-echtes-passwort'));
 
 export async function authRoutes(app: FastifyInstance): Promise<void> {
-  const { prisma } = app;
+  const { prisma, sessionCache } = app;
 
   // ---- GET /auth/me -----------------------------------------------------
   // Aktuelle Sitzung prüfen (Frontend-Auth-Gate, Phase 11).
@@ -158,7 +158,9 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
     const header = req.headers.authorization;
     const roh = header?.startsWith('Bearer ') ? header.slice('Bearer '.length).trim() : undefined;
     if (roh) {
-      await prisma.session.deleteMany({ where: { tokenHash: hashToken(roh) } });
+      const tokenHash = hashToken(roh);
+      await prisma.session.deleteMany({ where: { tokenHash } });
+      sessionCache.invalidate(tokenHash);
     }
     return reply.send({ ok: true });
   });
@@ -221,6 +223,7 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
       // alle Sessions beenden — erzwingt Neu-Anmeldung überall
       prisma.session.deleteMany({ where: { userId: vt.userId } }),
     ]);
+    sessionCache.invalidateUser(vt.userId);
     return { ok: true };
   });
 }

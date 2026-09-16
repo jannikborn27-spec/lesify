@@ -286,6 +286,29 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       Fix: nur noch bei `err.status === 401` ausloggen, alles andere lässt
       die Seite normal weiterlaufen. Lokal (Logik-Check aller vier
       Fehlerfälle) und live gegen `lesify.de` verifiziert.
+- [x] **Bug (2026-09-16, gemeldet & behoben): Seiten laden spürbar verzögert,
+      dann erscheint alles auf einmal.** Ursache mit Timing-Messung gegen die
+      echte Supabase-DB (`eu-west-1`) bestätigt: jede Seite rendert nichts,
+      bis **alle** ihre `Lesify.*()`-Calls durch sind (Dashboard z. B. 7
+      parallele Requests, siehe `app/dashboard.html`), und `requireAuth`
+      machte dabei bei **jedem einzelnen** dieser Requests einen eigenen
+      `prisma.session.findUnique`-Roundtrip (~150-450 ms je Query, gemessen).
+      Fix: `SessionCache` (`api/src/lib/sessionCache.ts`, TTL 30 s) hält
+      validierte Sessions kurz im Speicher, spart den DB-Lookup bei
+      wiederholten Requests mit demselben Token — 7-paralleler Seitenaufruf
+      lokal gemessen von ~477 ms auf ~215 ms. Details + Trade-off in
+      `Konzept-texts/backend-planning.md` (§ Umsetzung Phase 3, Abschnitt
+      „Session-Cache"). Nicht angefasst: das All-or-nothing-Rendermuster
+      selbst (Skeleton/Ladezustand) und einzelne unnötig sequenzielle
+      Awaits (z. B. `thema.html`) — auf Wunsch des Nutzers bewusst offen
+      gelassen, siehe unten.
+- [ ] **Skeleton/Ladezustand statt leerer Seite** (Folgeidee aus obigem Bug,
+      noch nicht umgesetzt): Seiten zeigen bis zum ersten Render nichts außer
+      leeren `<div>`s — ändert die reale Ladezeit nicht, aber die gefühlte.
+- [ ] **Sequenzielle statt parallele Awaits vor dem ersten Render** (Folgeidee,
+      noch nicht umgesetzt): z. B. `thema.html` lädt `Lesify.faecher()` und
+      `Lesify.getThema()` nacheinander statt gleichzeitig, obwohl beide
+      unabhängig sind — ein Roundtrip weniger pro Seitenaufruf möglich.
 - [ ] **Error-Tracking-Anbieter** (z. B. Sentry) — DSN besorgen, anschließen.
 - [ ] **DB-Backups:** Supabase-Feature aktivieren + einmal einen echten
       Restore testen.

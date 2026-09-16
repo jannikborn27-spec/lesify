@@ -12,6 +12,7 @@ import { getZahlungsGateway, type ZahlungsGateway } from './lib/zahlung.js';
 import { getKiClient, type KiClient } from './lib/ki/client.js';
 import { getStorageGateway, type StorageGateway } from './lib/storage.js';
 import { RateLimiter } from './lib/ratelimit.js';
+import { SessionCache } from './lib/sessionCache.js';
 import { healthRoutes } from './routes/health.js';
 import { authRoutes } from './routes/auth.js';
 import { faecherRoutes } from './routes/faecher.js';
@@ -132,6 +133,9 @@ export function buildApp(opts: BuildOpts = {}): FastifyInstance {
     app.addHook('onClose', async () => clearInterval(putzer));
   }
 
+  const sessionCache = new SessionCache();
+  app.decorate('sessionCache', sessionCache);
+
   app.decorate('requireAuth', async function requireAuth(request, reply) {
     const header = request.headers.authorization;
     const roh = header?.startsWith('Bearer ') ? header.slice('Bearer '.length).trim() : undefined;
@@ -139,11 +143,18 @@ export function buildApp(opts: BuildOpts = {}): FastifyInstance {
       await reply.code(401).send({ fehler: 'nicht_angemeldet' });
       return reply;
     }
-    const session = await prisma.session.findUnique({ where: { tokenHash: hashToken(roh) } });
+    const tokenHash = hashToken(roh);
+    const cachedUserId = sessionCache.get(tokenHash);
+    if (cachedUserId) {
+      request.userId = cachedUserId;
+      return;
+    }
+    const session = await prisma.session.findUnique({ where: { tokenHash } });
     if (!session || session.ablaeuftAm.getTime() < Date.now()) {
       await reply.code(401).send({ fehler: 'nicht_angemeldet' });
       return reply;
     }
+    sessionCache.set(tokenHash, session.userId, session.ablaeuftAm.getTime());
     request.userId = session.userId;
   });
 

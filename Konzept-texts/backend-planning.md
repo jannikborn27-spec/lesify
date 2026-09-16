@@ -1136,6 +1136,22 @@ ohne Backend (Formulare zeigen nur einen Toast). Für das echte Backend:
   **wirklich** invalidieren kann. Client schickt `Authorization: Bearer <roh>`;
   Middleware `requireAuth` schlägt `sha256(roh)` in `Session` nach, prüft
   `ablaeuftAm`, setzt `request.userId`. Cookie-Variante später nachrüstbar.
+- **Session-Cache (2026-09-16, Performance-Fix):** `requireAuth` hielt jeden
+  einzelnen Request mit einem eigenen `prisma.session.findUnique`-Roundtrip
+  auf — bei Seiten, die mehrere `Lesify.*()`-Calls parallel absetzen (z. B.
+  Dashboard: 7 gleichzeitige Requests), summierte sich das spürbar
+  (Supabase in `eu-west-1`, ~150-450 ms je Query von einem entfernten Client
+  aus gemessen) und war mitverantwortlich für "Seite lädt verzögert, dann
+  erscheint alles auf einmal". Fix: `SessionCache` (`api/src/lib/sessionCache.ts`,
+  pro Prozess ein `Map<tokenHash, {userId, ablaeuftAm}>`, TTL 30 s) hält
+  bereits validierte Tokens kurz im Speicher — spart bei wiederholten Requests
+  mit demselben Token den DB-Lookup. `logout` und
+  `passwort-zuruecksetzen` räumen betroffene Einträge sofort weg
+  (`sessionCache.invalidate`/`invalidateUser`). **Trade-off:** eine
+  widerrufene Session kann in einem Race bis zu 30 s nach dem Widerruf noch
+  als gültig gelten, falls sie kurz zuvor anderswo gecached wurde — bewusst
+  akzeptiert, bei mehreren API-Instanzen (Redis-Wechsel, siehe Rate-Limiting
+  unten) neu bewerten.
 - **Endpunkte** (Prefix `/auth`): `POST /registrieren`, `POST /email-bestaetigen`,
   `POST /login`, `POST /logout`, `POST /passwort-vergessen`,
   `POST /passwort-zuruecksetzen`, **`GET /me`** (neu — Sitzungs-Check fürs

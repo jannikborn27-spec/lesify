@@ -3,10 +3,13 @@ import type { preHandlerHookHandler } from 'fastify';
 import type { ZahlungsGateway } from './lib/zahlung.js';
 import type { KiClient } from './lib/ki/client.js';
 import type { StorageGateway } from './lib/storage.js';
+import type { SessionCache } from './lib/sessionCache.js';
 
 declare module 'fastify' {
   interface FastifyInstance {
     prisma: PrismaClient;
+    /** Kurzlebiger Cache validierter Sessions, siehe requireAuth (app.ts). */
+    sessionCache: SessionCache;
     /** Zahlungsanbieter-Adapter (Phase 9; Fake bis Phase 16). */
     zahlung: ZahlungsGateway;
     /** Claude-Client (Phase 6; Fake ohne ANTHROPIC_API_KEY). */

@@ -53,3 +53,26 @@ describe('CORS (§4/Phase 11) — Marketing/App laufen auf anderem Origin', () =
     },
   );
 });
+
+describe('Security-Header (@fastify/helmet, Phase 15/14 Sicherheitsreview)', () => {
+  const keinPrisma = {} as unknown as PrismaClient;
+  const app = buildApp({ prisma: keinPrisma, logger: false, rateLimit: false });
+
+  it('setzt Standard-Härtungs-Header (nosniff, HSTS, kein Referrer)', async () => {
+    const res = await app.inject({ method: 'GET', url: '/health' });
+    expect(res.headers['x-content-type-options']).toBe('nosniff');
+    expect(res.headers['strict-transport-security']).toBeDefined();
+    expect(res.headers['referrer-policy']).toBeDefined();
+  });
+
+  it('crossOriginResourcePolicy ist "cross-origin" — Datei-Vorschau wird von app/ eingebettet', async () => {
+    const res = await app.inject({ method: 'GET', url: '/health' });
+    expect(res.headers['cross-origin-resource-policy']).toBe('cross-origin');
+  });
+
+  it('setzt keine COOP/COEP-Header (nur für Dokument-Kontexte relevant, nicht für eine JSON-API)', async () => {
+    const res = await app.inject({ method: 'GET', url: '/health' });
+    expect(res.headers['cross-origin-opener-policy']).toBeUndefined();
+    expect(res.headers['cross-origin-embedder-policy']).toBeUndefined();
+  });
+});

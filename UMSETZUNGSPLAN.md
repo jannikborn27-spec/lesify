@@ -3722,8 +3722,11 @@ Kritisch, weil Zielgruppe minderjährig ist.
       braucht `staging` + echte KI._
 - [x] **Sicherheitsreview (Stand-Tabelle)** — _`docs/QS-CHECKLISTE.md` §3: Auth,
       Scoping (getestet), Injection, Secrets, Webhook-HMAC (Phase 9,
-      2026-09-12), CORS (Phase 11, 2026-09-12) ✅; signierte URLs/Upload-
-      Validierung (P5), KI-Guard (P6), Security-Header (P16) offen._
+      2026-09-12), CORS (Phase 11, 2026-09-12), signierte URLs/Upload-
+      Validierung (Phase 5), KI-Guard (Phase 6) ✅; API-Security-Header
+      (2026-09-16, siehe unten) ✅; Security-Header für `app/`+`marketing/`
+      bleibt offen — **blockiert von GitHub Pages** (kein Custom-Header-
+      Support), lösbar erst mit dem echten Hosting-Wechsel (Phase 16)._
 - [ ] **Barrierefreiheit & Responsiveness** — _Checkliste `docs/QS-CHECKLISTE.md`
       §5; manueller Durchgang mit dem Frontend-Cut-over (Phase 11)._
 - [x] **Fehler-Budget definiert** — _`docs/QS-CHECKLISTE.md` §6 (Launch-Blocker

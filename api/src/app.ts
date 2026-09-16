@@ -1,6 +1,7 @@
 import Fastify, { type FastifyError, type FastifyInstance } from 'fastify';
 import multipart from '@fastify/multipart';
 import cors from '@fastify/cors';
+import helmet from '@fastify/helmet';
 import { corsOriginOption } from './lib/cors.js';
 import type { PrismaClient } from '@prisma/client';
 import { getPrisma } from './db.js';
@@ -65,6 +66,22 @@ export function buildApp(opts: BuildOpts = {}): FastifyInstance {
   app.decorate('storage', opts.storage ?? getStorageGateway());
   app.decorateRequest('userId', '');
   app.decorateRequest('rawBody', undefined);
+
+  // ---- Security-Header (§3 Sicherheitsreview, Phase 15/14) ----
+  // Reines JSON-API, keine HTML-Auslieferung → helmets HTML-orientierte CSP
+  // aus (bringt nur auf gerenderten Seiten etwas). `crossOriginResourcePolicy`
+  // bewusst auf "cross-origin": `GET /dateien/:id/inhalt` wird von `app/`
+  // (anderer Origin als die API) direkt als <img>/<embed>-Quelle eingebettet
+  // (siehe dateien.js `dateiInhaltUrl`) — "same-origin" (Helmet-Default) würde
+  // das im Browser blocken. COOP/COEP sind für Dokument-Kontexte gedacht,
+  // nicht für eine reine JSON-API, und bewusst aus (kein Nutzen, nur
+  // Fehlerpotenzial mit Stripe.js/Popups auf `marketing/`).
+  app.register(helmet, {
+    contentSecurityPolicy: false,
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    crossOriginOpenerPolicy: false,
+    crossOriginEmbedderPolicy: false,
+  });
 
   // ---- CORS (§4/Phase 11) — Marketing/App laufen auf anderem Origin. ----
   // `methods` explizit setzen: der Plugin-Default ist nur GET,HEAD,POST —

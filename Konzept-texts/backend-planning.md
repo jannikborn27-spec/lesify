@@ -758,7 +758,10 @@ läuft nirgends ein echter Call, mit Key nutzt `AnthropicKiClient` das
   (gleiche Nachricht >2× in 30 s). Laufen vor `POST /chats/:id/nachrichten`
   und `POST /lernzettel/:id/revisionen`; kein Usage-Verbrauch bei Treffer.
   Fehlercodes (`nicht_schulrelevant`/`anfrage_zu_gross`/`spam_erkannt`) kennt
-  `app/assets/js/api.js` (`fehlerText`) bereits aus Phase 11.
+  `app/assets/js/api.js` (`fehlerText`) bereits aus Phase 11. Jeder Treffer
+  löst zusätzlich ein Missbrauchs-Signal aus (`MissbrauchsWaechter`, Phase 15,
+  §7 unten) — ab 5 Treffern/Stunde eine 30-minütige Sperre
+  (`429 missbrauch_gesperrt`, ebenfalls in `fehlerText` hinterlegt).
 - **Themen Memory / Material:** `api/src/lib/ki/kontext.ts` —
   `themenMemoryBlock()` (Grundfall, reines Assembly, keine Verdichtung: „erst
   optimieren, wenn nötig"), `themaMaterial()` (Lernzettel bevorzugt, sonst
@@ -1340,7 +1343,9 @@ jeweils Popup-Meldung):
   offensichtliches Flooding → abgewiesen/gedrosselt.
 
 **3. Missbrauchs-Signale (Logging + temporäre Sperre):** wiederholte
-Themen-Guard-Treffer, viele fehlgeschlagene Logins, Upload-Flooding.
+Themen-Guard-Treffer, viele fehlgeschlagene Logins, Upload-Flooding. —
+**Umgesetzt für Guard-Treffer** (2026-09-16, siehe „Umsetzung" unten);
+fehlgeschlagene Logins/Upload-Flooding weiterhin offen (§8).
 
 ### Umsetzung (Phase 15, 2026-09-04)
 
@@ -1369,7 +1374,15 @@ Themen-Guard-Treffer, viele fehlgeschlagene Logins, Upload-Flooding.
   vergleicht die Monatssumme gegen das aus `PLAN_ECONOMICS` (§7 oben,
   Backend-Spiegel in `shared/src/index.ts`) abgeleitete Budget und loggt
   einen Alarm bei > 1,5× Überschreitung. Tests: `api/src/lib/ki/kosten.test.ts`.
-- **Missbrauchs-Signale:** siehe §3 „Wo/wann KI-Calls passieren" oben.
+- **Missbrauchs-Signale** (2026-09-16): `MissbrauchsWaechter` in
+  `api/src/lib/ki/guard.ts` — jeder Guard-Treffer (Größe/Themen/Spam) eines
+  Nutzers wird strukturiert geloggt (`missbrauchssignal`); häufen sich die
+  Treffer eines Nutzers (≥ 5 in 1 Stunde), greift zusätzlich eine 30-minütige
+  temporäre Sperre der KI-Funktionen für genau diesen Nutzer
+  (`429 missbrauch_gesperrt`, unabhängig vom IP-basierten Rate-Limiting) —
+  geloggt als `missbrauchVerdacht`. In `pruefeKiEingabe()` gebündelt, also vor
+  jedem KI-Vorab-Filter-Aufruf aktiv. Fehlgeschlagene Logins/Upload-Flooding
+  bleiben offen (§8). Tests: `api/src/lib/ki/guard.test.ts`.
 - **Offen (Phase 16):** Error-Tracker-DSN, Log-Sink, Backup-Restore-Test,
   Scheduler-Anbindung für alle fünf Wartungs-Jobs. Runbook: `docs/RUNBOOK.md`.
 

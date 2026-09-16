@@ -106,13 +106,95 @@ export function getSpamWaechter(): SpamWaechter {
   return spamInstanz;
 }
 
-/** Bündelt Größen-, Themen- und Spam-Guard in dieser Reihenfolge. */
+// ---- Missbrauchs-Signale (§7 „Rate-Limiting & Missbrauchsschutz", Punkt 3:
+// „Logging + temporäre Sperre") -----------------------------------------
+//
+// Jeder Guard-Treffer (Größe/Themen/Spam) eines Nutzers wird strukturiert
+// geloggt. Häufen sich die Treffer eines Nutzers in kurzer Zeit, ist das ein
+// stärkeres Signal als ein einzelner Treffer (Testen der Grenzen, Scripting)
+// — dann greift zusätzlich eine kurze temporäre Sperre der KI-Funktionen für
+// genau diesen Nutzer (unabhängig vom IP-basierten Rate-Limiting in
+// `ratelimit.ts`).
+
+const MISSBRAUCH_FENSTER_MS = 60 * 60 * 1000; // 1 Stunde
+const MISSBRAUCH_SCHWELLE = 5; // ab dem 5. Guard-Treffer im Fenster → Sperre
+const MISSBRAUCH_SPERRE_MS = 30 * 60 * 1000; // 30 Minuten
+
+interface MissbrauchsEintrag {
+  treffer: number[];
+  gesperrtBis?: number;
+}
+
+export class MissbrauchsWaechter {
+  private readonly eintraege = new Map<string, MissbrauchsEintrag>();
+
+  /** Wirft `429 missbrauch_gesperrt`, solange eine laufende Sperre besteht. */
+  pruefeGesperrt(userId: string, jetzt = Date.now()): void {
+    const eintrag = this.eintraege.get(userId);
+    if (eintrag?.gesperrtBis && eintrag.gesperrtBis > jetzt) {
+      throw new HttpError(429, 'missbrauch_gesperrt', {
+        bisSek: Math.ceil((eintrag.gesperrtBis - jetzt) / 1000),
+      });
+    }
+  }
+
+  /** Meldet einen Guard-Treffer; sperrt bei zu vielen Treffern im Fenster temporär. */
+  melden(userId: string, art: string, jetzt = Date.now()): void {
+    const eintrag = this.eintraege.get(userId) ?? { treffer: [] };
+    eintrag.treffer = eintrag.treffer.filter((t) => jetzt - t < MISSBRAUCH_FENSTER_MS);
+    eintrag.treffer.push(jetzt);
+    console.warn(
+      JSON.stringify({
+        missbrauchssignal: true,
+        userId,
+        art,
+        anzahlImFenster: eintrag.treffer.length,
+      }),
+    );
+    if (eintrag.treffer.length >= MISSBRAUCH_SCHWELLE) {
+      eintrag.gesperrtBis = jetzt + MISSBRAUCH_SPERRE_MS;
+      console.warn(
+        JSON.stringify({
+          missbrauchVerdacht: true,
+          userId,
+          anzahlImFenster: eintrag.treffer.length,
+          gesperrtBisSek: MISSBRAUCH_SPERRE_MS / 1000,
+        }),
+      );
+    }
+    this.eintraege.set(userId, eintrag);
+  }
+
+  /** Nur für Tests. */
+  zuruecksetzen(): void {
+    this.eintraege.clear();
+  }
+}
+
+let missbrauchsInstanz: MissbrauchsWaechter | undefined;
+export function getMissbrauchsWaechter(): MissbrauchsWaechter {
+  if (!missbrauchsInstanz) missbrauchsInstanz = new MissbrauchsWaechter();
+  return missbrauchsInstanz;
+}
+
+/**
+ * Bündelt Größen-, Themen- und Spam-Guard in dieser Reihenfolge; jeder
+ * Guard-Treffer wird als Missbrauchs-Signal gemeldet (`MissbrauchsWaechter`),
+ * eine laufende temporäre Sperre schlägt allem anderen vor.
+ */
 export function pruefeKiEingabe(
   userId: string,
   text: string,
   spamWaechter = getSpamWaechter(),
+  missbrauchsWaechter = getMissbrauchsWaechter(),
 ): void {
-  pruefeGroesse(text);
-  pruefeThemenrelevanz(text);
-  spamWaechter.treffer(userId, text);
+  missbrauchsWaechter.pruefeGesperrt(userId);
+  try {
+    pruefeGroesse(text);
+    pruefeThemenrelevanz(text);
+    spamWaechter.treffer(userId, text);
+  } catch (err) {
+    if (err instanceof HttpError) missbrauchsWaechter.melden(userId, err.code);
+    throw err;
+  }
 }

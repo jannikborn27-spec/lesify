@@ -3769,7 +3769,17 @@ Kritisch, weil Zielgruppe minderjährig ist.
       `/abo/webhook` frei. `429` + `Retry-After`. Ad-hoc-Limit in `/kontakt`
       entfernt. Tests `api/src/lib/ratelimit.test.ts` (7). Schlüssel derzeit IP;
       User-Keying/Redis + Kalibrierung nach echtem Traffic offen._
-- [ ] **Vorab-Filter + Missbrauchssignale** — _Phase 6._
+- [x] **Vorab-Filter + Missbrauchssignale** (2026-09-16) — _Vorab-Filter
+      (Themen-/Größen-/Spam-Guard) stand bereits seit Phase 6
+      (`api/src/lib/ki/guard.ts`). Neu: `MissbrauchsWaechter` — jeder
+      Guard-Treffer wird strukturiert geloggt (`missbrauchssignal`); ab 5
+      Treffern eines Nutzers in 1 Stunde greift eine 30-minütige temporäre
+      Sperre der KI-Funktionen (`429 missbrauch_gesperrt`, unabhängig vom
+      IP-Rate-Limiting), geloggt als `missbrauchVerdacht`. In
+      `pruefeKiEingabe()` gebündelt. Neuer Fehlercode in
+      `app/assets/js/api.js` (`fehlerText`) ergänzt. Tests:
+      `api/src/lib/ki/guard.test.ts` (15, 5 neu). `backend-planning.md` §3/§7
+      nachgezogen.
 - [x] **Runbook** — _`docs/RUNBOOK.md`: KI-Ausfall, Stripe-Ausfall,
       DB-Überlastung, Datenschutz-Anfrage, Rate-Limit-Fehlalarm + Go-Live-Haken._
 

@@ -65,6 +65,7 @@
     nicht_schulrelevant: 'Die KI hilft nur bei schulischen Themen.',
     anfrage_zu_gross: 'Die Anfrage ist zu lang — bitte kürzen.',
     spam_erkannt: 'Zu viele gleiche Anfragen kurz hintereinander.',
+    missbrauch_gesperrt: 'Die KI-Funktionen sind für dich kurz gesperrt — bitte später erneut versuchen.',
     rate_limit: 'Zu viele Anfragen — kurz warten und erneut versuchen.',
     passwort_falsch: 'Falsches Passwort.',
     abo_nicht_reaktivierbar: 'Das Abo ist bereits aktiv.',

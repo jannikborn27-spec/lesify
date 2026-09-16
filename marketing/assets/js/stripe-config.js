@@ -113,30 +113,24 @@ window.LESIFY_PAYMENTS = {
     infinite: { apiCostMonth: 11.28, ltv: 180 }
   },
 
+  /* Deckt sich 1:1 mit den `feats` der Preiskarten (marketing.js
+     `PRICE.plans[].feats`) — hier nicht eigenständig pflegen, bei
+     Änderung an den Karten diese Liste mitziehen. */
   features: {
     starter: [
-      'Alle Fächer, beliebig viele Themen',
-      '20 Content-Aufnahmen pro Monat',
-      '100 KI-Nachrichten pro Monat',
-      '5 Lernzettel',
-      '1 Testklausur pro Monat',
-      'Action Plan & Lernplan zur Klausur'
+      '100 KI-Nachrichten / Monat',
+      '20 Dokumente / Monat',
+      '1 Klausurvorbereitung / Monat'
     ],
     premium: [
-      'Alles aus Starter',
-      '50 Content-Aufnahmen pro Monat',
-      '250 KI-Nachrichten pro Monat',
-      '15 Lernzettel',
-      '5 Testklausuren pro Monat',
-      'Erinnerung vor eingetragenen Klausuren'
+      '250 KI-Nachrichten / Monat',
+      '50 Dokumente / Monat',
+      '5 Klausurvorbereitungen / Monat'
     ],
     infinite: [
-      'Alles aus Premium',
-      '100 Content-Aufnahmen pro Monat',
       'Unbegrenzt KI-Nachrichten',
-      '50 Lernzettel',
-      '15 Testklausuren pro Monat',
-      'Bevorzugter Support per E-Mail'
+      '100 Dokumente / Monat',
+      '15 Klausurvorbereitungen / Monat'
     ],
     family: [
       'Ein eigenes Profil je Kind, getrennte Fächer & Fortschritte',

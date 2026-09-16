@@ -13,6 +13,7 @@
 
   var LOGIN = '/login/';
   var ELTERN_SEITE = 'eltern.html';
+  var ELTERN_KINDER_SEITE = 'eltern-kinder.html';
   var SCHUELER_START = 'dashboard.html';
 
   function raus() {
@@ -25,18 +26,23 @@
     return;
   }
 
-  // Rollen-/Familie-Weiche: Ein Elternkonto MIT Familien-Abo (Kind-Profile
-  // vorhanden) gehört in den Eltern-Bereich; ein Solo-Elternkonto
-  // (rolle=elternteil, art=einzel) verhält sich wie ein Schüler-Account.
-  // Ein Schüler-Account hat auf keiner `eltern-*.html`-Seite etwas verloren.
+  // Rollen-Weiche: JEDES Elternkonto (rolle=elternteil) gehört in den
+  // Eltern-Bereich — auch bei nur 1 Sitz (Einzelplatz). Seit 2026-09-16
+  // (siehe UMSETZUNGSPLAN.md „Eltern-only Signup") legt die öffentliche
+  // Registrierung nur noch Elternkonten an; das Konto selbst ist NIE der
+  // Lernaccount, Kind-Profile entstehen immer separat danach. Ohne
+  // Kind-Profil → eltern-kinder.html (erstes Kind anlegen), mit welchen →
+  // eltern.html (Übersicht). Ein Schüler-Account (rolle=schueler, z. B. ein
+  // per Einladung eingeloggtes Kind) hat auf keiner `eltern-*.html`-Seite
+  // etwas verloren.
   function weiche(user) {
     var hier = (location.pathname.split('/').pop() || '').toLowerCase();
     var aufElternSeite = hier === ELTERN_SEITE || hier.indexOf('eltern-') === 0;
     if (user && user.rolle === 'elternteil') {
+      if (aufElternSeite) return;
       window.Lesify.kinder().then(function (kinder) {
-        var familienAbo = Array.isArray(kinder) && kinder.length > 0;
-        if (familienAbo && !aufElternSeite) location.replace(ELTERN_SEITE);
-        if (!familienAbo && aufElternSeite) location.replace(SCHUELER_START);
+        var hatKinder = Array.isArray(kinder) && kinder.length > 0;
+        location.replace(hatKinder ? ELTERN_SEITE : ELTERN_KINDER_SEITE);
       }).catch(function () {});
     } else if (aufElternSeite) {
       location.replace(SCHUELER_START);

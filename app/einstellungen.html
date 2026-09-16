@@ -36,7 +36,7 @@
             <label for="p-name">Name</label>
             <input class="input" id="p-name" type="text" required>
           </div>
-          <div class="field mt-0">
+          <div class="field mt-0" id="p-klasse-field">
             <label for="p-klasse">Klassenstufe</label>
             <input class="input" id="p-klasse" type="text" placeholder="z. B. 8. Klasse">
           </div>
@@ -138,7 +138,15 @@
 document.addEventListener('DOMContentLoaded', async function () {
   var user = await Lesify.getUser();
   document.getElementById('p-name').value = user.name;
-  document.getElementById('p-klasse').value = user.klasse;
+  // Klassenstufe gibt es nur bei Kind-/Schüler-Profilen (rolle=schueler) —
+  // Eltern-Accounts haben keine (seit 2026-09-16, siehe UMSETZUNGSPLAN.md
+  // „Eltern-only Signup"); Feld für sie ausblenden statt leer/"null" zu zeigen.
+  if (user.rolle === 'elternteil') {
+    var klasseField = document.getElementById('p-klasse-field');
+    if (klasseField) klasseField.hidden = true;
+  } else {
+    document.getElementById('p-klasse').value = user.klasse || '';
+  }
 
   var settings = await Lesify.getSettings();
   document.getElementById('s-erinnerung').checked = !!settings.erinnerungVorKlausuren;
@@ -152,11 +160,15 @@ document.addEventListener('DOMContentLoaded', async function () {
   document.getElementById('profil-form').addEventListener('submit', async function (e) {
     e.preventDefault();
     var name = document.getElementById('p-name').value.trim();
-    var klasse = document.getElementById('p-klasse').value.trim();
     if (!name) return;
+    // Klassenstufe nur mitsenden, wenn das Feld sichtbar ist (Eltern-Accounts
+    // haben keine — leerer String würde die Backend-Validierung sonst
+    // ablehnen, siehe api/src/routes/user.ts).
+    var patch = { name: name };
+    if (user.rolle !== 'elternteil') patch.klasse = document.getElementById('p-klasse').value.trim();
     var updated;
     try {
-      updated = await Lesify.updateUser({ name: name, klasse: klasse });
+      updated = await Lesify.updateUser(patch);
     } catch (err) {
       LesifyUI.toast(Lesify.fehlerText(err));
       return;

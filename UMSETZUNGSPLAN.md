@@ -323,6 +323,34 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       Passwort wird mit 401 abgefangen (Modal bleibt offen), richtiges
       Passwort löscht das Konto wirklich (Login danach 401, E-Mail sofort
       wieder frei registrierbar).
+- [x] **Fach-Demo-Bug in der Struktur-Section behoben** (2026-09-16):
+      `ORG.fach` (marketing.js) zeigte eine erfundene „bereits geschriebene"
+      Klausur (`klausurPast`) unter der aktuellen — raus, nur noch die eine
+      anstehende Klausur. Alle drei Themen-Karten (Gedichtanalyse,
+      Erörterung, Satzglieder) haben jetzt einheitlich die hervorgehobene
+      `is-on`-Optik statt nur der ersten.
+- [x] **Dev-Panel für zwei offene Layout-Fragen reaktiviert** (2026-09-16,
+      `mountLabDev()` wieder in `DOMContentLoaded`, `LAB_SECTIONS`/
+      `labSectionApi` um ein `def`-Fallback-Feld erweitert): Rest der
+      Sections bleibt `fixed`, nur zwei Achsen offen, unten rechts sichtbar
+      auf `index.html`, bis du dich entscheidest — dann wieder auf `fixed`
+      setzen und `mountLabDev()` entfernen.
+  - [x] **„Fächer"-Kachel-Raster (`orgfaecher`, 10 Varianten):** zeigt bewusst
+        nur 6 kuratierte Fächer statt aller 18 (Subheadline nennt 18) — neue
+        Karte „+12 weitere" zwischen Geschichte und „Eigenes Fach" schließt
+        die Lücke zwischen gezeigter Anzahl und genannter Zahl, in allen
+        10 Varianten enthalten (Zahlen-Kachel/Ghost/Avatar-Stack/Pill-Reihe/
+        Bento/Dark/Scroll-Reihe/Kompakt-Liste/Ring/Editorial). Default: v1.
+  - [x] **Vergleichs-Section (`cmp`) neu ausgerichtet:** bisheriger Inhalt
+        „Lesify vs. klassische Nachhilfe" (6 allgemeine Vorteils-Zeilen) bleibt
+        unverändert als **v11 „Aktuell"** erhalten und ist der Default
+        (`def: '11'`, Live-Verhalten unverändert, solange nicht umgeschaltet).
+        Neu dazugekommen: 10 Varianten (v1–v10) um ein neues Preisargument
+        „30 Tage Lesify Premium oder eine Stunde Nachhilfe — für ungefähr
+        denselben Preis" (`CMP_VALUE`, 6 Zeilen: Preis unentschieden, Premium
+        gewinnt Nutzungsdauer/Fächer/KI-Nachrichten/Klausurvorbereitung/
+        Verfügbarkeit). Sobald eine Richtung final ist: `LAB_SECTIONS`-Eintrag
+        auf `fixed` setzen.
 
 ---
 

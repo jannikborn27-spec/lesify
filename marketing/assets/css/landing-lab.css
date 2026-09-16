@@ -1904,9 +1904,10 @@ body[data-page="ueber-uns"] .site-footer::before {
 .sv--cmp2 .cmp-cards--feat { align-items: center; }
 .sv--cmp2 .cmp-card--big { transform: scale(1.04); z-index: 1; }
 
-/* v3 · VS */
+/* v3 · Gleichung ("=" statt "vs", betont den identischen Preis) */
 .sv--cmp3 .cmp-cards--vs { grid-template-columns: 1fr auto 1fr; align-items: center; }
 .sv--cmp3 .cmp-vs { font-family: var(--font-display); font-weight: 800; font-size: 1.1rem; color: var(--ink-300); }
+.sv--cmp3 .cmp-vs--eq { font-size: 1.8rem; color: var(--ink-950); }
 
 /* v4 · Aligned read-across */
 .sv--cmp4 .cmp-aligned { border: 1px solid var(--line); border-radius: var(--radius-xl); overflow: hidden; }
@@ -1962,11 +1963,21 @@ body[data-page="ueber-uns"] .site-footer::before {
 .sv--cmp9 .cmp-callout span svg { width: 13px; height: 13px; }
 .sv--cmp9 .cmp-callout p { margin: 0; font-size: 0.9rem; line-height: 1.6; color: var(--ink-700); }
 
-/* v10 · Compact */
-.sv--cmp10 .cmp-cards--compact { gap: 14px; }
-.sv--cmp10 .cmp-cards--compact .cmp-card { padding: 20px; border-radius: var(--radius-xl); }
-.sv--cmp10 .cmp-cards--compact .cmp-card ul { gap: 9px; }
-.sv--cmp10 .cmp-cards--compact .cmp-card li span { display: none; }
+/* v9 (NEU) · Preisschild — großer Preis-Anker über den zwei Karten */
+.cmp-price-hero { text-align: center; max-width: 62ch; margin: 0 auto clamp(1.6rem, 1rem + 2vw, 2.4rem); }
+.cmp-price-hero .eyebrow { justify-content: center; }
+.cmp-price-hero__amt { display: block; font-family: var(--font-display); font-weight: 800; font-size: clamp(2.6rem, 1.8rem + 3vw, 4rem); letter-spacing: -0.03em; margin: 10px 0 8px; color: var(--paper); }
+.cmp-price-hero__sub { display: block; font-size: 1rem; color: rgba(255,255,255,0.7); line-height: 1.6; }
+
+/* v10 (NEU) · Bento — jede Zeile als eigene Kachel, beide Seiten nebeneinander */
+.cmp-vbento { display: grid; gap: 10px; max-width: 760px; margin: 0 auto 26px; }
+.cmp-vbento__tile { display: grid; grid-template-columns: 1fr 1fr 1fr; align-items: center; gap: 14px; padding: 14px 18px; border: 1px solid rgba(255,255,255,0.14); border-radius: var(--radius-lg); }
+.cmp-vbento__tile b { font-size: 0.86rem; color: var(--paper); }
+.cmp-vbento__side { display: flex; align-items: center; gap: 8px; font-size: 0.86rem; color: rgba(255,255,255,0.6); }
+.cmp-vbento__side.is-win { color: var(--paper); font-weight: 600; }
+@media (max-width: 640px) {
+  .cmp-vbento__tile { grid-template-columns: 1fr; gap: 6px; }
+}
 
 /* ---------- Fächer & Klassenstufen — 5 Varianten, opake Karten + SVG ---------- */
 .subj-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; margin: 24px 0; }
@@ -3389,8 +3400,76 @@ body[data-page="ueber-uns"] .site-footer::before {
 .org-fach__m { font-size: 0.78rem; color: var(--ink-500); }
 .org-fach--add { border-style: dashed; border-color: var(--line-strong); background: var(--bg-surface); }
 .org-fach--add .org-fach__av { background: var(--ink-100); color: var(--ink-600); }
+.org-fach--more { border-style: dashed; }
+.org-fach__more-n { font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+.org-fach__stack { display: flex; }
+.org-fach__dot { width: 26px; height: 26px; border-radius: 50%; background: var(--t); border: 2px solid var(--bg-surface); margin-left: -10px; }
+.org-fach__dot:first-child { margin-left: 0; }
 @media (max-width: 900px) { .org-faecher__grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 520px) { .org-faecher__grid { grid-template-columns: 1fr; } }
+
+/* ---- Fächer-Übersicht — 10 Layout-Varianten für die "und X weitere"-Karte
+   (Dev-Panel, siehe LAB_SECTIONS "orgfaecher") ---- */
+/* v4 · Pill-Reihe */
+.sv--orgfaecher4 { text-align: center; }
+.sv--orgfaecher4 .org-fpills { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; list-style: none; padding: 0; margin: 0 0 22px; }
+.sv--orgfaecher4 .org-fpill { display: flex; align-items: center; gap: 8px; padding: 9px 16px 9px 10px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--t, var(--line-strong)) 35%, var(--line)); background: color-mix(in srgb, var(--t, transparent) 8%, var(--bg-surface)); font-size: 0.86rem; font-weight: 600; }
+.sv--orgfaecher4 .org-fpill__ico { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: color-mix(in srgb, var(--t) 22%, var(--bg-surface)); color: var(--t); flex-shrink: 0; }
+.sv--orgfaecher4 .org-fpill__ico svg { width: 13px; height: 13px; }
+.sv--orgfaecher4 .org-fpill--more { border-style: dashed; color: var(--ink-500); }
+
+/* v5 · Bento */
+.sv--orgfaecher5 .org-fbento { display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: 1fr; gap: 14px; max-width: 940px; margin: 0 auto; }
+.sv--orgfaecher5 .org-fbento__hero { grid-row: span 2; justify-content: center; }
+.sv--orgfaecher5 .org-fbento__hero .org-fach__av { width: 52px; height: 52px; }
+.sv--orgfaecher5 .org-fbento__hero b { font-size: 1.3rem; }
+.sv--orgfaecher5 .org-fbento__more { grid-column: span 2; flex-direction: row; align-items: center; gap: 14px; }
+
+/* v6 · Dark */
+.sv--orgfaecher6 { background: var(--ink-950); padding: clamp(2rem, 1.4rem + 2.6vw, 3.2rem); border-radius: var(--radius-2xl); }
+.sv--orgfaecher6 .org-faecher__h b { color: var(--paper); }
+.sv--orgfaecher6 .org-faecher__h span { color: rgba(255,255,255,0.6); }
+.sv--orgfaecher6 .org-fach { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.14); }
+.sv--orgfaecher6 .org-fach b { color: var(--paper); }
+.sv--orgfaecher6 .org-fach__m { color: rgba(255,255,255,0.55); }
+.sv--orgfaecher6 .org-fach--add { background: transparent; border-color: rgba(255,255,255,0.25); }
+.sv--orgfaecher6 .org-fach--add .org-fach__av { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); }
+
+/* v7 · Scroll-Reihe */
+.sv--orgfaecher7 .org-fscroll { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 6px; scroll-snap-type: x proximity; }
+.sv--orgfaecher7 .org-fach--tall { flex: 0 0 168px; scroll-snap-align: start; }
+
+/* v8 · Kompakt-Liste */
+.sv--orgfaecher8 { text-align: center; }
+.sv--orgfaecher8 .org-flist { list-style: none; padding: 0; margin: 0 0 22px; max-width: 640px; margin-inline: auto; border-top: 1px solid var(--line); text-align: left; }
+.sv--orgfaecher8 .org-flist li { display: flex; align-items: center; gap: 12px; padding: 12px 4px; border-bottom: 1px solid var(--line); }
+.sv--orgfaecher8 .org-flist li b { flex: 0 0 auto; min-width: 120px; }
+.sv--orgfaecher8 .org-flist li span { font-size: 0.82rem; color: var(--ink-500); }
+.sv--orgfaecher8 .org-flist__more { color: var(--ink-500); }
+.sv--orgfaecher8 .org-flist__more b { color: var(--ink-700); }
+
+/* v9 · Ring */
+.sv--orgfaecher9 .org-fring { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px 26px; max-width: 640px; margin: 0 auto; }
+.sv--orgfaecher9 .org-fring__it { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 0.82rem; font-weight: 600; width: 84px; text-align: center; }
+.sv--orgfaecher9 .org-fring__av { width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: color-mix(in srgb, var(--t) 20%, var(--bg-surface)); color: var(--t); border: 1px solid color-mix(in srgb, var(--t) 35%, var(--line)); }
+.sv--orgfaecher9 .org-fring__av svg { width: 24px; height: 24px; }
+.sv--orgfaecher9 .org-fring__av--more, .sv--orgfaecher9 .org-fring__av--add { background: var(--ink-100); color: var(--ink-600); border-style: dashed; font-family: var(--font-display); font-weight: 700; }
+
+/* v10 · Editorial */
+.sv--orgfaecher10 { text-align: center; }
+.sv--orgfaecher10 .org-fedit { max-width: 62ch; margin: 0 auto 24px; font-size: 1.05rem; line-height: 1.7; color: var(--ink-600); }
+.sv--orgfaecher10 .org-fedit b { color: var(--ink-950); }
+
+@media (max-width: 900px) {
+  .sv--orgfaecher5 .org-fbento { grid-template-columns: repeat(2, 1fr); }
+  .sv--orgfaecher5 .org-fbento__hero { grid-row: auto; }
+  .sv--orgfaecher5 .org-fbento__more { grid-column: span 2; }
+}
+@media (max-width: 520px) {
+  .sv--orgfaecher5 .org-fbento { grid-template-columns: 1fr; }
+  .sv--orgfaecher5 .org-fbento__hero, .sv--orgfaecher5 .org-fbento__more { grid-column: auto; }
+  .sv--orgfaecher8 .org-flist li { flex-wrap: wrap; }
+}
 
 /* ---- Eltern-Zugang (#parent, schwarzer Abschnitt) — Nachbau app/eltern.html ----
    `.ptx-kid`/`.ptx-report`/`.ptx-chip`/`.ptx-d`/`.ptx-kgrid`/`.ptx-k`/`.ptx-main`

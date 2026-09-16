@@ -1767,11 +1767,10 @@
       name: 'Deutsch', meta: '8. Klasse · 3 Themen · 2 Klausuren',
       themen: [
         { n: 'Gedichtanalyse', d: 'Metrik, Reimschema und sprachliche Mittel systematisch untersuchen.', c: '2 Chats', z: '1 Lernzettel', f: '1 Datei', on: true },
-        { n: 'Erörterung', d: 'Argumente strukturieren und eine schlüssige Erörterung aufbauen.', c: '1 Chat', z: '0 Lernzettel', f: '1 Datei' },
-        { n: 'Satzglieder', d: 'Subjekt, Prädikat und Objekte sicher bestimmen.', c: '0 Chats', z: '1 Lernzettel', f: '0 Dateien' }
+        { n: 'Erörterung', d: 'Argumente strukturieren und eine schlüssige Erörterung aufbauen.', c: '1 Chat', z: '0 Lernzettel', f: '1 Datei', on: true },
+        { n: 'Satzglieder', d: 'Subjekt, Prädikat und Objekte sicher bestimmen.', c: '0 Chats', z: '1 Lernzettel', f: '0 Dateien', on: true }
       ],
-      klausurUp: { t: 'Deutsch Klausur — Gedichtanalyse', chips: ['Gedichtanalyse'], when: '20. Sep 2026 · in 10 Tagen', note: '2,8', ampel: 'gelb', noteLbl: 'Testklausur 1 · befriedigend' },
-      klausurPast: { t: 'Deutsch Klausur — Satzglieder & Grammatik', chips: ['Satzglieder'], when: '5. Aug 2026 · vor 36 Tagen' }
+      klausurUp: { t: 'Deutsch Klausur — Gedichtanalyse', chips: ['Gedichtanalyse'], when: '20. Sep 2026 · in 10 Tagen', note: '2,8', ampel: 'gelb', noteLbl: 'Testklausur 1 · befriedigend' }
     },
     /* Thema-Karte bewusst wieder Mathematik/Bruchrechnung (nicht Deutsch
        wie die Fach-Karte) — eigene, von der Fach-Karte unabhängige
@@ -1817,7 +1816,7 @@
     }).join('') + '</div>';
   }
   function orgPageFach() {
-    var f = ORG.fach, kUp = f.klausurUp, kPast = f.klausurPast;
+    var f = ORG.fach, kUp = f.klausurUp;
     return '<div class="orgx-page orgx-page--fach">' +
       '<div class="orgx-fhead"><span class="orgx-avatar">' + ORG_IC.fach + '</span>' +
         '<span class="orgx-fhead__tx"><span class="orgx-eyebrow">Fach</span>' +
@@ -1836,12 +1835,6 @@
             '<span class="orgx-kcard__date">' + kUp.when + '</span></div>' +
           '<div class="orgx-kcard__foot"><span class="orgx-knote orgx-knote--' + kUp.ampel + '">' + kUp.note + '</span>' +
             '<span class="orgx-kmeta"><span>' + kUp.noteLbl + '</span></span></div>' +
-        '</article>' +
-        '<article class="orgx-kcard orgx-kcard--past">' +
-          '<span class="orgx-kflag">' + KVX_ICON.check + 'Geschrieben</span>' +
-          '<b class="orgx-kcard__t">' + kPast.t + '</b>' +
-          '<div class="orgx-kcard__top">' + orgKchips(kPast.chips) +
-            '<span class="orgx-kcard__date">' + kPast.when + '</span></div>' +
         '</article>' +
       '</div></div>';
   }
@@ -1961,10 +1954,18 @@
       (cta ? '<a class="btn btn-primary btn-lg" href="/registrieren/">Kostenlos starten</a>' : '') + '</div>';
   }
   function orgCTA() { return '<div class="org-cv__cta"><a class="btn btn-primary btn-lg" href="/registrieren/">Kostenlos starten</a></div>'; }
-  /* Fächer-Übersicht (früher eigene „Fächer & Klassenstufen"-Section) —
-     jetzt in die Struktur-Section integriert, Kartendesign wie app/faecher.html. */
-  function orgFaecher() {
-    var items = [
+  /* ---------- Fächer-Übersicht (früher eigene „Fächer & Klassenstufen"-
+     Section) — jetzt in die Struktur-Section integriert. Zeigt bewusst nur
+     6 kuratierte Fächer + eine "und X weitere"-Karte (18 Fächer insgesamt
+     laut Subheadline, aber 18 Karten wären unübersichtlich) + "Eigenes Fach"-
+     Karte. 10 Layout-Varianten für die "weitere"-Karte/Anordnung, per
+     Dev-Panel umschaltbar (data-orgfaecher, localStorage['lesify:orgfaecher:v']),
+     siehe LAB_SECTIONS/mountLabDev. ---------- */
+  /* Lazy statt Modul-Konstante: SUBJ_LIST wird erst weiter unten im Skript
+     deklariert, ist zur Ladezeit dieser Zeile also noch undefined — daher
+     als Funktion, die erst beim ersten renderOrgFaecher()-Aufruf läuft. */
+  function orgFaecherItems() {
+    return [
       { n: 'Mathematik', t: 'var(--fach-blue)', m: '4 Themen · 3 Klausuren', i: SUBJ_LIST[0].i },
       { n: 'Deutsch', t: 'var(--fach-rose)', m: '3 Themen · 2 Klausuren', i: SUBJ_LIST[1].i },
       { n: 'Englisch', t: 'var(--fach-amber)', m: '5 Themen · 1 Klausur', i: SUBJ_LIST[2].i },
@@ -1972,14 +1973,112 @@
       { n: 'Physik', t: 'var(--fach-pink)', m: '3 Themen · 2 Klausuren', i: SUBJ_LIST[4].i },
       { n: 'Geschichte', t: 'var(--fach-terracotta)', m: '2 Themen · 0 Klausuren', i: SUBJ_LIST[7].i }
     ];
-    return '<div class="org-faecher"><div class="org-faecher__h"><b>Alle Fächer an einem Ort</b>' +
-      '<span>18 Schulfächer sind bereits vorinstalliert. Jedes bündelt Themen, Klausuren und Fortschritt, und eigene Fächer lassen sich jederzeit mit einem Klick anlegen.</span></div>' +
-      '<div class="org-faecher__grid">' + items.map(function (f) {
-        return '<article class="org-fach" style="--t:' + f.t + '"><span class="org-fach__av">' + f.i + '</span>' +
-          '<b>' + f.n + '</b><span class="org-fach__m">' + f.m + '</span></article>';
+  }
+  var ORG_FAECHER_MORE = 12; /* 18 insgesamt − 6 gezeigt */
+  var ORG_FAECHER_H = 'Alle Fächer an einem Ort';
+  var ORG_FAECHER_LEAD = '18 Schulfächer sind bereits vorinstalliert. Jedes bündelt Themen, Klausuren und Fortschritt, und eigene Fächer lassen sich jederzeit mit einem Klick anlegen.';
+  var ORG_ELLIPSIS_IC = '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg>';
+  function orgFachHead(cls) {
+    return '<div class="org-faecher__h' + (cls ? ' ' + cls : '') + '"><b>' + ORG_FAECHER_H + '</b>' +
+      '<span>' + ORG_FAECHER_LEAD + '</span></div>';
+  }
+  function orgFachCard(f, cls) {
+    return '<article class="org-fach' + (cls ? ' ' + cls : '') + '" style="--t:' + f.t + '"><span class="org-fach__av">' + f.i + '</span>' +
+      '<b>' + f.n + '</b><span class="org-fach__m">' + f.m + '</span></article>';
+  }
+  function orgFachAddCard(cls) {
+    return '<article class="org-fach org-fach--add' + (cls ? ' ' + cls : '') + '"><span class="org-fach__av">' + SUBJ_PLUS + '</span>' +
+      '<b>Eigenes Fach</b><span class="org-fach__m">in Sekunden anlegen</span></article>';
+  }
+  function renderOrgFaecher(v) {
+    var items = orgFaecherItems();
+
+    /* 2 · Ghost — "weitere"-Karte gestrichelt wie die "Eigenes Fach"-Karte,
+       mit Auslassungs-Icon statt Plus. */
+    if (v === '2') return lw('orgfaecher', v, '<div class="org-faecher">' + orgFachHead() +
+      '<div class="org-faecher__grid">' + items.map(function (f) { return orgFachCard(f); }).join('') +
+      '<article class="org-fach org-fach--add"><span class="org-fach__av">' + ORG_ELLIPSIS_IC + '</span>' +
+      '<b>und ' + ORG_FAECHER_MORE + ' weitere</b><span class="org-fach__m">von Kunst bis Wirtschaft</span></article>' +
+      orgFachAddCard() + '</div></div>');
+
+    /* 3 · Avatar-Stack — überlappende Farbpunkte statt Icon, wie die
+       Trust-Avatare im Hero. */
+    if (v === '3') {
+      var tones = ['var(--fach-violet)', 'var(--fach-pink)', 'var(--fach-graphit)', 'var(--fach-amber)'];
+      var dots = tones.map(function (t) { return '<span class="org-fach__dot" style="--t:' + t + '"></span>'; }).join('');
+      return lw('orgfaecher', v, '<div class="org-faecher">' + orgFachHead() +
+        '<div class="org-faecher__grid">' + items.map(function (f) { return orgFachCard(f); }).join('') +
+        '<article class="org-fach org-fach--more"><span class="org-fach__stack">' + dots + '</span>' +
+        '<b>+' + ORG_FAECHER_MORE + ' weitere</b><span class="org-fach__m">alle Fächer im Überblick</span></article>' +
+        orgFachAddCard() + '</div></div>');
+    }
+
+    /* 4 · Pill-Reihe — Fächer als Chips statt Karten, "weitere" als
+       letzter Chip, Eigenes-Fach als eigener Button darunter. */
+    if (v === '4') return lw('orgfaecher', v, '<div class="org-faecher org-faecher--pills">' + orgFachHead('is-center') +
+      '<ul class="org-fpills">' + items.map(function (f) {
+        return '<li class="org-fpill" style="--t:' + f.t + '"><span class="org-fpill__ico">' + f.i + '</span>' + f.n + '</li>';
+      }).join('') + '<li class="org-fpill org-fpill--more">+' + ORG_FAECHER_MORE + ' weitere</li></ul>' +
+      '<a class="btn btn-secondary" href="/registrieren/">Eigenes Fach anlegen</a></div>');
+
+    /* 5 · Bento — ein Fach groß, Rest kompakt, "weitere" als breite Zeile
+       am Fuß des Rasters. */
+    if (v === '5') {
+      var hero = items[0], rest = items.slice(1);
+      return lw('orgfaecher', v, '<div class="org-faecher">' + orgFachHead() +
+        '<div class="org-fbento">' + orgFachCard(hero, 'org-fbento__hero') +
+        rest.map(function (f) { return orgFachCard(f); }).join('') +
+        '<article class="org-fach org-fach--more org-fbento__more"><b>+' + ORG_FAECHER_MORE + ' weitere Fächer</b>' +
+        '<span class="org-fach__m">von Kunst bis Wirtschaft — jederzeit ergänzbar</span></article>' +
+        orgFachAddCard() + '</div></div>');
+    }
+
+    /* 6 · Dark — gleiches Raster, dunkler Kartenhintergrund. */
+    if (v === '6') return lw('orgfaecher', v, '<div class="org-faecher org-faecher--dark">' + orgFachHead() +
+      '<div class="org-faecher__grid">' + items.map(function (f) { return orgFachCard(f); }).join('') +
+      '<article class="org-fach org-fach--more"><b class="org-fach__more-n">+' + ORG_FAECHER_MORE + '</b>' +
+      '<span class="org-fach__m">weitere Fächer</span></article>' +
+      orgFachAddCard() + '</div></div>');
+
+    /* 7 · Scroll-Reihe — horizontal scrollbare Karten statt Raster. */
+    if (v === '7') return lw('orgfaecher', v, '<div class="org-faecher">' + orgFachHead() +
+      '<div class="org-fscroll">' + items.map(function (f) { return orgFachCard(f, 'org-fach--tall'); }).join('') +
+      '<article class="org-fach org-fach--tall org-fach--more"><b class="org-fach__more-n">+' + ORG_FAECHER_MORE + '</b>' +
+      '<span class="org-fach__m">weitere Fächer</span></article>' +
+      orgFachAddCard('org-fach--tall') + '</div></div>');
+
+    /* 8 · Kompakt-Liste — Zeilen statt Karten. */
+    if (v === '8') return lw('orgfaecher', v, '<div class="org-faecher">' + orgFachHead() +
+      '<ul class="org-flist">' + items.map(function (f) {
+        return '<li style="--t:' + f.t + '"><span class="org-fach__av">' + f.i + '</span><b>' + f.n + '</b><span>' + f.m + '</span></li>';
       }).join('') +
-      '<article class="org-fach org-fach--add"><span class="org-fach__av">' + SUBJ_PLUS + '</span>' +
-      '<b>Eigenes Fach</b><span class="org-fach__m">in Sekunden anlegen</span></article></div></div>';
+      '<li class="org-flist__more"><b>und ' + ORG_FAECHER_MORE + ' weitere Fächer</b><span>von Kunst bis Wirtschaft</span></li></ul>' +
+      '<a class="btn btn-secondary" href="/registrieren/">Eigenes Fach anlegen</a></div>');
+
+    /* 9 · Ring — kreisrunde Avatare statt Kacheln. */
+    if (v === '9') return lw('orgfaecher', v, '<div class="org-faecher">' + orgFachHead('is-center') +
+      '<div class="org-fring">' + items.map(function (f) {
+        return '<div class="org-fring__it"><span class="org-fring__av" style="--t:' + f.t + '">' + f.i + '</span><b>' + f.n + '</b></div>';
+      }).join('') +
+      '<div class="org-fring__it"><span class="org-fring__av org-fring__av--more">+' + ORG_FAECHER_MORE + '</span><b>weitere</b></div>' +
+      '<div class="org-fring__it"><span class="org-fring__av org-fring__av--add">' + SUBJ_PLUS + '</span><b>Eigenes Fach</b></div></div></div>');
+
+    /* 10 · Editorial — reiner Fließtext statt Karten, sehr zurückhaltend. */
+    if (v === '10') {
+      var names = items.map(function (f) { return f.n; }).join(', ');
+      return lw('orgfaecher', v, '<div class="org-faecher org-faecher--editorial">' + orgFachHead('is-center') +
+        '<p class="org-fedit">' + names + ' und ' + ORG_FAECHER_MORE + ' weitere Fächer — <b>18 insgesamt</b>, ' +
+        'jederzeit um ein eigenes ergänzbar.</p>' +
+        '<a class="btn btn-primary" href="/registrieren/">Eigenes Fach anlegen</a></div>');
+    }
+
+    /* 1 · Zahlen-Kachel (Default) — gleiches Raster wie bisher, "weitere"
+       als eigene Kachel mit großer Zahl zwischen Geschichte und Eigenes Fach. */
+    return lw('orgfaecher', v, '<div class="org-faecher">' + orgFachHead() +
+      '<div class="org-faecher__grid">' + items.map(function (f) { return orgFachCard(f); }).join('') +
+      '<article class="org-fach org-fach--more"><b class="org-fach__more-n">+' + ORG_FAECHER_MORE + '</b>' +
+      '<span class="org-fach__m">weitere Fächer</span></article>' +
+      orgFachAddCard() + '</div></div>');
   }
 
   function renderOrg(v) {
@@ -2036,7 +2135,7 @@
        Leiste). Alles gestapelt wie in der KI-Chat- und KV-Section. */
     if (v === '11') return lw('org', v, '<div class="container org-cv org-cv--ecol">' + headC +
       orgSwitchCards('org-cv__switch--row') +
-      orgStage('lg', { rail: true, noDots: true }) + orgFaecher() + '</div>');
+      orgStage('lg', { rail: true, noDots: true }) + '<div id="orgfaecher-section"></div></div>');
 
     /* 12 · Erklär-Flip — Demo links, Karten + Text rechts */
     if (v === '12') return lw('org', v, '<div class="container org-cv org-cv--eflip">' +
@@ -2141,44 +2240,109 @@
     '</article>';
   }
   function cmpHonest() { return '<p class="cmp-honest">' + CMP_HONEST + '</p>'; }
-  function renderCmp(v) {
-    var head = lh(CMP.eb, CMP.h, CMP.lead), headC = lh(CMP.eb, CMP.h, CMP.lead, true);
-    var aw = CMP.rows.filter(function (r) { return r.w === 'a'; }).length;
 
+  /* ---------- Preisvergleich (cmp, NEU) — "gleicher Preis, was bekommt
+     man dafür": 30 Tage Lesify Premium vs. eine einzelne Nachhilfestunde,
+     gleicher Preispunkt (~20 €). 10 neue Layout-Varianten + v11 = die
+     bisherige "Lesify vs. klassische Nachhilfe"-Section unverändert
+     (siehe CMP/cmpCard oben), damit beide Ansätze im Dev-Panel
+     verglichen werden können, bevor final entschieden wird. ---------- */
+  var CMP_VALUE = {
+    eb: 'Gleicher Preis, mehr Wert',
+    h: '30 Tage Lesify Premium oder eine Stunde Nachhilfe.',
+    lead: 'Für ungefähr denselben Preis bekommen Sie entweder eine einzelne Nachhilfestunde — oder einen ganzen Monat Lesify Premium mit allen Fächern, KI-Chat und Klausurvorbereitung.',
+    note: 'Preise für Nachhilfestunden variieren nach Region und Fach — 20 € pro Stunde ist ein üblicher Richtwert.',
+    rows: [
+      { k: 'Preis', a: '19,99 € im Monat', b: 'ca. 20 € pro Stunde', w: 'x' },
+      { k: 'Nutzungsdauer', a: '30 Tage lang verfügbar', b: '60 Minuten, ein Termin', w: 'a' },
+      { k: 'Fächer', a: 'Alle Fächer inklusive', b: 'Ein Fach, eine Lehrkraft', w: 'a' },
+      { k: 'KI-Chat-Nachrichten', a: '250 Nachrichten', b: 'keine', w: 'a' },
+      { k: 'Klausurvorbereitung', a: '5 Testklausuren + Lernplan', b: 'nach Absprache mit der Lehrkraft', w: 'a' },
+      { k: 'Verfügbarkeit', a: '24/7, sofort', b: 'nur zum gebuchten Termin', w: 'a' }
+    ]
+  };
+  function cmpValueCard(side, opts) {
+    opts = opts || {};
+    var name = side === 'a' ? '30 Tage Lesify Premium' : '60 Minuten Nachhilfe';
+    return '<article class="cmp-card cmp-card--' + side + (opts.cls ? ' ' + opts.cls : '') + '">' +
+      (opts.tag && side === 'a' ? '<span class="cmp-card__tag">Mehr für Ihr Geld</span>' : '') +
+      '<h3>' + (side === 'a' ? CMP_SPARK : '') + name + '</h3><ul>' +
+      CMP_VALUE.rows.map(function (r) {
+        return '<li class="' + (r.w === side ? 'is-win' : 'is-lose') + '">' + cmpMark(r.w, side) +
+          '<div><b>' + r.k + '</b><span>' + r[side] + '</span></div></li>';
+      }).join('') + '</ul>' +
+      (side === 'a' && opts.cta !== false ? '<a class="btn btn-primary btn-block" href="/registrieren/">Premium jetzt testen</a>' : '') +
+    '</article>';
+  }
+  function cmpValueNote() { return '<p class="cmp-honest">' + CMP_VALUE.note + '</p>'; }
+  function renderCmp(v) {
+    var head = lh(CMP_VALUE.eb, CMP_VALUE.h, CMP_VALUE.lead), headC = lh(CMP_VALUE.eb, CMP_VALUE.h, CMP_VALUE.lead, true);
+    var aw = CMP_VALUE.rows.filter(function (r) { return r.w === 'a'; }).length;
+    var bw = CMP_VALUE.rows.filter(function (r) { return r.w === 'b'; }).length;
+
+    /* 2 · Empfohlen — große, hervorgehobene Premium-Karte + Tag. */
     if (v === '2') return lw('cmp', v, '<div class="container">' + headC +
-      '<div class="cmp-cards cmp-cards--feat">' + cmpCard('a', { tag: true, cls: 'cmp-card--big' }) + cmpCard('b') + '</div>' + cmpHonest() + '</div>');
+      '<div class="cmp-cards cmp-cards--feat">' + cmpValueCard('a', { tag: true, cls: 'cmp-card--big' }) + cmpValueCard('b') + '</div>' + cmpValueNote() + '</div>');
+
+    /* 3 · Gleichung — "="-Zeichen statt "vs", betont den identischen Preis. */
     if (v === '3') return lw('cmp', v, '<div class="container">' + headC +
-      '<div class="cmp-cards cmp-cards--vs">' + cmpCard('a') + '<span class="cmp-vs">vs</span>' + cmpCard('b') + '</div>' + cmpHonest() + '</div>');
+      '<div class="cmp-cards cmp-cards--vs">' + cmpValueCard('a') + '<span class="cmp-vs cmp-vs--eq">=</span>' + cmpValueCard('b') + '</div>' + cmpValueNote() + '</div>');
+
+    /* 4 · Tabelle — Zeile für Zeile nebeneinander ausgerichtet. */
     if (v === '4') return lw('cmp', v, '<div class="container">' + head +
-      '<div class="cmp-aligned"><div class="cmp-aligned__head"><span></span><span class="is-a">' + CMP_SPARK + ' Lesify</span><span>Nachhilfe</span></div>' +
-      CMP.rows.map(function (r) {
+      '<div class="cmp-aligned"><div class="cmp-aligned__head"><span></span><span class="is-a">' + CMP_SPARK + ' 30 Tage Premium</span><span>60 Min. Nachhilfe</span></div>' +
+      CMP_VALUE.rows.map(function (r) {
         return '<div class="cmp-aligned__row"><span class="cmp-aligned__k">' + r.k + '</span>' +
           '<span class="cmp-aligned__a ' + (r.w === 'a' ? 'is-win' : '') + '">' + cmpMark(r.w, 'a') + r.a + '</span>' +
           '<span class="cmp-aligned__b ' + (r.w === 'b' ? 'is-win' : '') + '">' + cmpMark(r.w, 'b') + r.b + '</span></div>';
       }).join('') + '</div></div>');
+
+    /* 5 · Dark. */
     if (v === '5') return lw('cmp', v, '<div class="container">' + headC +
-      '<div class="cmp-cards cmp-cards--dark">' + cmpCard('a') + cmpCard('b') + '</div>' + cmpHonest() + '</div>');
+      '<div class="cmp-cards cmp-cards--dark">' + cmpValueCard('a') + cmpValueCard('b') + '</div>' + cmpValueNote() + '</div>');
+
+    /* 6 · Lead-in — Premium breit und betont, Nachhilfe schmal/gedämpft. */
     if (v === '6') return lw('cmp', v, '<div class="container">' + head +
-      '<div class="cmp-lead-in">' + cmpCard('a', { cls: 'cmp-card--wide' }) + cmpCard('b', { cls: 'cmp-card--muted' }) + '</div></div>');
+      '<div class="cmp-lead-in">' + cmpValueCard('a', { cls: 'cmp-card--wide' }) + cmpValueCard('b', { cls: 'cmp-card--muted' }) + '</div></div>');
+
+    /* 7 · Punktestand — X von Y Punkten für Premium (Unentschieden beim Preis ausgeklammert). */
     if (v === '7') return lw('cmp', v, '<div class="container">' + headC +
-      '<div class="cmp-score"><b>' + aw + '</b><span>:</span><b class="is-b">' + (CMP.rows.length - aw) + '</b><em>Punkte für Lesify vs. klassische Nachhilfe</em></div>' +
-      '<div class="cmp-cards">' + cmpCard('a') + cmpCard('b') + '</div></div>');
+      '<div class="cmp-score"><b>' + aw + '</b><span>:</span><b class="is-b">' + bw + '</b><em>Vorteile für 30 Tage Premium vs. eine Nachhilfestunde, beim Preis gleichauf</em></div>' +
+      '<div class="cmp-cards">' + cmpValueCard('a') + cmpValueCard('b') + '</div></div>');
+
+    /* 8 · Pills. */
     if (v === '8') return lw('cmp', v, '<div class="container">' + headC +
       '<div class="cmp-cards cmp-cards--pill">' +
       ['a', 'b'].map(function (side) {
-        return '<article class="cmp-card cmp-card--' + side + '"><h3>' + (side === 'a' ? '<span class="cmp-card__spark">' + CMP_SPARK + '</span>' : '') + (side === 'a' ? 'Lesify' : 'Klassische Nachhilfe') + '</h3><ul>' +
-          CMP.rows.map(function (r) {
+        return '<article class="cmp-card cmp-card--' + side + '"><h3>' + (side === 'a' ? '<span class="cmp-card__spark">' + CMP_SPARK + '</span>' : '') + (side === 'a' ? '30 Tage Premium' : '60 Min. Nachhilfe') + '</h3><ul>' +
+          CMP_VALUE.rows.map(function (r) {
             return '<li><b>' + r.k + '</b><span class="cmp-pill ' + (r.w === side ? 'is-win' : '') + '">' + r[side] + '</span></li>';
-          }).join('') + '</ul>' + (side === 'a' ? '<a class="btn btn-on-dark btn-primary btn-block" href="/registrieren/">Kostenlos starten</a>' : '') + '</article>';
+          }).join('') + '</ul>' + (side === 'a' ? '<a class="btn btn-on-dark btn-primary btn-block" href="/registrieren/">Premium jetzt testen</a>' : '') + '</article>';
       }).join('') + '</div></div>');
-    if (v === '9') return lw('cmp', v, '<div class="container">' + headC +
-      '<div class="cmp-cards">' + cmpCard('a', { cta: false }) + cmpCard('b') + '</div></div>');
-    if (v === '10') return lw('cmp', v, '<div class="container container--narrow">' + head +
-      '<div class="cmp-cards cmp-cards--compact">' + cmpCard('a', { cta: false }) + cmpCard('b') + '</div>' +
-      '<a class="btn btn-primary btn-lg" href="/registrieren/">Kostenlos starten</a></div>');
 
+    /* 9 · Preisschild — großer, zentrierter Preis-Anker über den zwei Karten. */
+    if (v === '9') return lw('cmp', v, '<div class="container">' +
+      '<div class="cmp-price-hero"><span class="eyebrow">' + CMP_VALUE.eb + '</span>' +
+      '<b class="cmp-price-hero__amt">≈ 20 €</b><span class="cmp-price-hero__sub">kostet eine einzelne Nachhilfestunde — genau wie 30 Tage Lesify Premium.</span></div>' +
+      '<div class="cmp-cards">' + cmpValueCard('a') + cmpValueCard('b') + '</div></div>');
+
+    /* 10 · Bento — jede Zeile als eigene Kachel, Seite an Seite. */
+    if (v === '10') return lw('cmp', v, '<div class="container">' + headC +
+      '<div class="cmp-vbento">' + CMP_VALUE.rows.map(function (r) {
+        return '<div class="cmp-vbento__tile"><b>' + r.k + '</b>' +
+          '<span class="cmp-vbento__side' + (r.w === 'a' ? ' is-win' : '') + '">' + cmpMark(r.w, 'a') + r.a + '</span>' +
+          '<span class="cmp-vbento__side' + (r.w === 'b' ? ' is-win' : '') + '">' + cmpMark(r.w, 'b') + r.b + '</span></div>';
+      }).join('') + '</div>' +
+      '<div class="lab-cta"><a class="btn btn-primary btn-lg" href="/registrieren/">Premium jetzt testen</a></div></div>');
+
+    /* 11 · Aktuell — die bisherige Section unverändert: "Lesify oder
+       klassische Nachhilfe?" mit den 6 allgemeinen Vorteils-Zeilen. */
+    if (v === '11') return lw('cmp', v, '<div class="container">' + lh(CMP.eb, CMP.h, CMP.lead, true) +
+      '<div class="cmp-cards">' + cmpCard('a', { cta: false }) + cmpCard('b') + '</div></div>');
+
+    /* 1 · Cards (Default) — je eine Karte, Hinweis zur Preisspanne darunter. */
     return lw('cmp', v, '<div class="container">' + headC +
-      '<div class="cmp-cards">' + cmpCard('a') + cmpCard('b') + '</div>' + cmpHonest() + '</div>');
+      '<div class="cmp-cards">' + cmpValueCard('a') + cmpValueCard('b') + '</div>' + cmpValueNote() + '</div>');
   }
 
   /* ---------- Fächer & Klassenstufen (subj) ---------- */
@@ -2878,7 +3042,8 @@
     { key: 'tldr', render: renderTldr, fixed: '16' },
     { key: 'kv', render: renderKv, init: kvlInit, fixed: '5' },
     { key: 'org', render: renderOrg, init: orgInit, fixed: '11' },
-    { key: 'cmp', render: renderCmp, fixed: '9' },
+    { key: 'orgfaecher', render: renderOrgFaecher },
+    { key: 'cmp', render: renderCmp, def: '11' },
     { key: 'price', render: renderPrice, init: priceInit, fixed: '4' },
     { key: 'parent', render: renderParent, fixed: '1' },
     { key: 'faq', render: renderFaq, fixed: '1' },
@@ -2888,7 +3053,8 @@
     tldr: [['1', 'Grid'], ['2', 'Bento'], ['3', 'Split'], ['4', 'Rail'], ['5', 'Dark'], ['6', 'Ziffern'], ['7', 'Liste'], ['8', 'Pills'], ['9', 'Zebra'], ['10', 'Panorama'], ['11', 'Grid Kompakt'], ['12', 'Bento Kompakt'], ['13', 'Dark Kompakt'], ['14', 'Ledger'], ['15', 'Split Kompakt'], ['16', 'Split Dark']],
     kv: [['1', 'Split'], ['2', 'Fenster'], ['3', 'Sticky'], ['4', 'Flip'], ['5', 'Zentriert'], ['6', 'Dark'], ['7', 'Bento'], ['8', 'Timeline']],
     org: [['1', 'Zentriert'], ['2', 'Split'], ['3', 'Flip'], ['4', 'Fenster'], ['5', 'Sticky'], ['6', 'Dark'], ['7', 'Bento'], ['8', 'Zebra'], ['9', 'Karten'], ['10', 'Editorial'], ['11', 'Erklär-Split'], ['12', 'Erklär-Flip'], ['13', 'Erklär-Karten'], ['14', 'Erklär-Sticky'], ['15', 'Erklär-Dark']],
-    cmp: [['1', 'Cards'], ['2', 'Empfohlen'], ['3', 'VS'], ['4', 'Aligned'], ['5', 'Dark'], ['6', 'Lead-in'], ['7', 'Score'], ['8', 'Pills'], ['9', 'Callout'], ['10', 'Compact']],
+    orgfaecher: [['1', 'Zahlen-Kachel'], ['2', 'Ghost'], ['3', 'Avatar-Stack'], ['4', 'Pill-Reihe'], ['5', 'Bento'], ['6', 'Dark'], ['7', 'Scroll-Reihe'], ['8', 'Kompakt-Liste'], ['9', 'Ring'], ['10', 'Editorial']],
+    cmp: [['1', 'Cards'], ['2', 'Empfohlen'], ['3', 'Gleichung'], ['4', 'Tabelle'], ['5', 'Dark'], ['6', 'Lead-in'], ['7', 'Punktestand'], ['8', 'Pills'], ['9', 'Preisschild'], ['10', 'Bento'], ['11', 'Aktuell']],
     subj: [['1', 'Grid'], ['2', 'Big'], ['3', 'Bento'], ['4', 'Scroll'], ['5', 'Split']],
     price: [['1', 'Cards'], ['2', 'Raised'], ['3', 'Spotlight'], ['4', 'Dark-Feat'], ['5', 'Glow'], ['6', 'Strip']],
     test: [['1', 'Hero'], ['2', 'Split'], ['3', 'Wall'], ['4', 'Marquee'], ['5', 'Dark'], ['6', 'Thumbs'], ['7', 'Spotlight'], ['8', 'Bento'], ['9', 'Masonry'], ['10', 'Circles']],
@@ -2902,7 +3068,7 @@
     function variant() {
       if (sec.fixed) return sec.fixed; /* final gewählt, kein Dev-Panel-Umschalter */
       try { var v = localStorage.getItem('lesify:' + sec.key + ':v'); if (RX10.test(v) && +v <= max) return v; } catch (e) {}
-      return '1';
+      return sec.def || '1';
     }
     function build() {
       var host = document.getElementById(sec.key + '-section');
@@ -3273,10 +3439,11 @@
   }
 
   /* Header, Karte, Hero-Farbe, KI-Chat (v3), TLDR (v16), Preise (v4),
-     KV (v5), Struktur/org (v11), Vergleich (v9) und FAQ (v1) final
+     KV (v5), Struktur/org (v11), Parent (v1), FAQ (v1) und CTA (v1) final
      gewählt — Sections mit `fixed` (siehe LAB_SECTIONS) erscheinen
-     nicht als Achse. Offen im Dev-Panel: Reveal-Bewegung (global)
-     und Eltern-Zugang (parent, 10 Rahmen). */
+     nicht als Achse. Offen im Dev-Panel (2026-09-16): "orgfaecher"
+     (Fächer-Kachel-Layout, 10 Varianten) und "cmp" (Preisvergleich-
+     Redesign, 10 neue Varianten + v11 = bisherige Section). */
   var LAB_DEV_AXES = LAB_API.filter(function (a) { return !a.fixed; }).map(function (a) {
     return { key: a.key, label: a.key, ls: 'lesify:' + a.key + ':v', list: a.list, get: a.get, apply: a.apply };
   });
@@ -3383,7 +3550,11 @@
     initHeroSlides();
     buildChatSection();
     buildLabSections();
-    /* Dev-Tool entfernt (2026-09-11) — alle Sections + die Reveal-
-       Bewegung sind jetzt final, mountLabDev() bleibt als toter Helfer. */
+    /* Dev-Tool (2026-09-16 wieder aktiviert) — nur noch "orgfaecher" (Fächer-
+       Kachel-Layout) und "cmp" (Preisvergleich-Redesign) sind offene Achsen,
+       alle anderen Sections bleiben `fixed` (siehe LAB_SECTIONS) und
+       erscheinen daher nicht im Panel. Wieder entfernen, sobald ein Layout
+       final gewählt und in LAB_SECTIONS auf `fixed` gesetzt ist. */
+    mountLabDev();
   });
 })();

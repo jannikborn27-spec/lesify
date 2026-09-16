@@ -27,6 +27,15 @@
   var TOKEN_KEY = 'lesify:token';
   function sessionToken() { try { return localStorage.getItem(TOKEN_KEY) || ''; } catch (e) { return ''; } }
 
+  // Ohne Konto sofort zur Registrierung (Eltern-only, siehe registrieren/) —
+  // nicht erst nach dem Ausfüllen der Zahlungsdaten scheitern lassen. Die
+  // volle Auswahl (plan/interval/tier/seats) reist per Querystring mit;
+  // auth-forms.js trägt sie nach der Registrierung hierher zurück.
+  if (!sessionToken()) {
+    location.href = '/registrieren/' + location.search;
+    return;
+  }
+
   var params = new URLSearchParams(location.search);
   var planKey = params.get('plan');
   var interval = params.get('interval') === 'yearly' ? 'yearly' : 'monthly';

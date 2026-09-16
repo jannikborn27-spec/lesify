@@ -111,9 +111,9 @@
     if (user && user.rolle === 'elternteil') {
       return get('/abo/kinder', token)
         .then(function (kinder) {
-          return Array.isArray(kinder) && kinder.length > 0 ? '/app/eltern.html' : '/app/dashboard.html';
+          return Array.isArray(kinder) && kinder.length > 0 ? '/app/eltern.html' : '/app/eltern-kinder.html';
         })
-        .catch(function () { return '/app/dashboard.html'; });
+        .catch(function () { return '/app/eltern-kinder.html'; });
     }
     return Promise.resolve('/app/dashboard.html');
   }
@@ -157,13 +157,10 @@
       e.preventDefault();
       showMsg(msg, '', '');
       setBusy(btn, true, 'Konto wird angelegt …');
-      var rolle = form.rolle.value;
       var email = form.email.value.trim();
       var passwort = form.pw.value;
       post('/auth/registrieren', {
-        rolle: rolle,
         name: form.name.value.trim(),
-        klassenstufe: form.klasse.value,
         email: email,
         passwort: passwort,
         einwilligung: true,
@@ -175,12 +172,19 @@
         })
         .then(function (r) {
           setToken(r.token);
+          // Trägt die volle Tarifwahl aus der Preise-Seite/Kasse (inkl.
+          // Familien-Paket tier/seats) über die Registrierung hinweg zurück
+          // zur Kasse — sonst verliert man wie beim ursprünglichen Kasse-Link-
+          // Bug (siehe UMSETZUNGSPLAN.md „Geld") die Auswahl beim Umweg über
+          // die Registrierung.
           var weiter = new URLSearchParams(location.search);
           var ziel = '/checkout/';
-          if (weiter.get('plan')) {
-            ziel += '?plan=' + encodeURIComponent(weiter.get('plan'));
-            if (weiter.get('interval')) ziel += '&interval=' + encodeURIComponent(weiter.get('interval'));
-          }
+          var qs = ['plan', 'interval', 'tier', 'seats'].reduce(function (acc, key) {
+            var v = weiter.get(key);
+            if (v) acc.push(key + '=' + encodeURIComponent(v));
+            return acc;
+          }, []);
+          if (qs.length) ziel += '?' + qs.join('&');
           location.href = ziel;
         })
         .catch(function (err) {

@@ -17,12 +17,12 @@
       <span class="brand__word">Lesify</span>
     </a>
     <div class="auth__aside-body">
-      <h2>14 Tage kostenlos ausprobieren.</h2>
-      <p>Ein Fach anlegen, erste Frage stellen, eine Testklausur schreiben. Tarif und Zahlungsart wählen Sie schon bei der Anmeldung — abgebucht wird erst nach den 14 Tagen.</p>
+      <h2>Ihr Eltern-Konto, 14 Tage kostenlos.</h2>
+      <p>Sie legen jetzt nur Ihr eigenes Konto an. Tarif und Zahlungsart wählen Sie im nächsten Schritt — Ihre Kinder fügen Sie direkt danach im Konto hinzu, mit jeweils vollem eigenem Kontingent.</p>
       <ul class="auth__aside-proof">
         <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>14 Tage kostenlos, danach automatisch der gewählte Tarif</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Jederzeit während der Testphase kündbar — dann wird nichts berechnet</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Einrichtung in unter fünf Minuten</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Kinder danach im Konto hinzufügen — so viele wie gekaufte Sitze</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Sitze jederzeit im Konto hinzufügen oder entfernen</li>
       </ul>
     </div>
   </aside>
@@ -30,39 +30,18 @@
   <div class="auth__main">
     <div class="auth-card">
       <a class="auth-card__back" href="/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg> Zur Website</a>
-      <h1>Kostenlos registrieren</h1>
-      <p class="auth-card__sub">Konto anlegen und sofort loslegen.</p>
+      <h1>Eltern-Konto anlegen</h1>
+      <p class="auth-card__sub">Nur Ihre eigenen Daten — Kinder fügen Sie gleich danach im Konto hinzu.</p>
 
       <form style="margin-top:2rem" novalidate>
-        <div class="role-pick">
-          <label>
-            <input type="radio" name="rolle" value="elternteil" checked>
-            <span class="rp-body"><b>Ich bin Elternteil</b><span>Konto für mein Kind einrichten</span></span>
-          </label>
-          <label>
-            <input type="radio" name="rolle" value="schueler">
-            <span class="rp-body"><b>Ich bin Schüler:in</b><span>Ich richte es selbst ein</span></span>
-          </label>
-        </div>
-
         <div class="field">
-          <label for="name">Name der Schülerin oder des Schülers</label>
-          <input class="input" type="text" id="name" name="name" placeholder="z. B. Mia Berger" autocomplete="name" required>
-        </div>
-        <div class="field">
-          <label for="klasse">Klassenstufe</label>
-          <select class="input" id="klasse" name="klasse" required>
-            <option value="">Bitte wählen</option>
-            <option>7. Klasse</option>
-            <option selected>8. Klasse</option>
-            <option>9. Klasse</option>
-            <option>10. Klasse</option>
-          </select>
+          <label for="name">Ihr Name</label>
+          <input class="input" type="text" id="name" name="name" placeholder="Vor- und Nachname" autocomplete="name" required>
         </div>
         <div class="field">
           <label for="email">E-Mail</label>
           <input class="input" type="email" id="email" name="email" placeholder="name@beispiel.de" autocomplete="email" required>
-          <span class="hint">An diese Adresse geht die Bestätigung. Bei Elternkonten Ihre eigene.</span>
+          <span class="hint">An diese Adresse geht die Bestätigung.</span>
         </div>
         <div class="field">
           <label for="pw">Passwort</label>
@@ -71,7 +50,7 @@
 
         <label class="check-row">
           <input type="checkbox" name="agb" required>
-          <span>Ich bin einwilligungsberechtigt (bei minderjährigen Schüler:innen: die Erziehungsberechtigten), stimme den <a href="/agb/">Nutzungsbedingungen</a> zu und habe die <a href="/datenschutz/">Datenschutzerklärung</a> gelesen.</span>
+          <span>Ich stimme den <a href="/agb/">Nutzungsbedingungen</a> zu und habe die <a href="/datenschutz/">Datenschutzerklärung</a> gelesen.</span>
         </label>
 
         <button class="btn btn-primary btn-block btn-lg" type="submit">Konto kostenlos anlegen</button>

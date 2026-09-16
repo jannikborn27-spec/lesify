@@ -2497,11 +2497,20 @@
       '<span>/ Monat</span></div>';
   }
   function priceFeats(p) { return '<ul class="price-feats">' + p.feats.map(function (f) { return '<li>' + LAB_CHECK + f + '</li>'; }).join('') + '</ul>'; }
+  /* Ziel-URL der Kasse für einen Tarif bei gegebenem Intervall/Sitzplätzen —
+     bei >1 Sitz als Familien-Paket (plan=family&tier=…&seats=…), sonst als
+     Einzelplatz (plan=<tarif>). Muss zu `checkout.js`s Parametern passen. */
+  function priceCheckoutHref(name, interval, seats) {
+    var qs = 'interval=' + (interval === 'y' ? 'yearly' : 'monthly');
+    return seats > 1
+      ? '/checkout/?plan=family&tier=' + name.toLowerCase() + '&seats=' + seats + '&' + qs
+      : '/checkout/?plan=' + name.toLowerCase() + '&' + qs;
+  }
   function priceCard(p, cls) {
     return '<article class="price-card' + (p.feat ? ' is-feat' : '') + (cls ? ' ' + cls : '') + '">' +
       (p.feat ? '<span class="price-card__tag"><span class="price-card__dot"></span>Bestseller</span>' : '') +
       '<h3>' + p.name + '</h3><p class="price-card__desc">' + p.desc + '</p>' + priceAmount(p) + priceFeats(p) +
-      '<a class="btn btn-primary btn-block" href="/checkout/?plan=' + p.name.toLowerCase() + '">' + p.name + ' testen</a></article>';
+      '<a class="btn btn-primary btn-block" data-cta-plan="' + p.name.toLowerCase() + '" href="' + priceCheckoutHref(p.name, 'm', 1) + '">' + p.name + ' testen</a></article>';
   }
   /* Stimmen von Familien — direkt unter den Preisen. Fest gewählt
      (frühere v1): Avatar-Reihe + „+9.994" + ein hervorgehobenes Zitat,
@@ -2534,7 +2543,7 @@
         return '<div class="price-strip__cell' + (p.feat ? ' is-feat' : '') + '">' +
           (p.feat ? '<span class="price-card__tag"><span class="price-card__dot"></span>Bestseller</span>' : '') +
           '<b>' + p.name + '</b><span class="price-strip__desc">' + p.desc + '</span>' + priceAmount(p) +
-          '<a class="btn ' + (p.feat ? 'btn-primary' : 'btn-secondary') + ' btn-block" href="/checkout/?plan=' + p.name.toLowerCase() + '">Testen</a></div>';
+          '<a class="btn ' + (p.feat ? 'btn-primary' : 'btn-secondary') + ' btn-block" data-cta-plan="' + p.name.toLowerCase() + '" href="' + priceCheckoutHref(p.name, 'm', 1) + '">Testen</a></div>';
       }).join('') + '</div></div>');
 
     return lw('price', v, '<div class="container">' + headC + priceControls() +
@@ -2572,6 +2581,9 @@
       if (note) note.textContent = state.s === 1
         ? 'Ein Kontingent für ein Kind. Für Geschwister die Kinderzahl erhöhen.'
         : 'Familien-Paket · ' + state.s + ' Sitze, jedes Kind mit vollem eigenem Kontingent.';
+      host.querySelectorAll('[data-cta-plan]').forEach(function (a) {
+        a.href = priceCheckoutHref(a.getAttribute('data-cta-plan'), state.i, state.s);
+      });
     }
     intBox.addEventListener('click', function (e) {
       var b = e.target.closest('[data-int]'); if (!b) return;

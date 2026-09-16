@@ -186,6 +186,24 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
          Fehlercode.
       **Noch offen:** von dir bestätigen, ob Punkt 2 die tatsächliche
       Ursache war (Railway-Var prüfen + erneut testen).
+- [x] **Bug (2026-09-16, gemeldet & behoben): Preise-Sektion → Kasse verlor
+      Intervall & Kinderzahl** — Jährlich + Infinite + 3 Kinder ausgewählt,
+      Kasse zeigte trotzdem Monatlich und berechnete nur 1 Kind.
+      **Ursache:** die „…testen"-Links auf den Preiskarten
+      (`marketing.js` `priceCard`/`priceCheckoutHref`, vormals inline in
+      `priceCard`) wurden einmalig beim Rendern gebaut (nur
+      `?plan=<tarif>`, ganz ohne `interval`/`tier`/`seats`) und nie
+      aktualisiert — der Intervall-Toggle und der Kinderzahl-Stepper
+      (`priceInit`/`apply()`) haben nur den angezeigten Preis, nicht den
+      Link, neu berechnet. `checkout.js` bekam dadurch nie mehr als
+      `plan=infinite`, fiel auf `interval=monthly` zurück und behandelte
+      es mangels `plan=family` als Einzelplatz (`sitze: 1`). Fix: `apply()`
+      schreibt jetzt bei jeder Änderung die `href` aller
+      `[data-cta-plan]`-Buttons neu (`priceCheckoutHref(name, state.i,
+      state.s)`) — bei >1 Kind als `?plan=family&tier=…&seats=…&interval=…`,
+      sonst als `?plan=<tarif>&interval=…`. Mit Node gegen `checkout.js`s
+      Parameter-Logik durchgerechnet (Jährlich+Infinite+3 Kinder →
+      korrekt `family`/`infinite`/`3`/`yearly`).
 - [x] **Stripe Test-Modus produktiv verdrahtet** (Entscheidung 2026-09-14:
       erst Test-Modus, dann später separat auf Live umsteigen; `STRIPE_SECRET_KEY`
       + `STRIPE_WEBHOOK_SECRET` bei Railway gesetzt). End-to-End auf der echten

@@ -2721,10 +2721,8 @@
       { ic: 'doc', t: 'Erstellung von Lernzetteln', s: 'Vor jeder Klausur fasst ein Lernzettel alle wichtigen Themen kompakt auf einem Blatt zusammen.', m: 'Vor jeder Klausur fasst ein Lernzettel alle wichtigen Themen kompakt auf einem Blatt zusammen.', d: 'Vor jeder Klausur fasst ein Lernzettel alle wichtigen Themen kompakt auf einem Blatt zusammen.' }
     ],
     stats: [
-      { n: '9', l: 'Schulfächer' },
-      { n: '4', l: 'Chat-Modi' },
       { n: '24/7', l: 'erreichbar' },
-      { n: 'ab 15,99 €', l: 'im Monat' }
+      { n: 'ab 12,99 €', l: 'im Monat' }
     ],
     chips: ['14 Tage kostenlos', 'Keine Kreditkarte', 'Server in der EU', 'Monatlich kündbar']
   };

@@ -69,7 +69,7 @@ Dokumente müssen den aktuellen Stand widerspiegeln.
 ## Pflicht: Lokal + GitHub synchron halten
 
 Dieses Repo ist mit GitHub verbunden (`https://github.com/jannikborn27-spec/lesify`,
-Branch `main`) und über GitHub Pages live auf `lesify.de` (`marketing/` = Root,
+Branch `main`) und über GitHub Pages live auf `www.lesify.de` (`marketing/` = Root,
 `app/` unter `/app`) — Deploy läuft automatisch bei jedem Push auf `main`
 (`.github/workflows/pages.yml`).
 

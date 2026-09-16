@@ -114,7 +114,7 @@ enum Ampel {
 model User {
   id              String    @id @default(uuid()) @db.Uuid
   name            String
-  klassenstufe    String
+  klassenstufe    String? // nur bei Kind-Profilen (rolle=schueler) gesetzt — Eltern-Accounts haben keine Klassenstufe
   email           String?   @unique // bei Kind-Profilen im Familien-Abo leer
   rolle           Rolle
   parentUserId    String?   @db.Uuid

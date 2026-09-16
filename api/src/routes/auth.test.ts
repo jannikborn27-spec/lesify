@@ -22,26 +22,9 @@ describe('auth — Eingabevalidierung (ohne DB)', () => {
       method: 'POST',
       url: '/auth/registrieren',
       payload: {
-        rolle: 'schueler',
         name: 'A',
-        klassenstufe: '8',
         email: 'a@b.de',
         passwort: 'kurz',
-      },
-    });
-    expect(res.statusCode).toBe(400);
-  });
-
-  it('registrieren: ungültige Rolle → 400', async () => {
-    const res = await app.inject({
-      method: 'POST',
-      url: '/auth/registrieren',
-      payload: {
-        rolle: 'lehrer',
-        name: 'A',
-        klassenstufe: '8',
-        email: 'a@b.de',
-        passwort: 'langgenug1',
       },
     });
     expect(res.statusCode).toBe(400);
@@ -52,9 +35,7 @@ describe('auth — Eingabevalidierung (ohne DB)', () => {
       method: 'POST',
       url: '/auth/registrieren',
       payload: {
-        rolle: 'schueler',
         name: 'A',
-        klassenstufe: '8',
         email: 'a@b.de',
         passwort: 'langgenug1',
       },
@@ -105,20 +86,18 @@ describe.runIf(hatDb)('auth — kompletter Flow (Supabase)', () => {
   });
 
   const reg = {
-    rolle: 'schueler',
-    name: 'Test Kind',
-    klassenstufe: '8. Klasse',
+    name: 'Test Eltern',
     email,
     passwort,
     einwilligung: true,
   };
 
-  it('registrieren legt User + Trial an, gibt Bestätigungs-Token zurück', async () => {
+  it('registrieren legt Eltern-User + Trial an, gibt Bestätigungs-Token zurück', async () => {
     const res = await app.inject({ method: 'POST', url: '/auth/registrieren', payload: reg });
     expect(res.statusCode).toBe(201);
     const body = res.json();
     expect(body.user.email).toBe(email);
-    expect(body.user.rolle).toBe('schueler');
+    expect(body.user.rolle).toBe('elternteil');
     expect(new Date(body.user.trialEndetAm).getTime()).toBeGreaterThan(Date.now());
     expect(body.user.emailVerifiedAt).toBeNull();
     expect(typeof body.emailBestaetigungToken).toBe('string');

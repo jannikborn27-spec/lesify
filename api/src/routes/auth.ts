@@ -14,10 +14,13 @@ const email = z.string().trim().toLowerCase().email().max(320);
 const passwort = z.string().min(8).max(200);
 const passwortLogin = z.string().min(1).max(200);
 
+// Öffentliche Registrierung legt seit 2026-09-16 NUR noch ein Eltern-/
+// Account-Inhaber-Konto an (kein `rolle`/`klassenstufe` mehr vom Client) —
+// Kind-Profile entstehen ausschließlich danach im Konto über POST
+// /abo/kinder (dort weiterhin mit eigener klassenstufe + rolle=schueler,
+// siehe abo.ts). Deckt sich mit UMSETZUNGSPLAN.md „Eltern-only Signup".
 const registrierenBody = z.object({
-  rolle: z.enum(['schueler', 'elternteil']),
   name: z.string().trim().min(1).max(120),
-  klassenstufe: z.string().trim().min(1).max(40),
   email,
   passwort,
   // Eltern-/Minderjährigen-Einwilligung (Jugendschutz, Phase 13) — Pflicht,
@@ -74,9 +77,8 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
 
     const user = await prisma.user.create({
       data: {
-        rolle: body.rolle,
+        rolle: 'elternteil',
         name: body.name,
-        klassenstufe: body.klassenstufe,
         email: body.email,
         passwordHash,
         trialEndetAm: inTagen(TRIAL_TAGE),

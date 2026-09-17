@@ -144,25 +144,54 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
 
 ### 4. Geld (Phase 9/16)
 
-- [ ] **Bug (2026-09-17, gefunden bei manueller Abo/Sitze/Stripe-QA):
-      `POST /abo/reaktivieren` schreibt lokal einen falschen Status.** Die
-      Route (`api/src/routes/abo.ts`) setzt nach Reaktivierung (aus
-      `gekuendigt` **und** aus `pausiert`) hart `data: { status: 'aktiv' }`,
-      statt den tatsächlichen Stripe-Status zu übernehmen. End-to-end gegen
-      die echte Test-Stripe-API reproduziert (beide Male direkt per
-      Stripe-API nachgeprüft): ein während der Trial-Phase gekündigtes bzw.
-      pausiertes Abo ist nach Reaktivierung bei Stripe weiterhin
-      `trialing` (`cancel_at_period_end:false`, `trial_end` unverändert in
-      der Zukunft), die lokale DB zeigt aber `status:'aktiv'` — „Aktiv"
-      statt „Testphase" in Abo & Sitze. Der Mismatch bleibt stehen, bis ein
-      echtes Stripe-Webhook-Event (`customer.subscription.updated`) ihn
-      korrigiert — lokal passiert das nie, weil kein `stripe listen`
-      läuft; in Produktion nur, falls dort wirklich ein Webhook-Endpoint
-      konfiguriert ist (noch nicht verifiziert, siehe Punkt weiter unten).
-      **Fix-Ansatz:** `subscriptionReaktivieren` (`api/src/lib/zahlung.ts`)
-      sollte den echten Stripe-Status nach dem Update zurückgeben (analog zu
-      `subscriptionAnlegen`), und die Route sollte diesen statt eines
-      hartcodierten `'aktiv'` persistieren.
+- [x] **Bug (2026-09-17, gefunden bei manueller Abo/Sitze/Stripe-QA,
+      selbiger Tag behoben): `POST /abo/reaktivieren` schrieb lokal einen
+      falschen Status.** Die Route (`api/src/routes/abo.ts`) setzte nach
+      Reaktivierung (aus `gekuendigt` **und** aus `pausiert`) hart
+      `data: { status: 'aktiv' }`, statt den tatsächlichen Stripe-Status zu
+      übernehmen. End-to-end gegen die echte Test-Stripe-API reproduziert
+      (beide Male direkt per Stripe-API nachgeprüft): ein während der
+      Trial-Phase gekündigtes bzw. pausiertes Abo war nach Reaktivierung bei
+      Stripe weiterhin `trialing` (`cancel_at_period_end:false`, `trial_end`
+      unverändert in der Zukunft), die lokale DB zeigte aber `status:'aktiv'`
+      — „Aktiv" statt „Testphase" in Abo & Sitze.
+      **Fix:** `ZahlungsGateway.subscriptionReaktivieren()` liefert jetzt
+      `{status}` zurück (analog zu `subscriptionAnlegen`) — beim Fake
+      weiterhin `'aktiv'` (kein Trial-Zustand über den Aufruf hinweg
+      bekannt), beim echten Stripe-Adapter aus der Update-Response
+      gemappt (`STRIPE_STATUS[sub.status]`). Die Route persistiert jetzt
+      diesen zurückgegebenen Status statt eines hartcodierten `'aktiv'`.
+      Live gegen die echte Test-Stripe-API nachverifiziert: Kündigen →
+      Reaktivieren während der Trial liefert jetzt `status:'test'`, exakt
+      passend zu Stripes `trialing`. `backend-planning.md` §„Endpunkte"
+      entsprechend korrigiert. Alle 179 API-Tests weiterhin grün.
+- [x] **Kleinigkeit (2026-09-17, behoben): Stripe-Fehlertexte auf Englisch.**
+      `Stripe(pk)` (`checkout.js`) hatte kein `locale` gesetzt — Stripes
+      eigene Meldungen (z. B. Kartenablehnung) konnten dadurch auf Englisch
+      erscheinen, obwohl die restliche Kasse Deutsch ist. Fix: `Stripe(pk,
+      {locale: 'de'})`.
+- [x] **Kleinigkeit (2026-09-17, behoben): geplante Sitzverringerung ohne
+      dauerhaften Hinweis.** `eltern-abo.html` zeigte nach einer
+      Sitzverringerung (`geplanteSitze` gesetzt) nur kurz einen Toast — die
+      Plätze-Zeile selbst blieb danach ohne Hinweis auf die anstehende
+      Änderung. Ergänzt: eine zweite Zeile „Sinkt auf N Plätze ab
+      {Datum} — dafür noch M Kind-Profil(e) entfernen", solange
+      `geplanteSitze != null`. Live verifiziert (4→2 Sitze mit 3 belegten
+      Plätzen).
+- [ ] **Untersucht, nicht code-seitig behebbar (2026-09-17):** beim
+      automatisierten Durchklicken tauchte wiederholt ein leeres Stripe
+      Payment Element auf (Karten-/Zahlungsart-Felder unsichtbar, obwohl im
+      DOM korrekt mit passender Höhe gemountet). `elements.submit()` meldete
+      dabei korrekt „Your card number is incomplete" — das Element war also
+      funktional aktiv, nur nicht sichtbar gerendert (reines Malproblem,
+      kein Logikfehler). Trat nur beim 2.+ Stripe-Elements-Init pro
+      Browser-Tab-Sitzung auf (erster Checkout einer frischen
+      Browser-Sitzung funktionierte immer einwandfrei), auch mit komplett
+      neuen Nutzern/Tabs. Deutet stark auf eine Eigenheit des verwendeten
+      automatisierten Vorschau-Browsers (iframe-Compositing nach dem ersten
+      Stripe-Iframe) statt auf einen App-Bug hin — beim manuellen Testen in
+      einem normalen Browser bisher nicht reproduziert. Falls es dir beim
+      eigenen Test doch begegnet: bitte melden, dann tiefer nachgehen.
 - [ ] **Offen, keine Code-Aufgabe:** ist in Produktion (Railway) tatsächlich
       ein Stripe-Webhook-Endpoint auf `/abo/webhook` konfiguriert? Ohne ihn
       bleibt jeder außerhalb der App ausgelöste Statuswechsel (Reaktivierung

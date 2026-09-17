@@ -992,7 +992,7 @@ Query-Parameter, die `chat.html`/`thema.html` aus dem client-seitigen
 | PATCH | `/abo` | `{paket?, intervall?, sitze?}` → Tarif-/Intervall-/Sitzwechsel (Up-/Downgrade, Proration). Sitzverringerung erst zum `aktuellerZeitraumEnde` |
 | POST | `/abo/kuendigen` | Kündigung zum `aktuellerZeitraumEnde`, kein sofortiger Zugriffsverlust |
 | POST | `/abo/pausieren` | Sommerpause (Status `pausiert`), Inhalte bleiben erhalten |
-| POST | `/abo/reaktivieren` | **Neu (2026-09-13).** Hebt Kündigung/Pause auf → `status = aktiv`; nur von `gekuendigt`/`pausiert` aus, sonst `409 abo_nicht_reaktivierbar`. Stripe: `cancel_at_period_end=false` + `pause_collection=null` |
+| POST | `/abo/reaktivieren` | **Neu (2026-09-13), Status-Logik korrigiert (2026-09-17).** Hebt Kündigung/Pause auf; nur von `gekuendigt`/`pausiert` aus, sonst `409 abo_nicht_reaktivierbar`. Stripe: `cancel_at_period_end=false` + `pause_collection=null`. `status` wird **nicht** hart auf `aktiv` gesetzt, sondern aus dem von Stripe nach dem Update zurückgegebenen echten Subscription-Status übernommen — ein während der Trial-Phase gekündigtes/pausiertes Abo bleibt nach der Reaktivierung `test` (Stripe: weiterhin `trialing`), bis die Trial regulär endet |
 | POST | `/abo/webhook` | Callback des Zahlungsanbieters (Zahlung erfolgreich/fehlgeschlagen → `status`) |
 | GET | `/abo/kinder` · POST · DELETE | Kind-Profile im Familien-Abo verwalten (max. `Abo.sitze`, 2–4). `GET` liefert je Kind zusätzlich `eingeladen: boolean` (2026-09-13, aus `!!email`) |
 | POST | `/abo/kinder/:id/einladung` | `{email}` → E-Mail am Kind-Profil setzen + `emailVerifiedAt` (Elternkonto bürgt), Passwort-Token ausgeben; das Kind setzt sein Passwort über `POST /auth/passwort-zuruecksetzen` (Phase 12) |

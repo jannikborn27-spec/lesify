@@ -181,18 +181,21 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
       return aboDTO(neu);
     });
 
-    // POST /abo/reaktivieren — hebt Kündigung oder Pause auf, zurück zu `aktiv`
+    // POST /abo/reaktivieren — hebt Kündigung oder Pause auf
     // (Entscheidung 2026-09-13: fehlte bisher, `eltern-abo.html` hatte einen
-    // Button ohne Gegenstück).
+    // Button ohne Gegenstück). Der Zielstatus ist NICHT immer `aktiv`: ein
+    // während der Trial-Phase gekündigtes/pausiertes Abo bleibt danach
+    // `test` (Bug 2026-09-17 — vorher hart `aktiv` geschrieben, obwohl
+    // Stripe weiterhin `trialing` meldete).
     authed.post('/abo/reaktivieren', async (req) => {
       const abo = oder404(await eigenesAbo(req.userId));
       if (abo.status !== 'gekuendigt' && abo.status !== 'pausiert') {
         throw new HttpError(409, 'abo_nicht_reaktivierbar', { status: abo.status });
       }
-      await zahlung.subscriptionReaktivieren(abo.zahlungsanbieterRef ?? abo.id);
+      const { status } = await zahlung.subscriptionReaktivieren(abo.zahlungsanbieterRef ?? abo.id);
       const neu = await prisma.abo.update({
         where: { id: abo.id },
-        data: { status: 'aktiv' },
+        data: { status },
       });
       return aboDTO(neu);
     });

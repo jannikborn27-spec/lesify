@@ -147,7 +147,10 @@
       $('submit').disabled = true;
       return;
     }
-    stripe = window.Stripe(CFG.publishableKey);
+    // `locale: 'de'` fest statt Stripes Browser-Auto-Erkennung — sonst
+    // rutschen Stripe-eigene Texte (z. B. Kartenablehnungs-Meldungen) auf
+    // Englisch durch, obwohl der Rest der Kasse Deutsch ist.
+    stripe = window.Stripe(CFG.publishableKey, { locale: 'de' });
     elements = stripe.elements({
       mode: 'subscription',
       amount: tier().amount,

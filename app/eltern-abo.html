@@ -89,6 +89,12 @@ document.addEventListener('DOMContentLoaded', async function () {
           '</span>' +
           '<span class="text-xs text-muted">' + belegt + ' belegt</span>' +
         '</span></div>' +
+        (abo.geplanteSitze != null
+          ? '<div class="abo-row"><span class="lbl"></span><span class="val text-xs text-muted">' +
+              'Sinkt auf ' + abo.geplanteSitze + ' Plätze ab ' + LesifyUI.Render.formatDatum(abo.aktuellerZeitraumEnde.slice(0, 10)) +
+              ' — dafür noch ' + Math.max(0, belegt - abo.geplanteSitze) + ' Kind-Profil(e) entfernen.' +
+            '</span></div>'
+          : '') +
         '<div class="abo-row"><span class="lbl">Status</span><span class="val">' +
           '<span class="ampel-chip ampel-chip-' + st[0] + '"><span class="ampel-dot ampel-' + st[0] + '"></span>' + st[1] + '</span>' +
         '</span></div>' +

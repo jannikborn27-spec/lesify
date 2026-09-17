@@ -50,8 +50,15 @@ export interface ZahlungsGateway {
   ): Promise<{ aktuellerZeitraumEnde: Date }>;
   subscriptionKuendigen(ref: string): Promise<void>;
   subscriptionPausieren(ref: string): Promise<void>;
-  /** Hebt eine Kündigung (`cancel_at_period_end`) oder Pause auf — Ziel-Status `aktiv`. */
-  subscriptionReaktivieren(ref: string): Promise<void>;
+  /**
+   * Hebt eine Kündigung (`cancel_at_period_end`) oder Pause auf. Liefert den
+   * tatsächlichen Status danach zurück — bei Stripe **nicht** automatisch
+   * `aktiv`: ein während der Trial-Phase gekündigtes/pausiertes Abo bleibt
+   * nach der Reaktivierung `trialing` (→ `test`), bis die Trial endet. Der
+   * Aufrufer persistiert genau diesen Status, statt ihn zu erraten
+   * (Bug 2026-09-17: `POST /abo/reaktivieren` schrieb bisher hart `aktiv`).
+   */
+  subscriptionReaktivieren(ref: string): Promise<{ status: AboStatus }>;
   webhookVerarbeiten(rohBody: string, signatur: string | undefined): WebhookErgebnis;
 }
 
@@ -110,8 +117,11 @@ export class FakeZahlungsGateway implements ZahlungsGateway {
     // no-op: bei Stripe `pause_collection`
   }
 
-  async subscriptionReaktivieren(): Promise<void> {
-    // no-op: bei Stripe `cancel_at_period_end=false` + `pause_collection=null`
+  async subscriptionReaktivieren(): Promise<{ status: AboStatus }> {
+    // Fake kennt keine Trial-Historie über den Aufruf hinweg (keine
+    // gespeicherten Subscription-Objekte) — anders als beim echten
+    // Stripe-Adapter simuliert er hier weiterhin schlicht `aktiv`.
+    return { status: 'aktiv' };
   }
 
   webhookVerarbeiten(rohBody: string): WebhookErgebnis {
@@ -268,14 +278,18 @@ export class StripeZahlungsGateway implements ZahlungsGateway {
     await this.stripe.subscriptions.update(ref, { pause_collection: { behavior: 'void' } });
   }
 
-  async subscriptionReaktivieren(ref: string): Promise<void> {
+  async subscriptionReaktivieren(ref: string): Promise<{ status: AboStatus }> {
     // Hebt beides gleichzeitig auf — je nachdem, ob das Abo gekündigt
     // (`cancel_at_period_end`) oder pausiert (`pause_collection`) war,
     // greift nur die jeweils passende Option; die andere ist ein No-op.
-    await this.stripe.subscriptions.update(ref, {
+    const sub = await this.stripe.subscriptions.update(ref, {
       cancel_at_period_end: false,
       pause_collection: null,
     });
+    // Wichtig: NICHT hart `aktiv` zurückgeben. Ein während der Trial-Phase
+    // gekündigtes/pausiertes Abo ist danach weiterhin `trialing`, bis die
+    // Trial regulär endet — Stripes echter Status entscheidet.
+    return { status: STRIPE_STATUS[sub.status] ?? 'aktiv' };
   }
 
   webhookVerarbeiten(rohBody: string, signatur: string | undefined): WebhookErgebnis {

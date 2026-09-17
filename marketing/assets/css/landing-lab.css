@@ -2130,7 +2130,14 @@ body[data-page="preise"] #price-section .eyebrow { color: rgba(255,255,255,0.6);
 body[data-page="preise"] #price-section .eyebrow::before { background: rgba(255,255,255,0.4); }
 body[data-page="preise"] #price-section h2 { color: var(--paper); }
 body[data-page="preise"] #price-section .lab-head p { color: rgba(255,255,255,0.7); }
-body[data-page="preise"] #price-section .price-voices { display: none; }
+/* Stimmen-Sektion (Avatar-Reihe + Zitat) jetzt auch hier sichtbar (bis
+   2026-09-17 ausgeblendet, um die Viewport-Höhe zu sparen — siehe
+   Sicherheitsnetz .pricepage{overflow-y:auto} in marketing.css, das
+   inzwischen ein moderates internes Scrollen statt Abschneiden erlaubt).
+   Nur der weiße Schnittring der Avatare muss auf den dunklen
+   Seiten-Hintergrund angepasst werden (v7/Hell bekommt unten den
+   originalen hellen Ring zurück). */
+body[data-page="preise"] #price-section .price-voices__avrow .price-voice__av { border-color: var(--ink-950); }
 
 /* v1 · Weiß (Default/Baseline) — Umschalter als helle Halbtransparenz-
    Pille, Karten unverändert (siehe .sv--price4 oben: 2 helle Karten +
@@ -2317,6 +2324,7 @@ body[data-page="preise"][data-price-color="7"] #price-section .price-seats__cap 
 body[data-page="preise"][data-price-color="7"] #price-section .price-seats__segrow button { color: var(--ink-600); }
 body[data-page="preise"][data-price-color="7"] #price-section .price-seats__segrow button.is-on { background: var(--bg-surface); color: var(--ink-950); }
 body[data-page="preise"][data-price-color="7"] #price-section .price-seatnote { color: var(--ink-500); }
+body[data-page="preise"][data-price-color="7"] #price-section .price-voices__avrow .price-voice__av { border-color: var(--bg-canvas); }
 
 /* v5 · Glow */
 .sv--price5 .price-grid--glow .price-card { transition: opacity 200ms var(--ease-out); }

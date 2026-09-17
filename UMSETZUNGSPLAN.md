@@ -664,6 +664,30 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
     Re-Render** nötig, Monatlich/Jährlich- und Kinderzahl-Auswahl bleiben
     beim Umschalten erhalten (anders als der frühere Layout-Dev-Switch, der
     noch `renderPrice()` neu aufrief).
+- [x] **Vertrauens-Element (Avatare + Zitat) jetzt auch auf `/preise/` +
+      kompakte Fassung in der Kasse** (2026-09-17). Zwei Wünsche:
+  1. **`/preise/` zeigt jetzt dieselbe Stimmen-Sektion wie die
+     Startseite** (Avatar-Reihe + "+9.994" + Zitat, `priceVoices()` in
+     marketing.js) — bis dahin per `display:none` ausgeblendet, um die
+     Viewport-Höhe zu sparen (siehe Eintrag oben). Nur der weiße
+     Schnittring der Avatare musste für den dunklen Seiten-Hintergrund
+     auf `var(--ink-950)` umgefärbt werden (v7/Hell behält den originalen
+     hellen Ring, siehe `landing-lab.css`). Die Seite scrollt dadurch auf
+     normalen Laptop-Höhen jetzt leicht (das Sicherheitsnetz
+     `.pricepage{overflow-y:auto}` fängt das ab, kein Abschneiden mehr).
+  2. **Kompakte Fassung links in der Kasse** (`marketing/checkout/`),
+     direkt unter "Nach der Testphase fällig" und vor den bestehenden
+     `.co-trust`-Punkten (Stripe/EU) — genau der Moment vor der
+     Zahlungsentscheidung. Neue Klasse `.co-voices` (statisches HTML in
+     `checkout/index.html`, da diese Seite kein `marketing.js` lädt):
+     26px-Avatare statt 44px, ein kurzer Satz statt Blockquote + eigener
+     Zitat-Zeile. Gleiche drei Personen wie auf `/preise/` (SB/MT/FK).
+  - **Auch hier dasselbe Muster wie beim Preise-Fix:**
+    `.checkout__summary` (die auf Viewport-Höhe gesperrte linke Spalte,
+    kein Scroll ab 901px) nutzt jetzt `overflow-y: auto` statt `hidden`,
+    da der neue Block den Inhalt auf kürzeren Bildschirmen (z. B.
+    1366×768) leicht über den Fold schieben kann — ab ca. 900px Höhe
+    passt wieder alles ohne Scroll.
 
 ---
 

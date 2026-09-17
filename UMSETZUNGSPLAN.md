@@ -144,6 +144,40 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
 
 ### 4. Geld (Phase 9/16)
 
+- [ ] **Bug (2026-09-17, gefunden bei manueller Abo/Sitze/Stripe-QA):
+      `POST /abo/reaktivieren` schreibt lokal einen falschen Status.** Die
+      Route (`api/src/routes/abo.ts`) setzt nach Reaktivierung (aus
+      `gekuendigt` **und** aus `pausiert`) hart `data: { status: 'aktiv' }`,
+      statt den tatsächlichen Stripe-Status zu übernehmen. End-to-end gegen
+      die echte Test-Stripe-API reproduziert (beide Male direkt per
+      Stripe-API nachgeprüft): ein während der Trial-Phase gekündigtes bzw.
+      pausiertes Abo ist nach Reaktivierung bei Stripe weiterhin
+      `trialing` (`cancel_at_period_end:false`, `trial_end` unverändert in
+      der Zukunft), die lokale DB zeigt aber `status:'aktiv'` — „Aktiv"
+      statt „Testphase" in Abo & Sitze. Der Mismatch bleibt stehen, bis ein
+      echtes Stripe-Webhook-Event (`customer.subscription.updated`) ihn
+      korrigiert — lokal passiert das nie, weil kein `stripe listen`
+      läuft; in Produktion nur, falls dort wirklich ein Webhook-Endpoint
+      konfiguriert ist (noch nicht verifiziert, siehe Punkt weiter unten).
+      **Fix-Ansatz:** `subscriptionReaktivieren` (`api/src/lib/zahlung.ts`)
+      sollte den echten Stripe-Status nach dem Update zurückgeben (analog zu
+      `subscriptionAnlegen`), und die Route sollte diesen statt eines
+      hartcodierten `'aktiv'` persistieren.
+- [ ] **Offen, keine Code-Aufgabe:** ist in Produktion (Railway) tatsächlich
+      ein Stripe-Webhook-Endpoint auf `/abo/webhook` konfiguriert? Ohne ihn
+      bleibt jeder außerhalb der App ausgelöste Statuswechsel (Reaktivierung
+      s. o., aber auch fehlgeschlagene Abbuchungen, `invoice.payment_failed`
+      usw.) dauerhaft unsynchronisiert. Lokal mit `stripe listen
+      --forward-to localhost:3000/abo/webhook` gegenprüfbar (CLI ist
+      installiert, `stripe v1.50.11`), aber nicht Teil dieser QA-Runde.
+- [ ] **Offen, keine Code-Aufgabe:** Job `abo-geplante-aenderungen`
+      (Sitzverringerung zum Periodenende) wurde isoliert erfolgreich gegen
+      die echte DB getestet (4→3 Sitze korrekt übernommen, sobald
+      `aktuellerZeitraumEnde` erreicht **und** genug Kind-Profile entfernt
+      sind) — aber ohne echten Cron/Scheduler in Produktion (siehe Phase 10
+      „Scheduler + Monitoring" weiter unten, weiterhin offen) wendet ihn
+      nie jemand automatisch an. Gehört vor Launch mit auf die
+      Scheduler-Checkliste, nicht nur als Job-Code.
 - [ ] **Bug (2026-09-16, gemeldet): Kasse scheitert mit „Die Zahlung konnte
       nicht abgeschlossen werden" nach dem Absenden der Kartendaten.**
       Untersucht, zwei Änderungen gemacht, **Ursache aber noch nicht

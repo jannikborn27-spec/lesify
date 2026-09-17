@@ -2295,6 +2295,29 @@ body[data-page="preise"][data-price-color="6"] #price-section .price-card.is-fea
 body[data-page="preise"][data-price-color="6"] #price-section .price-card.is-feat .btn { background: #d9b46a; color: #2a2110; border-color: #d9b46a; }
 body[data-page="preise"][data-price-color="6"] #price-section .price-card.is-feat .btn:hover { background: #e6c580; }
 
+/* v7 · Hell (Startseite) — repliziert die Preis-Sektion 1:1 wie auf der
+   Startseite: weißer Seiten-Hintergrund, dunkler Header/Text, Karten und
+   Umschalter in ihren normalen (nicht für Schwarz umgefärbten) Farben.
+   Muss dafür die generischen `body[data-page="preise"] …`-Regeln oben
+   (Zeile ~2119, gelten sonst für ALLE Paletten) gezielt zurücksetzen —
+   an den Preiskarten selbst (`.sv--price4 .price-card…`) ändert sich
+   nichts, die sind schon exakt wie auf der Startseite. */
+body[data-page="preise"][data-price-color="7"] { background: var(--paper); }
+body[data-page="preise"][data-price-color="7"] .pricepage { background: var(--paper); color: var(--ink-900); }
+body[data-page="preise"][data-price-color="7"] .pricepage::before { display: none; }
+body[data-page="preise"][data-price-color="7"] #price-section .eyebrow { color: var(--ink-600); }
+body[data-page="preise"][data-price-color="7"] #price-section .eyebrow::before { background: var(--ink-400); }
+body[data-page="preise"][data-price-color="7"] #price-section h2 { color: var(--ink-950); }
+body[data-page="preise"][data-price-color="7"] #price-section .lab-head p { color: var(--ink-600); }
+body[data-page="preise"][data-price-color="7"] #price-section .price-toggle { background: var(--ink-100); }
+body[data-page="preise"][data-price-color="7"] #price-section .price-toggle button { color: var(--ink-600); }
+body[data-page="preise"][data-price-color="7"] #price-section .price-toggle button.is-on { background: var(--bg-surface); color: var(--ink-950); }
+body[data-page="preise"][data-price-color="7"] #price-section .price-seats--seg .price-seats__segrow { background: var(--ink-100); }
+body[data-page="preise"][data-price-color="7"] #price-section .price-seats__cap { color: var(--ink-500); }
+body[data-page="preise"][data-price-color="7"] #price-section .price-seats__segrow button { color: var(--ink-600); }
+body[data-page="preise"][data-price-color="7"] #price-section .price-seats__segrow button.is-on { background: var(--bg-surface); color: var(--ink-950); }
+body[data-page="preise"][data-price-color="7"] #price-section .price-seatnote { color: var(--ink-500); }
+
 /* v5 · Glow */
 .sv--price5 .price-grid--glow .price-card { transition: opacity 200ms var(--ease-out); }
 .sv--price5 .price-grid--glow .price-card:not(.is-feat) { opacity: 0.82; }

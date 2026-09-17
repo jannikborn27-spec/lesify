@@ -621,7 +621,7 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
     Fenster ungewöhnlich kurz ist) und `align-items: safe center`
     (verhindert, dass zentrierter Flex-Inhalt beim Scrollen oben
     abgeschnitten wird).
-- [x] **Preise-Seite: Karten-/Umschalter-Farben neu, 6 Paletten + Dev-Switch**
+- [x] **Preise-Seite: Karten-/Umschalter-Farben neu, 7 Paletten + Dev-Switch**
       (2026-09-17, Folge-Feedback: "Coloring ist quasi wie auf der
       Landingpage, das geht offensichtlich nicht" — weißer Hintergrund dort
       vs. schwarzer hier). Layout bleibt v4; nur die Einfärbung ändert sich.
@@ -633,7 +633,7 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
     Leistungen dadurch praktisch unsichtbar (fast weiß auf weiß, Kontrast
     ≈ 1:1). Das war vermutlich der Hauptgrund für den "das geht so nicht"-
     Eindruck, nicht nur der Ton der Farben.
-  - 6 Paletten über `[data-price-color]` auf `<body>` (kein Re-Render, siehe
+  - 7 Paletten über `[data-price-color]` auf `<body>` (kein Re-Render, siehe
     unten) — **v1 Weiß** (Baseline, obiger Kontrast-Fix), **v2 Kontur**
     (Karten transparent mit heller Linie statt Fläche, Bestseller-Karte
     jetzt weiß statt schwarz), **v3 Dunkel** (alle Karten dunkel/angehoben,
@@ -642,8 +642,13 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
     `Lesify.FACH_COLORS` — Starter blau, Premium türkis, Infinite violett,
     per `:nth-child` da Karten keine Plan-Klasse tragen), **v5 Glas**
     (Frosted-Glass/Blur-Karten), **v6 Gold** (wie v3, Bestseller mit warmem
-    Gold-Akzent statt Türkis). Alle 6 in `landing-lab.css`
-    (`body[data-page="preise"][data-price-color="N"] #price-section …`).
+    Gold-Akzent statt Türkis), **v7 Hell (Startseite)** (2026-09-17
+    nachgereicht: repliziert die Preis-Sektion 1:1 wie auf der Startseite —
+    weißer Seiten-Hintergrund statt Schwarz, `.pricepage`/Eyebrow/H2/Lead/
+    Umschalter zurück auf die normalen hellen Farben, Karten unverändert
+    da `.sv--price4 .price-card…` schon immer hell war). Alle 7 in
+    `landing-lab.css` (`body[data-page="preise"][data-price-color="N"]
+    #price-section …`).
   - Dev-Switch **"Preise-Farben"** unten rechts nur auf `/preise/`
     (`mountPriceColorDev()`, `localStorage['lesify:pricepage:color']`,
     Default `1`) — setzt nur ein `data-price-color`-Attribut, **kein

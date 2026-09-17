@@ -3519,10 +3519,10 @@
      (`[data-price-color]` auf <body>) — kein Re-Render nötig, Umschalten
      verliert also nicht den Monatlich/Jährlich- oder Kinderzahl-Stand. */
   var PRICE_COLOR_LIST = [
-    ['1', 'Weiß'], ['2', 'Kontur'], ['3', 'Dunkel'], ['4', 'Fach-Akzent'], ['5', 'Glas'], ['6', 'Gold']
+    ['1', 'Weiß'], ['2', 'Kontur'], ['3', 'Dunkel'], ['4', 'Fach-Akzent'], ['5', 'Glas'], ['6', 'Gold'], ['7', 'Hell (Startseite)']
   ];
   function pricePageColor() {
-    try { var v = localStorage.getItem('lesify:pricepage:color'); if (/^[1-6]$/.test(v)) return v; } catch (e) {}
+    try { var v = localStorage.getItem('lesify:pricepage:color'); if (/^[1-7]$/.test(v)) return v; } catch (e) {}
     return '1';
   }
   function applyPricePageColor(v) {

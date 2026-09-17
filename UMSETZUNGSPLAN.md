@@ -649,6 +649,15 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
     da `.sv--price4 .price-card…` schon immer hell war). Alle 7 in
     `landing-lab.css` (`body[data-page="preise"][data-price-color="N"]
     #price-section …`).
+  - **v7-Nachtrag (2026-09-17): Header wie die gescrollte Startseite.**
+    Bei `data-price-color="7"` zeigt `#mkt-nav` dauerhaft die dunkle
+    Pille (`data-hd="4a"` + erzwungenes `.is-scrolled`, siehe
+    `priceNavIsLight()`/`applyPricePageColor()` in marketing.js) statt der
+    für die dunklen Paletten gedachten hellen Pille (`data-hd="5"`) — die
+    Seite scrollt ja faktisch nie über den Fold hinaus, ohne den Zusatz
+    wäre der (für "über dem Hero" gedachte) transparente/helle
+    Un-scrolled-Zustand von "4a" auf dem weißen Seitenhintergrund von v7
+    unlesbar gewesen. Reagiert auch live auf den Dev-Switch, ohne Reload.
   - Dev-Switch **"Preise-Farben"** unten rechts nur auf `/preise/`
     (`mountPriceColorDev()`, `localStorage['lesify:pricepage:color']`,
     Default `1`) — setzt nur ein `data-price-color`-Attribut, **kein

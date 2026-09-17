@@ -91,10 +91,16 @@
     }
 
     host.className = 'mkt-nav';
-    /* final gewählt, nicht mehr umschaltbar — außer /preise/: eigener
-       dunkler, nicht scrollender Seitenhintergrund, deshalb "5" (immer
-       die helle Pille, kein transparent-über-Hero/Scroll-Umschalten). */
-    applyHeaderVariant(current === 'preise' ? '5' : '4a');
+    /* final gewählt, nicht mehr umschaltbar — außer /preise/: eigener,
+       nicht scrollender Seitenhintergrund, deshalb kein transparent-
+       über-Hero/Scroll-Umschalten. Bei der dunklen Einfärbung (v1–v6,
+       siehe pricePageColor) bleibt "5" (immer die helle Pille — hell auf
+       Schwarz). Bei "7" (helle Startseiten-Optik, weißer Seitenhintergrund)
+       stattdessen dauerhaft "4a" + `.is-scrolled` erzwungen (siehe
+       priceNavIsLight/onScroll unten) — sieht aus wie der Header der
+       Startseite im gescrollten Zustand (dunkle Pille auf Weiß), da diese
+       Seite selbst faktisch nie über den Fold hinaus scrollt. */
+    applyHeaderVariant(current === 'preise' ? (priceNavIsLight() ? '4a' : '5') : '4a');
 
     var CARET = '<svg class="mkt-nav__caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>';
 
@@ -163,7 +169,7 @@
     initMegaMenu(host);
     initSheetAccordion(sheet);
 
-    var onScroll = function () { host.classList.toggle('is-scrolled', window.scrollY > 12); };
+    var onScroll = function () { host.classList.toggle('is-scrolled', priceNavIsLight() || window.scrollY > 12); };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
   }
@@ -3525,8 +3531,25 @@
     try { var v = localStorage.getItem('lesify:pricepage:color'); if (/^[1-7]$/.test(v)) return v; } catch (e) {}
     return '1';
   }
+  /* true nur für "7" (Hell/Startseite) auf /preise/ — steuert in buildNav/
+     onScroll, ob der Header dauerhaft die dunkle "gescrollte" Pille zeigt
+     (siehe applyHeaderVariant-Aufruf dort). Auch von hier lesbar, bevor
+     `current` im Modul-Top gesetzt wurde, da `current` zur Aufrufzeit
+     (DOMContentLoaded) längst zugewiesen ist. */
+  function priceNavIsLight() {
+    return current === 'preise' && pricePageColor() === '7';
+  }
   function applyPricePageColor(v) {
     document.body.setAttribute('data-price-color', v);
+    /* Header live nachziehen, falls der Dev-Switch ohne Reload zwischen
+       "7" und den dunklen Paletten wechselt (siehe buildNav/onScroll,
+       die beim initialen Laden dieselbe Logik anwenden). */
+    var nav = document.getElementById('mkt-nav');
+    if (nav && document.body.getAttribute('data-page') === 'preise') {
+      var isLight = v === '7';
+      applyHeaderVariant(isLight ? '4a' : '5');
+      nav.classList.toggle('is-scrolled', isLight || window.scrollY > 12);
+    }
   }
   function mountPriceColorDev() {
     if (document.body.getAttribute('data-page') !== 'preise') return;

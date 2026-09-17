@@ -2431,11 +2431,6 @@
     eb: 'Preise',
     h: 'Monatlich kündbar, 14 Tage kostenlos testen.',
     lead: '14 Tage kostenlos testen, danach automatisch der gewählte Tarif. Monatlich kündbar. Aktuell −20 % zum Schuljahresstart. Für Geschwister: Familien-Pakete mit Sitzen für 2 bis 4 Kinder.',
-    /* Kompakte Lead-Variante für v7 (/preise/, siehe unten) — Toggle-Chip
-       zeigt "−20 %" bereits selbst, die Sitzplatz-Notiz erklärt Familien-
-       Pakete dynamisch, daher hier nur der noch fehlende Fakt (Autom.
-       Fortsetzung nach der Testphase) statt aller vier Punkte aus `lead`. */
-    leadCompact: 'Nach der Testphase automatisch der gewählte Tarif — jederzeit kündbar.',
     plans: [
       {
         name: 'Starter', desc: 'Der Einstieg für ein Fach.',
@@ -2553,17 +2548,6 @@
           '<b>' + p.name + '</b><span class="price-strip__desc">' + p.desc + '</span>' + priceAmount(p) +
           '<a class="btn ' + (p.feat ? 'btn-primary' : 'btn-secondary') + ' btn-block" data-cta-plan="' + p.name.toLowerCase() + '" href="' + priceCheckoutHref(p.name, 'm', 1) + '">Testen</a></div>';
       }).join('') + '</div></div>');
-    /* v7 · Natürlich — eigens für /preise/ (siehe pricePageVariant/
-       mountPricePageDev unten): behebt, dass v4 auf dem auf Viewport-
-       Höhe gesperrten Seiten-Layout (.pricepage, marketing.css) auf
-       normalen Laptop-Bildschirmen unten abgeschnitten wurde und auf
-       Mobile nie auf 1 Spalte umbrach. Gleicher Kartenaufbau/-inhalt,
-       aber kompakterer Kopf + Höhen-abhängige (vh) statt reiner
-       Breiten-Clamps, damit alles ohne Scroll natürlich hineinpasst. */
-    if (v === '7') return lw('price', v, '<div class="container">' +
-      lh(PRICE.eb, PRICE.h, PRICE.leadCompact, true) + priceControls() +
-      '<div class="price-grid">' + cards + '</div></div>');
-
     return lw('price', v, '<div class="container">' + headC + priceControls() +
       '<div class="price-grid">' + cards + '</div></div>');
   }
@@ -3098,25 +3082,16 @@
     orgfaecher: [['1', 'Zahlen-Kachel'], ['2', 'Ghost'], ['3', 'Avatar-Stack'], ['4', 'Pill-Reihe'], ['5', 'Bento'], ['6', 'Dark'], ['7', 'Scroll-Reihe'], ['8', 'Kompakt-Liste'], ['9', 'Ring'], ['10', 'Editorial']],
     cmp: [['1', 'Cards'], ['2', 'Empfohlen'], ['3', 'Gleichung'], ['4', 'Tabelle'], ['5', 'Dark'], ['6', 'Lead-in'], ['7', 'Punktestand'], ['8', 'Pills'], ['9', 'Preisschild'], ['10', 'Bento'], ['11', 'Aktuell']],
     subj: [['1', 'Grid'], ['2', 'Big'], ['3', 'Bento'], ['4', 'Scroll'], ['5', 'Split']],
-    price: [['1', 'Cards'], ['2', 'Raised'], ['3', 'Spotlight'], ['4', 'Dark-Feat'], ['5', 'Glow'], ['6', 'Strip'], ['7', 'Natürlich']],
+    price: [['1', 'Cards'], ['2', 'Raised'], ['3', 'Spotlight'], ['4', 'Dark-Feat'], ['5', 'Glow'], ['6', 'Strip']],
     test: [['1', 'Hero'], ['2', 'Split'], ['3', 'Wall'], ['4', 'Marquee'], ['5', 'Dark'], ['6', 'Thumbs'], ['7', 'Spotlight'], ['8', 'Bento'], ['9', 'Masonry'], ['10', 'Circles']],
     parent: [['1', 'Kinder']], /* final gewählt (Nachbau app/eltern.html), kein Dev-Panel mehr */
     faq: [['1', 'Bold'], ['2', '2-Col'], ['3', 'Index'], ['4', 'Plus'], ['5', 'Cards'], ['6', 'Dark'], ['7', 'Numbered'], ['8', 'Divided'], ['9', 'Centered'], ['10', 'Ask']],
     cta: [['1', 'Band'], ['2', 'Split'], ['3', 'Bleed'], ['4', 'Minimal'], ['5', 'Big-Type'], ['6', 'Box'], ['7', 'Mesh'], ['8', 'Stack'], ['9', 'Strip'], ['10', 'Badge']]
   };
 
-  /* Preise-Seite (/preise/) bekommt eine eigene, per Dev-Switch
-     umschaltbare Variante (siehe mountPricePageDev) statt der auf der
-     Startseite `fixed`en v4 — dort bleibt v4 unverändert (kein
-     Viewport-Lock, scrollt normal, kein Overflow-Problem). */
-  function pricePageVariant() {
-    try { var v = localStorage.getItem('lesify:pricepage:v'); if (v === '4' || v === '7') return v; } catch (e) {}
-    return '7';
-  }
   function labSectionApi(sec) {
     var max = LAB_LABELS[sec.key].length;
     function variant() {
-      if (sec.key === 'price' && document.body.getAttribute('data-page') === 'preise') return pricePageVariant();
       if (sec.fixed) return sec.fixed; /* final gewählt, kein Dev-Panel-Umschalter */
       try { var v = localStorage.getItem('lesify:' + sec.key + ':v'); if (RX10.test(v) && +v <= max) return v; } catch (e) {}
       return sec.def || '1';
@@ -3533,32 +3508,46 @@
     document.body.appendChild(panel);
   }
 
-  /* Preise-Seite (/preise/) — kleiner, eigener Dev-Switch "Aktuell" (v4,
-     zum Vergleich) vs. "Natürlich" (v7, behobener Overflow + Mobile-
-     Umbruch, siehe renderPrice/pricePageVariant oben). Bewusst getrennt
-     von mountLabDev/LAB_DEV_AXES, weil "price" dort wegen `fixed` gar
-     nicht als Achse auftaucht und nur diese eine Seite umschalten soll. */
-  function mountPricePageDev() {
+  /* Preise-Seite (/preise/) — Farb-Dev-Switch für die Preiskarten +
+     Umschalter. Layout bleibt fest v4 (Dark-Feat, wie die Startseite);
+     nur die FARBGEBUNG unterscheidet sich hier, weil die Karten bislang
+     praktisch dieselben (hellen) Farben wie auf der weißen Startseite
+     trugen — auf dem schwarzen Seiten-Hintergrund von /preise/ wirkt das
+     unpassend (siehe body[data-page="preise"] #price-section … in
+     landing-lab.css, das war bisher die einzige Einfärbung = "v1"
+     unten). v2–v6 sind eigene Paletten zur Auswahl, jeweils nur CSS
+     (`[data-price-color]` auf <body>) — kein Re-Render nötig, Umschalten
+     verliert also nicht den Monatlich/Jährlich- oder Kinderzahl-Stand. */
+  var PRICE_COLOR_LIST = [
+    ['1', 'Weiß'], ['2', 'Kontur'], ['3', 'Dunkel'], ['4', 'Fach-Akzent'], ['5', 'Glas'], ['6', 'Gold']
+  ];
+  function pricePageColor() {
+    try { var v = localStorage.getItem('lesify:pricepage:color'); if (/^[1-6]$/.test(v)) return v; } catch (e) {}
+    return '1';
+  }
+  function applyPricePageColor(v) {
+    document.body.setAttribute('data-price-color', v);
+  }
+  function mountPriceColorDev() {
     if (document.body.getAttribute('data-page') !== 'preise') return;
-    if (document.querySelector('.layout-dev.is-pricepage')) return;
-    var priceAxis = LAB_API.filter(function (a) { return a.key === 'price'; })[0];
-    if (!priceAxis) return;
+    applyPricePageColor(pricePageColor());
+    if (document.querySelector('.layout-dev.is-pricecolor')) return;
     var panel = document.createElement('div');
-    panel.className = 'layout-dev is-pricepage';
+    panel.className = 'layout-dev is-pricecolor';
     try { if (localStorage.getItem('lesify:lab:min') === '1') panel.classList.add('is-min'); } catch (e) {}
-    panel.innerHTML = '<button type="button" class="layout-dev-title" data-dev-min>Preise-Layout</button>' +
-      devRow('Preise', 'pricepage', [['4', 'Aktuell'], ['7', 'Natürlich']], pricePageVariant());
+    panel.innerHTML = '<button type="button" class="layout-dev-title" data-dev-min>Preise-Farben</button>' +
+      devRow('Farbe', 'pricecolor', PRICE_COLOR_LIST, pricePageColor());
     panel.addEventListener('click', function (e) {
       if (e.target.closest('[data-dev-min]')) {
         panel.classList.toggle('is-min');
         try { localStorage.setItem('lesify:lab:min', panel.classList.contains('is-min') ? '1' : '0'); } catch (err) {}
         return;
       }
-      var b = e.target.closest('[data-pricepage]'); if (!b) return;
-      var v = b.getAttribute('data-pricepage');
-      try { localStorage.setItem('lesify:pricepage:v', v); } catch (err) {}
-      panel.querySelectorAll('[data-pricepage]').forEach(function (x) { x.classList.toggle('is-on', x === b); });
-      priceAxis.apply();
+      var b = e.target.closest('[data-pricecolor]'); if (!b) return;
+      var v = b.getAttribute('data-pricecolor');
+      try { localStorage.setItem('lesify:pricepage:color', v); } catch (err) {}
+      panel.querySelectorAll('[data-pricecolor]').forEach(function (x) { x.classList.toggle('is-on', x === b); });
+      applyPricePageColor(v);
     });
     document.body.appendChild(panel);
   }
@@ -3631,7 +3620,7 @@
     initHeroSlides();
     buildChatSection();
     buildLabSections();
-    mountPricePageDev();
+    mountPriceColorDev();
     /* Dev-Tool (2026-09-16 aktiviert, 2026-09-16 final entfernt) — "orgfaecher"
        auf v2 (Ghost) und "cmp" auf v1 (Cards, mit neuem 9-Zeilen-Content)
        final gewählt (siehe LAB_SECTIONS `fixed`), kein Dev-Panel mehr. */

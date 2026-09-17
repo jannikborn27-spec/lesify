@@ -572,37 +572,55 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       Monat Lesify Premium." stand an beiden Stellen) — `PRICE.h` jetzt
       „Monatlich kündbar, 14 Tage kostenlos testen.", Rest der Preise-Section
       unverändert.
-- [x] **Preise-Seite (`/preise/`) Layout-Bug behoben + Redesign "Natürlich"**
-      (2026-09-17, gemeldet als "alles wirkt komplett gequetscht"): die auf
-      Viewport-Höhe gesperrte `.pricepage` (`overflow: hidden`, kein Scroll ab
-      780px, siehe marketing.css) war auf normalen Laptop-Bildschirmen (z. B.
-      1366×768) **~200px höher als der sichtbare Bereich** — Kopfzeile oben und
-      Buttons unten wurden abgeschnitten. Zusätzlich fehlte dem `.price-grid`
-      (v4/v6) jede Umbruch-Regel unter 760px, wodurch die 3 Karten auf Mobile
+- [x] **Preise-Seite (`/preise/`) Layout-Bug behoben** (2026-09-17, gemeldet
+      als "alles wirkt komplett gequetscht"): die auf Viewport-Höhe gesperrte
+      `.pricepage` (`overflow: hidden`, kein Scroll ab 780px, siehe
+      marketing.css) war auf normalen Laptop-Bildschirmen (z. B. 1366×768)
+      **~200px höher als der sichtbare Bereich** — Kopfzeile oben und Buttons
+      unten wurden abgeschnitten. Zusätzlich fehlte dem `.price-grid` (v4/v6)
+      jede Umbruch-Regel unter 760px, wodurch die 3 Karten auf Mobile
       nebeneinander gequetscht aus dem Viewport liefen.
-  - Neue Variante **v7 "Natürlich"** in `renderPrice()`
-    (`assets/js/marketing.js`): gleicher Karteninhalt/-look wie v4, aber Kopf-
-    und Kartenabstände über `vh`- statt nur `vw`-Clamps bemessen (schrumpft
-    auf kurzen Bildschirmen automatisch mit) plus kompakterer Lead-Text
-    (`PRICE.leadCompact`, da Toggle-Chip/Sitzplatz-Hinweis die übrigen
-    Fakten aus `PRICE.lead` schon dynamisch abdecken). CSS in
-    `landing-lab.css` (`.sv--price7 …`).
-  - **Nur `/preise/` bekommt v7** (`pricePageVariant()`,
-    `localStorage['lesify:pricepage:v']`, Default `7`) — die Startseiten-
-    Einbindung (`#price` in `index.html`) bleibt fest auf `fixed:'4'`, dort
-    scrollt die Section normal (kein Overflow-Problem).
-  - Kleiner Dev-Switch nur auf `/preise/` (`mountPricePageDev()`, unten
-    rechts, "Aktuell"/v4 vs. "Natürlich"/v7) zum Vergleich — analog zum
-    bestehenden `mountLabDev()`-Muster, aber eigenständig, weil `price` dort
-    wegen `fixed` gar nicht als Achse auftaucht.
-  - **Mobile-Fix gilt global** (nicht nur v7): `.price-grid`/`.price-strip`
-    brechen jetzt unter 760px auf 1 Spalte um — betraf auch die
-    Startseiten-Section, daher bewusst nicht auf v7 beschränkt.
-  - **Sicherheitsnetz:** `.pricepage` nutzt jetzt `overflow-y: auto` statt
-    `hidden` (Inhalt scrollt intern, statt abgeschnitten zu werden, falls
-    ein Fenster trotz v7 noch kürzer ist) und `align-items: safe center`
-    (verhindert, dass zentrierter Flex-Inhalt beim Scrollen oben abgeschnitten
-    wird).
+  - Layout/Spacing bleibt **fest v4** (Entscheidung 2026-09-17, nach
+    Vergleich mit einer probeweisen "v7 Natürlich"-Variante mit
+    vh-bemessenen Abständen — wieder verworfen, v4 gewünscht).
+  - **Mobile-Fix ist global**: `.price-grid`/`.price-strip` brechen jetzt
+    unter 760px auf 1 Spalte um — betraf auch die Startseiten-Section
+    gleichermaßen (dieselbe v4-Sektion), daher nicht auf `/preise/`
+    beschränkt.
+  - **Sicherheitsnetz:** `.pricepage` nutzt `overflow-y: auto` statt
+    `hidden` (Inhalt scrollt intern statt abgeschnitten zu werden, falls ein
+    Fenster ungewöhnlich kurz ist) und `align-items: safe center`
+    (verhindert, dass zentrierter Flex-Inhalt beim Scrollen oben
+    abgeschnitten wird).
+- [x] **Preise-Seite: Karten-/Umschalter-Farben neu, 6 Paletten + Dev-Switch**
+      (2026-09-17, Folge-Feedback: "Coloring ist quasi wie auf der
+      Landingpage, das geht offensichtlich nicht" — weißer Hintergrund dort
+      vs. schwarzer hier). Layout bleibt v4; nur die Einfärbung ändert sich.
+  - **Echter Kontrast-Bug dabei gefunden und gefixt** (nicht nur
+    Geschmackssache): `.price-amt b` (der Preis selbst!) und
+    `.price-feats li` (die ganze Leistungsliste) hatten gar keine eigene
+    Textfarbe und erbten die für die schwarze Bestseller-Karte gedachte
+    helle Farbe von `.pricepage` — auf den 2 WEISSEN Karten waren Preis und
+    Leistungen dadurch praktisch unsichtbar (fast weiß auf weiß, Kontrast
+    ≈ 1:1). Das war vermutlich der Hauptgrund für den "das geht so nicht"-
+    Eindruck, nicht nur der Ton der Farben.
+  - 6 Paletten über `[data-price-color]` auf `<body>` (kein Re-Render, siehe
+    unten) — **v1 Weiß** (Baseline, obiger Kontrast-Fix), **v2 Kontur**
+    (Karten transparent mit heller Linie statt Fläche, Bestseller-Karte
+    jetzt weiß statt schwarz), **v3 Dunkel** (alle Karten dunkel/angehoben,
+    Bestseller mit türkisem Verlauf + Leuchtrand statt Schwarz-auf-Schwarz),
+    **v4 Fach-Akzent** (helle Karten, Farbidentität aus
+    `Lesify.FACH_COLORS` — Starter blau, Premium türkis, Infinite violett,
+    per `:nth-child` da Karten keine Plan-Klasse tragen), **v5 Glas**
+    (Frosted-Glass/Blur-Karten), **v6 Gold** (wie v3, Bestseller mit warmem
+    Gold-Akzent statt Türkis). Alle 6 in `landing-lab.css`
+    (`body[data-page="preise"][data-price-color="N"] #price-section …`).
+  - Dev-Switch **"Preise-Farben"** unten rechts nur auf `/preise/`
+    (`mountPriceColorDev()`, `localStorage['lesify:pricepage:color']`,
+    Default `1`) — setzt nur ein `data-price-color`-Attribut, **kein
+    Re-Render** nötig, Monatlich/Jährlich- und Kinderzahl-Auswahl bleiben
+    beim Umschalten erhalten (anders als der frühere Layout-Dev-Switch, der
+    noch `renderPrice()` neu aufrief).
 
 ---
 

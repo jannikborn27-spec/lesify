@@ -2118,27 +2118,182 @@ body[data-page="ueber-uns"] .site-footer::before {
 
 /* /preise/-Seite: dieselbe v4-Sektion, aber auf dunklem Seiten-
    Hintergrund (siehe marketing.css .pricepage) statt dem hellen
-   Startseiten-Abschnitt — Überschrift/Umschalter/Hinweistext neu
-   eingefärbt, die Stimmen-Sektion entfällt (Platz für die
-   Viewport-Höhe). Die Preiskarten selbst bleiben unverändert: die 2
-   hellen Karten wirken auf Schwarz wie die hellen Eingabefelder auf der
-   Kasse, die "Bestseller"-Karte war ohnehin schon schwarz. */
+   Startseiten-Abschnitt. Kopfzeile/Stimmen-Sektion-Behandlung gilt für
+   alle Farb-Varianten gleich (siehe unten), deshalb hier ungescoped;
+   nur Umschalter + Karten unterscheiden sich je `[data-price-color]`
+   ("Preise-Farben"-Dev-Switch, siehe mountPriceColorDev in
+   marketing.js). Ohne Attribut bzw. bei "1" gilt diese Einfärbung
+   unverändert weiter — sie war bislang die EINZIGE (Karten praktisch
+   identisch zur hellen Startseite: helle Fläche auf Schwarz), v2–v6
+   sind eigene Paletten zur Auswahl. */
 body[data-page="preise"] #price-section .eyebrow { color: rgba(255,255,255,0.6); }
 body[data-page="preise"] #price-section .eyebrow::before { background: rgba(255,255,255,0.4); }
 body[data-page="preise"] #price-section h2 { color: var(--paper); }
 body[data-page="preise"] #price-section .lab-head p { color: rgba(255,255,255,0.7); }
+body[data-page="preise"] #price-section .price-voices { display: none; }
+
+/* v1 · Weiß (Default/Baseline) — Umschalter als helle Halbtransparenz-
+   Pille, Karten unverändert (siehe .sv--price4 oben: 2 helle Karten +
+   1 schwarze Bestseller-Karte). Bug-Fix (nicht nur Geschmackssache):
+   `.price-amt b` (der eigentliche Preis!) und `.price-feats li` haben
+   gar keine eigene Farbe, erben also die für Schwarz gedachte helle
+   Textfarbe von `.pricepage` — auf den 2 WEISSEN Karten waren Preis UND
+   Leistungsliste dadurch praktisch unsichtbar (fast weiß auf weiß).
+   Auf Kartenebene gesetzt (nicht nur an `b`/`li`), damit das für JEDEN
+   Text ohne eigene Farbe gilt, auch falls später ergänzt. Nur bei "1"
+   aktiv — sonst würde diese Regel (höher spezifisch als die anderer
+   Paletten wegen `:not(.is-feat)`) deren eigene Kartenfarben überstimmen. */
+body[data-page="preise"][data-price-color="1"] #price-section .price-card:not(.is-feat) { color: var(--ink-950); }
 body[data-page="preise"] #price-section .price-toggle { background: rgba(255,255,255,0.08); }
 body[data-page="preise"] #price-section .price-toggle button { color: rgba(255,255,255,0.65); }
 body[data-page="preise"] #price-section .price-toggle button.is-on { background: var(--paper); color: var(--ink-950); }
-body[data-page="preise"] #price-section .price-seats { border-color: rgba(255,255,255,0.18); background: rgba(255,255,255,0.06); }
+body[data-page="preise"] #price-section .price-seats--seg .price-seats__segrow { background: rgba(255,255,255,0.08); }
 body[data-page="preise"] #price-section .price-seats__cap { color: rgba(255,255,255,0.6); }
-body[data-page="preise"] #price-section .price-seats__val b { color: var(--paper); }
-body[data-page="preise"] #price-section .price-seats__dots i { background: rgba(255,255,255,0.25); }
-body[data-page="preise"] #price-section .price-seats__dots i.is-on { background: rgba(255,255,255,0.8); }
-body[data-page="preise"] #price-section .price-seats__btn { border-color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.85); }
-body[data-page="preise"] #price-section .price-seats__btn:hover:not(:disabled) { border-color: #fff; color: #fff; }
+body[data-page="preise"] #price-section .price-seats__segrow button { color: rgba(255,255,255,0.65); }
+body[data-page="preise"] #price-section .price-seats__segrow button.is-on { background: var(--paper); color: var(--ink-950); }
 body[data-page="preise"] #price-section .price-seatnote { color: rgba(255,255,255,0.55); }
-body[data-page="preise"] #price-section .price-voices { display: none; }
+
+/* v2 · Kontur — Karten nicht mehr gefüllt (keine helle Fläche mehr auf
+   Schwarz), sondern transparent mit heller Linie; nur die Bestseller-
+   Karte bleibt gefüllt, jetzt in Weiß statt Schwarz (der Rest ist ja
+   schon dunkel), damit sie weiter klar heraussticht. */
+body[data-page="preise"][data-price-color="2"] #price-section .price-toggle { background: transparent; border: 1px solid rgba(255,255,255,0.22); }
+body[data-page="preise"][data-price-color="2"] #price-section .price-toggle button { color: rgba(255,255,255,0.65); }
+body[data-page="preise"][data-price-color="2"] #price-section .price-toggle button.is-on { background: var(--paper); color: var(--ink-950); }
+body[data-page="preise"][data-price-color="2"] #price-section .price-seats--seg .price-seats__segrow { background: transparent; border: 1px solid rgba(255,255,255,0.22); }
+body[data-page="preise"][data-price-color="2"] #price-section .price-seats__segrow button { color: rgba(255,255,255,0.65); }
+body[data-page="preise"][data-price-color="2"] #price-section .price-seats__segrow button.is-on { background: var(--paper); color: var(--ink-950); }
+body[data-page="preise"][data-price-color="2"] #price-section .price-card { background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.22); color: var(--paper); }
+body[data-page="preise"][data-price-color="2"] #price-section .price-card h3 { color: var(--paper); }
+body[data-page="preise"][data-price-color="2"] #price-section .price-card__desc { color: rgba(255,255,255,0.6); }
+body[data-page="preise"][data-price-color="2"] #price-section .price-amt b { color: var(--paper); }
+body[data-page="preise"][data-price-color="2"] #price-section .price-amt span { color: rgba(255,255,255,0.55); }
+body[data-page="preise"][data-price-color="2"] #price-section .price-amt del { color: rgba(255,255,255,0.35); }
+body[data-page="preise"][data-price-color="2"] #price-section .price-feats svg { color: #6fe0a1; }
+body[data-page="preise"][data-price-color="2"] #price-section .price-card .btn { background: transparent; color: var(--paper); border: 1px solid rgba(255,255,255,0.4); }
+body[data-page="preise"][data-price-color="2"] #price-section .price-card .btn:hover { background: rgba(255,255,255,0.1); border-color: #fff; }
+body[data-page="preise"][data-price-color="2"] #price-section .price-card.is-feat { background: var(--paper); border-color: var(--paper); box-shadow: var(--shadow-xl); color: var(--ink-950); }
+body[data-page="preise"][data-price-color="2"] #price-section .price-card.is-feat h3 { color: var(--ink-950); }
+body[data-page="preise"][data-price-color="2"] #price-section .price-card.is-feat .price-card__desc { color: var(--ink-500); }
+body[data-page="preise"][data-price-color="2"] #price-section .price-card.is-feat .price-amt b { color: var(--ink-950); }
+body[data-page="preise"][data-price-color="2"] #price-section .price-card.is-feat .price-amt span { color: var(--ink-500); }
+body[data-page="preise"][data-price-color="2"] #price-section .price-card.is-feat .price-amt del { color: var(--ink-300); }
+body[data-page="preise"][data-price-color="2"] #price-section .price-card.is-feat .price-feats svg { color: var(--gruen); }
+body[data-page="preise"][data-price-color="2"] #price-section .price-card.is-feat .price-card__tag { background: var(--ink-950); color: var(--paper); }
+body[data-page="preise"][data-price-color="2"] #price-section .price-card.is-feat .price-card__dot { background: var(--paper); }
+body[data-page="preise"][data-price-color="2"] #price-section .price-card.is-feat .btn { background: var(--ink-950); color: var(--paper); border-color: var(--ink-950); }
+body[data-page="preise"][data-price-color="2"] #price-section .price-card.is-feat .btn:hover { background: #000; }
+
+/* v3 · Dunkel — statt heller Flächen auf Schwarz jetzt durchgehend
+   dunkle, angehobene Karten (kein harter Hell/Dunkel-Bruch mehr) — die
+   Bestseller-Karte hebt sich über einen türkisen Verlauf + Leuchtrand
+   ab statt über Schwarz-auf-Schwarz (das kaum Kontrast hatte). */
+body[data-page="preise"][data-price-color="3"] #price-section .price-card { background: var(--ink-900); border-color: rgba(255,255,255,0.10); color: var(--paper); }
+body[data-page="preise"][data-price-color="3"] #price-section .price-card h3 { color: var(--paper); }
+body[data-page="preise"][data-price-color="3"] #price-section .price-card__desc { color: var(--ink-300); }
+body[data-page="preise"][data-price-color="3"] #price-section .price-amt b { color: var(--paper); }
+body[data-page="preise"][data-price-color="3"] #price-section .price-amt span { color: var(--ink-400); }
+body[data-page="preise"][data-price-color="3"] #price-section .price-amt del { color: var(--ink-600); }
+body[data-page="preise"][data-price-color="3"] #price-section .price-feats svg { color: #5fcf94; }
+body[data-page="preise"][data-price-color="3"] #price-section .price-card .btn { background: var(--paper); color: var(--ink-950); border-color: var(--paper); }
+body[data-page="preise"][data-price-color="3"] #price-section .price-card .btn:hover { background: #fff; }
+body[data-page="preise"][data-price-color="3"] #price-section .price-card.is-feat {
+  background: linear-gradient(165deg, var(--ink-800), var(--ink-900));
+  border-color: var(--fach-teal);
+  box-shadow: 0 0 0 1px rgba(0, 145, 118, 0.35), 0 30px 60px -28px rgba(0, 145, 118, 0.45);
+}
+body[data-page="preise"][data-price-color="3"] #price-section .price-card.is-feat .price-card__tag { background: var(--fach-teal); color: var(--paper); }
+body[data-page="preise"][data-price-color="3"] #price-section .price-card.is-feat .price-card__dot { background: var(--paper); }
+body[data-page="preise"][data-price-color="3"] #price-section .price-card.is-feat .btn { background: var(--fach-teal); color: var(--paper); border-color: var(--fach-teal); }
+body[data-page="preise"][data-price-color="3"] #price-section .price-card.is-feat .btn:hover { background: #00a884; }
+
+/* v4 · Fach-Akzent — Karten bleiben hell (wie v1), aber jede Karte
+   bekommt die Farbidentität der Fach-Farben aus der App
+   (Lesify.FACH_COLORS): Starter blau, Premium türkis, Infinite violett
+   — statt einer schwarzen Bestseller-Karte ein türkiser Verlauf.
+   Reihenfolge ist fix (PRICE.plans: Starter · Premium · Infinite),
+   daher per :nth-child adressiert statt einer eigenen Plan-Klasse. */
+body[data-page="preise"][data-price-color="4"] #price-section .price-card { overflow: hidden; }
+body[data-page="preise"][data-price-color="4"] #price-section .price-card::before {
+  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+  border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+}
+body[data-page="preise"][data-price-color="4"] #price-section .price-grid > .price-card:nth-child(1),
+body[data-page="preise"][data-price-color="4"] #price-section .price-grid > .price-card:nth-child(3) { color: var(--ink-950); }
+body[data-page="preise"][data-price-color="4"] #price-section .price-grid > .price-card:nth-child(1)::before { background: var(--fach-blue); }
+body[data-page="preise"][data-price-color="4"] #price-section .price-grid > .price-card:nth-child(1) h3 { color: var(--fach-blue); }
+body[data-page="preise"][data-price-color="4"] #price-section .price-grid > .price-card:nth-child(3)::before { background: var(--fach-violet); }
+body[data-page="preise"][data-price-color="4"] #price-section .price-grid > .price-card:nth-child(3) h3 { color: var(--fach-violet); }
+body[data-page="preise"][data-price-color="4"] #price-section .price-card.is-feat {
+  background: linear-gradient(165deg, var(--fach-teal), #00543f);
+  border-color: var(--fach-teal);
+  color: var(--paper);
+}
+body[data-page="preise"][data-price-color="4"] #price-section .price-card.is-feat::before { background: rgba(255,255,255,0.4); }
+body[data-page="preise"][data-price-color="4"] #price-section .price-card.is-feat h3 { color: var(--paper); }
+body[data-page="preise"][data-price-color="4"] #price-section .price-card.is-feat .price-card__desc { color: rgba(255,255,255,0.72); }
+body[data-page="preise"][data-price-color="4"] #price-section .price-card.is-feat .price-amt span { color: rgba(255,255,255,0.72); }
+body[data-page="preise"][data-price-color="4"] #price-section .price-card.is-feat .price-amt del { color: rgba(255,255,255,0.45); }
+body[data-page="preise"][data-price-color="4"] #price-section .price-card.is-feat .price-feats svg { color: var(--paper); }
+body[data-page="preise"][data-price-color="4"] #price-section .price-card.is-feat .price-card__tag { background: var(--paper); color: var(--fach-teal); }
+body[data-page="preise"][data-price-color="4"] #price-section .price-card.is-feat .price-card__dot { background: var(--fach-teal); }
+body[data-page="preise"][data-price-color="4"] #price-section .price-card.is-feat .btn { background: var(--paper); color: var(--fach-teal); border-color: var(--paper); }
+body[data-page="preise"][data-price-color="4"] #price-section .price-card.is-feat .btn:hover { background: #fff; }
+
+/* v5 · Glas — Frosted-Glass-Karten (durchscheinend + Weichzeichner)
+   statt harter weißer Flächen; passt zum dunklen, leicht beleuchteten
+   Seiten-Hintergrund (.pricepage::before-Glow, siehe marketing.css). */
+body[data-page="preise"][data-price-color="5"] #price-section .price-toggle,
+body[data-page="preise"][data-price-color="5"] #price-section .price-seats--seg .price-seats__segrow {
+  background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.14); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+}
+body[data-page="preise"][data-price-color="5"] #price-section .price-toggle button.is-on,
+body[data-page="preise"][data-price-color="5"] #price-section .price-seats__segrow button.is-on { background: var(--paper); color: var(--ink-950); }
+body[data-page="preise"][data-price-color="5"] #price-section .price-card {
+  background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.16);
+  -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
+  color: var(--paper);
+}
+body[data-page="preise"][data-price-color="5"] #price-section .price-card h3 { color: var(--paper); }
+body[data-page="preise"][data-price-color="5"] #price-section .price-card__desc { color: rgba(255,255,255,0.62); }
+body[data-page="preise"][data-price-color="5"] #price-section .price-amt b { color: var(--paper); }
+body[data-page="preise"][data-price-color="5"] #price-section .price-amt span { color: rgba(255,255,255,0.55); }
+body[data-page="preise"][data-price-color="5"] #price-section .price-amt del { color: rgba(255,255,255,0.35); }
+body[data-page="preise"][data-price-color="5"] #price-section .price-feats svg { color: #7fe3ae; }
+body[data-page="preise"][data-price-color="5"] #price-section .price-card .btn { background: transparent; color: var(--paper); border: 1px solid rgba(255,255,255,0.4); }
+body[data-page="preise"][data-price-color="5"] #price-section .price-card .btn:hover { background: rgba(255,255,255,0.12); border-color: #fff; }
+body[data-page="preise"][data-price-color="5"] #price-section .price-card.is-feat {
+  background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.32);
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.08), var(--shadow-xl);
+}
+body[data-page="preise"][data-price-color="5"] #price-section .price-card.is-feat .price-card__tag { background: var(--paper); color: var(--ink-950); }
+body[data-page="preise"][data-price-color="5"] #price-section .price-card.is-feat .price-card__dot { background: var(--ink-950); }
+body[data-page="preise"][data-price-color="5"] #price-section .price-card.is-feat .btn { background: var(--paper); color: var(--ink-950); border-color: var(--paper); }
+body[data-page="preise"][data-price-color="5"] #price-section .price-card.is-feat .btn:hover { background: #fff; }
+
+/* v6 · Gold — wie v3 (dunkle, angehobene Karten), aber die Bestseller-
+   Karte bekommt einen warmen Gold-Akzent statt Türkis — bewusste
+   "Premium-Tarif"-Anmutung für die Konversions-Seite. */
+body[data-page="preise"][data-price-color="6"] #price-section .price-card { background: var(--ink-900); border-color: rgba(255,255,255,0.10); color: var(--paper); }
+body[data-page="preise"][data-price-color="6"] #price-section .price-card h3 { color: var(--paper); }
+body[data-page="preise"][data-price-color="6"] #price-section .price-card__desc { color: var(--ink-300); }
+body[data-page="preise"][data-price-color="6"] #price-section .price-amt b { color: var(--paper); }
+body[data-page="preise"][data-price-color="6"] #price-section .price-amt span { color: var(--ink-400); }
+body[data-page="preise"][data-price-color="6"] #price-section .price-amt del { color: var(--ink-600); }
+body[data-page="preise"][data-price-color="6"] #price-section .price-feats svg { color: #5fcf94; }
+body[data-page="preise"][data-price-color="6"] #price-section .price-card .btn { background: var(--paper); color: var(--ink-950); border-color: var(--paper); }
+body[data-page="preise"][data-price-color="6"] #price-section .price-card .btn:hover { background: #fff; }
+body[data-page="preise"][data-price-color="6"] #price-section .price-card.is-feat {
+  background: linear-gradient(165deg, #4a3a1c, #2a2110);
+  border-color: #d9b46a;
+  box-shadow: 0 0 0 1px rgba(217, 180, 106, 0.4), 0 30px 60px -28px rgba(217, 180, 106, 0.35);
+}
+body[data-page="preise"][data-price-color="6"] #price-section .price-card.is-feat .price-card__desc { color: rgba(255,255,255,0.65); }
+body[data-page="preise"][data-price-color="6"] #price-section .price-card.is-feat .price-feats svg { color: #e8c880; }
+body[data-page="preise"][data-price-color="6"] #price-section .price-card.is-feat .price-card__tag { background: #d9b46a; color: #2a2110; }
+body[data-page="preise"][data-price-color="6"] #price-section .price-card.is-feat .price-card__dot { background: #2a2110; }
+body[data-page="preise"][data-price-color="6"] #price-section .price-card.is-feat .btn { background: #d9b46a; color: #2a2110; border-color: #d9b46a; }
+body[data-page="preise"][data-price-color="6"] #price-section .price-card.is-feat .btn:hover { background: #e6c580; }
 
 /* v5 · Glow */
 .sv--price5 .price-grid--glow .price-card { transition: opacity 200ms var(--ease-out); }
@@ -2157,77 +2312,16 @@ body[data-page="preise"] #price-section .price-voices { display: none; }
 .sv--price6 .price-strip__cell.is-feat .price-amt span { color: rgba(255,255,255,0.6); }
 .sv--price6 .price-strip__cell.is-feat .price-card__tag { left: 50%; transform: translateX(-50%); background: var(--paper); color: var(--ink-950); }
 
-/* v7 · Natürlich — eigene Variante für /preise/ (siehe pricePageVariant/
-   mountPricePageDev in marketing.js, per Dev-Switch "Aktuell"/v4 vs.
-   "Natürlich"/v7 umschaltbar). v4 auf dieser Seite lief auf normalen
-   Laptop-Bildschirmen über die per Viewport-Höhe gesperrte .pricepage
-   hinaus (siehe marketing.css) und wurde unten von overflow:hidden
-   abgeschnitten (Buttons/Karten verschwanden) — hier bemisst sich der
-   Kopf/die Abstände zusätzlich über vh statt nur vw, damit alles ohne
-   Scroll natürlich hineinpasst, auf hohen Screens bleibt reichlich Luft. */
-.sv--price7 .lab-head { max-width: 620px; margin-bottom: clamp(1rem, 0.3rem + 2.4vh, 1.8rem); }
-.sv--price7 .lab-head h2 { font-size: clamp(1.4rem, 1rem + 1.7vh, 2.15rem); line-height: 1.15; margin-top: 0.4rem; }
-.sv--price7 .lab-head p { margin-top: 0.5rem; font-size: clamp(0.88rem, 0.82rem + 0.3vh, 0.98rem); line-height: 1.45; }
-
-.sv--price7 .price-ctrl--v1 { flex-wrap: nowrap; justify-content: center; align-items: center; gap: 10px 40px; margin-bottom: clamp(0.7rem, 0.1rem + 1.6vh, 1.2rem); }
-.sv--price7 .price-ctrl--v1 + .price-seatnote { text-align: center; }
-.sv--price7 .price-toggle { display: inline-flex; align-items: center; gap: 4px; margin: 0; padding: 4px; border: 0; border-radius: var(--radius-full); background: var(--ink-100); }
-.sv--price7 .price-toggle button { padding: 7px 14px; border-radius: var(--radius-full); font-size: 0.82rem; font-weight: 600; color: var(--ink-600); white-space: nowrap; }
-.sv--price7 .price-toggle button.is-on { background: var(--bg-surface); color: var(--ink-950); box-shadow: var(--shadow-sm); }
-.sv--price7 .price-toggle button i { font-style: normal; font-size: 0.7rem; color: var(--gruen); }
-.sv--price7 .price-seats--seg { border: 0; background: none; padding: 0; gap: 8px; display: inline-flex; align-items: center; }
-.sv--price7 .price-seats__cap { font-size: 0.76rem; font-weight: 600; color: var(--ink-500); white-space: nowrap; }
-.sv--price7 .price-seats__segrow { display: inline-flex; gap: 4px; padding: 4px; border-radius: var(--radius-full); background: var(--ink-100); }
-.sv--price7 .price-seats__segrow button { min-width: 30px; height: 28px; border-radius: var(--radius-full); font-size: 0.82rem; font-weight: 700; color: var(--ink-600); transition: background 120ms var(--ease-out), color 120ms var(--ease-out); }
-.sv--price7 .price-seats__segrow button:hover { color: var(--ink-950); }
-.sv--price7 .price-seats__segrow button.is-on { background: var(--bg-surface); color: var(--ink-950); box-shadow: var(--shadow-sm); }
-.sv--price7 .price-seatnote { min-height: 1.1em; margin: 4px 0 clamp(0.9rem, 0.3rem + 1.6vh, 1.6rem); font-size: 0.8rem; color: var(--ink-500); font-weight: 500; }
-
-.sv--price7 .price-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(0.8rem, 0.4rem + 1vw, 1.2rem); align-items: stretch; }
-.sv--price7 .price-card { position: relative; display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: var(--radius-2xl); background: var(--bg-surface); padding: clamp(14px, 4px + 2.4vh, 24px) clamp(16px, 10px + 1vw, 24px); }
-.sv--price7 .price-card.is-feat { border-color: var(--ink-950); border-width: 2px; box-shadow: var(--shadow-xl); }
-.sv--price7 .price-card h3 { font-size: clamp(1.05rem, 0.95rem + 0.3vh, 1.2rem); }
-.sv--price7 .price-card.is-feat h3 { display: flex; align-items: center; }
-.sv--price7 .price-card__desc { font-size: 0.8rem; color: var(--ink-500); margin: 2px 0 8px; }
-.sv--price7 .price-amt { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
-.sv--price7 .price-amt del { color: var(--ink-300); font-size: 0.8rem; }
-.sv--price7 .price-amt b { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.45rem, 1.1rem + 1.7vh, 1.9rem); letter-spacing: -0.02em; }
-.sv--price7 .price-amt span { font-size: 0.74rem; color: var(--ink-500); }
-.sv--price7 .price-feats { list-style: none; padding: 0; margin: clamp(8px, 2px + 1.4vh, 14px) 0; display: flex; flex-direction: column; gap: 6px; flex: 1; }
-.sv--price7 .price-feats li { display: flex; gap: 8px; font-size: 0.79rem; line-height: 1.3; }
-.sv--price7 .price-feats svg { width: 14px; height: 14px; flex-shrink: 0; margin-top: 2px; color: var(--gruen); }
-.sv--price7 .price-card .btn { padding: 11px 18px; font-size: 0.86rem; margin-top: auto; }
-
-.sv--price7 .price-card.is-feat { background: var(--ink-950); color: var(--paper); border-color: var(--ink-950); overflow: hidden; }
-.sv--price7 .price-card.is-feat h3 { color: var(--paper); }
-.sv--price7 .price-card.is-feat .price-card__desc { color: rgba(255,255,255,0.6); }
-.sv--price7 .price-card.is-feat .price-amt span { color: rgba(255,255,255,0.6); }
-.sv--price7 .price-card.is-feat .price-amt del { color: rgba(255,255,255,0.45); }
-.sv--price7 .price-card__tag {
-  position: absolute; top: 14px; right: -50px; left: auto;
-  width: 170px; display: inline-flex; justify-content: center; gap: 6px;
-  padding: 6px 0; border-radius: 0;
-  background: var(--paper); color: var(--ink-950);
-  font-size: 0.6rem; letter-spacing: 0.09em; text-transform: uppercase; font-weight: 700;
-  transform: rotate(45deg); transform-origin: center;
-  box-shadow: 0 8px 20px -8px rgba(16, 18, 20, 0.55);
-  z-index: 3;
-}
-.sv--price7 .price-card__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-950); }
-.sv--price7 .price-card.is-feat .btn { background: var(--paper); color: var(--ink-950); border-color: var(--paper); }
-.sv--price7 .price-card.is-feat .btn:hover { background: #fff; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.24); }
-
-/* Mobile: v4 (Startseite, scrollt normal) UND v7 fehlte bislang jede
-   1-Spalten-Anpassung — 3 Karten quetschten sich nebeneinander und
-   liefen aus dem Container. Bewusst global (nicht Varianten-gebunden),
-   weil derselbe `.price-grid`/`.price-strip` in v4 und v7 verwendet
-   wird und der Bug beide Seiten (Startseite + /preise/) betraf. */
+/* Mobile: `.price-grid`/`.price-strip` fehlte jede 1-Spalten-Anpassung —
+   3 Karten quetschten sich nebeneinander und liefen aus dem Container
+   (betraf Startseite und /preise/ gleichermaßen, da beide dieselbe v4-
+   Section nutzen). */
 @media (max-width: 760px) {
-  /* Selektoren müssen dieselbe Spezifität wie `.sv--price4 .price-grid`
-     etc. treffen (zwei Klassen) — ein bloßes `.price-grid` hier würde
-     sonst von der spezifischeren Desktop-Regel überstimmt, Media Queries
+  /* Selektor muss dieselbe Spezifität wie `.sv--price4 .price-grid`
+     treffen (zwei Klassen) — ein bloßes `.price-grid` hier würde sonst
+     von der spezifischeren Desktop-Regel überstimmt, Media Queries
      ändern daran nichts. */
-  .sv--price4 .price-grid, .sv--price7 .price-grid { grid-template-columns: 1fr; gap: 14px; }
+  .sv--price4 .price-grid { grid-template-columns: 1fr; gap: 14px; }
   .sv--price6 .price-strip { grid-template-columns: 1fr; }
   .sv--price6 .price-strip__cell { border-left: 0; }
   .sv--price6 .price-strip__cell + .price-strip__cell { border-top: 1px solid var(--line); }

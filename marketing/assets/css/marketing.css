@@ -1854,15 +1854,15 @@ select.input {
 .co-total span { font-size: 0.9rem; color: rgba(255,255,255,0.7); }
 .co-total b { font-family: var(--font-display); font-size: 1.9rem; font-weight: 700; letter-spacing: -0.03em; }
 
-/* Kompakte Fassung der Stimmen-Sektion von /preise/ (Avatar-Reihe +
-   Zitat, siehe priceVoices() in marketing.js und .price-voices in
-   landing-lab.css) — hier direkt nach dem Gesamtpreis, im Moment kurz
-   vor der Zahlungsentscheidung, wo Vertrauen am meisten zählt. Statisch
-   in dieser Seite (kein marketing.js hier geladen), deutlich kleiner:
-   26px-Avatare statt 44px, ein kurzer Satz statt Blockquote + eigener
-   Zeile für die Quelle. */
-.co-voices { margin-top: 1.4rem; padding-top: 1.2rem; border-top: 1px solid rgba(255,255,255,0.12); }
-.co-voices__avrow { display: flex; align-items: center; }
+/* Kompakte Fassung der Stimmen-Sektion von /preise/ (Avatar-Reihe,
+   siehe priceVoices() in marketing.js und .price-voices in
+   landing-lab.css) — ganz unten in der Zusammenfassung, nach den
+   Stripe/EU-Vertrauenspunkten. Statisch in dieser Seite (kein
+   marketing.js hier geladen). Statt Zitat + Quelle (zu viel Platz für
+   diese Position) nur Avatare + eine kurze Vertrauens-Zeile in einer
+   Reihe. */
+.co-voices { margin-top: 1.2rem; padding-top: 1.2rem; border-top: 1px solid rgba(255,255,255,0.12); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.co-voices__avrow { display: inline-flex; align-items: center; }
 .co-voices__av {
   width: 26px; height: 26px; flex-shrink: 0; margin-left: -8px;
   border-radius: 50%; border: 2px solid var(--ink-950);
@@ -1872,9 +1872,8 @@ select.input {
   font-family: var(--font-display); font-weight: 700; font-size: 0.6rem;
 }
 .co-voices__av:first-child { margin-left: 0; }
-.co-voices__more { margin-left: 10px; font-size: 0.76rem; font-weight: 700; color: rgba(255,255,255,0.55); }
-.co-voices__q { margin-top: 10px; font-size: 0.83rem; line-height: 1.5; color: rgba(255,255,255,0.82); }
-.co-voices__q cite { font-style: normal; color: rgba(255,255,255,0.5); }
+.co-voices__txt { font-size: 0.82rem; color: rgba(255,255,255,0.7); }
+.co-voices__txt b { font-family: var(--font-display); font-weight: 700; color: var(--paper); }
 
 .co-trust { margin-top: 0.9rem; display: flex; flex-direction: column; gap: 8px; }
 .co-trust li { display: flex; align-items: center; gap: 10px; font-size: 0.82rem; color: rgba(255,255,255,0.6); }

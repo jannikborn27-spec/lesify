@@ -675,19 +675,22 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
      hellen Ring, siehe `landing-lab.css`). Die Seite scrollt dadurch auf
      normalen Laptop-Höhen jetzt leicht (das Sicherheitsnetz
      `.pricepage{overflow-y:auto}` fängt das ab, kein Abschneiden mehr).
-  2. **Kompakte Fassung links in der Kasse** (`marketing/checkout/`),
-     direkt unter "Nach der Testphase fällig" und vor den bestehenden
-     `.co-trust`-Punkten (Stripe/EU) — genau der Moment vor der
-     Zahlungsentscheidung. Neue Klasse `.co-voices` (statisches HTML in
-     `checkout/index.html`, da diese Seite kein `marketing.js` lädt):
-     26px-Avatare statt 44px, ein kurzer Satz statt Blockquote + eigener
-     Zitat-Zeile. Gleiche drei Personen wie auf `/preise/` (SB/MT/FK).
+  2. **Kompakte Fassung links in der Kasse** (`marketing/checkout/`).
+     Neue Klasse `.co-voices` (statisches HTML in `checkout/index.html`,
+     da diese Seite kein `marketing.js` lädt): 26px-Avatare (gleiche drei
+     Personen wie auf `/preise/`, SB/MT/FK) statt 44px.
   - **Auch hier dasselbe Muster wie beim Preise-Fix:**
     `.checkout__summary` (die auf Viewport-Höhe gesperrte linke Spalte,
     kein Scroll ab 901px) nutzt jetzt `overflow-y: auto` statt `hidden`,
-    da der neue Block den Inhalt auf kürzeren Bildschirmen (z. B.
-    1366×768) leicht über den Fold schieben kann — ab ca. 900px Höhe
-    passt wieder alles ohne Scroll.
+    da der neue Block den Inhalt auf kürzeren Bildschirmen leicht über
+    den Fold schieben kann.
+  - **Nachtrag (2026-09-17):** `.co-voices` stand zunächst direkt unter
+    "Nach der Testphase fällig" mit Zitat + Quelle (Blockquote-Stil wie
+    auf `/preise/`) — auf Wunsch jetzt **ganz unten**, nach den
+    `.co-trust`-Punkten (Stripe/EU), und statt Zitat nur noch Avatare +
+    eine Zeile **„10.000+ Eltern vertrauen auf Lesify"** (`.co-voices__txt`,
+    eine Reihe statt gestapelt — spart zusätzlich Höhe, passt jetzt auf
+    den meisten Laptop-Höhen ohne Scroll).
 
 ---
 

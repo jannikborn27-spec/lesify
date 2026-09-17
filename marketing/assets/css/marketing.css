@@ -1939,7 +1939,7 @@ body[data-page="preise"] { background: var(--ink-950); }
 .pricepage {
   min-height: 100dvh;
   display: flex;
-  align-items: center;
+  align-items: safe center;
   background: var(--ink-950);
   color: var(--paper);
   position: relative;
@@ -1958,7 +1958,12 @@ body[data-page="preise"] { background: var(--ink-950); }
   padding: clamp(5.5rem, 4.5rem + 3vw, 7rem) var(--gutter) clamp(2rem, 1.5rem + 2vw, 3rem);
 }
 @media (min-width: 780px) {
-  .pricepage { height: 100dvh; overflow: hidden; }
+  /* overflow-y statt hidden: die v7-Preise-Sektion (siehe landing-lab.css
+     .sv--price7, marketing.js pricePageVariant) ist so bemessen, dass sie
+     auf normalen Laptop-Höhen ohne Scroll hineinpasst — bei ungewöhnlich
+     kurzen Fenstern (Browser-Zoom, sehr flache Viewports) darf der Rest
+     lieber intern scrollen, statt wie zuvor unten abgeschnitten zu werden. */
+  .pricepage { height: 100dvh; overflow-y: auto; overflow-x: hidden; }
 }
 
 /* =========================================================

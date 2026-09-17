@@ -526,6 +526,37 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       Monat Lesify Premium." stand an beiden Stellen) — `PRICE.h` jetzt
       „Monatlich kündbar, 14 Tage kostenlos testen.", Rest der Preise-Section
       unverändert.
+- [x] **Preise-Seite (`/preise/`) Layout-Bug behoben + Redesign "Natürlich"**
+      (2026-09-17, gemeldet als "alles wirkt komplett gequetscht"): die auf
+      Viewport-Höhe gesperrte `.pricepage` (`overflow: hidden`, kein Scroll ab
+      780px, siehe marketing.css) war auf normalen Laptop-Bildschirmen (z. B.
+      1366×768) **~200px höher als der sichtbare Bereich** — Kopfzeile oben und
+      Buttons unten wurden abgeschnitten. Zusätzlich fehlte dem `.price-grid`
+      (v4/v6) jede Umbruch-Regel unter 760px, wodurch die 3 Karten auf Mobile
+      nebeneinander gequetscht aus dem Viewport liefen.
+  - Neue Variante **v7 "Natürlich"** in `renderPrice()`
+    (`assets/js/marketing.js`): gleicher Karteninhalt/-look wie v4, aber Kopf-
+    und Kartenabstände über `vh`- statt nur `vw`-Clamps bemessen (schrumpft
+    auf kurzen Bildschirmen automatisch mit) plus kompakterer Lead-Text
+    (`PRICE.leadCompact`, da Toggle-Chip/Sitzplatz-Hinweis die übrigen
+    Fakten aus `PRICE.lead` schon dynamisch abdecken). CSS in
+    `landing-lab.css` (`.sv--price7 …`).
+  - **Nur `/preise/` bekommt v7** (`pricePageVariant()`,
+    `localStorage['lesify:pricepage:v']`, Default `7`) — die Startseiten-
+    Einbindung (`#price` in `index.html`) bleibt fest auf `fixed:'4'`, dort
+    scrollt die Section normal (kein Overflow-Problem).
+  - Kleiner Dev-Switch nur auf `/preise/` (`mountPricePageDev()`, unten
+    rechts, "Aktuell"/v4 vs. "Natürlich"/v7) zum Vergleich — analog zum
+    bestehenden `mountLabDev()`-Muster, aber eigenständig, weil `price` dort
+    wegen `fixed` gar nicht als Achse auftaucht.
+  - **Mobile-Fix gilt global** (nicht nur v7): `.price-grid`/`.price-strip`
+    brechen jetzt unter 760px auf 1 Spalte um — betraf auch die
+    Startseiten-Section, daher bewusst nicht auf v7 beschränkt.
+  - **Sicherheitsnetz:** `.pricepage` nutzt jetzt `overflow-y: auto` statt
+    `hidden` (Inhalt scrollt intern, statt abgeschnitten zu werden, falls
+    ein Fenster trotz v7 noch kürzer ist) und `align-items: safe center`
+    (verhindert, dass zentrierter Flex-Inhalt beim Scrollen oben abgeschnitten
+    wird).
 
 ---
 

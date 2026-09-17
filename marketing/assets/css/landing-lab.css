@@ -2157,6 +2157,84 @@ body[data-page="preise"] #price-section .price-voices { display: none; }
 .sv--price6 .price-strip__cell.is-feat .price-amt span { color: rgba(255,255,255,0.6); }
 .sv--price6 .price-strip__cell.is-feat .price-card__tag { left: 50%; transform: translateX(-50%); background: var(--paper); color: var(--ink-950); }
 
+/* v7 · Natürlich — eigene Variante für /preise/ (siehe pricePageVariant/
+   mountPricePageDev in marketing.js, per Dev-Switch "Aktuell"/v4 vs.
+   "Natürlich"/v7 umschaltbar). v4 auf dieser Seite lief auf normalen
+   Laptop-Bildschirmen über die per Viewport-Höhe gesperrte .pricepage
+   hinaus (siehe marketing.css) und wurde unten von overflow:hidden
+   abgeschnitten (Buttons/Karten verschwanden) — hier bemisst sich der
+   Kopf/die Abstände zusätzlich über vh statt nur vw, damit alles ohne
+   Scroll natürlich hineinpasst, auf hohen Screens bleibt reichlich Luft. */
+.sv--price7 .lab-head { max-width: 620px; margin-bottom: clamp(1rem, 0.3rem + 2.4vh, 1.8rem); }
+.sv--price7 .lab-head h2 { font-size: clamp(1.4rem, 1rem + 1.7vh, 2.15rem); line-height: 1.15; margin-top: 0.4rem; }
+.sv--price7 .lab-head p { margin-top: 0.5rem; font-size: clamp(0.88rem, 0.82rem + 0.3vh, 0.98rem); line-height: 1.45; }
+
+.sv--price7 .price-ctrl--v1 { flex-wrap: nowrap; justify-content: center; align-items: center; gap: 10px 40px; margin-bottom: clamp(0.7rem, 0.1rem + 1.6vh, 1.2rem); }
+.sv--price7 .price-ctrl--v1 + .price-seatnote { text-align: center; }
+.sv--price7 .price-toggle { display: inline-flex; align-items: center; gap: 4px; margin: 0; padding: 4px; border: 0; border-radius: var(--radius-full); background: var(--ink-100); }
+.sv--price7 .price-toggle button { padding: 7px 14px; border-radius: var(--radius-full); font-size: 0.82rem; font-weight: 600; color: var(--ink-600); white-space: nowrap; }
+.sv--price7 .price-toggle button.is-on { background: var(--bg-surface); color: var(--ink-950); box-shadow: var(--shadow-sm); }
+.sv--price7 .price-toggle button i { font-style: normal; font-size: 0.7rem; color: var(--gruen); }
+.sv--price7 .price-seats--seg { border: 0; background: none; padding: 0; gap: 8px; display: inline-flex; align-items: center; }
+.sv--price7 .price-seats__cap { font-size: 0.76rem; font-weight: 600; color: var(--ink-500); white-space: nowrap; }
+.sv--price7 .price-seats__segrow { display: inline-flex; gap: 4px; padding: 4px; border-radius: var(--radius-full); background: var(--ink-100); }
+.sv--price7 .price-seats__segrow button { min-width: 30px; height: 28px; border-radius: var(--radius-full); font-size: 0.82rem; font-weight: 700; color: var(--ink-600); transition: background 120ms var(--ease-out), color 120ms var(--ease-out); }
+.sv--price7 .price-seats__segrow button:hover { color: var(--ink-950); }
+.sv--price7 .price-seats__segrow button.is-on { background: var(--bg-surface); color: var(--ink-950); box-shadow: var(--shadow-sm); }
+.sv--price7 .price-seatnote { min-height: 1.1em; margin: 4px 0 clamp(0.9rem, 0.3rem + 1.6vh, 1.6rem); font-size: 0.8rem; color: var(--ink-500); font-weight: 500; }
+
+.sv--price7 .price-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(0.8rem, 0.4rem + 1vw, 1.2rem); align-items: stretch; }
+.sv--price7 .price-card { position: relative; display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: var(--radius-2xl); background: var(--bg-surface); padding: clamp(14px, 4px + 2.4vh, 24px) clamp(16px, 10px + 1vw, 24px); }
+.sv--price7 .price-card.is-feat { border-color: var(--ink-950); border-width: 2px; box-shadow: var(--shadow-xl); }
+.sv--price7 .price-card h3 { font-size: clamp(1.05rem, 0.95rem + 0.3vh, 1.2rem); }
+.sv--price7 .price-card.is-feat h3 { display: flex; align-items: center; }
+.sv--price7 .price-card__desc { font-size: 0.8rem; color: var(--ink-500); margin: 2px 0 8px; }
+.sv--price7 .price-amt { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+.sv--price7 .price-amt del { color: var(--ink-300); font-size: 0.8rem; }
+.sv--price7 .price-amt b { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.45rem, 1.1rem + 1.7vh, 1.9rem); letter-spacing: -0.02em; }
+.sv--price7 .price-amt span { font-size: 0.74rem; color: var(--ink-500); }
+.sv--price7 .price-feats { list-style: none; padding: 0; margin: clamp(8px, 2px + 1.4vh, 14px) 0; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.sv--price7 .price-feats li { display: flex; gap: 8px; font-size: 0.79rem; line-height: 1.3; }
+.sv--price7 .price-feats svg { width: 14px; height: 14px; flex-shrink: 0; margin-top: 2px; color: var(--gruen); }
+.sv--price7 .price-card .btn { padding: 11px 18px; font-size: 0.86rem; margin-top: auto; }
+
+.sv--price7 .price-card.is-feat { background: var(--ink-950); color: var(--paper); border-color: var(--ink-950); overflow: hidden; }
+.sv--price7 .price-card.is-feat h3 { color: var(--paper); }
+.sv--price7 .price-card.is-feat .price-card__desc { color: rgba(255,255,255,0.6); }
+.sv--price7 .price-card.is-feat .price-amt span { color: rgba(255,255,255,0.6); }
+.sv--price7 .price-card.is-feat .price-amt del { color: rgba(255,255,255,0.45); }
+.sv--price7 .price-card__tag {
+  position: absolute; top: 14px; right: -50px; left: auto;
+  width: 170px; display: inline-flex; justify-content: center; gap: 6px;
+  padding: 6px 0; border-radius: 0;
+  background: var(--paper); color: var(--ink-950);
+  font-size: 0.6rem; letter-spacing: 0.09em; text-transform: uppercase; font-weight: 700;
+  transform: rotate(45deg); transform-origin: center;
+  box-shadow: 0 8px 20px -8px rgba(16, 18, 20, 0.55);
+  z-index: 3;
+}
+.sv--price7 .price-card__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-950); }
+.sv--price7 .price-card.is-feat .btn { background: var(--paper); color: var(--ink-950); border-color: var(--paper); }
+.sv--price7 .price-card.is-feat .btn:hover { background: #fff; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.24); }
+
+/* Mobile: v4 (Startseite, scrollt normal) UND v7 fehlte bislang jede
+   1-Spalten-Anpassung — 3 Karten quetschten sich nebeneinander und
+   liefen aus dem Container. Bewusst global (nicht Varianten-gebunden),
+   weil derselbe `.price-grid`/`.price-strip` in v4 und v7 verwendet
+   wird und der Bug beide Seiten (Startseite + /preise/) betraf. */
+@media (max-width: 760px) {
+  /* Selektoren müssen dieselbe Spezifität wie `.sv--price4 .price-grid`
+     etc. treffen (zwei Klassen) — ein bloßes `.price-grid` hier würde
+     sonst von der spezifischeren Desktop-Regel überstimmt, Media Queries
+     ändern daran nichts. */
+  .sv--price4 .price-grid, .sv--price7 .price-grid { grid-template-columns: 1fr; gap: 14px; }
+  .sv--price6 .price-strip { grid-template-columns: 1fr; }
+  .sv--price6 .price-strip__cell { border-left: 0; }
+  .sv--price6 .price-strip__cell + .price-strip__cell { border-top: 1px solid var(--line); }
+  .sv--price3 .price-grid--spot { grid-template-columns: 1fr; }
+  .sv--price3 .price-card--spot { transform: none; }
+}
+
 /* ---------- Testimonials — Video-Wall im Hintergrund ---------- */
 .test-vid { position: relative; display: flex; flex-direction: column; justify-content: flex-end; aspect-ratio: 3 / 4; border-radius: var(--radius-lg); padding: 12px; overflow: hidden; background-color: var(--t, var(--ink-400)); background-image: linear-gradient(160deg, rgba(255,255,255,0.14), rgba(16,18,20,0.62)); color: #fff; }
 .test-vid__play { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 38px; height: 38px; border-radius: 50%; background: rgba(255,255,255,0.9); color: var(--ink-950); display: flex; align-items: center; justify-content: center; }

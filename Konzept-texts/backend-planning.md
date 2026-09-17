@@ -68,7 +68,7 @@ späteren API-Clients.
 | Auth | **selbst gebaut** (nicht Supabase Auth) | §3/§5 brauchen eigenen Double-Opt-in-Token-Flow, Rollen (`schueler`/`elternteil`) und `parentUserId`-Scoping — passt nicht zu einem fertigen BaaS-Auth. Supabase Auth wird bewusst **nicht** verwendet. |
 | Objektspeicher-Zugriff | **Supabase Storage**, nur über **zeitlich begrenzte signierte URLs** | Keine öffentlichen Datei-Links (§6). |
 | Zahlungen | **Stripe** (Test- + Live-Modus) | Phase-0-Entscheidung: Trial → Subscription, Proration, Familien-Sitze. |
-| E-Mail | **zurückgestellt** | Zahlungs-/Abo-/Beleg-Mails über Stripe. Token-Flow für Double-Opt-in/Reset wird gebaut, Versandweg später (§8). |
+| E-Mail | **Resend** (Entscheidung 2026-09-17) | Zahlungs-/Abo-/Beleg-Mails weiterhin über Stripe. Double-Opt-in-/Passwort-Reset-Mails laufen über Resend (`api/src/lib/mailer.ts`); ohne `RESEND_API_KEY` läuft ein Fake-Gateway (nur Logging). Klausur-Erinnerung/Wochenreport bleiben zurückgestellt (§8). |
 
 ### Umsetzungs-Ebene
 
@@ -117,10 +117,12 @@ heute). Nur `api/` und `shared/` sind TypeScript-Pakete.
 eigene Secrets. `.env.example` (alle Variablennamen, **ohne Werte**) liegt im Repo;
 echte Werte nur im Secret-Store der jeweiligen Umgebung. Benötigte Secrets:
 `ANTHROPIC_API_KEY`, `DATABASE_URL`, `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`,
-`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `SESSION_SECRET` (E-Mail-Keys
-später). Kein Secret, aber Pflicht-Config in `production`: `CORS_ORIGINS`
-(kommagetrennte Liste erlaubter Origins für Marketing/App — siehe §11,
-2026-09-12) — ohne sie bleibt CORS dort zu.
+`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `SESSION_SECRET`,
+`RESEND_API_KEY`. Kein Secret, aber Pflicht-Config in `production`:
+`CORS_ORIGINS` (kommagetrennte Liste erlaubter Origins für Marketing/App —
+siehe §11, 2026-09-12) — ohne sie bleibt CORS dort zu. Auch ohne Secret, aber
+mit sinnvollem Default: `EMAIL_ABSENDER`, `MARKETING_URL` (Basis-URL für die
+Links in den Mails — in `production` auf die echte Marketing-Domain setzen).
 
 ---
 
@@ -974,10 +976,10 @@ Query-Parameter, die `chat.html`/`thema.html` aus dem client-seitigen
 ### Auth (neu — beliefert `marketing/login.html`, `registrieren.html`, `passwort-vergessen.html`)
 | Methode | Pfad | Zweck |
 |---|---|---|
-| POST | `/auth/registrieren` | `{name, email, passwort, einwilligung: true}` → **Eltern-Konto** anlegen (`rolle` server-seitig fest `elternteil`, `klassenstufe = null` — kein Client-Input mehr seit 2026-09-16), Double-Opt-in-Token erzeugen (Mail-Versand zurückgestellt), **14-Tage-Testphase** starten (`User.trialEndetAm = createdAt + 14 Tage`). `einwilligung` (Zustimmung zu Nutzungsbedingungen/Datenschutz) ist **Pflicht** — fehlt sie → `400`; der Zeitpunkt landet als `User.einwilligungAm`. Tarif-Wahl + Zahlungsart laufen über den Checkout (`POST /abo`); Kind-Profile kommen erst danach über `POST /abo/kinder` |
+| POST | `/auth/registrieren` | `{name, email, passwort, einwilligung: true}` → **Eltern-Konto** anlegen (`rolle` server-seitig fest `elternteil`, `klassenstufe = null` — kein Client-Input mehr seit 2026-09-16), Double-Opt-in-Token erzeugen und per Mail verschicken (Resend, `marketing/email-bestaetigen/`; ohne `RESEND_API_KEY` nur geloggt), **14-Tage-Testphase** starten (`User.trialEndetAm = createdAt + 14 Tage`). `einwilligung` (Zustimmung zu Nutzungsbedingungen/Datenschutz) ist **Pflicht** — fehlt sie → `400`; der Zeitpunkt landet als `User.einwilligungAm`. Tarif-Wahl + Zahlungsart laufen über den Checkout (`POST /abo`); Kind-Profile kommen erst danach über `POST /abo/kinder` |
 | POST | `/auth/login` | `{email, passwort, angemeldetBleiben?}` → Session/JWT |
 | POST | `/auth/logout` | Session invalidieren |
-| POST | `/auth/passwort-vergessen` | `{email}` → Reset-Token (immer 200, keine Konto-Enumeration; Versandweg zurückgestellt) |
+| POST | `/auth/passwort-vergessen` | `{email}` → Reset-Token, per Mail verschickt (Resend, `marketing/passwort-zuruecksetzen/`; immer 200, keine Konto-Enumeration) |
 | POST | `/auth/passwort-zuruecksetzen` | `{token, neuesPasswort}` → Passwort setzen, Token verbrauchen, **alle Sessions löschen** |
 | POST | `/auth/email-bestaetigen` | `{token}` → `emailVerifiedAt` setzen (Einmal-Token) |
 | GET | `/auth/me` | aktuelle Sitzung → `{user}` (`requireAuth`); für das Frontend-Auth-Gate (Phase 11) |
@@ -1168,10 +1170,15 @@ ohne Backend (Formulare zeigen nur einen Toast). Für das echte Backend:
 - **Registrierung:** legt `User` (+ leeren `Einstellungen`-Satz) an,
   `trialEndetAm = jetzt + 14 Tage`, **kein `Abo`**. Erzeugt `VerificationToken`
   (`email_bestaetigung`, 7 Tage). Doppelte E-Mail → `409 email_vergeben`.
-- **Kein E-Mail-Versand** (Phase 0): außerhalb von `production` geben
-  `/registrieren` und `/passwort-vergessen` den Roh-Token direkt in der Antwort
-  zurück (`emailBestaetigungToken` / `resetToken`), damit der Flow ohne
-  Versandweg testbar ist. In `production` entfällt das — Versandweg noch offen (§8).
+- **E-Mail-Versand (Phase 10, 2026-09-17):** `/registrieren` und
+  `/passwort-vergessen` verschicken die Mail über `api/src/lib/mailer.ts`
+  (`MailGateway`, Resend-Adapter aktiv sobald `RESEND_API_KEY` gesetzt ist,
+  sonst `FakeMailGateway`, der nur loggt — wie beim KI-/Zahlungs-/Storage-
+  Adapter). Mail-Fehler lassen die Requests **nicht** scheitern (Konto/Token
+  stehen schon in der DB), nur Logging (siehe `docs/RUNBOOK.md`). Zusätzlich
+  geben `/registrieren` und `/passwort-vergessen` außerhalb von `production`
+  weiterhin den Roh-Token direkt in der Antwort zurück (`emailBestaetigungToken`
+  / `resetToken`), damit der Flow auch ohne Mail-Postfach testbar bleibt.
 - **`/passwort-vergessen`** antwortet **immer `200`** (keine Konto-Enumeration),
   entwertet vorher offene Reset-Token desselben Users.
 - **`/passwort-zuruecksetzen`** setzt das neue Passwort, verbraucht den Token und
@@ -1429,7 +1436,7 @@ fehlgeschlagene Logins/Upload-Flooding weiterhin offen (§8).
 - [x] **Erreichte Klausurnote nachtragen**: **wird nicht umgesetzt.** `Klausur.note` entfällt — Lesify erfasst das Endergebnis bewusst nicht. „Geschrieben"-Karte zeigt nur einen neutralen Chip.
 - [x] **Archivierung / Aufbewahrung**: **alle Inhalte werden nach 1 Jahr automatisch gelöscht** (Cron); Hinweis in Datenschutz **und** Einstellungen (siehe §6 „Datenaufbewahrung"). Ersetzt die Archivierungs-Frage.
 - [x] **Familien-Sitz entfernen**: **Inhalte des Sitzes werden gelöscht.** Restliche Sitz-/Proration-/Einladungsmechanik: später.
-- [x] **Benachrichtigungs-Versand**: **keine eigene E-Mail-Infrastruktur.** Wichtige Mails (Zahlung/Abo/Beleg) über Stripe. `erinnerungVorKlausuren` / `woechentlicheZusammenfassung` bleiben als wirkungslose Toggles, Versand zurückgestellt.
+- [x] **Benachrichtigungs-Versand**: Wichtige Mails (Zahlung/Abo/Beleg) über Stripe. `erinnerungVorKlausuren` / `woechentlicheZusammenfassung` bleiben als wirkungslose Toggles, eigener Versand dafür zurückgestellt. (Double-Opt-in/Reset-Mails laufen seit 2026-09-17 über Resend, siehe §8 „Entschieden am 2026-09-17".)
 - [x] **KI-Missbrauchsschutz**: die KI ist **auf schulrelevante Themen begrenzt**, alles andere wird direkt abgeblockt (Themen-Guard vor jedem Chat-/Generierungs-Call, siehe §3).
 - [x] **Testklausuren pro Klausur**: **genau zwei** pro Klausur, gebündelt durch den `Lernplan` (Testklausur 1 Tag 1 alle Themen, Testklausur 2 Tag 5 nur schwache/wackelige). Angezeigt wird die Note der zuletzt _analysierten_ (`Lesify.klausurNote`), keine gemittelte „Vorbereitungsnote". **(2026-09-04)** Das Backend verhindert eine **dritte** Testklausur zur selben `klausurId` **hart** — es gibt pro Klausurvorbereitung genau diese zwei.
 - [x] **Chat-Kontinuität im Lernplan**: **ein Chat pro `(Lerntag, Modus, Thema)`** in `Lernplan.chatMap`. Kein Chat über mehrere Tage.
@@ -1473,6 +1480,17 @@ fehlgeschlagene Logins/Upload-Flooding weiterhin offen (§8).
   (echte Bugs, siehe `UMSETZUNGSPLAN.md` Abschnitt „Geld"). Die Beträge sind
   damit **kein Design-Platzhalter mehr**.
 
+### Entschieden am 2026-09-17
+
+- [x] **E-Mail-Anbieter: Resend.** Double-Opt-in-/Passwort-Reset-Mails laufen
+      jetzt über `api/src/lib/mailer.ts` (`ResendMailGateway`, aktiv sobald
+      `RESEND_API_KEY` gesetzt ist; ohne Key `FakeMailGateway`, nur Logging —
+      wie beim KI-/Zahlungs-/Storage-Adapter). Neue Frontend-Seite
+      `marketing/email-bestaetigen/` (gab es vorher nicht — der Bestätigungs-
+      Link hatte kein Ziel). Zahlungs-/Abo-/Beleg-Mails bleiben bei Stripe.
+      Klausur-Erinnerung + Wochenreport (Toggles in `einstellungen.html`)
+      bleiben bewusst zurückgestellt — dafür wird kein Versand ausgelöst.
+
 ### Weiterhin offen
 
 - [ ] **Preis-Feinheiten**: Angebotsdauer/-verlängerung, Jahrespreis-Rundung, Bindung des Angebotspreises an den Vertrag — reine Geschäftsentscheidungen, unabhängig von der jetzt finalen Preistabelle.
@@ -1487,7 +1505,7 @@ fehlgeschlagene Logins/Upload-Flooding weiterhin offen (§8).
 - [ ] **Eltern-/Minderjährigen-Einwilligung**: Ablauf/Erneuerung der Einwilligung bei der Schüler:in-Rolle (das Eltern-Kind-Modell selbst ist entschieden, siehe oben).
 - [ ] **Familien-Paket-Mechanik (produktiv)**: Sitz nachträglich hinzufügen/entfernen mit echter Proration/Downgrade zum Zeitraumende. Backend-Grundlage (`PATCH /abo` + `geplanteSitze` + Job `abo-geplante-aenderungen`) steht; offen ist nur das echte Stripe-Adapter.
 - [ ] **Kontaktformular** (`marketing/kontakt.html`): Zielsystem (Support-Postfach/Ticketsystem). Spam-Schutz = IP-Rate-Limit + Honeypot-Feld (kein Captcha), Feinheiten offen.
-- [ ] **Double-Opt-in-/Reset-Mail-Versand**: Token-Flow steht, Versandweg noch offen (keine eigene E-Mail-Infrastruktur beschlossen).
+- [ ] **Klausur-Erinnerung + Wöchentliche Zusammenfassung**: Toggles in `einstellungen.html` bleiben wirkungslos — eigener Mail-Versand dafür ist bewusst zurückgestellt (siehe „Entschieden am 2026-09-17").
 - [ ] **Auth-Fehlversuche**: temporärer Account-Lockout nach X Fehlversuchen vs. nur IP-Drosselung (Default aktuell: Drosselung + exponentieller Backoff, kein harter Lockout).
 
 ---
@@ -1957,8 +1975,10 @@ Hanken Grotesk, Ampel-Farben, „Fog Blue"-Tonleiter). Kein Build, Vanilla JS.
   `login.html`, `registrieren.html`, `passwort-vergessen.html`,
   `passwort-zuruecksetzen.html` (**neu, 2026-09-12** — nimmt `?token=` aus dem
   Link entgegen, den `passwort-vergessen.html` im Dev-Modus direkt anzeigt, und
-  ruft `POST /auth/passwort-zuruecksetzen`), `impressum.html`, `datenschutz.html`,
-  `agb.html`. Eingestellt:
+  ruft `POST /auth/passwort-zuruecksetzen`), `email-bestaetigen.html` (**neu,
+  2026-09-17** — Ziel des Bestätigungslinks aus der Registrierungs-Mail, nimmt
+  `?token=` entgegen und ruft `POST /auth/email-bestaetigen`), `impressum.html`,
+  `datenschutz.html`, `agb.html`. Eingestellt:
   `funktionen.html` + `feature-*.html` (Funktions-Unterseiten), `vergleich.html`
   (lebt als Abschnitt `index.html#cmp`), sowie `preise.html` + `faq.html`
   (leben als Abschnitte `index.html#price` / `index.html#faq`).
@@ -1992,6 +2012,11 @@ Hanken Grotesk, Ampel-Farben, „Fog Blue"-Tonleiter). Kein Build, Vanilla JS.
   bleiben Design-Platzhalter. Die daraus abgeleiteten echten Anforderungen
   stehen in §1 (User, Abo, KindProfil, Usage-Limits pro Paket), §4 (Auth-,
   Abo-, Kontakt-Endpunkte), §5 (Auth) und §7 (Limits).
+- **E-Mail-Versand + `email-bestaetigen.html` (2026-09-17, neu):**
+  `/registrieren` und `/passwort-vergessen` verschicken jetzt echte Mails über
+  Resend (siehe §0, §5, §8). Die neue Seite `email-bestaetigen.html` ist das
+  Ziel des Bestätigungslinks (rief vorher nirgends etwas auf — der Token-Flow
+  bestand serverseitig, aber ohne Frontend-Gegenstück).
 - **CORS (2026-09-12, neu):** Marketing/App liefen bisher auf anderem Origin
   als die API (lokal andere Ports, produktiv andere Domain, Phase 16) — ohne
   CORS scheiterten Browser-Requests von dort an den Server stumm (Preflight-

@@ -52,7 +52,7 @@ let dummyHashP: Promise<string> | undefined;
 const dummyHash = () => (dummyHashP ??= hashPasswort('timing-abgleich-kein-echtes-passwort'));
 
 export async function authRoutes(app: FastifyInstance): Promise<void> {
-  const { prisma, sessionCache } = app;
+  const { prisma, sessionCache, mail } = app;
 
   // ---- GET /auth/me -----------------------------------------------------
   // Aktuelle Sitzung prüfen (Frontend-Auth-Gate, Phase 11).
@@ -94,9 +94,17 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
       },
     });
 
-    // Kein Abo (Phase 0) — Tarifwahl läuft über POST /abo (Phase 9).
-    // Mailversand ist zurückgestellt: außerhalb von production geben wir den
-    // Bestätigungs-Token direkt zurück, damit der Flow testbar bleibt.
+    // Kein Abo (Phase 0) — Tarifwahl läuft über POST /abo (Phase 9). Mail-
+    // Fehler dürfen die Registrierung nicht scheitern lassen (Konto steht
+    // schon in der DB) — nur loggen. Außerhalb von production geben wir den
+    // Token zusätzlich direkt zurück, damit der Flow ohne Mail-Postfach
+    // testbar bleibt (siehe auch FakeMailGateway, der eh nur loggt).
+    try {
+      await mail.emailBestaetigungSenden({ an: user.email!, name: user.name, token: token.roh });
+    } catch (err) {
+      app.log.error({ err }, 'email_bestaetigung_versand_fehlgeschlagen');
+    }
+
     return reply.code(201).send({
       user: userDTO(user),
       ...(istProd ? {} : { emailBestaetigungToken: token.roh }),
@@ -193,6 +201,11 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
         }),
       ]);
       resetToken = token.roh;
+      try {
+        await mail.passwortResetSenden({ an: user.email!, token: token.roh });
+      } catch (err) {
+        app.log.error({ err }, 'passwort_reset_versand_fehlgeschlagen');
+      }
     }
 
     // immer 200 — keine Konto-Enumeration (§4)

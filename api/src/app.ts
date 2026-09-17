@@ -11,6 +11,7 @@ import { HttpError } from './lib/http.js';
 import { getZahlungsGateway, type ZahlungsGateway } from './lib/zahlung.js';
 import { getKiClient, type KiClient } from './lib/ki/client.js';
 import { getStorageGateway, type StorageGateway } from './lib/storage.js';
+import { getMailGateway, type MailGateway } from './lib/mailer.js';
 import { RateLimiter } from './lib/ratelimit.js';
 import { SessionCache } from './lib/sessionCache.js';
 import { healthRoutes } from './routes/health.js';
@@ -35,6 +36,7 @@ export interface BuildOpts {
   zahlung?: ZahlungsGateway;
   ki?: KiClient;
   storage?: StorageGateway;
+  mail?: MailGateway;
   logger?: boolean;
   /** Request-Rate-Limiting (§7). Default: aus im Test, sonst an. */
   rateLimit?: boolean;
@@ -65,6 +67,7 @@ export function buildApp(opts: BuildOpts = {}): FastifyInstance {
   app.decorate('zahlung', opts.zahlung ?? getZahlungsGateway());
   app.decorate('ki', opts.ki ?? getKiClient());
   app.decorate('storage', opts.storage ?? getStorageGateway());
+  app.decorate('mail', opts.mail ?? getMailGateway());
   app.decorateRequest('userId', '');
   app.decorateRequest('rawBody', undefined);
 

@@ -40,6 +40,16 @@ const schema = z.object({
   // nur bei NODE_ENV=development UND explizit gesetztem KI_DEV_ADAPTER.
   CLAUDE_CODE_OAUTH_TOKEN: z.string().optional(),
   KI_DEV_ADAPTER: z.enum(['claude-agent-sdk']).optional(),
+  // E-Mail (Phase 10, §5): fehlt der Key, läuft der FakeMailGateway (loggt
+  // statt zu versenden — wie FakeKiClient/FakeZahlungsGateway/FakeStorageGateway).
+  RESEND_API_KEY: z.string().optional(),
+  // Absenderadresse für Double-Opt-in-/Passwort-Reset-Mails. Muss zu einer bei
+  // Resend verifizierten Domain gehören, sonst weist Resend den Versand ab.
+  EMAIL_ABSENDER: z.string().default('Lesify <no-reply@lesify.de>'),
+  // Basis-URL der Marketing-Seite (dort liegen /email-bestaetigen/ und
+  // /passwort-zuruecksetzen/) — für die Links in den E-Mails. Lokal Default
+  // auf den `pnpm dev`-Port von marketing/ (siehe README).
+  MARKETING_URL: z.string().default('http://localhost:4002'),
   // CORS (§4/Phase 11): Marketing/App laufen auf anderem Origin als die API
   // (lokal andere Ports, produktiv andere Domain — siehe Phase 16). Kommagetrennte
   // Liste erlaubter Origins, z. B. "https://lesify.de,https://www.lesify.de".

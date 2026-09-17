@@ -3,6 +3,7 @@ import type { preHandlerHookHandler } from 'fastify';
 import type { ZahlungsGateway } from './lib/zahlung.js';
 import type { KiClient } from './lib/ki/client.js';
 import type { StorageGateway } from './lib/storage.js';
+import type { MailGateway } from './lib/mailer.js';
 import type { SessionCache } from './lib/sessionCache.js';
 
 declare module 'fastify' {
@@ -16,6 +17,8 @@ declare module 'fastify' {
     ki: KiClient;
     /** Objektspeicher-Adapter (Phase 5; Fake ohne SUPABASE_URL/SERVICE_KEY). */
     storage: StorageGateway;
+    /** E-Mail-Adapter (Phase 10; Fake ohne RESEND_API_KEY). */
+    mail: MailGateway;
     /** preHandler: verlangt eine gültige Session, setzt `request.userId`. */
     requireAuth: preHandlerHookHandler;
   }

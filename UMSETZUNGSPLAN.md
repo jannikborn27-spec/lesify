@@ -381,15 +381,27 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       `tsx`-Prozess ganz ohne mitgegebene Env-Vars (nur `PORT` override) zeigt
       `db:true` unter `/health`.
 
-### 5. E-Mail-Versand (bisher komplett zurückgestellt)
+### 5. E-Mail-Versand
 
-- [ ] **E-Mail-Anbieter wählen** (Postmark, SES, Resend, …) für
-      Double-Opt-in-/Passwort-Reset-Mails. Aktuell gibt die API im
-      Dev-Modus den Reset-Token direkt in der Antwort zurück — funktioniert
-      zum Testen, aber ohne echten Versand nicht produktionsreif.
+- [x] **E-Mail-Anbieter gewählt: Resend** — _2026-09-17: `api/src/lib/mailer.ts`
+      (`MailGateway`, `ResendMailGateway`/`FakeMailGateway` nach dem Muster von
+      `zahlung.ts`/`storage.ts`), aktiv sobald `RESEND_API_KEY` gesetzt ist
+      (`api/.env.example`, `RESEND_API_KEY`/`EMAIL_ABSENDER`/`MARKETING_URL`).
+      `POST /auth/registrieren` und `POST /auth/passwort-vergessen`
+      verschicken jetzt echte Mails (Mail-Fehler lassen die Requests nicht
+      scheitern, nur Logging — siehe `docs/RUNBOOK.md`). Neue Marketing-Seite
+      `marketing/email-bestaetigen/` als Ziel des Bestätigungslinks (gab es
+      vorher nicht). Dev-Modus gibt weiterhin zusätzlich den Roh-Token in der
+      Antwort zurück, damit der Flow ohne Mail-Postfach testbar bleibt.
+      Getestet: `api/src/lib/mailer.test.ts` (2), bestehende `auth.test.ts`
+      (15) weiterhin grün. **Ops-Rest:** Resend-Domain für `lesify.de`
+      verifizieren (SPF/DKIM-DNS-Records eintragen) und `RESEND_API_KEY`/
+      `MARKETING_URL=https://www.lesify.de` in den Railway-Prod-Secrets
+      setzen (Phase 16).
 - [ ] **Klausur-Erinnerung + Wöchentliche Zusammenfassung:** die Toggles
       existieren in `einstellungen.html`, sind aber wirkungslos, bis ein
-      Versandweg feststeht.
+      Versandweg feststeht (bewusst zurückgestellt, siehe
+      `backend-planning.md` §8).
 - [ ] **Kontaktformular-Zielsystem:** wohin sollen `POST /kontakt`-Nachrichten
       tatsächlich gehen (Postfach/Ticketsystem)?
 
@@ -3110,9 +3122,10 @@ Der gesamte abgeleitete Zustand muss **bit-genau** zu `data.js` passen.
 
 ## Phase 10 — Benachrichtigungen & Cron
 
-Phase 0: **keine eigene E-Mail-Infrastruktur.** Zahlungs-/Abo-/Beleg-Mails
-übernimmt Stripe. Eigener Versand von Klausur-Erinnerung und Wochenreport ist
-**zurückgestellt** — die Toggles `erinnerungVorKlausuren` /
+Zahlungs-/Abo-/Beleg-Mails übernimmt weiterhin Stripe. Double-Opt-in-/
+Passwort-Reset-Mails laufen seit 2026-09-17 über Resend (siehe unten). Eigener
+Versand von Klausur-Erinnerung und Wochenreport ist **weiterhin
+zurückgestellt** — die Toggles `erinnerungVorKlausuren` /
 `woechentlicheZusammenfassung` bleiben in den Einstellungen, aber ohne Wirkung,
 bis das Thema wieder aufgemacht wird.
 
@@ -3125,8 +3138,8 @@ bis das Thema wieder aufgemacht wird.
 
 - [ ] **Stripe-Mails konfigurieren** (Beleg-/Zahlungs-/Kündigungs-Mails im
       Stripe-Dashboard aktivieren, Wording prüfen). _Ops, Phase 16._
-- [ ] **Double-Opt-in-/Reset-Versand:** Entscheidung aus Phase 0 abwarten; bis
-      dahin existiert nur der Token-Flow (Phase 3) ohne Versandweg.
+- [x] **Double-Opt-in-/Reset-Versand** — _siehe Abschnitt „E-Mail-Versand" oben:
+      Resend über `api/src/lib/mailer.ts`, seit 2026-09-17._
 - [x] **Job-Funktionen + Runner** — _`inhalte-aufbewahrung` (löscht Lernpläne,
       Testklausuren, Klausuren, Chats, Lernzettel, Dateien > 365 Tage, Cascade
       räumt Kind-Tabellen; seit Phase 5 räumt der Job danach auch die
@@ -4046,7 +4059,8 @@ Kritisch, weil Zielgruppe minderjährig ist.
 - [ ] **Suche** auf echten Index heben, falls die Substring-Variante nicht mehr trägt.
 - [ ] **Zurückgestellte Themen wieder aufmachen:** Eltern-Kind-Modell, Familien-Sitz-
       Mechanik (Proration/Einladung), Klausur-Erinnerung + Wochenreport-Versand,
-      manueller Lernplan-Neustart, Double-Opt-in-/Reset-Mail-Versand.
+      manueller Lernplan-Neustart. (Double-Opt-in-/Reset-Mail-Versand ist seit
+      2026-09-17 erledigt, siehe Phase 10.)
 - [ ] **Feedback-Schleife** mit Schüler:innen/Eltern; Backlog priorisieren.
 - [ ] **`backend-planning.md` bleibt das lebende Dokument** — bei jeder Änderung an
       Datenmodell, Notenlogik, Limits oder Endpunkten zuerst dort einpflegen.

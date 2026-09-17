@@ -1,10 +1,11 @@
 /* =========================================================
    Lesify — Auth-/Kontakt-Formulare (Phase 11 Cut-over)
    ---------------------------------------------------------
-   Verdrahtet die vier Marketing-Formulare an die echte API:
-   login/, registrieren/, passwort-vergessen/, kontakt/
-   (siehe UMSETZUNGSPLAN.md Phase 11 "Marketing-Formulare
-   verdrahten"). Eigenständig statt `assets/js/api.js` zu laden
+   Verdrahtet die Marketing-Formulare/-Seiten an die echte API:
+   login/, registrieren/, passwort-vergessen/, passwort-zuruecksetzen/,
+   email-bestaetigen/, kontakt/ (siehe UMSETZUNGSPLAN.md Phase 11
+   "Marketing-Formulare verdrahten" + Phase 10 "E-Mail-Versand").
+   Eigenständig statt `assets/js/api.js` zu laden
    (gleicher Ansatz wie `checkout.js`) — die Marketing-Seite bleibt
    ein unabhängiger statischer Prototyp.
 
@@ -261,6 +262,24 @@
     });
   }
 
+  /* ---------- email-bestaetigen/ ---------- */
+  function initEmailBestaetigen() {
+    var msg = document.querySelector('.co-message');
+    if (!msg) return;
+    var token = new URLSearchParams(location.search).get('token') || '';
+    if (!token) {
+      showMsg(msg, 'Kein gültiger Bestätigungslink. Bitte den Link aus der E-Mail erneut öffnen.', 'error');
+      return;
+    }
+    post('/auth/email-bestaetigen', { token: token })
+      .then(function () {
+        showMsg(msg, 'E-Mail-Adresse bestätigt. Du kannst dich jetzt anmelden.', 'success');
+      })
+      .catch(function (err) {
+        showMsg(msg, fehlerText(err.code), 'error');
+      });
+  }
+
   /* ---------- kontakt/ ---------- */
   function initKontakt() {
     var form = document.querySelector('.contact-form');
@@ -296,6 +315,7 @@
     registrieren: initRegistrieren,
     'passwort-vergessen': initPasswortVergessen,
     'passwort-zuruecksetzen': initPasswortZuruecksetzen,
+    'email-bestaetigen': initEmailBestaetigen,
     kontakt: initKontakt,
   };
 

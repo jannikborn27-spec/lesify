@@ -37,6 +37,20 @@ Alert-Kanäle und der Secret-Store kommen mit dem Hosting in Phase 16 dazu.
 4. Nach Erholung: im Stripe-Dashboard fehlgeschlagene Webhook-Zustellungen
    manuell erneut senden; Abo-Status stichprobenartig gegen Stripe abgleichen.
 
+### E-Mail-Anbieter (Resend) nicht erreichbar / Versand schlägt fehl
+
+1. Betrifft nur Double-Opt-in-/Passwort-Reset-Mails — Zahlungs-/Abo-/Beleg-Mails
+   laufen unabhängig über Stripe.
+2. `POST /auth/registrieren`/`passwort-vergessen` schlagen dadurch **nicht**
+   fehl (Mail-Versand ist try/catch, nur geloggt unter
+   `email_bestaetigung_versand_fehlgeschlagen`/`passwort_reset_versand_fehlgeschlagen`) —
+   Konto bzw. Reset-Token stehen trotzdem in der DB, nur die Mail kommt nicht an.
+3. Log nach diesen beiden Fehlern filtern; Resend-Statusseite + Dashboard
+   (Zustellprotokoll je E-Mail) prüfen.
+4. Betroffene Nutzer:in kann sich beim Registrieren-Flow trotzdem sofort
+   anmelden (E-Mail-Bestätigung ist nicht blockierend); beim Passwort-Reset:
+   erneut über `/passwort-vergessen/` anfordern, sobald Resend wieder läuft.
+
 ### DB (Supabase) überlastet / nicht erreichbar
 
 1. `GET /health` → `degraded`, `db:false`. Uptime-Alert feuert.

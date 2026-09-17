@@ -164,6 +164,43 @@ describe.runIf(hatDb)('abo — Einzelplatz-Flow (Supabase)', () => {
     expect(res.statusCode).toBe(409);
     expect(res.json().fehler).toBe('abo_nicht_reaktivierbar');
   });
+
+  it('gekuendigtes, wirklich abgelaufenes Abo blockiert kein neues POST /abo mehr', async () => {
+    // Kündigen — solange der Zeitraum noch läuft, blockiert es weiterhin
+    // (kein Vertragsende, kein Neuabschluss möglich).
+    await app.inject({ method: 'POST', url: '/abo/kuendigen', headers: auth() });
+    const nochBlockiert = await app.inject({
+      method: 'POST',
+      url: '/abo',
+      headers: auth(),
+      payload: { paket: 'starter', intervall: 'monatlich' },
+    });
+    expect(nochBlockiert.statusCode).toBe(409);
+    expect(nochBlockiert.json().fehler).toBe('abo_vorhanden');
+
+    // Zeitraum künstlich in die Vergangenheit setzen (simuliert echtes
+    // Vertragsende) — ab hier darf ein neues Abo entstehen.
+    await prisma.abo.update({
+      where: { id: (await app.inject({ method: 'GET', url: '/abo', headers: auth() })).json().id },
+      data: { aktuellerZeitraumEnde: new Date('2000-01-01') },
+    });
+
+    const neu = await app.inject({
+      method: 'POST',
+      url: '/abo',
+      headers: auth(),
+      payload: { paket: 'premium', intervall: 'monatlich' },
+    });
+    expect(neu.statusCode).toBe(201);
+    expect(neu.json().paket).toBe('premium');
+    expect(neu.json().status).toBe('test');
+
+    // GET /abo zeigt jetzt deterministisch das neue Abo, nicht das alte
+    // abgelaufene — `User.aboId` entscheidet, nicht `ownerUserId`.
+    const aktuelles = await app.inject({ method: 'GET', url: '/abo', headers: auth() });
+    expect(aktuelles.json().id).toBe(neu.json().id);
+    expect(aktuelles.json().paket).toBe('premium');
+  });
 });
 
 describe.runIf(hatDb)('abo — Familien-Flow + Kind-Profile (Supabase)', () => {

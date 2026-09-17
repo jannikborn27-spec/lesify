@@ -1078,13 +1078,23 @@ Stripe-Calls auslösen.
   `FAMILIE_SITZ_OPTIONEN = [2,3,4]`, `aboPreis()`, `aboArtFuerSitze()`).
 - **`GET /abo`** → `aboDTO` (`id, paket, planName, art, sitze, intervall,
   angebot, status, trialEndetAm, aktuellerZeitraumEnde, kontingente`); `404
-  nicht_gefunden`, wenn der User (noch) kein Abo besitzt.
+  nicht_gefunden`, wenn der User (noch) kein Abo besitzt. Löst über
+  `User.aboId` auf (Relation `UserAktivesAbo`) — **nicht** über
+  `Abo.ownerUserId`, siehe nächster Punkt.
 - **`POST /abo`** `{paket, intervall, sitze?}` (sitze default 1) → `art` aus
   `sitze` abgeleitet, `aboPreis` aufgelöst, `zahlung.subscriptionAnlegen`
   (Trial 14 Tage), `Abo`-Zeile (`status = test`, `trialEndetAm`,
   `aktuellerZeitraumEnde`, `angebot`, `zahlungsanbieterRef = fake_sub_…`),
-  `User.aboId` gesetzt + `User.trialEndetAm` genullt. Zweiter Aufruf → `409
-  abo_vorhanden`. Antwort **201**.
+  `User.aboId` gesetzt + `User.trialEndetAm` genullt. Antwort **201**.
+  **Blockiert nur, solange das aktuelle Abo (`User.aboId`) nicht endgültig
+  vorbei ist** (`409 abo_vorhanden`): `test`/`aktiv`/`pausiert`/
+  `zahlung_offen` blockieren immer, `gekuendigt` blockiert nur bis
+  `aktuellerZeitraumEnde` — danach darf derselbe Account ein neues Abo
+  abschließen (echtes Re-Signup nach Kündigung). Ein User kann so über die
+  Zeit mehrere `Abo`-Zeilen ansammeln (`ownerUserId` ist absichtlich
+  **nicht** unique); `User.aboId` zeigt immer auf die aktuell gültige.
+  Fix 2026-09-17 — vorher blockierte jede jemals angelegte Abo-Zeile für
+  immer jede weitere, unabhängig vom Status.
 - **`PATCH /abo`** `{paket?, intervall?, sitze?}` → Paket-/Intervall-/
   Sitz**erhöhung** sofort (Proration beim Anbieter). Sitz**verringerung**
   (Phase 12) wird als `Abo.geplanteSitze` gemerkt (`sitze` bleibt); der Job

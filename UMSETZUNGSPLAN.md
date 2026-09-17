@@ -144,6 +144,37 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
 
 ### 4. Geld (Phase 9/16)
 
+- [x] **Bug (2026-09-17, gemeldet & behoben): „Für dieses Konto besteht
+      bereits ein Abo" blockierte für immer, auch nach echter Kündigung.**
+      `POST /abo`s Guard (`eigenesAbo` in `api/src/routes/abo.ts`) fand per
+      `Abo.findFirst({ownerUserId})` **irgendeine** jemals angelegte
+      Abo-Zeile — unabhängig vom Status. Sobald ein Account einmal ein Abo
+      hatte (auch ein abgebrochenes/mit abgelehnter Karte), blockierte das
+      für immer jeden weiteren `POST /abo` mit `409 abo_vorhanden`, selbst
+      lange nach einer echten, ausgelaufenen Kündigung — kein Weg zurück,
+      keine Testbarkeit mit demselben Konto. Zusätzlich technisch
+      inkonsistent mit dem Schema: die Relation heißt `UserAktivesAbo`
+      (`User.aboId`) — genau dafür gedacht, das jeweils **aktuelle** Abo
+      eines Users zu markieren, während `ownerUserId` bewusst nicht unique
+      ist (mehrere Abo-Zeilen über die Zeit sind vorgesehen).
+      **Fix:** `eigenesAbo` löst jetzt über `User.aboId` auf statt über
+      `ownerUserId`-Suche. `POST /abo` blockiert nur noch, wenn das
+      aktuelle Abo nicht endgültig vorbei ist (`gekuendigt` **und**
+      `aktuellerZeitraumEnde` in der Vergangenheit → kein Blocker mehr,
+      alles andere weiterhin `409`). Neuer Test
+      `gekuendigtes, wirklich abgelaufenes Abo blockiert kein neues POST
+      /abo mehr` (`api/src/routes/abo.test.ts`) deckt genau das ab: kündigen
+      → Zeitraum künstlich in die Vergangenheit gesetzt → neues `POST /abo`
+      geht durch → `GET /abo` zeigt danach deterministisch das neue,
+      nicht das alte Abo. Alle 180 API-Tests grün. `backend-planning.md`
+      §„Endpunkte" entsprechend korrigiert.
+      **Bewusst nicht mitgelöst:** kein Schutz gegen wiederholten
+      Trial-Missbrauch (dasselbe Konto könnte durch Kündigen+Neuabschluss
+      wiederholt die 14 Tage kostenlos bekommen) — bestand aber schon vorher
+      genauso über ein neues Konto (keine E-Mail-/Zahlungsmittel-Sperre
+      irgendwo im System), ist also keine neue Lücke durch diesen Fix,
+      aber ein offener Punkt für später.
+
 - [x] **Bug (2026-09-17, gefunden bei manueller Abo/Sitze/Stripe-QA,
       selbiger Tag behoben): `POST /abo/reaktivieren` schrieb lokal einen
       falschen Status.** Die Route (`api/src/routes/abo.ts`) setzte nach

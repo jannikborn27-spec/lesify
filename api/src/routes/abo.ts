@@ -60,7 +60,24 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
   app.register(async (authed) => {
     authed.addHook('preHandler', app.requireAuth);
 
-    const eigenesAbo = (userId: string) => prisma.abo.findFirst({ where: { ownerUserId: userId } });
+    // Liefert das AKTUELLE Abo des Users — über `User.aboId` (Relation
+    // `UserAktivesAbo`), nicht per `Abo.ownerUserId`-Suche. Ein User kann
+    // über die Zeit mehrere Abo-Zeilen ansammeln (Neuabschluss nach echtem
+    // Vertragsende, siehe `POST /abo` unten); `ownerUserId` allein wäre
+    // nicht deterministisch, welche davon die aktive ist (Bug 2026-09-17 —
+    // vorher blockierte jede jemals angelegte Abo-Zeile für immer jede
+    // weitere, weil `findFirst({ownerUserId})` unabhängig vom Status griff).
+    const eigenesAbo = async (userId: string) => {
+      const user = await prisma.user.findUnique({ where: { id: userId }, select: { aboId: true } });
+      return user?.aboId ? prisma.abo.findUnique({ where: { id: user.aboId } }) : null;
+    };
+
+    // Ein Abo blockiert einen Neuabschluss nur, solange es nicht endgültig
+    // vorbei ist: `gekuendigt`/`pausiert` behalten bis `aktuellerZeitraumEnde`
+    // noch Zugriff und laufende Abrechnung — erst danach ist der Platz
+    // wirklich frei für ein neues Abo (z. B. echtes Re-Signup nach Kündigung).
+    const istAktuellesAboBlockierend = (abo: { status: string; aktuellerZeitraumEnde: Date }) =>
+      !(abo.status === 'gekuendigt' && abo.aktuellerZeitraumEnde <= new Date());
 
     // GET /abo — aktuelles Abo des Vertragsinhabers
     authed.get('/abo', async (req) => {
@@ -76,7 +93,10 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
       if (!istGueltigeSitzzahl(art, sitze)) {
         throw new HttpError(400, 'validierung', { sitze: 'ungültige Sitzzahl' });
       }
-      if (await eigenesAbo(req.userId)) throw new HttpError(409, 'abo_vorhanden');
+      const bestehendes = await eigenesAbo(req.userId);
+      if (bestehendes && istAktuellesAboBlockierend(bestehendes)) {
+        throw new HttpError(409, 'abo_vorhanden');
+      }
 
       const preis = aboPreis({ paket: body.paket, art, sitze, intervall: body.intervall });
       const sub = await zahlung.subscriptionAnlegen({

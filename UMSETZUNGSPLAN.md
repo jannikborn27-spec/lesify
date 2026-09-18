@@ -2992,7 +2992,7 @@ Grundlage: `backend-planning.md` §1. Reihenfolge so, dass FKs immer schon exist
       Checkbox war stehen geblieben, obwohl der Code seit Phase 7 vollständig
       ist — 2026-09-12 beim Doku-Abgleich aufgefallen und nachgezogen._
 - [x] **Dev-Account mit Screenshot-Content befüllen** — _2026-09-18:
-      `api/prisma/seed-dev-account.ts` (idempotent, nur `dev@lesify.local`,
+      `api/prisma/seed-dev-account.ts` (idempotent, nur `dev@lesify.de`,
       Login bleibt) leert den Account und legt realistischen Beispiel-Content
       an: „Lena M.", Premium-Abo, 5 Fächer / 15 Themen, 9 Chats (36
       Nachrichten), 5 Lernzettel, 9 Dateien (`seed://`, ohne Storage-Inhalt),

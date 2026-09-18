@@ -1,5 +1,5 @@
 /**
- * Realistischer Beispiel-Content für den Dev-Account (dev@lesify.local) —
+ * Realistischer Beispiel-Content für den Dev-Account (dev@lesify.de) —
  * gedacht für Screenshots (Ads, Website, Store). Anders als `seed.ts`
  * (Prototyp-Dummy-Daten des Demo-Users) ist der Inhalt hier durchgehend
  * fachlich korrekt und wirkt wie eine echte 8.-Klasse-Schülerin mitten im
@@ -31,7 +31,7 @@ import { randomUUID } from 'node:crypto';
 import { PLAN_LIMITS, prozentZuNote, noteAmpel } from '@lesify/shared';
 
 const prisma = new PrismaClient();
-const DEV_EMAIL = 'dev@lesify.local';
+const DEV_EMAIL = 'dev@lesify.de';
 
 const now = Date.now();
 const hoursAgo = (n: number) => new Date(now - n * 3_600_000);

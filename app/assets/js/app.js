@@ -1170,7 +1170,7 @@
       if (fokus.length >= 2) items.push({ key: 'gemischt', themaId: fokus[0], mode: 'ueben', label: 'Gemischt abfragen',
         prompt: 'Frag mich abwechselnd, gemischt, Fragen zu ' + themaListe(fokus) + ' — nicht der Reihe nach, sondern bunt durcheinander.' + niv });
       if (fokus.length) items.push({ key: 'loesungen', themaId: fokus[0], mode: 'ueben', label: 'Lösungen checken',
-        prompt: 'Ich habe die Beispielaufgaben zu ' + themaListe(fokus) + ' selbstständig gelöst. Prüf meine Lösungswege, zeig mir was noch falsch war und kläre die Lücke, bevor ich weitermache.' + niv });
+        prompt: 'Ich habe die Beispielaufgaben zu ' + themaListe(fokus) + ' selbstständig gelöst. Prüf meine Lösungswege, zeig mir, was noch falsch war und kläre die Lücke, bevor ich weitermache.' + niv });
       if (kurz.length) items.push({ key: 'kurzabfragen', themaId: kurz[0], mode: 'ueben', label: 'Kurz abfragen: ' + themaListe(kurz),
         prompt: 'Stell mir gemischt 1–2 Fragen zu jedem dieser Themen: ' + themaListe(kurz) + '.' + niv });
     } else if (n === 4) {
@@ -1654,7 +1654,7 @@
         usageRow('Nachrichten', u.nachrichten) +
         usageRow('Content-Aufnahmen', u.dateien) +
         usageRow('Lernzettel', u.lernzettel) +
-        usageRow('Testklausuren', u.testklausuren) +
+        usageRow('Klausurvorbereitungen', u.testklausuren) +
         '<div class="usage-reset">Setzt sich zurück am ' + formatDatum(u.resetDatum) + '</div>' +
       '</div>' +
     '</div>';

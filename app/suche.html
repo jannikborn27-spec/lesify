@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var q = input.value.trim();
     var results = document.getElementById('search-results');
     if (!q) {
-      results.innerHTML = '<div class="empty-state"><div class="es-icon">' + I.search + '</div><h4>Womit soll ich dir helfen zu finden?</h4><p>Tipp einfach los — die Ergebnisse erscheinen live.</p></div>';
+      results.innerHTML = '<div class="empty-state"><div class="es-icon">' + I.search + '</div><h4>Was suchst du?</h4><p>Tipp einfach los — die Ergebnisse erscheinen live.</p></div>';
       return;
     }
     var anfrage = ++anfrageN;

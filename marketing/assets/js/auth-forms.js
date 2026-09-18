@@ -300,7 +300,7 @@
       })
         .then(function () {
           setBusy(btn, false);
-          showMsg(msg, 'Danke, Ihre Nachricht ist angekommen. Wir melden uns in der Regel innerhalb eines Werktags.', 'success');
+          showMsg(msg, 'Danke, deine Nachricht ist angekommen. Wir melden uns in der Regel innerhalb eines Werktags.', 'success');
           form.reset();
         })
         .catch(function (err) {

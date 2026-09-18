@@ -111,7 +111,7 @@ System-Prompt:
 ```
 Du fasst den bisherigen Lernstand eines Schülers zu einem Thema kompakt
 zusammen, damit dieser Block als Gedächtnis in zukünftige KI-Chats zu
-diesem Thema eingefügt werden kann. Zielgruppe: 8./9. Klasse.
+diesem Thema eingefügt werden kann. Zielgruppe: ab Klasse 5.
 
 Dir liegt vor: alle Lernzettel des Themas (voll), alle
 Datei-Zusammenfassungen, und die Titel bisheriger Chats.

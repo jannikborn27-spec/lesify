@@ -1284,6 +1284,14 @@ ohne Backend (Formulare zeigen nur einen Toast). Für das echte Backend:
 
 ### Datenaufbewahrung (Entscheidung 2026-09-03)
 
+> **Korrektur 2026-09-18 (Text-Audit):** Maßgeblich für alle Nutzertexte ist:
+> Inhalte bleiben gespeichert, **solange das Konto besteht**, und werden
+> gelöscht, **sobald das Konto beendet wird** (Datenschutz §7: innerhalb von
+> 30 Tagen). Einstellungen, Eltern-Datenschutz und Eltern-Abo sind darauf
+> umgestellt. **Offen:** Der Job `inhalte-aufbewahrung` (siehe unten) löscht
+> weiterhin Inhalte nach 365 Tagen — Job entfernen/deaktivieren oder Frist
+> wieder in die Texte aufnehmen (Entscheidung ausstehend).
+
 **Alle Inhalte** — Dateien (inkl. Objektspeicher-Objekt), Klausuren, Chats +
 Nachrichten, Lernzettel, Testklausuren, Lernpläne — werden **automatisch ein Jahr
 nach ihrer Erstellung gelöscht** (Cron-Job). Die Frist steht in der
@@ -1463,7 +1471,7 @@ fehlgeschlagene Logins/Upload-Flooding weiterhin offen (§8).
 - [x] **Testklausur-Uploads vs. Datei-Limit**: **ausgenommen** (wie im Prototyp).
 - [x] **Reset-Datum**: **fix zum Monatsersten.**
 - [x] **Erreichte Klausurnote nachtragen**: **wird nicht umgesetzt.** `Klausur.note` entfällt — Lesify erfasst das Endergebnis bewusst nicht. „Geschrieben"-Karte zeigt nur einen neutralen Chip.
-- [x] **Archivierung / Aufbewahrung**: **alle Inhalte werden nach 1 Jahr automatisch gelöscht** (Cron); Hinweis in Datenschutz **und** Einstellungen (siehe §6 „Datenaufbewahrung"). Ersetzt die Archivierungs-Frage.
+- [x] **Archivierung / Aufbewahrung**: _(Texte seit 2026-09-18: Löschung erst mit Kontoende, siehe §6 „Datenaufbewahrung“ — Cron-Job noch offen)_ ursprünglich: **alle Inhalte werden nach 1 Jahr automatisch gelöscht** (Cron); Hinweis in Datenschutz **und** Einstellungen (siehe §6 „Datenaufbewahrung"). Ersetzt die Archivierungs-Frage.
 - [x] **Familien-Sitz entfernen**: **Inhalte des Sitzes werden gelöscht.** Restliche Sitz-/Proration-/Einladungsmechanik: später.
 - [x] **Benachrichtigungs-Versand**: Wichtige Mails (Zahlung/Abo/Beleg) über Stripe. `erinnerungVorKlausuren` / `woechentlicheZusammenfassung` bleiben als wirkungslose Toggles, eigener Versand dafür zurückgestellt. (Double-Opt-in/Reset-Mails laufen seit 2026-09-17 über Resend, siehe §8 „Entschieden am 2026-09-17".)
 - [x] **KI-Missbrauchsschutz**: die KI ist **auf schulrelevante Themen begrenzt**, alles andere wird direkt abgeblockt (Themen-Guard vor jedem Chat-/Generierungs-Call, siehe §3).
@@ -2016,7 +2024,7 @@ Hanken Grotesk, Ampel-Farben, „Fog Blue"-Tonleiter). Kein Build, Vanilla JS.
   `marketing/assets/js/marketing.js` (baut Navigation + Footer per JS, Scroll-
   Reveal via IntersectionObserver, Mobile-Menü, Preis-Umschalter monatlich/
   jährlich, Demo-Formular-Handler mit Toast, Zähler-Animation).
-- **Zielgruppe der Landing:** Eltern von Schüler:innen der 8./9. Klasse.
+- **Zielgruppe der Landing:** Eltern von Schüler:innen ab der 5. Klasse.
   Kernbotschaften: günstiger und jederzeit verfügbar als klassische Nachhilfe,
   messbare Klausurvorbereitung (Testklausur + Notenprognose + Ampel + Lernplan).
   Enthält einen ehrlichen Vergleich (auch Punkte, in denen Nachhilfe gewinnt).
@@ -2079,3 +2087,18 @@ Hanken Grotesk, Ampel-Farben, „Fog Blue"-Tonleiter). Kein Build, Vanilla JS.
   (`initMegaMenu`, `FEATURE_PAGES`, `buildFeaturePage`) bleibt vorerst im Code,
   ist aber inert (kein Nav-Eintrag mit `.mega`, keine Seite mit `#feature-page`).
   `marketing/assets/css/feature.css` wird von keiner Seite mehr geladen.
+
+
+## Nachtrag 2026-09-18 — Text-Audit (Website + App)
+
+- **Zielgruppe:** Lesify gilt **ab Klasse 5** (bis Klasse 13); alle „8./9. Klasse"-Texte
+  (Website, AGB, Datenschutz, KI-Prompts `calls.ts`/`kontext.ts`, Prompt-Docs) angepasst.
+  Klassenstufen-Fallback im KI-Kontext: `Klasse 5 bis 13`.
+- **Anrede:** überall **Du** (auch Website-Eltern, Kasse, Auth-Formulare, Mails).
+- **Preise/Kündigung:** „ab 12,99 €" (Jahrespreis pro Monat) ist der Einstiegspreis;
+  monatliche Pakete sind monatlich, jährliche jährlich kündbar; 14 Tage kostenlos,
+  danach Abbuchung. Preis-/Rabattlogik (−20 %) wird separat überarbeitet.
+- **Begriffe:** „Nachtest" entfällt überall; Limit-Label in der App heißt
+  „Klausurvorbereitungen" (technisch weiter `testklausuren`).
+- **Seed-Daten:** Test-Chat `c6` („Rendering-Test") aus `data.js` entfernt; Dateigrößen
+  mit Dezimalkomma.

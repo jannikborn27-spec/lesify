@@ -1,6 +1,6 @@
 # Lesify
 
-KI-Lern-Webapp für Schüler:innen (8./9. Klasse). Monorepo aus öffentlicher
+KI-Lern-Webapp für Schüler:innen (ab Klasse 5). Monorepo aus öffentlicher
 Marketing-Website, eingeloggter App und Backend-API.
 
 Status: Übergang vom statischen Prototyp zum Live-Produkt — Schritt-für-Schritt

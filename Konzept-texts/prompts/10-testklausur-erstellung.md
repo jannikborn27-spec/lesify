@@ -44,7 +44,7 @@ Für jedes `themaId` in `themaIds`:
 Gehobene Reasoning-Anforderung: Das Modell muss pro Thema eine einzelne,
 klar formulierte, **nicht** mit Ja/Nein oder Multiple-Choice beantwortbare
 Aufgabe entwerfen, die (a) tatsächlich aus dem bereitgestellten Material
-herleitbar ist, (b) dem Niveau 8./9. Klasse entspricht, und (c) später
+herleitbar ist, (b) dem Niveau der jeweiligen Klassenstufe (ab Klasse 5) entspricht, und (c) später
 eindeutig bewertbar ist (siehe
 [11-testklausur-analyse.md](11-testklausur-analyse.md)). Das ist
 anspruchsvoller als reine Zusammenfassung, da hier ein neues, prüfbares

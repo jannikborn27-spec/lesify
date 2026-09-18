@@ -132,8 +132,8 @@
       ? CFG.trialDays + ' Tage kostenlos testen, danach '
       : '';
     $('co-billing').textContent = trial + (interval === 'yearly'
-      ? t.display + ' einmal jährlich abgebucht, jederzeit kündbar.'
-      : 'monatlich abgebucht, jederzeit kündbar.');
+      ? t.display + ' einmal jährlich abgebucht, jährlich kündbar.'
+      : 'monatlich abgebucht, monatlich kündbar.');
 
     $('co-feats').innerHTML = featureList().map(function (f) {
       return '<li>' + CHECK + '<span>' + f + '</span></li>';

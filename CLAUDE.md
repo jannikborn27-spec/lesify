@@ -2,7 +2,7 @@
 
 ## Projekt
 
-KI-Lern-Webapp (Schüler, 8./9. Klasse). **Monorepo** (seit 2026-09-04, Phase 1):
+KI-Lern-Webapp (Schüler, ab Klasse 5). **Monorepo** (seit 2026-09-04, Phase 1):
 
 | Ordner       | Inhalt                                                    | Build?          |
 | ------------ | ------------------------------------------------------- | --------------- |

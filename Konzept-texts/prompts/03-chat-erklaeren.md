@@ -23,7 +23,7 @@ Erklären") und bestimmt den System-Prompt für die gesamte Chat-Dauer.
 Mittlere bis gehobene Reasoning-Anforderung: Das Modell muss eine
 verständliche, didaktisch saubere Herleitung entlang eines Beispiels
 aufbauen (nicht nur Fakten abrufen) und dabei den Schwierigkeitsgrad an eine
-8./9.-Klasse-Zielgruppe anpassen. Kontextlänge: moderat bis groß, da der
+Zielgruppe ab Klasse 5 anpassen. Kontextlänge: moderat bis groß, da der
 komplette (ggf. bereits verdichtete) Themen-Memory-Block plus
 Chatverlauf mitläuft. Kosten-/Latenztoleranz: Nutzer wartet aktiv auf eine
 Antwort im Chat — Latenz sollte klein bleiben, Streaming ist hier deshalb

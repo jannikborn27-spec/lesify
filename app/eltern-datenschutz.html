@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         '<div class="abo-row"><span class="lbl">Einwilligung erteilt am</span><span class="val">' +
           (user.einwilligungAm ? R.formatDatum(user.einwilligungAm) : '—') + '</span></div>' +
         '<div class="abo-row"><span class="lbl">Konto-E-Mail</span><span class="val">' + (user.email || '—') + '</span></div>' +
-        '<div class="abo-row"><span class="lbl">Aufbewahrung</span><span class="val">1 Jahr nach Erstellung</span></div>' +
+        '<div class="abo-row"><span class="lbl">Aufbewahrung</span><span class="val">Bis zur Löschung des Kontos</span></div>' +
         '<div class="kc-actions" style="margin-top:18px">' +
           '<button class="btn btn-sm btn-ghost" data-ds="export">Daten exportieren</button>' +
           '<button class="btn btn-sm btn-ghost" data-ds="loeschen" style="color:var(--rot)">Familienkonto löschen</button>' +

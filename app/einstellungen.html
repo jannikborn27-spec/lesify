@@ -113,8 +113,7 @@
         <p class="settings-sub">Wie lange deine Inhalte gespeichert bleiben.</p>
         <p class="text-sm text-muted" style="margin:0">
           Deine Inhalte — Chats, Lernzettel, Dateien, Klausuren, Testklausuren und
-          Lernpläne — werden <strong>ein Jahr nach ihrer Erstellung automatisch
-          gelöscht</strong>. Lade dir Lernzettel rechtzeitig herunter, wenn du sie
+          Lernpläne — bleiben gespeichert, solange dein Konto besteht, und werden <strong>gelöscht, sobald das Konto beendet wird</strong>. Lade dir Lernzettel rechtzeitig herunter, wenn du sie
           länger behalten möchtest.
         </p>
         <div class="flex gap-2" style="margin-top:18px; flex-wrap:wrap">
@@ -227,7 +226,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     paketInfo.textContent = 'Kontingent im ' + abo.planName + ': ' +
       k.dateien + ' Content-Aufnahmen · ' +
       (k.nachrichten == null ? 'unbegrenzt' : k.nachrichten) + ' Nachrichten · ' +
-      k.lernzettel + ' Lernzettel · ' + k.testklausuren + ' Testklausuren pro Monat' + fam + '.';
+      k.lernzettel + ' Lernzettel · ' + k.testklausuren + ' Klausurvorbereitungen pro Monat' + fam + '.';
   }
 
   async function renderUsage() {
@@ -236,7 +235,7 @@ document.addEventListener('DOMContentLoaded', async function () {
       usageRow('Nachrichten', u.nachrichten) +
       usageRow('Content-Aufnahmen', u.dateien) +
       usageRow('Lernzettel', u.lernzettel) +
-      usageRow('Testklausuren', u.testklausuren) +
+      usageRow('Klausurvorbereitungen', u.testklausuren) +
       '<p class="text-xs text-muted" style="margin-top:14px">Setzt sich zurück am ' + LesifyUI.Render.formatDatum(u.resetDatum) + '.</p>';
   }
 

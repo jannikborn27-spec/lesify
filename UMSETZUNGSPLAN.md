@@ -882,6 +882,14 @@ Blockiert alles Weitere. Erst die offenen Produktfragen klären, dann bauen.
       Feld-für-Feld-Abgleich der übrigen Entities steht bei Bedarf noch aus._
 - [x] **Alle Nutzer-Flows im Prototyp einmal manuell durchklicken.** — _2026-09-04:
       vorab erledigt, gefundene Bugs sind gefixt._
+- [x] **Text-Audit Website + App (2026-09-18):** Zielgruppe **ab Klasse 5**
+      (alle „8./9. Klasse"-Texte ersetzt), Anrede **überall Du**, „Nachtest"
+      entfernt, Limit-Label „Klausurvorbereitungen", Preis-Einstieg „ab 12,99 €",
+      Kündigung monatlich/jährlich je nach Paket, Datenschutz/Einstellungen: Inhalte
+      werden mit Kontoende gelöscht, Tippfehler behoben, Test-Chat aus Seed-Daten
+      entfernt. _Offen:_ Job `inhalte-aufbewahrung` (löscht nach 365 Tagen) passt
+      nicht mehr zum Text; Preis-/Rabatt-Überarbeitung (−20 %) und
+      Nutzerzahlen-Claims folgen separat.
 - [x] **Getroffene Entscheidungen (Stand 2026-09-03)** — in `backend-planning.md`
       §8 abgehakt und in die betroffenen Abschnitte eingearbeitet:
   - [x] **Limit-Werte je Tarif:** bestätigt, Werte in `stripe-config.js` sind korrekt.

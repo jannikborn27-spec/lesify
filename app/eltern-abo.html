@@ -126,7 +126,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         var a = b.getAttribute('data-abo');
         if (a === 'kuendigen') {
           modal('Abo kündigen?', 'Das Abo läuft bis zum Ende des bezahlten Zeitraums weiter — bis dahin bleibt alles nutzbar.',
-            '<p class="text-sm" style="margin:0;color:var(--ink-700)">Danach werden die Inhalte gemäß Aufbewahrungsfrist gelöscht.</p>',
+            '<p class="text-sm" style="margin:0;color:var(--ink-700)">Wird das Konto beendet, werden die Inhalte gelöscht.</p>',
             async function () {
               try { await Lesify.kuendigenAbo(); LesifyUI.toast('Abo gekündigt.'); render(); }
               catch (err) { LesifyUI.toast(Lesify.fehlerText(err)); return false; }

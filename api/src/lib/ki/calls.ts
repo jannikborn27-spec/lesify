@@ -663,7 +663,7 @@ export async function dateiZusammenfassungErzeugen(
   },
 ): Promise<{ vorgeschlagenerTitel: string; zusammenfassung: string }> {
   const system = `Du bist ein Assistenzsystem für Lesify, eine Lern-App für Schülerinnen und
-Schüler der 8./9. Klasse. Deine einzige Aufgabe: den Inhalt einer
+Schüler ab der 5. Klasse. Deine einzige Aufgabe: den Inhalt einer
 hochgeladenen Datei kurz und präzise zusammenzufassen, damit spätere
 KI-Funktionen (Chat, Lernzettel, Testklausuren) den Inhalt nutzen können,
 ohne die Originaldatei erneut zu lesen.
@@ -675,7 +675,7 @@ Kontext:
 
 Regeln:
 1. Fasse ausschließlich zusammen, was tatsächlich in der Datei steht.
-2. Schreibe für ein Schulpublikum der 8./9. Klasse verständlich.
+2. Schreibe für ein Schulpublikum ab der 5. Klasse verständlich.
 3. Die Zusammenfassung muss eigenständig verwendbar sein — konkrete
    Begriffe, Formeln, Namen, Daten statt vager Umschreibungen.
 4. Schlage einen kurzen, sprechenden Titel vor (max. 8 Wörter).

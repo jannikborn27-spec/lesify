@@ -19,7 +19,7 @@ export async function klassenstufeFuer(
     where: { id: userId },
     select: { klassenstufe: true },
   });
-  return user?.klassenstufe ?? '8./9. Klasse';
+  return user?.klassenstufe ?? 'Klasse 5 bis 13';
 }
 
 /** Themen-Memory-Block (Grundfall: rohe Konkatenation, keine Verdichtung —

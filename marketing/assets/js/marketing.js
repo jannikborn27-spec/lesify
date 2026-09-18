@@ -169,9 +169,8 @@
     initMegaMenu(host);
     initSheetAccordion(sheet);
 
-    var onScroll = function () { host.classList.toggle('is-scrolled', priceNavIsLight() || headerAlwaysDark() || window.scrollY > 12); };
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
+    /* Dunkle Pille ist der Standard: .is-scrolled dauerhaft, kein Scroll-Umschalten. */
+    host.classList.add('is-scrolled');
   }
 
   /* ---------- Header-Mega-Menü "Funktionen" ----------
@@ -3676,40 +3675,8 @@
     if (nav && document.body.getAttribute('data-page') === 'preise') {
       var isLight = v === '7';
       applyHeaderVariant(isLight ? '4a' : '5');
-      nav.classList.toggle('is-scrolled', isLight || headerAlwaysDark() || window.scrollY > 12);
     }
   }
-  /* Dev-Schalter "Header dunkel": an = die schwarze (gescrollte) Header-Pille
-     ist dauerhaft der Standard, auch ganz oben. Nur Dev/Styling-Spielerei,
-     Stand in localStorage['lesify:header:dark']. */
-  function headerAlwaysDark() {
-    try { return localStorage.getItem('lesify:header:dark') === '1'; } catch (e) { return false; }
-  }
-  function mountHeaderDarkDev() {
-    var nav = document.getElementById('mkt-nav');
-    if (!nav || navMode === 'minimal' || document.querySelector('.layout-dev.is-headerdark')) return;
-    var panel = document.createElement('div');
-    panel.className = 'layout-dev is-headerdark';
-    try { if (localStorage.getItem('lesify:lab:min') === '1') panel.classList.add('is-min'); } catch (e) {}
-    panel.innerHTML = '<button type="button" class="layout-dev-title" data-dev-min>Header</button>' +
-      '<div class="layout-dev-row"><span>Dunkel</span><div class="layout-dev-seg">' +
-      '<button type="button" data-hdark="0"' + (headerAlwaysDark() ? '' : ' class="is-on"') + '>aus</button>' +
-      '<button type="button" data-hdark="1"' + (headerAlwaysDark() ? ' class="is-on"' : '') + '>an</button>' +
-      '</div></div>';
-    panel.addEventListener('click', function (e) {
-      if (e.target.closest('[data-dev-min]')) {
-        panel.classList.toggle('is-min');
-        try { localStorage.setItem('lesify:lab:min', panel.classList.contains('is-min') ? '1' : '0'); } catch (err) {}
-        return;
-      }
-      var b = e.target.closest('[data-hdark]'); if (!b) return;
-      try { localStorage.setItem('lesify:header:dark', b.getAttribute('data-hdark')); } catch (err) {}
-      panel.querySelectorAll('[data-hdark]').forEach(function (x) { x.classList.toggle('is-on', x === b); });
-      nav.classList.toggle('is-scrolled', priceNavIsLight() || headerAlwaysDark() || window.scrollY > 12);
-    });
-    document.body.appendChild(panel);
-  }
-
   function mountPriceColorDev() {
     if (document.body.getAttribute('data-page') !== 'preise') return;
     applyPricePageColor(pricePageColor());
@@ -3813,7 +3780,6 @@
     buildChatSection();
     buildLabSections();
     mountPriceColorDev();
-    mountHeaderDarkDev();
     /* Dev-Tool (2026-09-16 aktiviert, 2026-09-16 final entfernt) — "orgfaecher"
        auf v2 (Ghost) und "cmp" auf v1 (Cards, mit neuem 9-Zeilen-Content)
        final gewählt (siehe LAB_SECTIONS `fixed`), kein Dev-Panel mehr. */

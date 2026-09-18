@@ -45,7 +45,7 @@ const schema = z.object({
   RESEND_API_KEY: z.string().optional(),
   // Absenderadresse für Double-Opt-in-/Passwort-Reset-Mails. Muss zu einer bei
   // Resend verifizierten Domain gehören, sonst weist Resend den Versand ab.
-  EMAIL_ABSENDER: z.string().default('Lesify <no-reply@lesify.de>'),
+  EMAIL_ABSENDER: z.string().default('Lesify <no-reply@send.lesify.de>'),
   // Basis-URL der Marketing-Seite (dort liegen /email-bestaetigen/ und
   // /passwort-zuruecksetzen/) — für die Links in den E-Mails. Lokal Default
   // auf den `pnpm dev`-Port von marketing/ (siehe README).

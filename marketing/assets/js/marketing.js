@@ -644,21 +644,30 @@
   /* =========================================================
      Hero-Stage v2 (Prototyp, per Dev-Panel "Hero-Stage") — statt
      Vollbild-Foto + diagonalem Schnitt: schlichter weißer Section-
-     Hintergrund, darauf freigestellte PNGs (her0-trans-bg-1/2.png,
-     alternierend Folie 1+3 = bg-1, 2+4 = bg-2). Liegt wie .hv9__panel
-     DIREKT in .hv9 (nicht im Grid) — gleiche Größe/Position (rechte
-     Hälfte, volle Section-Höhe, bis zum Viewport-Rand), nur ohne
-     Diagonal-Schnitt. Inhalt identisch zur aktuellen Lower-Third-Karte
-     (heroC2b): Icon + Eyebrow + Titel, KEIN zusätzlicher Fließtext.
-     EIN gemeinsamer [data-hero-slides="v2"]-Block (heroV2Stage) für
-     alle 10 Text-Varianten — nur die Karten-POSITION/-Optik wechselt
-     über [data-v2-text="1".."10"] auf .hv9v2 (siehe landing-lab.css).
+     Hintergrund, darauf dasselbe freigestellte Mockup (assets/img/
+     hero-nw/) in drei Ständen — Hero-background-image.png (leerer,
+     weißer Bildschirm) liegt DAUERHAFT als unterste Ebene, NIE
+     ausgeblendet, damit Gerät/Tastatur/Pencil nie flackern. Darüber
+     blenden hero-mg1.png/hero-mg2.png (alternierend Folie 1+3 = mg1,
+     2+4 = mg2 — dasselbe Mockup, nur mit Bildschirminhalt) per
+     Opacity-Crossfade ein/aus — da Gerät/Tastatur/Pencil in allen drei
+     PNGs pixelgleich sind, wirkt nur der Bildschirminhalt animiert.
+     Liegt wie .hv9__panel DIREKT in .hv9 (nicht im Grid) — gleiche
+     Größe/Position (rechte Hälfte, volle Section-Höhe, bis zum
+     Viewport-Rand), nur ohne Diagonal-Schnitt. Karten-Inhalt identisch
+     zur aktuellen Lower-Third-Karte (heroC2b): Icon + Eyebrow + Titel,
+     KEIN zusätzlicher Fließtext. EIN gemeinsamer
+     [data-hero-slides="v2"]-Block (heroV2Stage) für alle 10 Text-
+     Varianten — nur die Karten-POSITION/-Optik wechselt über
+     [data-v2-text="1".."10"] auf .hv9v2 (siehe landing-lab.css).
      ========================================================= */
   function heroV2Photos() {
-    return HERO_FEATURES.map(function (f, i) {
-      var src = 'assets/img/her0-trans-bg-' + (i % 2 === 0 ? '1' : '2') + '.png';
+    var bg = '<span class="hv9v2__bg" style="background-image:url(\'assets/img/hero-nw/Hero-background-image.png\')"></span>';
+    var screens = HERO_FEATURES.map(function (f, i) {
+      var src = 'assets/img/hero-nw/hero-mg' + (i % 2 === 0 ? '1' : '2') + '.png';
       return '<span class="hv9v2__photo' + (i === 0 ? ' is-on' : '') + '" style="background-image:url(\'' + src + '\')"></span>';
     }).join('');
+    return bg + screens;
   }
   function heroV2Slide(f, i) {
     return '<div data-hs-slide data-hs-label="' + f.label + '" data-hs-accent="' + f.accent + '" data-hs-n="' + pad(i) + '">' +
@@ -687,7 +696,7 @@
   }
 
   /* Foto-Ebenen (.hv9__panel > .hv9__photo, lesi-mgs-nw-hero/69–72,
-     UND .hv9v2__photo, her0-trans-bg-1/2) synchron zur aktiven
+     UND .hv9v2__photo, hero-nw/hero-mg1/2) synchron zur aktiven
      Karten-Folie ein-/ausblenden — welche Gruppe sichtbar ist,
      entscheidet applyHeroStage()/[hidden]. Beide Gruppen bekommen
      denselben Folien-Index, aber unabhängig voneinander (2 getrennte

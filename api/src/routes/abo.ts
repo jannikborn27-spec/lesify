@@ -309,6 +309,17 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
           },
         }),
       ]);
+      const eltern = await prisma.user.findUnique({ where: { id: req.userId } });
+      try {
+        await app.mail.kindEinladungSenden({
+          an: body.email,
+          kindName: kind.name,
+          elternName: eltern?.name ?? 'Deine Eltern',
+          token: token.roh,
+        });
+      } catch (err) {
+        app.log.error({ err }, 'kind_einladung_versand_fehlgeschlagen');
+      }
       return { ok: true, ...(istProd ? {} : { resetToken: token.roh }) };
     });
 

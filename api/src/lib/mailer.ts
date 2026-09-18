@@ -1,6 +1,6 @@
 import { Resend } from 'resend';
 import { env, istProd } from '../env.js';
-import { emailBestaetigungMail, passwortResetMail } from './mailTemplates.js';
+import { emailBestaetigungMail, kindEinladungMail, passwortResetMail } from './mailTemplates.js';
 
 /**
  * E-Mail-Versand (Phase 10, §5): Double-Opt-in- und Passwort-Reset-Mails.
@@ -13,6 +13,12 @@ import { emailBestaetigungMail, passwortResetMail } from './mailTemplates.js';
 export interface MailGateway {
   emailBestaetigungSenden(input: { an: string; name: string; token: string }): Promise<void>;
   passwortResetSenden(input: { an: string; token: string }): Promise<void>;
+  kindEinladungSenden(input: {
+    an: string;
+    kindName: string;
+    elternName: string;
+    token: string;
+  }): Promise<void>;
 }
 
 function bestaetigungsLink(token: string): string {
@@ -41,6 +47,17 @@ export class FakeMailGateway implements MailGateway {
         an: input.an,
         link: resetLink(input.token),
       }),
+    );
+  }
+
+  async kindEinladungSenden(input: {
+    an: string;
+    kindName: string;
+    elternName: string;
+    token: string;
+  }): Promise<void> {
+    console.log(
+      JSON.stringify({ mailFake: 'kind_einladung', an: input.an, link: resetLink(input.token) }),
     );
   }
 }
@@ -72,6 +89,25 @@ export class ResendMailGateway implements MailGateway {
       ...mail,
     });
     if (error) throw new Error(`Resend-Versand fehlgeschlagen (passwort_reset): ${error.message}`);
+  }
+
+  async kindEinladungSenden(input: {
+    an: string;
+    kindName: string;
+    elternName: string;
+    token: string;
+  }): Promise<void> {
+    const mail = kindEinladungMail({
+      kindName: input.kindName,
+      elternName: input.elternName,
+      link: resetLink(input.token),
+    });
+    const { error } = await this.resend.emails.send({
+      from: env.EMAIL_ABSENDER,
+      to: input.an,
+      ...mail,
+    });
+    if (error) throw new Error(`Resend-Versand fehlgeschlagen (kind_einladung): ${error.message}`);
   }
 }
 

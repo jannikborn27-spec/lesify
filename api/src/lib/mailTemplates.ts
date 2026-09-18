@@ -132,3 +132,26 @@ export function passwortResetMail(input: { link: string }): FertigeMail {
     ],
   });
 }
+
+export function kindEinladungMail(input: {
+  kindName: string;
+  elternName: string;
+  link: string;
+}): FertigeMail {
+  return rendern({
+    betreff: `${input.elternName} hat dich zu Lesify eingeladen`,
+    vorschau: 'Vergib dein Passwort und leg los.',
+    ueberschrift: 'Du wurdest zu Lesify eingeladen',
+    absaetze: [
+      `Hallo ${escapeHtml(input.kindName)},`,
+      `${escapeHtml(input.elternName)} hat für dich ein Lesify-Profil angelegt. Vergib jetzt dein Passwort, dann kannst du dich anmelden und mit dem Lernen starten.`,
+    ],
+    button: { text: 'Passwort festlegen', link: input.link },
+    hinweis:
+      'Der Link ist 14 Tage gültig und nur einmal nutzbar. Du kennst diese Einladung nicht? Dann ignoriere diese E-Mail.',
+    klartext: [
+      `Hallo ${input.kindName},`,
+      `${input.elternName} hat für dich ein Lesify-Profil angelegt. Vergib jetzt dein Passwort, dann kannst du dich anmelden und mit dem Lernen starten.`,
+    ],
+  });
+}

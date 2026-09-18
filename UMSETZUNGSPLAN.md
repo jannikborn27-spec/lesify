@@ -581,7 +581,9 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       verifiziert (Absender daher `no-reply@send.lesify.de`), Railway-Variablen
       `RESEND_API_KEY`/`EMAIL_ABSENDER`/`MARKETING_URL` gesetzt, Live-Test über
       `www.lesify.de/passwort-vergessen/` erfolgreich. Mails jetzt gestaltet
-      (`api/src/lib/mailTemplates.ts`: Logo, Button, Footer, Klartext-Variante)._
+      (`api/src/lib/mailTemplates.ts`: Logo, Button, Footer, Klartext-Variante);
+      dieselbe Vorlage für die **Kind-Einladung** (`POST /abo/kinder/:id/einladung`
+      verschickt jetzt ebenfalls eine Mail, 2026-09-18)._
 - [ ] **Klausur-Erinnerung + Wöchentliche Zusammenfassung:** die Toggles
       existieren in `einstellungen.html`, sind aber wirkungslos, bis ein
       Versandweg feststeht (bewusst zurückgestellt, siehe

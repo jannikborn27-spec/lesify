@@ -4226,6 +4226,13 @@ Kritisch, weil Zielgruppe minderjährig ist.
       Lernplan, Usage-Limits, Abo/Stripe-Fake + Eltern-Features, Jobs, DSGVO,
       **plus dediziertes `scoping.test.ts`** (B sieht/ändert A nie). Datei- (P5)
       + KI-Endpunkte (P6) folgen mit ihren Phasen._
+- [~] **Responsive-Pass Marketing + App** (375/414/768/1024/1280/1920) —
+      _2026-09-18: Mobile + Tablet erledigt — Hero-Karte (Text vom Foto
+      überdeckt), Preis-Regler (Overflow 375/414), Touch-Ziele ≥44px
+      (Trefferflächen, Optik unverändert), Dashboard-Bento einspaltig ≤900px,
+      Winz-Labels ≥11,5px, Wasserzeichen-Overflow. Offen: echte
+      API-Daten/Leer-/Fehlerzustände, Mockup-interne Mini-Schriften auf der
+      Landing (bewusst belassen)._
 - [ ] **End-to-End-Test der Kern-Flows gegen `staging`** — _Checkliste in
       `docs/QS-CHECKLISTE.md` §2; braucht laufendes `staging` (Phase 16)._
 - [ ] **KI-Calls mit aufgezeichneten Fixtures** — _Phase 6._

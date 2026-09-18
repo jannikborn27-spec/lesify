@@ -4046,3 +4046,42 @@ body[data-page="preise"][data-price-color="7"] #price-section .price-voices__avr
 .mkt-dark .pricing-grid .price-card:not(.price-card--featured) .price-card__note,
 .mkt-dark .pricing-grid .price-card:not(.price-card--featured) .price-card__amount span { color: var(--ink-500); }
 .mkt-dark .pricing-grid .price-card:not(.price-card--featured) .price-card__list li { color: var(--ink-700); }
+
+/* =========================================================
+   Responsive-Pass (Mobile/Tablet)
+   ========================================================= */
+
+/* Hero-Slideshow-Karte (Mobile/Tablet vertikal): die Karte ist dort
+   statisch, ihr z-index greift nicht — die absolut positionierten
+   Fotos lagen deshalb über dem Text. Karte oben im Fluss (relative →
+   z-index wirkt), Foto/Hintergrund-Box darunter im freien Bereich. */
+@media (max-width: 899px) {
+  .hv9[data-hero-bg="9"] .hv9v2 { height: auto; padding-bottom: clamp(200px, 56vw, 320px); }
+  .hv9v2__card { position: relative; margin-top: 0; }
+  .hv9v2__photo { inset: auto 0 0 0; top: auto; height: clamp(200px, 56vw, 320px); }
+}
+
+/* Preis-Regler (Toggle + Sitze) brechen auf schmalen Screens um, statt
+   über den Rand zu laufen (vorher nowrap mit 48px Spaltenabstand). */
+@media (max-width: 640px) {
+  .sv--price4 .price-ctrl--v1 { flex-wrap: wrap; gap: 12px 20px; }
+  .sv--price4 .price-seats--seg { flex-wrap: wrap; justify-content: center; }
+}
+
+/* Touch-Ziele: unsichtbare Trefferfläche ≥ 44px für kleine Regler. */
+@media (max-width: 1024px) {
+  .hs-dots button,
+  .hs-arrow,
+  .kvl-dots__d,
+  .price-toggle button,
+  .sv--price4 .price-seats__segrow button { position: relative; }
+  .hs-dots button::after { content: ""; position: absolute; inset: -19px -8px; }
+  .hs-arrow::after { content: ""; position: absolute; inset: -8px; border-radius: 50%; }
+  .kvl-dots__d::after { content: ""; position: absolute; inset: -7px; border-radius: 50%; }
+  .price-toggle button::after { content: ""; position: absolute; inset: -8px -2px; }
+  .sv--price4 .price-seats__segrow button::after { content: ""; position: absolute; inset: -8px -3px; }
+  .layout-dev-seg button::after { content: none; }
+
+  /* Sehr kleine Fließtext-Labels (Eyebrows) auf lesbare Mindestgröße. */
+  .hv9v2__eyebrow, .orgx-eyebrow, .orgx-sec-h, .kvl__badge { font-size: 0.72rem; }
+}

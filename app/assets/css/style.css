@@ -1615,7 +1615,9 @@ textarea.input { height: auto; padding: 12px 14px; min-height: 90px; resize: ver
    wachsen (und die untere Reihe auf gleiche Höhe).
    ========================================================= */
 .dash-bento { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--sp-5); align-items: stretch; }
-@media (max-width: 760px) { .dash-bento { grid-template-columns: 1fr; } }
+/* 900px statt 760px: bei Tablet vertikal (768px) sind zwei Spalten zu schmal
+   (Titel abgeschnitten, Badges umbrechen). */
+@media (max-width: 900px) { .dash-bento { grid-template-columns: 1fr; } }
 /* Kicker über dem Klausur-Titel — auf jeder Klausur identisch. */
 .dash-bento > .card .nk-label {
   display: block;
@@ -2095,3 +2097,41 @@ textarea.input { height: auto; padding: 12px 14px; min-height: 90px; resize: ver
 :root[data-theme="dark"] .ai-tile { background: #0e1214; color: #dfe6eb; }
 :root[data-theme="dark"] .ai-tile h3,
 :root[data-theme="dark"] .ai-tile .tile-cta { color: #f3f6f8; }
+
+/* =========================================================
+   Responsive-Pass: Touch-Ziele (≥ 44px) + Lesbarkeit
+   ---------------------------------------------------------
+   Nur unsichtbare Trefferflächen bzw. Mindesthöhen — das
+   Erscheinungsbild bleibt gleich. Gilt bis Tablet horizontal
+   (1024px); Desktop (Maus) unverändert.
+   ========================================================= */
+@media (max-width: 1024px) {
+  .mobile-menu-btn { width: 44px; height: 44px; }
+  .nav-item { min-height: 44px; }
+
+  /* Trefferfläche vertikal auf mindestens 44px aufziehen, ohne die
+     sichtbare Höhe zu ändern (Pseudo-Element, mittig zentriert). */
+  .btn, .chip, a.badge, button.badge, .hero-chip, .section-link, #back-link,
+  .mobile-brand, .modal-close, .page-eyebrow a { position: relative; }
+  .btn::after, .chip::after, a.badge::after, button.badge::after,
+  .hero-chip::after, .section-link::after, #back-link::after,
+  .mobile-brand::after, .modal-close::after, .page-eyebrow a::after {
+    content: ""; position: absolute; left: 0; right: 0; top: 50%;
+    height: max(100%, 44px); transform: translateY(-50%);
+  }
+
+  /* Farbpunkte/Swatches: quadratische Trefferfläche ≥ 44px. */
+  .fach-color-btn { position: relative; }
+  .swatch-btn::before, .fach-color-btn::before {
+    content: ""; position: absolute; top: 50%; left: 50%;
+    width: max(100%, 44px); height: max(100%, 44px); transform: translate(-50%, -50%);
+  }
+
+  /* Winzige Labels (10,5–11,4px) auf 11,5px. */
+  .nk-label, .kx-sc-hero-eyebrow, .lp-nav-t, .vb-note-cap, .klausur-list-divider, .tcount { font-size: 0.72rem; }
+}
+
+/* Das Wasserzeichen ragt am rechten Rand über den Viewport hinaus —
+   am Seitenrand beschneiden (clip erzeugt keinen Scroll-Container,
+   sticky-Elemente bleiben intakt). */
+.main { overflow-x: clip; }

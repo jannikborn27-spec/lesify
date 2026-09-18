@@ -2081,3 +2081,22 @@ body[data-page="preise"] { background: var(--ink-950); }
   color: var(--ink-600);
   border-bottom: 0;
 }
+
+/* =========================================================
+   Responsive: Touch-Ziele (≥ 44px) auf Tablet-/Mobile-Breiten
+   ---------------------------------------------------------
+   Nur Mindesthöhen/-breiten bzw. unsichtbare Trefferflächen —
+   das Erscheinungsbild bleibt gleich. Für Desktop (Maus) unverändert.
+   ========================================================= */
+@media (max-width: 1024px) {
+  .btn,
+  .mkt-nav__actions .btn { min-height: 44px; }
+  .nav-toggle { min-width: 44px; min-height: 44px; }
+  .brand { min-height: 44px; }
+  .mkt-nav__links a,
+  .mkt-nav__actions .mkt-nav__link { min-height: 44px; }
+  .site-footer__col a { display: flex; align-items: center; min-height: 44px; padding: 0; }
+  .auth-card__back,
+  .mkt-nav--minimal .mkt-nav__back { min-height: 44px; }
+  .field .hint { display: inline-flex; align-items: center; min-height: 44px; }
+}

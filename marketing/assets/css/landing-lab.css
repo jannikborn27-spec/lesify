@@ -515,9 +515,9 @@ body[data-header="2"] .hv9[data-hero-bg="9"] .hv9__panel::after {
    dauerhaft als Basis, hero-mg1/2.png (Bildschirminhalt) blenden
    darüber per Opacity ein/aus. Karten-Inhalt 1:1 wie die aktuelle Lower-Third-Karte
    (heroC2b): Icon + Eyebrow + Titel, kein zusätzlicher Fließtext.
-   EIN Markup (heroV2Stage in marketing.js) für alle 4 Text-
+   EIN Markup (heroV2Stage in marketing.js) für alle 5 Text-
    Varianten — nur Position/Optik der Karte wechselt über
-   [data-v2-text="1".."4"] auf .hv9v2, kein Re-Render nötig.
+   [data-v2-text="1".."5"] auf .hv9v2, kein Re-Render nötig.
    ========================================================= */
 .hv9v2 { position: absolute; inset: 0 0 0 50%; z-index: 0; pointer-events: none; }
 .hv9v2[hidden] { display: none; }
@@ -651,6 +651,27 @@ body[data-header="2"] .hv9[data-hero-bg="9"] .hv9__panel::after {
   background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.85);
 }
 .hv9v2[data-v2-text="4"] .hv9v2__logo svg { width: 12px; height: 12px; }
+
+/* ---- v2.5 · Icon-Spotlight (dunkel): Kopie von v2.2 (Karte unten
+   rechts, Icon-Badge über dem Titel, gleiche Position/Größe) — nur
+   die Farbpalette ist die von v2.3 (dunkles Blur-Glas, farbiger
+   Top-Rand, weißer Text/weiße Dots/Pfeile) statt der hellen v1-Karte. ---- */
+.hv9v2[data-v2-text="5"] .hv9v2__icon { display: inline-flex; background: var(--hs-accent, rgba(255,255,255,0.16)); color: #fff; }
+.hv9v2[data-v2-text="5"] .hv9v2__card {
+  background: rgba(14, 16, 19, 0.74);
+  backdrop-filter: blur(12px) saturate(150%); -webkit-backdrop-filter: blur(12px) saturate(150%);
+  border: 0; border-top: 2px solid var(--hs-accent, #fff);
+  box-shadow: none;
+}
+.hv9v2[data-v2-text="5"] .hv9v2__eyebrow { color: rgba(255,255,255,0.7); }
+.hv9v2[data-v2-text="5"] .hv9v2__title { color: #fff; }
+.hv9v2[data-v2-text="5"] .hs-dots button { background: rgba(255,255,255,0.34); }
+.hv9v2[data-v2-text="5"] .hs-dots button.is-active { background: #fff; }
+.hv9v2[data-v2-text="5"] .hs-dots button:hover { background: rgba(255,255,255,0.65); }
+.hv9v2[data-v2-text="5"] .hs-count { color: rgba(255,255,255,0.65); }
+.hv9v2[data-v2-text="5"] .hs-count b { color: #fff; }
+.hv9v2[data-v2-text="5"] .hs-arrow { border: 1px solid rgba(255,255,255,0.24); background: rgba(255,255,255,0.12); color: #fff; box-shadow: none; }
+.hv9v2[data-v2-text="5"] .hs-arrow:hover { background: rgba(255,255,255,0.26); border-color: rgba(255,255,255,0.5); }
 
 @media (max-width: 899px) {
   /* Wie .hv9__panel (v1) auf Mobile: kein Voll-Bleed mehr, normale

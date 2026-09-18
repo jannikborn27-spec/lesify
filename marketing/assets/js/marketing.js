@@ -657,9 +657,9 @@
      Viewport-Rand), nur ohne Diagonal-Schnitt. Karten-Inhalt identisch
      zur aktuellen Lower-Third-Karte (heroC2b): Icon + Eyebrow + Titel,
      KEIN zusätzlicher Fließtext. EIN gemeinsamer
-     [data-hero-slides="v2"]-Block (heroV2Stage) für alle 4 Text-
+     [data-hero-slides="v2"]-Block (heroV2Stage) für alle 5 Text-
      Varianten — nur die Karten-POSITION/-Optik wechselt über
-     [data-v2-text="1".."4"] auf .hv9v2 (siehe landing-lab.css).
+     [data-v2-text="1".."5"] auf .hv9v2 (siehe landing-lab.css).
      ========================================================= */
   function heroV2Photos() {
     var bg = '<span class="hv9v2__bg" style="background-image:url(\'assets/img/hero-nw/Hero-background-image.png\')"></span>';
@@ -3713,7 +3713,8 @@
     ['2.1', 'Karte unten'],
     ['2.2', 'Icon-Spotlight'],
     ['2.3', 'Lower-Third'],
-    ['2.4', 'Karte unten (dunkel)']
+    ['2.4', 'Karte unten (dunkel)'],
+    ['2.5', 'Icon-Spotlight (dunkel)']
   ];
   function heroStageVariant() {
     try {

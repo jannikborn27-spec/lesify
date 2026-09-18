@@ -3714,7 +3714,17 @@
     ['2.2', 'Icon-Spotlight'],
     ['2.3', 'Lower-Third'],
     ['2.4', 'Karte unten (dunkel)'],
-    ['2.5', 'Icon-Spotlight (dunkel)']
+    ['2.5', 'Icon-Spotlight (dunkel)'],
+    ['2.51', 'Groß'],
+    ['2.52', 'Kompakt (Icon links)'],
+    ['2.53', 'Links unten'],
+    ['2.54', 'Oben rechts'],
+    ['2.55', 'Fortschrittsstrich'],
+    ['2.56', 'Pille'],
+    ['2.57', 'Runder Icon-Glow'],
+    ['2.58', 'Mittig unten'],
+    ['2.59', 'Akzent-Rahmen'],
+    ['2.510', 'Eck-Karte + Logo']
   ];
   function heroStageVariant() {
     try {
@@ -3731,7 +3741,9 @@
     var v2 = document.querySelector('.hv9v2');
     if (v2) {
       v2.hidden = !isV2;
-      v2.setAttribute('data-v2-text', isV2 ? v.split('.')[1] : '1');
+      var t = isV2 ? v.split('.')[1] : '1';
+      v2.setAttribute('data-v2-text', t);
+      if (t.charAt(0) === '5') v2.setAttribute('data-v2-dark', ''); else v2.removeAttribute('data-v2-dark');
     }
     var v1 = document.querySelector('.hv9__panel');
     if (v1) v1.hidden = isV2;

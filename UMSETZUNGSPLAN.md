@@ -2983,6 +2983,16 @@ Grundlage: `backend-planning.md` §1. Reihenfolge so, dass FKs immer schon exist
       Vorbereitungsstand) und Lernpläne — Rest kam mit `2ba8c35` (Phase 7).
       Checkbox war stehen geblieben, obwohl der Code seit Phase 7 vollständig
       ist — 2026-09-12 beim Doku-Abgleich aufgefallen und nachgezogen._
+- [x] **Dev-Account mit Screenshot-Content befüllen** — _2026-09-18:
+      `api/prisma/seed-dev-account.ts` (idempotent, nur `dev@lesify.local`,
+      Login bleibt) leert den Account und legt realistischen Beispiel-Content
+      an: „Lena M.", Premium-Abo, 5 Fächer / 15 Themen, 9 Chats (36
+      Nachrichten), 5 Lernzettel, 9 Dateien (`seed://`, ohne Storage-Inhalt),
+      6 Klausuren (1 geschrieben), 4 Testklausuren, 3 Lernpläne in
+      verschiedenen Zuständen (fertig / Tag 4 / Tag 2). Aufruf:
+      `pnpm --filter ./api exec tsx prisma/seed-dev-account.ts`. Für Ads/
+      Website-Screenshots; Datums-Offsets relativ zu „heute" → bei Bedarf
+      neu laufen lassen._
 - [x] **backend-planning.md aktualisieren** — _2026-09-04: §1 um „Umsetzung:
       Prisma-Schema" ergänzt (userId-Denormalisierung, `email` nullable+unique,
       1:1-`unique` auf Lernplan-Testklausur-FKs, Enum-Namen, Löschverhalten,

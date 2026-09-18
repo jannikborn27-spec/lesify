@@ -2127,6 +2127,9 @@ textarea.input { height: auto; padding: 12px 14px; min-height: 90px; resize: ver
     width: max(100%, 44px); height: max(100%, 44px); transform: translate(-50%, -50%);
   }
 
+  /* Schalter (42×25): Trefferfläche über das umgebende <label> vergrößern. */
+  .toggle-switch::after { content: ""; position: absolute; inset: -10px -4px; }
+
   /* Winzige Labels (10,5–11,4px) auf 11,5px. */
   .nk-label, .kx-sc-hero-eyebrow, .lp-nav-t, .vb-note-cap, .klausur-list-divider, .tcount { font-size: 0.72rem; }
 }

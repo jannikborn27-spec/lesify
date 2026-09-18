@@ -314,7 +314,8 @@ describe.runIf(hatDb)('abo — Familien-Flow + Kind-Profile (Supabase)', () => {
 });
 
 describe.runIf(hatDb)('abo — Eltern-Features Phase 12 (Supabase)', () => {
-  const app = buildApp({ logger: false, zahlung: new FakeZahlungsGateway() });
+  const zahlung = new FakeZahlungsGateway();
+  const app = buildApp({ logger: false, zahlung });
   const prisma = getPrisma();
   let token = '';
   const auth = () => ({ authorization: `Bearer ${token}` });
@@ -469,11 +470,16 @@ describe.runIf(hatDb)('abo — Eltern-Features Phase 12 (Supabase)', () => {
     });
 
     const { geplanteAboAenderungenAnwenden } = await import('../lib/jobs.js');
-    const warte = await geplanteAboAenderungenAnwenden(prisma);
+    // `zahlung` explizit mitgeben — der Job ruft jetzt auch
+    // `subscriptionAendern` auf, ohne das würde der Default
+    // `getZahlungsGateway()` (echtes Stripe, falls STRIPE_SECRET_KEY
+    // gesetzt ist) statt des Fakes hier greifen und an der
+    // `fake_sub_…`-Referenz aus diesem Test scheitern.
+    const warte = await geplanteAboAenderungenAnwenden(prisma, new Date(), zahlung);
     expect(warte.wartetAufKindLoeschung).toBeGreaterThanOrEqual(1);
 
     await app.inject({ method: 'DELETE', url: `/abo/kinder/${kindCId}`, headers: auth() });
-    const jetzt = await geplanteAboAenderungenAnwenden(prisma);
+    const jetzt = await geplanteAboAenderungenAnwenden(prisma, new Date(), zahlung);
     expect(jetzt.angewendet).toBeGreaterThanOrEqual(1);
 
     const abo = await app.inject({ method: 'GET', url: '/abo', headers: auth() });

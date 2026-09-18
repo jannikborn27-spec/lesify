@@ -1104,10 +1104,16 @@ Stripe-Calls auslösen.
   Fix 2026-09-17 — vorher blockierte jede jemals angelegte Abo-Zeile für
   immer jede weitere, unabhängig vom Status.
 - **`PATCH /abo`** `{paket?, intervall?, sitze?}` → Paket-/Intervall-/
-  Sitz**erhöhung** sofort (Proration beim Anbieter). Sitz**verringerung**
-  (Phase 12) wird als `Abo.geplanteSitze` gemerkt (`sitze` bleibt); der Job
-  `abo-geplante-aenderungen` senkt `sitze` zum `aktuellerZeitraumEnde`, sobald
-  `belegt <= geplanteSitze` (er löscht **keine** Kind-Profile selbst).
+  Sitz**erhöhung** sofort (Proration beim Anbieter, sofort wirksam — kein
+  eigener Bestätigungsschritt in der UI, siehe offener Punkt unten). Sitz**-
+  verringerung** (Phase 12) wird als `Abo.geplanteSitze` gemerkt (`sitze`
+  bleibt); der Job `abo-geplante-aenderungen` senkt `sitze` zum
+  `aktuellerZeitraumEnde`, sobald `belegt <= geplanteSitze` (er löscht
+  **keine** Kind-Profile selbst) — **und** senkt seit 2026-09-18 auch den
+  Preis bei Stripe (`zahlung.subscriptionAendern`, live gegen Stripe Test-Mode
+  verifiziert). Bug bis dahin: der Job schrieb nur `Abo.sitze` lokal, ohne
+  Stripe je zu informieren — jede abgeschlossene Sitzverringerung hätte den
+  Kunden dauerhaft zum alten, höheren Sitzpreis weiterbelastet.
 - **`POST /abo/kuendigen`** → `status = gekuendigt` (Zugang bis
   `aktuellerZeitraumEnde`), **`POST /abo/pausieren`** → `status = pausiert`.
 - **`POST /abo/webhook`** (kein Login): Body `{typ, aboRef}`, Header
@@ -1526,7 +1532,7 @@ fehlgeschlagene Logins/Upload-Flooding weiterhin offen (§8).
       Rechnungsstellung, Retry-/Mahnlogik bei `zahlung_offen`. Registrierungs-/
       Login-Anbindung der Marketing-Seite ist seit 2026-09-12 erledigt (§11).
 - [ ] **Eltern-/Minderjährigen-Einwilligung**: Ablauf/Erneuerung der Einwilligung bei der Schüler:in-Rolle (das Eltern-Kind-Modell selbst ist entschieden, siehe oben).
-- [ ] **Familien-Paket-Mechanik (produktiv)**: Sitz nachträglich hinzufügen/entfernen mit echter Proration/Downgrade zum Zeitraumende. Backend-Grundlage (`PATCH /abo` + `geplanteSitze` + Job `abo-geplante-aenderungen`) steht; offen ist nur das echte Stripe-Adapter.
+- [x] **Familien-Paket-Mechanik (produktiv)**: Sitz nachträglich hinzufügen/entfernen mit echter Proration/Downgrade zum Zeitraumende. `PATCH /abo` + `geplanteSitze` + Job `abo-geplante-aenderungen`, echtes Stripe-Adapter steht — der Job senkt seit 2026-09-18 auch wirklich den Stripe-Preis (vorher nur lokale DB, siehe Bug-Notiz bei `PATCH /abo` oben). **Weiterhin offen, keine Code-Aufgabe:** kein Bestätigungsschritt in der UI vor einer Sitz-/Tarif-Erhöhung — die greift sofort und erzeugt bei einem bereits aktiv abrechnenden (nicht mehr in der Testphase befindlichen) Abo eine echte, sofort fällige Proration-Buchung bei Stripe, ohne dass die Eltern vorher einen Betrag sehen oder bestätigen (live verifiziert: Tarifwechsel auf einem aktiven Test-Abo erzeugte sofort zwei `invoiceItems`, „Unused time" + „Remaining time", die in die nächste Rechnung einfließen). Während der 14-Tage-Testphase löst dieselbe Aktion dagegen nachweislich **keine** Belastung aus — Stripe verschiebt nur den künftigen Rechnungsbetrag, ohne eine Proration-Buchung anzulegen.
 - [ ] **Kontaktformular** (`marketing/kontakt.html`): Zielsystem (Support-Postfach/Ticketsystem). Spam-Schutz = IP-Rate-Limit + Honeypot-Feld (kein Captcha), Feinheiten offen.
 - [ ] **Klausur-Erinnerung + Wöchentliche Zusammenfassung**: Toggles in `einstellungen.html` bleiben wirkungslos — eigener Mail-Versand dafür ist bewusst zurückgestellt (siehe „Entschieden am 2026-09-17").
 - [ ] **Auth-Fehlversuche**: temporärer Account-Lockout nach X Fehlversuchen vs. nur IP-Drosselung (Default aktuell: Drosselung + exponentieller Backoff, kein harter Lockout).

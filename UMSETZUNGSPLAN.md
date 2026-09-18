@@ -144,6 +144,58 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
 
 ### 4. Geld (Phase 9/16)
 
+- [x] **Bug (2026-09-18, gefunden bei Rückfragen zur Abo-QA, selbiger Tag
+      behoben): Job `abo-geplante-aenderungen` senkte den Preis nie bei
+      Stripe.** Beim Nachprüfen der Frage „warum wirkt eine Sitzerhöhung
+      sofort" fiel auf, dass der Gegenpart — eine abgeschlossene
+      Sitz**verringerung** — zwar lokal `Abo.sitze` senkte, aber nie
+      `zahlung.subscriptionAendern` aufrief. Live gegen Stripe Test-Mode
+      reproduziert: Abo von 3 auf 2 Sitze verringert (Kind gelöscht,
+      Zeitraum künstlich beendet, Job gelaufen) → lokale DB zeigte
+      korrekt `sitze:2`, aber die Stripe-Subscription blieb auf dem
+      3-Sitze-Preis (5199 Cent) stehen — der Kunde wäre dauerhaft zu viel
+      belastet worden. **Fix:** `geplanteAboAenderungenAnwenden`
+      (`api/src/lib/jobs.ts`) berechnet jetzt den neuen Preis
+      (`aboPreis()`) und ruft `zahlung.subscriptionAendern()`, bevor es
+      die DB aktualisiert — Signatur um einen `zahlung`-Parameter mit
+      `getZahlungsGateway()`-Default erweitert (gleiches Muster wie
+      `storage` bei `inhalteAelterAlsEinJahrLoeschen`), kein Eingriff an
+      `run.ts`/dem CLI-Aufruf nötig. Bestehender Test in `abo.test.ts`
+      (nutzt den Fake-Gateway) entsprechend angepasst (`zahlung` explizit
+      mitgegeben, sonst hätte der neue Default versucht, echtes Stripe mit
+      einer `fake_sub_…`-Referenz anzusprechen). Live erneut verifiziert:
+      derselbe Ablauf senkt den Stripe-Preis jetzt korrekt auf 3599 Cent.
+      Alle 181 API-Tests grün.
+- [ ] **Offene Produktfrage (2026-09-18, noch nicht entschieden): Sitz-/
+      Tarif-Erhöhung ohne Bestätigungsschritt.** `PATCH /abo` wirkt sofort,
+      die UI zeigt vorher keinen Preis und keine Bestätigung — nur einen
+      Toast danach. Für ein Abo in der 14-Tage-Testphase ist das
+      unproblematisch: live verifiziert, dass eine Sitz-/Tarif-Änderung
+      während der Testphase **keine** Buchung bei Stripe auslöst, nur der
+      künftige Rechnungsbetrag ändert sich. Für ein bereits aktiv
+      abrechnendes Abo (nach der Testphase) ist es das nicht — live
+      verifiziert, dass Stripe dort sofort eine echte, anteilige
+      Proration-Buchung anlegt (zwei `invoiceItems`: „Unused time"/
+      „Remaining time"), die in die nächste Rechnung einfließt, ohne dass
+      die Eltern vorher einen Betrag sehen. **Deine Entscheidung nötig:**
+      soll `eltern-abo.html` vor einer Erhöhung eine Kostenvorschau/
+      Bestätigung zeigen (z. B. via `stripe.invoices.createPreview()`)?
+      Nur für aktiv abrechnende Abos relevant, während der Testphase
+      unkritisch.
+- [ ] **Frage beantwortet (2026-09-18): Was macht „Sommerpause" genau?**
+      Ruft `stripe.subscriptions.update(ref, {pause_collection:{behavior:
+      'void'}})` — Stripe stellt für die Dauer der Pause keine Rechnungen
+      mehr, ohne den Abrechnungszeitraum selbst zu verschieben — und setzt
+      lokal `Abo.status = 'pausiert'`. **Wichtig:** nichts im Backend prüft
+      `Abo.status` für den App-Zugriff (`usage.ts` liest nur `abo.paket`
+      fürs Kontingent, keine Route filtert nach Status) — Sommerpause **und
+      auch eine Kündigung** wirken aktuell ausschließlich auf die
+      Stripe-Abrechnung, der App-Zugriff selbst wird nirgends technisch
+      eingeschränkt. Passt zum Kartentext „Inhalte bleiben erhalten",
+      bedeutet aber auch: ein gekündigtes, abgelaufenes Abo sperrt aktuell
+      nichts von selbst. Offen, ob das so gewollt ist oder noch eine
+      Zugriffssperre nach Ablauf der Kündigungsfrist gebaut werden soll.
+
 - [x] **Bug (2026-09-18, gemeldet & behoben): Solo-Checkout landete auf
       einer Kind-hinzufügen-Seite, die für Einzelplatz-Abos stumm
       scheiterte.** `checkout-erfolg/` verlinkt „Erstes Kind hinzufügen" für

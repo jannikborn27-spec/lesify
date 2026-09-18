@@ -1,6 +1,7 @@
 import type { PrismaClient } from '@prisma/client';
-import { monatsSchluessel } from '@lesify/shared';
+import { aboArtFuerSitze, aboPreis, monatsSchluessel } from '@lesify/shared';
 import { getStorageGateway, type StorageGateway } from './storage.js';
+import { getZahlungsGateway, type ZahlungsGateway } from './zahlung.js';
 import { kiKostenAlarmPruefen } from './ki/kosten.js';
 
 /**
@@ -114,10 +115,18 @@ export async function abgelaufeneTokenLoeschen(
  * Zeitraum vorbei ist **und** genug Kind-Profile entfernt wurden
  * (`belegt <= geplanteSitze`), wird `Abo.sitze` gesenkt. Solange noch zu viele
  * Kinder da sind, bleibt die Änderung stehen (der Job löscht **keine** Profile).
+ *
+ * **Muss** dabei auch den Preis bei Stripe senken (`zahlung.subscriptionAendern`)
+ * — sonst bleibt die Stripe-Subscription für immer auf dem alten (höheren)
+ * Sitzpreis stehen, obwohl lokal weniger Sitze berechnet werden. Bug
+ * 2026-09-18: vorher schrieb der Job nur `Abo.sitze` in der eigenen DB, ohne
+ * Stripe je zu informieren — bei jeder abgeschlossenen Sitzverringerung wäre
+ * der Kunde dauerhaft zu viel belastet worden.
  */
 export async function geplanteAboAenderungenAnwenden(
   prisma: PrismaClient,
   jetzt: Date = new Date(),
+  zahlung: ZahlungsGateway = getZahlungsGateway(),
 ): Promise<{ angewendet: number; wartetAufKindLoeschung: number }> {
   const faellig = await prisma.abo.findMany({
     where: { geplanteSitze: { not: null }, aktuellerZeitraumEnde: { lte: jetzt } },
@@ -126,10 +135,28 @@ export async function geplanteAboAenderungenAnwenden(
   let wartet = 0;
   for (const abo of faellig) {
     const belegt = await prisma.user.count({ where: { parentUserId: abo.ownerUserId } });
-    if (belegt <= (abo.geplanteSitze ?? 0)) {
+    const neueSitze = abo.geplanteSitze ?? abo.sitze;
+    if (belegt <= neueSitze) {
+      const art = aboArtFuerSitze(neueSitze);
+      const preis = aboPreis({
+        paket: abo.paket,
+        art,
+        sitze: neueSitze,
+        intervall: abo.intervall,
+      });
+      const { aktuellerZeitraumEnde } = await zahlung.subscriptionAendern(
+        abo.zahlungsanbieterRef ?? abo.id,
+        { intervall: abo.intervall, betragCent: preis.betragCent },
+      );
       await prisma.abo.update({
         where: { id: abo.id },
-        data: { sitze: abo.geplanteSitze ?? abo.sitze, geplanteSitze: null },
+        data: {
+          sitze: neueSitze,
+          geplanteSitze: null,
+          art,
+          angebot: preis.angebotKey,
+          aktuellerZeitraumEnde,
+        },
       });
       angewendet += 1;
     } else {

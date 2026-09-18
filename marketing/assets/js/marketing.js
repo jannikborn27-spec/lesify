@@ -624,16 +624,70 @@
     applyHeroCardVariant('2b'); /* final gewählt (Lower-Third im Foto), nicht mehr umschaltbar */
   }
 
-  /* Foto-Ebenen (.hv9__panel > .hv9__photo, lesi-mgs-nw-hero/69–72)
-     synchron zur aktiven Karten-Folie ein-/ausblenden. */
-  var heroPhotos = null;
+  /* =========================================================
+     Hero-Stage v2 (Prototyp, per Dev-Panel "Hero-Stage") — statt
+     Vollbild-Foto + diagonalem Schnitt: schlichter weißer Section-
+     Hintergrund, darauf freigestellte PNGs (her0-trans-bg-1/2.png,
+     alternierend Folie 1+3 = bg-1, 2+4 = bg-2). EIN gemeinsamer
+     [data-hero-slides="v2"]-Block (heroV2Stage) für alle 10 Text-
+     Varianten — initHeroSlides()/setHeroPhoto() brauchen dafür keine
+     Änderung, nur der Foto-Selektor unten wird um .hv9v2__photo
+     erweitert. Die 10 Varianten sind reines CSS über
+     [data-v2-text="1".."10"] auf .hv9v2 (siehe landing-lab.css),
+     dieselbe Karten-Markup wird nur umgestylt/umsortiert.
+     ========================================================= */
+  function heroV2Photos() {
+    return HERO_FEATURES.map(function (f, i) {
+      var src = 'assets/img/her0-trans-bg-' + (i % 2 === 0 ? '1' : '2') + '.png';
+      return '<span class="hv9v2__photo' + (i === 0 ? ' is-on' : '') + '" style="background-image:url(\'' + src + '\')"></span>';
+    }).join('');
+  }
+  function heroV2Slide(f, i) {
+    return '<div data-hs-slide data-hs-label="' + f.label + '" data-hs-accent="' + f.accent + '" data-hs-n="' + pad(i) + '">' +
+      '<span class="hv9v2__icon">' + f.icon + '</span>' +
+      '<span class="hv9v2__eyebrow">' + pad(i) + ' — ' + f.label + '</span>' +
+      '<h3 class="hv9v2__title">' + f.title + '</h3>' +
+      '<p class="hv9v2__desc">' + f.desc + '</p>' +
+    '</div>';
+  }
+  function heroV2Stage() {
+    return '<div class="hs-stage hv9v2" data-hero-slides="v2" data-v2-text="1" hidden>' +
+      '<div class="hv9v2__photos">' + heroV2Photos() + '</div>' +
+      '<div class="hv9v2__card">' + hsMap(heroV2Slide) +
+        '<div class="hv9v2__nav hs-nav hs-nav--between">' +
+          '<span class="hs-count"><b data-hs-count>01</b> / ' + pad(HERO_FEATURES.length - 1) + '</span>' +
+          '<div class="hs-dots" data-hs-dots></div>' +
+          '<span class="hs-arrows">' + arrowBtns() + '</span>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }
+  function buildHeroStageV2() {
+    var host = document.getElementById('hero-stage-v2');
+    if (!host || host.querySelector('.hv9v2')) return;
+    host.innerHTML = heroV2Stage();
+    applyHeroStage(heroStageVariant());
+  }
+
+  /* Foto-Ebenen (.hv9__panel > .hv9__photo, lesi-mgs-nw-hero/69–72,
+     UND .hv9v2__photo, her0-trans-bg-1/2) synchron zur aktiven
+     Karten-Folie ein-/ausblenden — welche Gruppe sichtbar ist,
+     entscheidet applyHeroStage()/[hidden]. Beide Gruppen bekommen
+     denselben Folien-Index, aber unabhängig voneinander (2 getrennte
+     4er-Sets, kein gemeinsamer Modulo-Pool). */
+  var heroPhotoGroups = null;
   function setHeroPhoto(i) {
-    if (heroPhotos === null) {
-      heroPhotos = Array.prototype.slice.call(document.querySelectorAll('.hv9__panel .hv9__photo'));
+    if (heroPhotoGroups === null) {
+      heroPhotoGroups = [
+        Array.prototype.slice.call(document.querySelectorAll('.hv9__panel .hv9__photo')),
+        Array.prototype.slice.call(document.querySelectorAll('.hv9v2__photo'))
+      ];
     }
-    if (!heroPhotos.length) return;
-    var n = heroPhotos.length, idx = ((i % n) + n) % n;
-    heroPhotos.forEach(function (p, pi) { p.classList.toggle('is-on', pi === idx); });
+    heroPhotoGroups.forEach(function (group) {
+      if (!group.length) return;
+      var n = group.length, idx = ((i % n) + n) % n;
+      group.forEach(function (p, pi) { p.classList.toggle('is-on', pi === idx); });
+    });
   }
 
   function initHeroSlides() {
@@ -668,7 +722,11 @@
           var label = s.getAttribute('data-hs-label') || ('Folie ' + (i + 1));
           var accent = s.getAttribute('data-hs-accent') || '';
           return '<button type="button" data-i="' + i + '" aria-label="' + label + ' anzeigen"' +
-            (accent ? ' style="--hs-accent:' + accent + '"' : '') + '></button>';
+            (accent ? ' style="--hs-accent:' + accent + '"' : '') + '>' +
+            /* nur sichtbar, wenn eine Design-Variante die Punkte als
+               Pillen/Tabs mit Text zeigt (siehe .hs-dot-label in
+               landing-lab.css) — sonst per CSS ausgeblendet. */
+            '<span class="hs-dot-label">' + label + '</span></button>';
         }).join('');
       }
       var dots = dotsHost ? Array.prototype.slice.call(dotsHost.children) : [];
@@ -3575,6 +3633,75 @@
     document.body.appendChild(panel);
   }
 
+  /* Hero-Stage — Dev-Switch (nur index.html): v1 = aktuelles Foto/
+     Diagonal-Design, v2.1–v2.10 = neue Variante (weißer Hero-Hintergrund,
+     freigestellte PNGs statt Foto) mit 10 verschiedenen Text-Layouts.
+     localStorage['lesify:herostage:v']. */
+  var HERO_STAGE_LIST = [
+    ['1', 'Foto (aktuell)'],
+    ['2.1', 'Karte unten'],
+    ['2.2', 'Caption zentriert'],
+    ['2.3', 'Sidebar'],
+    ['2.4', 'Nummern-Rail'],
+    ['2.5', 'Riesen-Zahl'],
+    ['2.6', 'Pillen-Reiter'],
+    ['2.7', 'Zitat-Stil'],
+    ['2.8', 'Icon-Spotlight'],
+    ['2.9', 'Editorial-Typo'],
+    ['2.10', 'Chat-Bubble']
+  ];
+  function heroStageVariant() {
+    try {
+      var v = localStorage.getItem('lesify:herostage:v');
+      if (HERO_STAGE_LIST.some(function (o) { return o[0] === v; })) return v;
+    } catch (e) {}
+    return '1';
+  }
+  function applyHeroStage(v) {
+    var sec = document.querySelector('.hv9');
+    if (!sec) return;
+    var isV2 = v !== '1';
+    sec.setAttribute('data-hero-stage', isV2 ? '2' : '1');
+    var v2 = document.querySelector('.hv9v2');
+    if (v2) {
+      v2.hidden = !isV2;
+      v2.setAttribute('data-v2-text', isV2 ? v.split('.')[1] : '1');
+    }
+    var v1 = document.querySelector('.hv9__panel');
+    if (v1) v1.hidden = isV2;
+    /* #hero-stage/#hero-stage-v2 sind beide `display:flex;width:100%` als
+       Geschwister in .hv9__media (display:flex) — bleiben beide sichtbar,
+       teilt sich die Flex-Breite fälschlich durch 2 (siehe [hidden]-Regel
+       in landing-lab.css), darum hier zusätzlich hart ausblenden. */
+    var s1 = document.getElementById('hero-stage');
+    var s2 = document.getElementById('hero-stage-v2');
+    if (s1) s1.hidden = isV2;
+    if (s2) s2.hidden = !isV2;
+  }
+  function mountHeroStageDev() {
+    if (current !== 'index') return;
+    if (!document.querySelector('.hv9v2')) return;
+    if (document.querySelector('.layout-dev.is-herostage')) return;
+    var panel = document.createElement('div');
+    panel.className = 'layout-dev is-herostage';
+    try { if (localStorage.getItem('lesify:lab:min') === '1') panel.classList.add('is-min'); } catch (e) {}
+    panel.innerHTML = '<button type="button" class="layout-dev-title" data-dev-min>Hero-Stage</button>' +
+      devRow('Stage', 'herostage', HERO_STAGE_LIST, heroStageVariant());
+    panel.addEventListener('click', function (e) {
+      if (e.target.closest('[data-dev-min]')) {
+        panel.classList.toggle('is-min');
+        try { localStorage.setItem('lesify:lab:min', panel.classList.contains('is-min') ? '1' : '0'); } catch (err) {}
+        return;
+      }
+      var b = e.target.closest('[data-herostage]'); if (!b) return;
+      var v = b.getAttribute('data-herostage');
+      try { localStorage.setItem('lesify:herostage:v', v); } catch (err) {}
+      panel.querySelectorAll('[data-herostage]').forEach(function (x) { x.classList.toggle('is-on', x === b); });
+      applyHeroStage(v);
+    });
+    document.body.appendChild(panel);
+  }
+
   /* ---------- Smooth-Scroll für #anker (auch "seite.html#anker" auf
      derselben Seite, z. B. Preise/FAQ aus der Nav) ---------- */
   function navOffset() {
@@ -3640,10 +3767,12 @@
     initForms();
     initAnchors();
     buildHeroStage();
+    buildHeroStageV2();
     initHeroSlides();
     buildChatSection();
     buildLabSections();
     mountPriceColorDev();
+    mountHeroStageDev();
     /* Dev-Tool (2026-09-16 aktiviert, 2026-09-16 final entfernt) — "orgfaecher"
        auf v2 (Ghost) und "cmp" auf v1 (Cards, mit neuem 9-Zeilen-Content)
        final gewählt (siehe LAB_SECTIONS `fixed`), kein Dev-Panel mehr. */

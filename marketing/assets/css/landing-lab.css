@@ -531,7 +531,10 @@ body[data-header="2"] .hv9[data-hero-bg="9"] .hv9__panel::after {
    EIN Markup (heroV2Stage in marketing.js) fest als
    Variante v2.5 ([data-v2-text="5"]).
    ========================================================= */
-.hv9v2 { position: absolute; inset: 0 0 0 50%; z-index: 0; pointer-events: none; }
+/* z-index 2 (über .hv9__grid = 1): die Karte liegt sonst unter dem Raster und
+   ist teils nicht klickbar. Der Container selbst bleibt pointer-events: none,
+   nur die Karte fängt Klicks — Buttons im Raster darunter bleiben erreichbar. */
+.hv9v2 { position: absolute; inset: 0 0 0 50%; z-index: 2; pointer-events: none; }
 .hv9v2[hidden] { display: none; }
 /* .hv9v2__bg (leerer Bildschirm) bleibt dauerhaft sichtbar — Gerät/
    Tastatur/Pencil sind in allen drei PNGs pixelgleich, daher überdeckt

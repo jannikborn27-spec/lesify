@@ -657,9 +657,9 @@
      Viewport-Rand), nur ohne Diagonal-Schnitt. Karten-Inhalt identisch
      zur aktuellen Lower-Third-Karte (heroC2b): Icon + Eyebrow + Titel,
      KEIN zusätzlicher Fließtext. EIN gemeinsamer
-     [data-hero-slides="v2"]-Block (heroV2Stage) für alle 10 Text-
+     [data-hero-slides="v2"]-Block (heroV2Stage) für alle 3 Text-
      Varianten — nur die Karten-POSITION/-Optik wechselt über
-     [data-v2-text="1".."10"] auf .hv9v2 (siehe landing-lab.css).
+     [data-v2-text="1".."3"] auf .hv9v2 (siehe landing-lab.css).
      ========================================================= */
   function heroV2Photos() {
     var bg = '<span class="hv9v2__bg" style="background-image:url(\'assets/img/hero-nw/Hero-background-image.png\')"></span>';
@@ -679,7 +679,7 @@
   function heroV2Stage() {
     return '<div class="hv9v2" data-hero-slides="v2" data-v2-text="1" hidden aria-hidden="true">' +
       heroV2Photos() +
-      '<div class="hv9v2__card">' + hsMap(heroV2Slide) +
+      '<div class="hv9v2__card"><span class="hs-progress"></span>' + hsMap(heroV2Slide) +
         '<div class="hv9v2__nav hs-nav hs-nav--between">' +
           '<span class="hs-count"><b data-hs-count>01</b> / ' + pad(HERO_FEATURES.length - 1) + '</span>' +
           '<div class="hs-dots" data-hs-dots></div>' +
@@ -3709,15 +3709,8 @@
   var HERO_STAGE_LIST = [
     ['1', 'Foto (aktuell)'],
     ['2.1', 'Karte unten'],
-    ['2.2', 'Caption zentriert'],
-    ['2.3', 'Sidebar'],
-    ['2.4', 'Nummern-Rail'],
-    ['2.5', 'Riesen-Zahl'],
-    ['2.6', 'Pillen-Reiter'],
-    ['2.7', 'Zitat-Stil'],
-    ['2.8', 'Icon-Spotlight'],
-    ['2.9', 'Editorial-Typo'],
-    ['2.10', 'Chat-Bubble']
+    ['2.2', 'Icon-Spotlight'],
+    ['2.3', 'Lower-Third']
   ];
   function heroStageVariant() {
     try {

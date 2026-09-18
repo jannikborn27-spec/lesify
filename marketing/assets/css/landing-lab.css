@@ -321,7 +321,7 @@ h1 em::after { content: ""; position: absolute; left: -2px; right: -2px; bottom:
    so breit wie das Foto und vom diagonalen Weiß-Schnitt (Panel-clip-path)
    beschnitten. Liegt im .hv9__panel — z-index über dem Foto (0) und den
    Panel-Scrims (1), aber immer hinter dem weißen Diagonal-Ausschnitt. --- */
-.hv9__panel .hs-stage--c2b { position: absolute; right: 0; bottom: 0; z-index: 2; width: auto; min-width: 52vw; }
+.hv9__panel .hs-stage--c2b { position: absolute; right: 0; bottom: 0; z-index: 2; width: auto; min-width: min(52vw, 84vh); }
 .hs-c2--bleed { border-radius: 0; border-top-width: 2px; padding: 14px clamp(18px, 3vw, 32px); background: rgba(14,16,19,0.74); }
 .hs-c2--bleed .hs-dots { margin: 0 12px 0 auto; }
 .hs-c2--bleed .hs-nav { margin-left: 0; }
@@ -427,8 +427,13 @@ h1 em::after { content: ""; position: absolute; left: -2px; right: -2px; bottom:
   /* Box deckt den Keil in BEIDE Richtungen ab, ohne Magie-Zahl:
      - height: 100% → immer so hoch wie der Keil (= Section-Höhe H)
      - width: auto + aspect-ratio 1/1 → Breite = H (nahezu quadratisch)
-     - min-width: 52vw → auf breiten Screens wächst die Breite auf die
-       Keilbreite (Box wird 52vw × H).
+     - min-width: min(52vw, 84vh) → auf breiten Screens wächst die Breite
+       auf die Keilbreite (Box wird ~52vw × H). Die 84vh-Deckelung
+       verhindert, dass die Box auf sehr breiten/flachen Screens (z. B.
+       1920×1080 gegenüber einem hohen 14"-Notebook-Display) viel
+       breiter als hoch wird, sobald .container bei max-width greift
+       und die Section-Höhe (textgetrieben) nicht mehr mitwächst — sonst
+       wirkt das Foto plötzlich flach/klein statt quadratisch-groß.
      Das Foto sitzt als `background-size: cover` darin — weil die Box klein
      und nah an 1:1 ist (nicht die volle Section-Breite), bleibt die
      Skalierung moderat und der Ausschnitt sinnvoll; der Keil ist auf jeder
@@ -437,7 +442,7 @@ h1 em::after { content: ""; position: absolute; left: -2px; right: -2px; bottom:
      gemalt; ein CSS-Hintergrund malt zuverlässig.) */
   height: 100%;
   width: auto;
-  min-width: 52vw;
+  min-width: min(52vw, 84vh);
   aspect-ratio: 1 / 1;
   background-size: cover;
   background-position: center;
@@ -476,7 +481,12 @@ body[data-header="2"] .hv9[data-hero-bg="9"] .hv9__panel::after {
     rgba(255,255,255,0.08) 40%,
     rgba(255,255,255,0) 52%);
 }
-.hv9[data-hero-bg="9"] .hv9__media { min-height: clamp(420px, 32vw, 520px); display: flex; }
+/* vh- statt (nur) vw-basiert: der Text-Spalte (die die Section-Höhe bislang
+   allein bestimmte, sobald .container bei max-width greift und nicht mehr
+   breiter wird) fehlt sonst auf sehr breiten/kurzen Screens (1920×1080 o. ä.)
+   ein Gegengewicht — die Section blieb dann genauso hoch wie auf einem
+   schmaleren, aber höheren Notebook-Display. */
+.hv9[data-hero-bg="9"] .hv9__media { min-height: clamp(460px, 60vh, 780px); display: flex; }
 
 @media (max-width: 899px) {
   .hv9[data-hero-bg="9"] .hv9__panel { position: relative; clip-path: none; width: 100%; height: clamp(240px, 58vw, 360px); border-radius: var(--radius-2xl); margin-top: 1.4rem; }
@@ -501,9 +511,9 @@ body[data-header="2"] .hv9[data-hero-bg="9"] .hv9__panel::after {
    dauerhaft als Basis, hero-mg1/2.png (Bildschirminhalt) blenden
    darüber per Opacity ein/aus. Karten-Inhalt 1:1 wie die aktuelle Lower-Third-Karte
    (heroC2b): Icon + Eyebrow + Titel, kein zusätzlicher Fließtext.
-   EIN Markup (heroV2Stage in marketing.js) für alle 10 Text-
+   EIN Markup (heroV2Stage in marketing.js) für alle 3 Text-
    Varianten — nur Position/Optik der Karte wechselt über
-   [data-v2-text="1".."10"] auf .hv9v2, kein Re-Render nötig.
+   [data-v2-text="1".."3"] auf .hv9v2, kein Re-Render nötig.
    ========================================================= */
 .hv9v2 { position: absolute; inset: 0 0 0 50%; z-index: 0; pointer-events: none; }
 .hv9v2[hidden] { display: none; }
@@ -513,7 +523,10 @@ body[data-header="2"] .hv9[data-hero-bg="9"] .hv9__panel::after {
    der Rest des Mockups je verschwindet oder doppelt aufblitzt. */
 .hv9v2__bg, .hv9v2__photo {
   position: absolute; top: 0; right: 0; z-index: 0;
-  height: 100%; width: auto; min-width: 52vw; aspect-ratio: 1 / 1;
+  /* min(52vw, 84vh) statt reinem 52vw — siehe .hv9__photo weiter oben:
+     verhindert eine flache, zu breite Box auf sehr breiten/kurzen
+     Screens, sobald .container bei max-width greift. */
+  height: 100%; width: auto; min-width: min(52vw, 84vh); aspect-ratio: 1 / 1;
   background-size: contain; background-position: center; background-repeat: no-repeat;
 }
 /* 200ms linear statt --ease-out (steile Decelerate-Kurve, wirkt selbst
@@ -548,71 +561,43 @@ body[data-header="2"] .hv9[data-hero-bg="9"] .hv9__panel::after {
 /* Karte hat per Variante eine feste Standard-Position — Basiswerte
    hier, jede Variante überschreibt nur, was sie ändert. */
 .hv9v2__card { right: 24px; bottom: 24px; background: var(--bg-surface); border: 1px solid var(--line); border-radius: var(--radius-xl); box-shadow: var(--shadow-xl); padding: 18px 20px; }
+/* Fortschrittsstrich (wie heroC2b/.hs-c2 .hs-progress) — nur für v2.3
+   sichtbar, initHeroSlides() steuert ihn generisch (jede Gruppe mit
+   einem .hs-progress-Kind bekommt automatisch den Takt). */
+.hv9v2__card .hs-progress { display: none; }
 
 /* ---- v2.1 · Karte unten: volle Breite als Leiste am Bildfuß ---- */
 .hv9v2[data-v2-text="1"] .hv9v2__card { left: 0; right: 0; bottom: 0; max-width: none; border-radius: var(--radius-xl) var(--radius-xl) 0 0; }
 
-/* ---- v2.2 · Caption zentriert: mittig unter dem Bild ---- */
-.hv9v2[data-v2-text="2"] .hv9v2__card { left: 50%; right: auto; bottom: 20px; transform: translateX(-50%); text-align: center; max-width: min(360px, 70%); }
-.hv9v2[data-v2-text="2"] .hv9v2__nav, .hv9v2[data-v2-text="2"] .hs-dots { justify-content: center; }
-.hv9v2[data-v2-text="2"] .hv9v2__icon { margin-inline: auto; }
+/* ---- v2.2 · Icon-Spotlight: unten rechts, Icon-Badge über dem Titel ---- */
+.hv9v2[data-v2-text="2"] .hv9v2__icon { display: inline-flex; }
 
-/* ---- v2.3 · Sidebar: schmale Karte am linken Bildrand, mittig ---- */
-.hv9v2[data-v2-text="3"] .hv9v2__card { left: 0; right: auto; top: 50%; bottom: auto; transform: translateY(-50%); border-radius: 0 var(--radius-xl) var(--radius-xl) 0; box-shadow: var(--shadow-lg); }
-
-/* ---- v2.4 · Nummern-Rail: oben links, Punkte als vertikale Schiene ---- */
-.hv9v2[data-v2-text="4"] .hv9v2__card { left: 24px; right: auto; top: clamp(7.5rem, 5.5rem + 6vw, 10.5rem); bottom: auto; }
-.hv9v2[data-v2-text="4"] .hv9v2__card { display: flex; gap: 16px; align-items: flex-start; }
-.hv9v2[data-v2-text="4"] .hv9v2__card [data-hs-slide] { flex: 1; }
-.hv9v2[data-v2-text="4"] .hv9v2__nav { order: -1; margin-top: 3px; }
-.hv9v2[data-v2-text="4"] .hs-count, .hv9v2[data-v2-text="4"] .hs-arrows { display: none; }
-.hv9v2[data-v2-text="4"] .hs-dots { flex-direction: column; gap: 14px; border-left: 2px solid var(--line); padding-left: 12px; }
-.hv9v2[data-v2-text="4"] .hs-dots button { width: 9px; height: 9px; }
-
-/* ---- v2.5 · Riesen-Zahl: oben links, blasse Großziffer hinter dem Titel ---- */
-.hv9v2[data-v2-text="5"] .hv9v2__card { left: 24px; right: auto; top: clamp(7.5rem, 5.5rem + 6vw, 10.5rem); bottom: auto; padding-top: 10px; overflow: visible; }
-.hv9v2[data-v2-text="5"] .hv9v2__card [data-hs-slide] { position: relative; }
-.hv9v2[data-v2-text="5"] .hv9v2__card [data-hs-slide]::before {
-  content: attr(data-hs-n); position: absolute; top: -34px; left: -6px; z-index: -1;
-  font-family: var(--font-display); font-weight: 800; font-size: 4.6rem; line-height: 1; color: var(--ink-100);
+/* ---- v2.3 · Lower-Third: Kopie der aktuellen Foto-Karte (heroC2b/
+   hs-c2--bleed) — volle Breite, dunkel, halbtransparent + Blur, Icon
+   und Eyebrow/Titel nebeneinander in einer Zeile, oben ein farbiger
+   Progress-Strich. Einziger Unterschied zum Original: hier NICHT vom
+   Diagonal-Schnitt begradigt, darum oben links abgerundet. ---- */
+.hv9v2[data-v2-text="3"] .hv9v2__card {
+  left: 0; right: 0; bottom: 0; top: auto; max-width: none;
+  display: flex; align-items: center; gap: 14px;
+  background: rgba(14, 16, 19, 0.74);
+  backdrop-filter: blur(12px) saturate(150%); -webkit-backdrop-filter: blur(12px) saturate(150%);
+  border: 0; border-top: 2px solid var(--hs-accent, #fff);
+  border-radius: var(--radius-xl) 0 0 0;
+  box-shadow: none; padding: 14px clamp(18px, 3vw, 32px);
+  overflow: hidden;
 }
-
-/* ---- v2.6 · Pillen-Reiter: Punkte als Text-Pillen oben, Karte darunter ---- */
-.hv9v2[data-v2-text="6"] .hv9v2__card { left: 24px; right: 24px; top: clamp(7.5rem, 5.5rem + 6vw, 10.5rem); bottom: auto; max-width: none; background: none; border: 0; box-shadow: none; padding: 0; }
-.hv9v2[data-v2-text="6"] .hv9v2__nav { order: -1; margin: 0 0 14px; }
-.hv9v2[data-v2-text="6"] .hs-count, .hv9v2[data-v2-text="6"] .hs-arrows { display: none; }
-.hv9v2[data-v2-text="6"] .hs-dots { flex-wrap: wrap; gap: 8px; }
-.hv9v2[data-v2-text="6"] .hs-dots button { width: auto; height: auto; padding: 7px 13px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg-surface); box-shadow: var(--shadow-sm); }
-.hv9v2[data-v2-text="6"] .hs-dots button.is-active { background: var(--ink-950); border-color: var(--ink-950); }
-.hv9v2[data-v2-text="6"] .hs-dot-label { display: inline; font-size: 0.72rem; font-weight: 600; color: var(--ink-600); }
-.hv9v2[data-v2-text="6"] .hs-dots button.is-active .hs-dot-label { color: #fff; }
-.hv9v2[data-v2-text="6"] [data-hs-slide].is-active { background: var(--bg-surface); border: 1px solid var(--line); border-radius: var(--radius-xl); box-shadow: var(--shadow-xl); padding: 16px 18px; }
-
-/* ---- v2.7 · Zitat-Stil: mittig links, großes Anführungszeichen ---- */
-.hv9v2[data-v2-text="7"] .hv9v2__card { left: 24px; right: auto; top: 50%; bottom: auto; transform: translateY(-50%); max-width: min(320px, 50%); }
-.hv9v2[data-v2-text="7"] .hv9v2__card [data-hs-slide].is-active { display: flex; flex-direction: column; }
-.hv9v2[data-v2-text="7"] .hv9v2__card [data-hs-slide]::before {
-  content: "\201C"; display: block; font-family: var(--font-display); font-weight: 700; font-size: 3rem; line-height: 1;
-  color: var(--hs-accent, var(--ink-300)); margin-bottom: -12px;
+.hv9v2[data-v2-text="3"] .hv9v2__card .hs-progress {
+  display: block; position: absolute; left: 0; top: 0; height: 2px; width: 0;
+  background: var(--hs-accent, #fff); animation: hsProgress 5.2s linear infinite;
 }
-.hv9v2[data-v2-text="7"] .hv9v2__title { font-size: clamp(1.3rem, 1rem + 1.2vw, 1.7rem); font-style: italic; }
-.hv9v2[data-v2-text="7"] .hv9v2__eyebrow { order: 2; margin-top: 10px; }
-
-/* ---- v2.8 · Icon-Spotlight: unten rechts, Icon-Badge über dem Titel ---- */
-.hv9v2[data-v2-text="8"] .hv9v2__icon { display: inline-flex; }
-
-/* ---- v2.9 · Editorial-Typo: oben links, sehr große Überschrift ---- */
-.hv9v2[data-v2-text="9"] .hv9v2__card { left: 24px; right: auto; top: clamp(7.5rem, 5.5rem + 6vw, 10.5rem); bottom: auto; max-width: min(320px, 50%); }
-.hv9v2[data-v2-text="9"] .hv9v2__title { font-size: clamp(1.8rem, 1.2rem + 2.4vw, 2.6rem); line-height: 1.05; }
-.hv9v2[data-v2-text="9"] .hv9v2__eyebrow { font-size: 0.72rem; }
-
-/* ---- v2.10 · Chat-Bubble: unten links, Karte als Sprechblase ---- */
-.hv9v2[data-v2-text="10"] .hv9v2__card { left: 24px; right: auto; bottom: 40px; border-radius: 22px; }
-.hv9v2[data-v2-text="10"] .hv9v2__card::after {
-  content: ""; position: absolute; left: 30px; bottom: -10px; width: 18px; height: 18px;
-  background: var(--bg-surface); border-right: 1px solid var(--line); border-bottom: 1px solid var(--line);
-  transform: rotate(45deg);
-}
+@media (prefers-reduced-motion: reduce) { .hv9v2[data-v2-text="3"] .hv9v2__card .hs-progress { animation: none; width: 100%; } }
+.hv9v2[data-v2-text="3"] .hv9v2__card [data-hs-slide] { align-items: center; gap: 12px; flex: 1; min-width: 0; }
+.hv9v2[data-v2-text="3"] .hv9v2__card [data-hs-slide].is-active { display: flex; }
+.hv9v2[data-v2-text="3"] .hv9v2__icon { display: inline-flex; margin-bottom: 0; flex-shrink: 0; background: var(--hs-accent, rgba(255,255,255,0.16)); color: #fff; }
+.hv9v2[data-v2-text="3"] .hv9v2__eyebrow { color: rgba(255,255,255,0.7); font-size: 0.58rem; }
+.hv9v2[data-v2-text="3"] .hv9v2__title { color: #fff; margin: 2px 0 0; font-size: 0.96rem; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hv9v2[data-v2-text="3"] .hv9v2__nav { margin: 0 0 0 auto; flex-shrink: 0; }
 
 @media (max-width: 899px) {
   /* Wie .hv9__panel (v1) auf Mobile: kein Voll-Bleed mehr, normale
@@ -620,6 +605,7 @@ body[data-header="2"] .hv9[data-hero-bg="9"] .hv9__panel::after {
   .hv9[data-hero-bg="9"] .hv9v2 { position: relative; inset: auto; width: 100%; height: clamp(240px, 58vw, 360px); border-radius: var(--radius-2xl); margin-top: 1.4rem; }
   .hv9v2__bg, .hv9v2__photo { inset: 0; top: 0; right: 0; width: 100%; min-width: 0; height: 100%; aspect-ratio: auto; }
   .hv9v2__card { position: static; left: auto !important; right: auto !important; top: auto !important; bottom: auto !important; transform: none !important; margin-top: 14px; max-width: none; }
+  .hv9v2[data-v2-text="3"] .hv9v2__card { margin-top: 0; border-radius: 0 0 var(--radius-2xl) var(--radius-2xl); }
 }
 
 /* =========================================================

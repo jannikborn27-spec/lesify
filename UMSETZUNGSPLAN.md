@@ -670,6 +670,12 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       Server (nicht `file://`) verifiziert: Demo-Log/`data-org-active`
       bleiben bei Idle ohne Scrollen mehrere Sekunden unverändert und
       starten erst nach dem Scrollen zur Section.
+- [x] **Klausurvorbereitung-Demo startete bei Tag 3 statt Tag 1** (2026-09-18):
+      `renderKv` Variante 5 (die final gewählte, fixe Center-Variante) rief
+      `kvlMock()` ohne `active` auf — der Default (`active: 2`) ließ die
+      Demo direkt bei Tag 3 einsteigen, dazu passend nur der dritte Punkt
+      unten hervorgehoben. Jetzt explizit `active: 0` übergeben, Start-Dot
+      entsprechend auf Tag 1 verschoben.
 - [x] **Dev-Panel für zwei offene Layout-Fragen reaktiviert** (2026-09-16,
       `mountLabDev()` wieder in `DOMContentLoaded`, `LAB_SECTIONS`/
       `labSectionApi` um ein `def`-Fallback-Feld erweitert): Rest der

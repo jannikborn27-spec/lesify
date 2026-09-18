@@ -516,11 +516,12 @@ body[data-header="2"] .hv9[data-hero-bg="9"] .hv9__panel::after {
   height: 100%; width: auto; min-width: 52vw; aspect-ratio: 1 / 1;
   background-size: contain; background-position: center; background-repeat: no-repeat;
 }
-/* linear statt --ease-out: --ease-out ist eine steile Decelerate-Kurve
-   (fast fertig nach ~30% der Dauer) — für einen Screen-Crossfade, der
-   wirklich die volle Dauer über sichtbar gleiten soll, lieber eine
-   gleichmäßige Blende. */
-.hv9v2__photo { z-index: 1; opacity: 0; transition: opacity 900ms linear; }
+/* 200ms linear statt --ease-out (steile Decelerate-Kurve, wirkt selbst
+   bei langer Dauer wie ein harter Schnitt) — läuft nacheinander, nicht
+   überlappend: setHeroPhotoV2() in marketing.js nimmt zuerst die
+   is-on-Klasse weg (blendet aus), setzt sie erst NACH diesen 200ms auf
+   dem neuen Screen (blendet ein). */
+.hv9v2__photo { z-index: 1; opacity: 0; transition: opacity 200ms linear; }
 .hv9v2__photo.is-on { opacity: 1; }
 @media (prefers-reduced-motion: reduce) { .hv9v2__photo { transition: none; } }
 .hv9v2__card { position: absolute; z-index: 2; max-width: min(320px, 46vw); pointer-events: auto; }

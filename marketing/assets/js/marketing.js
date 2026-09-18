@@ -700,7 +700,12 @@
      Karten-Folie ein-/ausblenden — welche Gruppe sichtbar ist,
      entscheidet applyHeroStage()/[hidden]. Beide Gruppen bekommen
      denselben Folien-Index, aber unabhängig voneinander (2 getrennte
-     4er-Sets, kein gemeinsamer Modulo-Pool). */
+     4er-Sets, kein gemeinsamer Modulo-Pool).
+     v1 (.hv9__photo) blendet weiterhin gleichzeitig über (Crossfade,
+     ein echtes Foto ersetzt das andere). v2 (.hv9v2__photo) soll wie
+     ein Bildschirm-Wechsel wirken: erst der alte Screen 200ms
+     ausblenden, ERST DANACH der neue 200ms einblenden (nacheinander,
+     nicht überlappend) — siehe setHeroPhotoV2. */
   var heroPhotoGroups = null;
   function setHeroPhoto(i) {
     if (heroPhotoGroups === null) {
@@ -709,11 +714,35 @@
         Array.prototype.slice.call(document.querySelectorAll('.hv9v2__photo'))
       ];
     }
-    heroPhotoGroups.forEach(function (group) {
-      if (!group.length) return;
-      var n = group.length, idx = ((i % n) + n) % n;
-      group.forEach(function (p, pi) { p.classList.toggle('is-on', pi === idx); });
-    });
+    var v1Group = heroPhotoGroups[0];
+    if (v1Group.length) {
+      var n1 = v1Group.length, idx1 = ((i % n1) + n1) % n1;
+      v1Group.forEach(function (p, pi) { p.classList.toggle('is-on', pi === idx1); });
+    }
+    setHeroPhotoV2(i);
+  }
+
+  /* Sequentielles Aus-/Einblenden statt Crossfade: den bisherigen
+     Screen zuerst 200ms ausblenden lassen (CSS-Transition auf
+     .hv9v2__photo, siehe landing-lab.css), ERST NACH Ablauf dieser
+     200ms den neuen Screen einblenden (wieder 200ms) — dazwischen
+     sind kurz alle Screens unsichtbar und nur .hv9v2__bg (der leere,
+     dauerhafte Bildschirm) ist zu sehen. Bricht einen noch laufenden
+     Wechsel sauber ab, falls Folien schneller weiterklicken als der
+     Timer läuft. */
+  var heroV2FadeTimer = null;
+  function setHeroPhotoV2(i) {
+    var group = heroPhotoGroups[1];
+    if (!group.length) return;
+    var n = group.length, idx = ((i % n) + n) % n;
+    var target = group[idx];
+    if (target.classList.contains('is-on')) return;
+    if (heroV2FadeTimer) { clearTimeout(heroV2FadeTimer); heroV2FadeTimer = null; }
+    group.forEach(function (p) { p.classList.remove('is-on'); });
+    heroV2FadeTimer = setTimeout(function () {
+      target.classList.add('is-on');
+      heroV2FadeTimer = null;
+    }, 200);
   }
 
   function initHeroSlides() {

@@ -386,6 +386,23 @@
     window.addEventListener('scroll', onScrollReveal, { passive: true });
   }
 
+  /* ---------- Sichtbarkeits-Gate fuer Auto-Play-Demos ----------
+     Verhindert, dass Chat-/Lernplan-/Org-Demos schon beim Laden der Seite
+     lostippen/-blaettern, bevor die Sektion ueberhaupt sichtbar ist — ruft
+     cb erst auf, wenn el zu >=30% im Viewport ist, dann einmalig. */
+  function onVisible(el, cb) {
+    if (!el) return;
+    if (!('IntersectionObserver' in window)) { cb(); return; }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        io.disconnect();
+        cb();
+      });
+    }, { threshold: 0.3 });
+    io.observe(el);
+  }
+
   /* Reveal für ALLE Sections, nicht nur den Hero: nach jedem (Neu-)Bau
      einer Section markiert dies deren oberste Sinn-Blöcke (direkte
      Kinder von .container) mit [data-reveal] + gestaffeltem
@@ -938,11 +955,13 @@
     if (auto) {
       var fieldEl = box.querySelector('.chat-app__composer input, .chat-demo__input input');
       var timers = [];
+      var visIO = null;
       function at(fn, ms) { var id = setTimeout(fn, ms); timers.push(id); return id; }
       function clearAll() {
         timers.forEach(clearTimeout); timers = [];
         if (typeTimer) { clearTimeout(typeTimer); typeTimer = null; }
         if (pending) { clearTimeout(pending); pending = null; }
+        if (visIO) { visIO.disconnect(); visIO = null; }
       }
       function typeField(text, done) {
         if (!fieldEl || reduce) { if (fieldEl) fieldEl.value = ''; done(); return; }
@@ -967,7 +986,19 @@
           idle(function () { at(function () { playStep(i + 1); }, reduce ? 700 : 1700); });
         });
       }
-      at(function () { playStep(0); }, reduce ? 200 : 700);
+      function startAuto() { at(function () { playStep(0); }, reduce ? 200 : 700); }
+      if ('IntersectionObserver' in window) {
+        visIO = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (!entry.isIntersecting) return;
+            if (visIO) { visIO.disconnect(); visIO = null; }
+            startAuto();
+          });
+        }, { threshold: 0.3 });
+        visIO.observe(box);
+      } else {
+        startAuto();
+      }
       return { run: function () {}, destroy: clearAll };
     }
 
@@ -1772,7 +1803,7 @@
     function start() { if (reduce) return; stop(); kvlTimer = setInterval(function () { if (mock.offsetParent !== null) show(idx + 1); }, 3800); }
     steps.forEach(function (s, si) { s.style.cursor = 'pointer'; s.addEventListener('click', function () { show(si); start(); }); });
     dots.forEach(function (d, di) { d.addEventListener('click', function () { show(di); start(); }); });
-    show(idx); start();
+    show(idx); onVisible(mock, start);
   }
 
   var kvTimer = null;
@@ -1800,7 +1831,7 @@
     steps.forEach(function (s, si) { s.style.cursor = 'pointer'; s.addEventListener('click', function () { show(si); start(); }); });
     host.addEventListener('mouseenter', stop, true);
     host.addEventListener('mouseleave', start, true);
-    show(0); start();
+    show(0); onVisible(mock, start);
   }
 
   /* ---------- Organisation (org) — Fach → Thema → Datei ----------
@@ -2274,7 +2305,7 @@
     navs.forEach(function (el) { el.style.cursor = 'pointer'; el.addEventListener('click', function () { show(+el.getAttribute('data-org-nav')); start(); }); });
     dots.forEach(function (d, di) { d.addEventListener('click', function () { show(di); start(); }); });
     points.forEach(function (p, pi) { p.style.cursor = 'pointer'; p.addEventListener('click', function () { show(pi); start(); }); });
-    show(idx); start();
+    show(idx); onVisible(demo, start);
   }
 
   /* ---------- Vergleich zu Nachhilfe (cmp) ---------- */

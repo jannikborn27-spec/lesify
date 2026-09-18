@@ -271,7 +271,11 @@ h1 em::after { content: ""; position: absolute; left: -2px; right: -2px; bottom:
 /* Label-Text in den Punkten — nur sichtbar, wenn eine Design-Variante
    die Punkte als Pillen/Tabs mit Text zeigt (z. B. Hero-Stage v2.6). */
 .hs-dot-label { display: none; }
-.hs-arrow { width: 30px; height: 30px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.24); background: rgba(255,255,255,0.12); color: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 160ms var(--ease-out), border-color 160ms var(--ease-out); }
+/* inline-flex statt flex: .hs-arrow ist ein <button> ohne flexenden
+   Elternteil an manchen Stellen (z. B. .hs-arrows-<span>) — als
+   block-level flex-Container bricht jeder Pfeil auf eine eigene Zeile
+   um (Chevrons standen übereinander statt nebeneinander). */
+.hs-arrow { width: 30px; height: 30px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.24); background: rgba(255,255,255,0.12); color: #fff; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 160ms var(--ease-out), border-color 160ms var(--ease-out); }
 .hs-arrow svg { width: 14px; height: 14px; }
 .hs-arrow:hover { background: rgba(255,255,255,0.26); border-color: rgba(255,255,255,0.5); }
 .hs-ico { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; }
@@ -614,30 +618,39 @@ body[data-header="2"] .hv9[data-hero-bg="9"] .hv9__panel::after {
 .hv9v2[data-v2-text="3"] .hs-arrow, .hv9v2[data-v2-text="4"] .hs-arrow { border: 1px solid rgba(255,255,255,0.24); background: rgba(255,255,255,0.12); color: #fff; box-shadow: none; }
 .hv9v2[data-v2-text="3"] .hs-arrow:hover, .hv9v2[data-v2-text="4"] .hs-arrow:hover { background: rgba(255,255,255,0.26); border-color: rgba(255,255,255,0.5); }
 
-/* ---- v2.4 · Karte unten (dunkel): wie v2.1 (volle Breite, beide
-   oberen Ecken rund), aber in der dunklen Blur-Farbwelt von v2.3 +
-   Lesify-Logo-Badge oben (statt Feature-Icon). ---- */
+/* ---- v2.4 · Lower-Third (dunkel + Logo): inhaltlich wie v1/v2.3 —
+   Feature-Icon + Eyebrow/Titel nebeneinander in einer Zeile, ändert
+   sich also mit dem Inhalt der Folie —, aber wie v2.1 mit BEIDEN
+   oberen Ecken rund (nicht nur oben links) + Lesify-Logo als kleine
+   Wasserzeichen-Marke oben rechts in der Leiste. ---- */
 .hv9v2[data-v2-text="4"] .hv9v2__card {
-  left: 0; right: 0; bottom: 0; max-width: none;
+  left: 0; right: 0; bottom: 0; top: auto; max-width: none;
+  display: flex; align-items: center; gap: 14px;
   background: rgba(14, 16, 19, 0.74);
   backdrop-filter: blur(12px) saturate(150%); -webkit-backdrop-filter: blur(12px) saturate(150%);
   border: 0; border-top: 2px solid var(--hs-accent, #fff);
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-  box-shadow: none; overflow: hidden;
+  box-shadow: none; padding: 14px clamp(18px, 3vw, 32px);
+  overflow: hidden;
 }
 .hv9v2[data-v2-text="4"] .hv9v2__card .hs-progress {
   display: block; position: absolute; left: 0; top: 0; height: 2px; width: 0;
   background: var(--hs-accent, #fff); animation: hsProgress 5.2s linear infinite;
 }
 @media (prefers-reduced-motion: reduce) { .hv9v2[data-v2-text="4"] .hv9v2__card .hs-progress { animation: none; width: 100%; } }
-.hv9v2[data-v2-text="4"] .hv9v2__eyebrow { color: rgba(255,255,255,0.7); }
-.hv9v2[data-v2-text="4"] .hv9v2__title { color: #fff; }
+.hv9v2[data-v2-text="4"] .hv9v2__card [data-hs-slide] { align-items: center; gap: 12px; flex: 1; min-width: 0; }
+.hv9v2[data-v2-text="4"] .hv9v2__card [data-hs-slide].is-active { display: flex; }
+.hv9v2[data-v2-text="4"] .hv9v2__icon { display: inline-flex; margin-bottom: 0; flex-shrink: 0; background: rgba(255,255,255,0.16); color: #fff; }
+.hv9v2[data-v2-text="4"] .hv9v2__eyebrow { color: rgba(255,255,255,0.7); font-size: 0.58rem; }
+.hv9v2[data-v2-text="4"] .hv9v2__title { color: #fff; margin: 2px 0 0; font-size: 0.96rem; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hv9v2[data-v2-text="4"] .hv9v2__nav { margin: 0 0 0 auto; flex-shrink: 0; }
 .hv9v2[data-v2-text="4"] .hv9v2__logo {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 30px; height: 30px; border-radius: 9px; margin-bottom: 10px;
-  background: rgba(255,255,255,0.14); color: #fff;
+  position: absolute; top: 10px; right: clamp(18px, 3vw, 32px);
+  width: 20px; height: 20px; border-radius: 6px;
+  background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.85);
 }
-.hv9v2[data-v2-text="4"] .hv9v2__logo svg { width: 17px; height: 17px; }
+.hv9v2[data-v2-text="4"] .hv9v2__logo svg { width: 12px; height: 12px; }
 
 @media (max-width: 899px) {
   /* Wie .hv9__panel (v1) auf Mobile: kein Voll-Bleed mehr, normale

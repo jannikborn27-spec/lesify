@@ -511,9 +511,9 @@ body[data-header="2"] .hv9[data-hero-bg="9"] .hv9__panel::after {
    dauerhaft als Basis, hero-mg1/2.png (Bildschirminhalt) blenden
    darüber per Opacity ein/aus. Karten-Inhalt 1:1 wie die aktuelle Lower-Third-Karte
    (heroC2b): Icon + Eyebrow + Titel, kein zusätzlicher Fließtext.
-   EIN Markup (heroV2Stage in marketing.js) für alle 3 Text-
+   EIN Markup (heroV2Stage in marketing.js) für alle 4 Text-
    Varianten — nur Position/Optik der Karte wechselt über
-   [data-v2-text="1".."3"] auf .hv9v2, kein Re-Render nötig.
+   [data-v2-text="1".."4"] auf .hv9v2, kein Re-Render nötig.
    ========================================================= */
 .hv9v2 { position: absolute; inset: 0 0 0 50%; z-index: 0; pointer-events: none; }
 .hv9v2[hidden] { display: none; }
@@ -546,6 +546,9 @@ body[data-header="2"] .hv9[data-hero-bg="9"] .hv9__panel::after {
   align-items: center; justify-content: center; margin-bottom: 10px;
 }
 .hv9v2__icon svg { width: 18px; height: 18px; }
+/* Lesify-Logo-Badge (LOGO_MARK) — nur für v2.4 sichtbar, sonst wie
+   .hv9v2__icon ausgeblendet. */
+.hv9v2__logo { display: none; }
 .hv9v2__eyebrow { display: block; font-size: 0.64rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--hs-accent, var(--ink-500)); }
 .hv9v2__title { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.2rem, 1rem + 0.9vw, 1.5rem); line-height: 1.18; letter-spacing: -0.02em; margin: 8px 0 0; color: var(--ink-950); }
 .hv9v2__nav { margin-top: 14px; }
@@ -598,6 +601,43 @@ body[data-header="2"] .hv9[data-hero-bg="9"] .hv9__panel::after {
 .hv9v2[data-v2-text="3"] .hv9v2__eyebrow { color: rgba(255,255,255,0.7); font-size: 0.58rem; }
 .hv9v2[data-v2-text="3"] .hv9v2__title { color: #fff; margin: 2px 0 0; font-size: 0.96rem; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .hv9v2[data-v2-text="3"] .hv9v2__nav { margin: 0 0 0 auto; flex-shrink: 0; }
+
+/* .hs-count/.hs-dots/.hs-arrow sind (siehe oben) für den weißen v2-
+   Hintergrund auf dunkel umgestellt — v2.3/v2.4 sitzen selbst auf
+   dunklem Blur-Glas und brauchen die ursprüngliche helle Optik
+   (wie .hs-c2/.hs-c3 im Foto-Design v1) zurück. */
+.hv9v2[data-v2-text="3"] .hs-dots button, .hv9v2[data-v2-text="4"] .hs-dots button { background: rgba(255,255,255,0.34); }
+.hv9v2[data-v2-text="3"] .hs-dots button.is-active, .hv9v2[data-v2-text="4"] .hs-dots button.is-active { background: #fff; }
+.hv9v2[data-v2-text="3"] .hs-dots button:hover, .hv9v2[data-v2-text="4"] .hs-dots button:hover { background: rgba(255,255,255,0.65); }
+.hv9v2[data-v2-text="3"] .hs-count, .hv9v2[data-v2-text="4"] .hs-count { color: rgba(255,255,255,0.65); }
+.hv9v2[data-v2-text="3"] .hs-count b, .hv9v2[data-v2-text="4"] .hs-count b { color: #fff; }
+.hv9v2[data-v2-text="3"] .hs-arrow, .hv9v2[data-v2-text="4"] .hs-arrow { border: 1px solid rgba(255,255,255,0.24); background: rgba(255,255,255,0.12); color: #fff; box-shadow: none; }
+.hv9v2[data-v2-text="3"] .hs-arrow:hover, .hv9v2[data-v2-text="4"] .hs-arrow:hover { background: rgba(255,255,255,0.26); border-color: rgba(255,255,255,0.5); }
+
+/* ---- v2.4 · Karte unten (dunkel): wie v2.1 (volle Breite, beide
+   oberen Ecken rund), aber in der dunklen Blur-Farbwelt von v2.3 +
+   Lesify-Logo-Badge oben (statt Feature-Icon). ---- */
+.hv9v2[data-v2-text="4"] .hv9v2__card {
+  left: 0; right: 0; bottom: 0; max-width: none;
+  background: rgba(14, 16, 19, 0.74);
+  backdrop-filter: blur(12px) saturate(150%); -webkit-backdrop-filter: blur(12px) saturate(150%);
+  border: 0; border-top: 2px solid var(--hs-accent, #fff);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  box-shadow: none; overflow: hidden;
+}
+.hv9v2[data-v2-text="4"] .hv9v2__card .hs-progress {
+  display: block; position: absolute; left: 0; top: 0; height: 2px; width: 0;
+  background: var(--hs-accent, #fff); animation: hsProgress 5.2s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) { .hv9v2[data-v2-text="4"] .hv9v2__card .hs-progress { animation: none; width: 100%; } }
+.hv9v2[data-v2-text="4"] .hv9v2__eyebrow { color: rgba(255,255,255,0.7); }
+.hv9v2[data-v2-text="4"] .hv9v2__title { color: #fff; }
+.hv9v2[data-v2-text="4"] .hv9v2__logo {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; border-radius: 9px; margin-bottom: 10px;
+  background: rgba(255,255,255,0.14); color: #fff;
+}
+.hv9v2[data-v2-text="4"] .hv9v2__logo svg { width: 17px; height: 17px; }
 
 @media (max-width: 899px) {
   /* Wie .hv9__panel (v1) auf Mobile: kein Voll-Bleed mehr, normale

@@ -656,6 +656,20 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       anstehende Klausur. Alle drei Themen-Karten (Gedichtanalyse,
       Erörterung, Satzglieder) haben jetzt einheitlich die hervorgehobene
       `is-on`-Optik statt nur der ersten.
+- [x] **Auto-Play-Demos liefen schon vor dem Sichtbarwerden los** (2026-09-18):
+      Chat-Live-Demo (`#chat`, `data-chat-auto`), Lernplan-Demos
+      (`kvlInit`/`kvInit`) und Org-Demo (`orgInit`) starteten ihren
+      `setTimeout`/`setInterval`-Ablauf sofort beim Bau der Section
+      (`buildLabSections()`/`buildChatSection()` laufen einmalig beim
+      Laden) — unabhängig vom Scroll-Stand. Wer erst später zur Section
+      scrollte, sah die Demo schon mehrere Schritte durchgelaufen. Neuer
+      Helper `onVisible(el, cb)` (IntersectionObserver, Schwelle 30 %) in
+      `marketing.js` gated jetzt den jeweils ersten `start()`-Aufruf auf
+      den Moment, in dem die Section tatsächlich in den Viewport kommt;
+      danach laufen die Intervalle wie bisher weiter. Lokal gegen einen
+      Server (nicht `file://`) verifiziert: Demo-Log/`data-org-active`
+      bleiben bei Idle ohne Scrollen mehrere Sekunden unverändert und
+      starten erst nach dem Scrollen zur Section.
 - [x] **Dev-Panel für zwei offene Layout-Fragen reaktiviert** (2026-09-16,
       `mountLabDev()` wieder in `DOMContentLoaded`, `LAB_SECTIONS`/
       `labSectionApi` um ein `def`-Fallback-Feld erweitert): Rest der

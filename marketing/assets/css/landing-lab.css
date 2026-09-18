@@ -12,7 +12,7 @@
 
 .lab-head { max-width: 760px; margin-bottom: clamp(2.2rem, 1.4rem + 3vw, 4rem); }
 .lab-head.is-center { margin-inline: auto; text-align: center; }
-.lab-head h2 { font-size: clamp(1.9rem, 1.35rem + 2.6vw, 3rem); margin-top: 0.6rem; }
+.lab-head h1, .lab-head h2 { font-size: clamp(1.9rem, 1.35rem + 2.6vw, 3rem); margin-top: 0.6rem; }
 .lab-head p { margin-top: 1rem; font-size: 1.05rem; color: var(--ink-600); line-height: 1.6; }
 .lab-head.is-center .eyebrow::before { display: none; }
 
@@ -2260,7 +2260,7 @@ body[data-page="ueber-uns"] .site-footer::before {
    sind eigene Paletten zur Auswahl. */
 body[data-page="preise"] #price-section .eyebrow { color: rgba(255,255,255,0.6); }
 body[data-page="preise"] #price-section .eyebrow::before { background: rgba(255,255,255,0.4); }
-body[data-page="preise"] #price-section h2 { color: var(--paper); }
+body[data-page="preise"] #price-section h1, body[data-page="preise"] #price-section h2 { color: var(--paper); }
 body[data-page="preise"] #price-section .lab-head p { color: rgba(255,255,255,0.7); }
 /* Stimmen-Sektion (Avatar-Reihe + Zitat) jetzt auch hier sichtbar (bis
    2026-09-17 ausgeblendet, um die Viewport-Höhe zu sparen — siehe
@@ -2446,7 +2446,7 @@ body[data-page="preise"][data-price-color="7"] .pricepage { background: var(--pa
 body[data-page="preise"][data-price-color="7"] .pricepage::before { display: none; }
 body[data-page="preise"][data-price-color="7"] #price-section .eyebrow { color: var(--ink-600); }
 body[data-page="preise"][data-price-color="7"] #price-section .eyebrow::before { background: var(--ink-400); }
-body[data-page="preise"][data-price-color="7"] #price-section h2 { color: var(--ink-950); }
+body[data-page="preise"][data-price-color="7"] #price-section h1, body[data-page="preise"][data-price-color="7"] #price-section h2 { color: var(--ink-950); }
 body[data-page="preise"][data-price-color="7"] #price-section .lab-head p { color: var(--ink-600); }
 body[data-page="preise"][data-price-color="7"] #price-section .price-toggle { background: var(--ink-100); }
 body[data-page="preise"][data-price-color="7"] #price-section .price-toggle button { color: var(--ink-600); }

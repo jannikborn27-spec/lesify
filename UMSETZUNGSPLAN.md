@@ -890,6 +890,19 @@ Blockiert alles Weitere. Erst die offenen Produktfragen klären, dann bauen.
       entfernt. _Offen:_ Job `inhalte-aufbewahrung` (löscht nach 365 Tagen) passt
       nicht mehr zum Text; Preis-/Rabatt-Überarbeitung (−20 %) und
       Nutzerzahlen-Claims folgen separat.
+- [x] **SEO-Durchgang (2026-09-18):** `robots.txt` + `sitemap.xml` (4 indexierbare
+      URLs), `rel=canonical` auf `https://www.lesify.de/…`, OG-/Twitter-Tags mit
+      `og-image.jpg` (1200×630), neue Titles/Metas (≤60 / 120–160 Zeichen),
+      `noindex` für `/app/*` (alle 20 Seiten) und Auth-Seiten (Login, Registrieren,
+      Passwort-, E-Mail-Bestätigung), H1 auf `/preise/`, statischer Text-Fallback
+      für Startseite/Preise (JS ersetzt ihn), JSON-LD: Organization, WebSite,
+      FAQPage, SoftwareApplication+Offer, AboutPage/Person, ContactPage,
+      BreadcrumbList. **Pflege:** FAQ-/Preis-Texte stehen jetzt zusätzlich in
+      `index.html`/`preise/index.html` (Fallback + JSON-LD) — bei Änderungen in
+      `marketing.js` mitziehen. _Offen:_ Google-Fonts self-hosten (DSGVO/LCP),
+      Hero-Bilder (CSS-Background) ohne Alt/Preload, Hero-`<h3>` vor dem H1,
+      Search-Console-Einreichung der Sitemap, echte Bewertungen statt Demo-Zitate
+      (dann erst `Review`-Schema).
 - [x] **Getroffene Entscheidungen (Stand 2026-09-03)** — in `backend-planning.md`
       §8 abgehakt und in die betroffenen Abschnitte eingearbeitet:
   - [x] **Limit-Werte je Tarif:** bestätigt, Werte in `stripe-config.js` sind korrekt.

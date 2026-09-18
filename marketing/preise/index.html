@@ -23,13 +23,73 @@
 <link rel="icon" href="/assets/img/logo.png">
 <link rel="stylesheet" href="/assets/css/marketing.css">
 <link rel="stylesheet" href="/assets/css/landing-lab.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "SoftwareApplication",
+      "name": "Lesify",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "Web",
+      "inLanguage": "de-DE",
+      "offers": [
+        {
+          "@type": "Offer",
+          "name": "Lesify Starter",
+          "description": "Der Einstieg für ein Fach. 14 Tage kostenlos testen, danach monatlich kündbar.",
+          "price": "15.99",
+          "priceCurrency": "EUR",
+          "url": "https://www.lesify.de/checkout/?plan=starter&interval=monthly",
+          "availability": "https://schema.org/InStock"
+        },
+        {
+          "@type": "Offer",
+          "name": "Lesify Premium",
+          "description": "Für ein Schuljahr mit Plan. 14 Tage kostenlos testen, danach monatlich kündbar.",
+          "price": "19.99",
+          "priceCurrency": "EUR",
+          "url": "https://www.lesify.de/checkout/?plan=premium&interval=monthly",
+          "availability": "https://schema.org/InStock"
+        },
+        {
+          "@type": "Offer",
+          "name": "Lesify Infinite",
+          "description": "Kein Nachdenken über Kontingente. 14 Tage kostenlos testen, danach monatlich kündbar.",
+          "price": "35.99",
+          "priceCurrency": "EUR",
+          "url": "https://www.lesify.de/checkout/?plan=infinite&interval=monthly",
+          "availability": "https://schema.org/InStock"
+        }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Startseite",
+          "item": "https://www.lesify.de/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Preise",
+          "item": "https://www.lesify.de/preise/"
+        }
+      ]
+    }
+  ]
+}
+</script>
 </head>
 <body data-page="preise">
 <header id="mkt-nav"></header>
 
 <main class="pricepage">
   <div class="pricepage__inner">
-    <div id="price-section"></div>
+    <div id="price-section"><h1>Monatlich kündbar, 14 Tage kostenlos testen.</h1><p>14 Tage kostenlos testen, danach automatisch der gewählte Tarif. Monatlich kündbar. Aktuell −20 % zum Schuljahresstart. Für Geschwister: Familien-Pakete mit Sitzen für 2 bis 4 Kinder.</p><ul><li><strong>Starter</strong> – Der Einstieg für ein Fach. ab 15,99 € im Monat</li><li><strong>Premium</strong> – Für ein Schuljahr mit Plan. ab 19,99 € im Monat</li><li><strong>Infinite</strong> – Kein Nachdenken über Kontingente. ab 35,99 € im Monat</li></ul></div>
   </div>
 </main>
 

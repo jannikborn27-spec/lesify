@@ -2560,6 +2560,7 @@
      Normalpreis), `y`/`yWas` = Jahresabo umgerechnet auf den Monat (Angebot/
      Normalpreis) — bei „Jährlich" zeigt die Karte immer den Monatsbetrag,
      nie die Jahressumme. */
+  /* SEO: Tarifnamen/Preise auch als statischer Fallback + Offer-JSON-LD in preise/index.html und index.html — mitziehen. */
   var PRICE = {
     eb: 'Preise',
     h: 'Monatlich kündbar, 14 Tage kostenlos testen.',
@@ -2662,6 +2663,11 @@
   }
   function renderPrice(v) {
     var head = lh(PRICE.eb, PRICE.h, PRICE.lead), headC = lh(PRICE.eb, PRICE.h, PRICE.lead, true);
+    /* SEO: auf /preise/ ist die Überschrift der einzige H1 (index.html hat einen eigenen). */
+    if (document.body.getAttribute('data-page') === 'preise') {
+      head = head.replace('<h2>', '<h1>').replace('</h2>', '</h1>');
+      headC = headC.replace('<h2>', '<h1>').replace('</h2>', '</h1>');
+    }
     var cards = PRICE.plans.map(function (p) { return priceCard(p); }).join('');
 
     if (v === '2') return lw('price', v, '<div class="container">' + headC + priceControls() +
@@ -2941,6 +2947,7 @@
   }
 
   /* ---------- FAQ (faq) ---------- */
+  /* SEO: FAQ-Texte stehen zusätzlich als statischer Fallback + FAQPage-JSON-LD in index.html — bei Änderungen dort mitziehen. */
   var FAQ = {
     eb: 'Häufige Fragen',
     h: 'Was Eltern vor dem Start wissen wollen.',

@@ -301,7 +301,8 @@ h1 em::after { content: ""; position: absolute; left: -2px; right: -2px; bottom:
 /* ---- Design 1 · Editorial ---------------------------------------------- */
 .hs-c1 { width: min(360px, 100%); background: var(--bg-surface); border: 1px solid var(--line); border-radius: var(--radius-xl); box-shadow: var(--shadow-xl); padding: 22px 24px; }
 .hs-c1 .hs-eyebrow { color: var(--hs-accent, var(--ink-500)); }
-.hs-c1 h3 { font-family: var(--font-display); font-weight: 700; font-size: 1.32rem; line-height: 1.14; letter-spacing: -0.025em; margin: 10px 0 8px; color: var(--ink-950); }
+.hs-h { display: block; font-family: var(--font-display); font-weight: 600; letter-spacing: -0.03em; line-height: 1.08; margin: 0; color: var(--ink-950); text-wrap: balance; }
+.hs-c1 .hs-h { font-family: var(--font-display); font-weight: 700; font-size: 1.32rem; line-height: 1.14; letter-spacing: -0.025em; margin: 10px 0 8px; color: var(--ink-950); }
 .hs-c1 p { font-size: 0.85rem; line-height: 1.55; color: var(--ink-600); margin: 0; }
 .hs-c1 .hs-arrow { border-color: var(--line); background: var(--bg-surface); color: var(--ink-600); box-shadow: var(--shadow-sm); }
 .hs-c1 .hs-arrow:hover { border-color: var(--ink-400); color: var(--ink-950); background: var(--paper); }
@@ -321,13 +322,13 @@ h1 em::after { content: ""; position: absolute; left: -2px; right: -2px; bottom:
 .hs-c2 .hs-ico { width: 30px; height: 30px; border-radius: var(--radius-sm); background: var(--hs-accent, rgba(255,255,255,0.16)); color: #fff; }
 .hs-c2 .hs-txt { min-width: 0; }
 .hs-c2 .hs-eyebrow { font-size: 0.58rem; letter-spacing: 0.14em; color: rgba(255,255,255,0.7); }
-.hs-c2 h3 { font-size: 0.96rem; margin: 2px 0 0; color: #fff; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hs-c2 .hs-h { font-size: 0.96rem; margin: 2px 0 0; color: #fff; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .hs-c2 .hs-nav { margin: 0 0 0 auto; }
 
 /* ---- Design 3 · Bare (kein Karten-Hintergrund) --------------------------- */
 .hs-c3 { width: min(400px, 100%); }
 .hs-c3 .hs-eyebrow { color: rgba(255,255,255,0.72); }
-.hs-c3 h3 { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.5rem, 1.1rem + 1.4vw, 2rem); line-height: 1.08; letter-spacing: -0.03em; margin: 12px 0 10px; color: #fff; text-shadow: 0 2px 20px rgba(16,18,20,0.4); }
+.hs-c3 .hs-h { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.5rem, 1.1rem + 1.4vw, 2rem); line-height: 1.08; letter-spacing: -0.03em; margin: 12px 0 10px; color: #fff; text-shadow: 0 2px 20px rgba(16,18,20,0.4); }
 .hs-c3 p { font-size: 0.9rem; line-height: 1.55; color: rgba(255,255,255,0.82); margin: 0; max-width: 34ch; }
 .hs-c3 .hs-count { font-family: var(--font-mono); font-size: 0.76rem; color: rgba(255,255,255,0.65); }
 .hs-c3 .hs-count b { color: #fff; }
@@ -353,7 +354,7 @@ h1 em::after { content: ""; position: absolute; left: -2px; right: -2px; bottom:
 .hs-c3--clean [data-hs-slide] { position: absolute; inset: 0 0 46px; display: block !important; opacity: 0; transform: translateY(10px); pointer-events: none; transition: opacity 480ms var(--ease-out), transform 480ms var(--ease-out); }
 .hs-c3--clean [data-hs-slide].is-active { opacity: 1; transform: none; pointer-events: auto; }
 .hs-c3--clean .hs-nav { position: absolute; left: 0; right: 0; bottom: 0; margin: 0; }
-.hs-c3--clean h3 { font-size: clamp(1.4rem, 1.05rem + 1.1vw, 1.8rem); }
+.hs-c3--clean .hs-h { font-size: clamp(1.4rem, 1.05rem + 1.1vw, 1.8rem); }
 @media (prefers-reduced-motion: reduce) {
   .hs-c3--clean [data-hs-slide] { transition: none; }
 }
@@ -361,7 +362,7 @@ h1 em::after { content: ""; position: absolute; left: -2px; right: -2px; bottom:
 /* ---- Design 4 · Accent-Flood ------------------------------------------------ */
 .hs-c4 { width: min(360px, 100%); border-radius: var(--radius-xl); padding: 22px 24px; color: #fff; background: var(--hs-accent, var(--ink-800)); box-shadow: var(--shadow-xl); transition: background 420ms var(--ease-out); }
 .hs-c4 .hs-ico { width: 38px; height: 38px; border-radius: 50%; background: rgba(255,255,255,0.2); color: #fff; margin-bottom: 12px; }
-.hs-c4 h3 { font-family: var(--font-display); font-weight: 700; font-size: 1.32rem; line-height: 1.14; letter-spacing: -0.02em; margin: 0 0 8px; color: #fff; }
+.hs-c4 .hs-h { font-family: var(--font-display); font-weight: 700; font-size: 1.32rem; line-height: 1.14; letter-spacing: -0.02em; margin: 0 0 8px; color: #fff; }
 .hs-c4 p { font-size: 0.85rem; line-height: 1.55; color: rgba(255,255,255,0.9); margin: 0; }
 .hs-c4 .hs-arrow { background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.3); }
 .hs-c4 .hs-dots button { background: rgba(255,255,255,0.45); }
@@ -372,14 +373,14 @@ h1 em::after { content: ""; position: absolute; left: -2px; right: -2px; bottom:
 .hs-c5 [data-hs-slide].is-active { display: flex; gap: 12px; }
 .hs-c5 .hs-ico { width: 34px; height: 34px; border-radius: var(--radius-md); background: rgba(255,255,255,0.16); color: #fff; }
 .hs-c5 .hs-c5__txt { min-width: 0; }
-.hs-c5 h3 { font-size: 1rem; margin: 0 0 4px; color: #fff; letter-spacing: -0.01em; }
+.hs-c5 .hs-h { font-size: 1rem; margin: 0 0 4px; color: #fff; letter-spacing: -0.01em; }
 .hs-c5 p { font-size: 0.82rem; line-height: 1.5; color: rgba(255,255,255,0.75); margin: 0; }
 .hs-c5 .hs-nav { margin-top: 16px; }
 
 /* ---- Design 6 · Flat: Accent-Flood-Aufbau, ohne Fach-Farbe ------------- */
 .hs-c6 { width: min(360px, 100%); border-radius: var(--radius-xl); padding: 22px 24px; color: var(--paper); background: var(--ink-950); box-shadow: var(--shadow-xl); }
 .hs-c6 .hs-ico { width: 38px; height: 38px; border-radius: 50%; background: rgba(255,255,255,0.14); color: var(--paper); margin-bottom: 12px; }
-.hs-c6 h3 { font-family: var(--font-display); font-weight: 700; font-size: 1.32rem; line-height: 1.14; letter-spacing: -0.02em; margin: 0 0 8px; color: var(--paper); }
+.hs-c6 .hs-h { font-family: var(--font-display); font-weight: 700; font-size: 1.32rem; line-height: 1.14; letter-spacing: -0.02em; margin: 0 0 8px; color: var(--paper); }
 .hs-c6 p { font-size: 0.85rem; line-height: 1.55; color: rgba(255,255,255,0.72); margin: 0; }
 .hs-c6 .hs-arrow { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.24); }
 .hs-c6 .hs-dots button { background: rgba(255,255,255,0.4); }
@@ -395,7 +396,7 @@ h1 em::after { content: ""; position: absolute; left: -2px; right: -2px; bottom:
 .hs-c7 .hs-photo .hs-ico { width: 46px; height: 46px; border-radius: var(--radius-md); background: var(--ink-950); color: var(--paper); }
 .hs-c7 .hs-photo .hs-ico svg { width: 22px; height: 22px; }
 .hs-c7 .hs-cap { display: block; padding: 12px 6px 2px; }
-.hs-c7 h3 { font-family: var(--font-display); font-weight: 700; font-size: 1.04rem; line-height: 1.16; letter-spacing: -0.02em; margin: 0 0 5px; color: var(--ink-950); }
+.hs-c7 .hs-h { font-family: var(--font-display); font-weight: 700; font-size: 1.04rem; line-height: 1.16; letter-spacing: -0.02em; margin: 0 0 5px; color: var(--ink-950); }
 .hs-c7 p { font-size: 0.78rem; line-height: 1.5; color: var(--ink-600); margin: 0; }
 .hs-c7 .hs-nav { margin-top: 12px; justify-content: center; }
 .hs-c7 .hs-arrow { width: 28px; height: 28px; border-color: var(--line); background: #fff; color: var(--ink-600); box-shadow: var(--shadow-sm); }

@@ -592,7 +592,7 @@
     return hsWrap('2', '<div class="hs-card hs-c2"><span class="hs-progress"></span><div class="hs-row">' +
       hsMap(function (f) {
         return '<div ' + hsAttrs(f) + '><span class="hs-ico">' + f.icon + '</span>' +
-          '<span class="hs-txt"><span class="hs-eyebrow">' + f.label + '</span><h3>' + f.title + '</h3></span></div>';
+          '<span class="hs-txt"><span class="hs-eyebrow">' + f.label + '</span><div class="hs-h">' + f.title + '</div></span></div>';
       }) + '<div class="hs-nav">' + arrowBtns() + '</div></div></div>');
   }
 
@@ -603,7 +603,7 @@
     return hsWrap('2b', '<div class="hs-card hs-c2 hs-c2--bleed"><span class="hs-progress"></span><div class="hs-row">' +
       hsMap(function (f, i) {
         return '<div ' + hsAttrs(f) + '><span class="hs-ico">' + f.icon + '</span>' +
-          '<span class="hs-txt"><span class="hs-eyebrow">' + pad(i) + ' · ' + f.label + '</span><h3>' + f.title + '</h3></span></div>';
+          '<span class="hs-txt"><span class="hs-eyebrow">' + pad(i) + ' · ' + f.label + '</span><div class="hs-h">' + f.title + '</div></span></div>';
       }) + '<div class="hs-dots" data-hs-dots></div>' +
       '<div class="hs-nav">' + arrowBtns() + '</div></div></div>');
   }
@@ -612,7 +612,7 @@
   function heroC3() {
     return hsWrap('3', '<div class="hs-card hs-c3">' + hsMap(function (f, i) {
       return '<div ' + hsAttrs(f) + '><span class="hs-eyebrow">' + pad(i) + ' — ' + f.label + '</span>' +
-        '<h3>' + f.title + '</h3><p>' + f.desc + '</p></div>';
+        '<div class="hs-h">' + f.title + '</div><p>' + f.desc + '</p></div>';
     }) + '<div class="hs-nav hs-nav--between"><span class="hs-count"><b data-hs-count>01</b> / ' + pad(HERO_FEATURES.length - 1) + '</span>' +
       '<span class="hs-arrows">' + arrowBtns() + '</span></div></div>');
   }
@@ -622,7 +622,7 @@
   function heroC3b() {
     return hsWrap('3b', '<div class="hs-card hs-c3 hs-c3--clean">' + hsMap(function (f, i) {
       return '<div ' + hsAttrs(f) + '><span class="hs-eyebrow">' + pad(i) + ' — ' + f.label + '</span>' +
-        '<h3>' + f.title + '</h3><p>' + f.desc + '</p></div>';
+        '<div class="hs-h">' + f.title + '</div><p>' + f.desc + '</p></div>';
     }) + '<div class="hs-nav hs-nav--between"><div class="hs-dots" data-hs-dots></div>' +
       '<span class="hs-arrows">' + arrowBtns() + '</span></div></div>');
   }
@@ -671,7 +671,7 @@
     return '<div data-hs-slide data-hs-label="' + f.label + '" data-hs-accent="' + f.accent + '" data-hs-n="' + pad(i) + '">' +
       '<span class="hv9v2__icon">' + f.icon + '</span>' +
       '<span class="hv9v2__eyebrow">' + pad(i) + ' — ' + f.label + '</span>' +
-      '<h3 class="hv9v2__title">' + f.title + '</h3>' +
+      '<div class="hv9v2__title">' + f.title + '</div>' +
     '</div>';
   }
   function heroV2Stage() {
@@ -2535,7 +2535,7 @@
 
     if (v === '2') return lw('subj', v, '<div class="container">' + headC +
       '<div class="subj-grid subj-grid--big">' + SUBJ_LIST.map(function (s) {
-        return '<article class="subj-card subj-card--big" style="--t:' + s.t + '"><span class="subj-card__ico">' + s.i + '</span><b>' + s.n + '</b><span class="subj-card__sub">8. &amp; 9. Klasse</span></article>';
+        return '<article class="subj-card subj-card--big" style="--t:' + s.t + '"><span class="subj-card__ico">' + s.i + '</span><b>' + s.n + '</b><span class="subj-card__sub">ab Klasse 5</span></article>';
       }).join('') + subjCustomCard() + '</div>' + subjMeta() + '</div>');
     if (v === '3') return lw('subj', v, '<div class="container">' + head +
       '<div class="subj-bento">' + subjCard(SUBJ_LIST[0], 'subj-card--hero') +

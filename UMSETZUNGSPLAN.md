@@ -894,14 +894,14 @@ Blockiert alles Weitere. Erst die offenen Produktfragen klären, dann bauen.
       URLs), `rel=canonical` auf `https://www.lesify.de/…`, OG-/Twitter-Tags mit
       `og-image.jpg` (1200×630), neue Titles/Metas (≤60 / 120–160 Zeichen),
       `noindex` für `/app/*` (alle 20 Seiten) und Auth-Seiten (Login, Registrieren,
-      Passwort-, E-Mail-Bestätigung), H1 auf `/preise/`, statischer Text-Fallback
+      Passwort-, E-Mail-Bestätigung), H1 auf `/preise/`, Hero-Karten ohne `<h3>` vor dem H1, Gründer-Foto mit Alt, statischer Text-Fallback
       für Startseite/Preise (JS ersetzt ihn), JSON-LD: Organization, WebSite,
       FAQPage, SoftwareApplication+Offer, AboutPage/Person, ContactPage,
       BreadcrumbList. **Pflege:** FAQ-/Preis-Texte stehen jetzt zusätzlich in
       `index.html`/`preise/index.html` (Fallback + JSON-LD) — bei Änderungen in
       `marketing.js` mitziehen. _Offen:_ Google-Fonts self-hosten (DSGVO/LCP),
-      Hero-Bilder (CSS-Background) ohne Alt/Preload, Hero-`<h3>` vor dem H1,
-      Search-Console-Einreichung der Sitemap, echte Bewertungen statt Demo-Zitate
+      Hero-Fotos sind CSS-Backgrounds (ohne Alt; erstes Foto ist vorgeladen),
+      `jborn-ptrt-nw.png` (1,7 MB) → WebP, Search-Console-Einreichung der Sitemap, echte Bewertungen statt Demo-Zitate
       (dann erst `Review`-Schema).
 - [x] **Getroffene Entscheidungen (Stand 2026-09-03)** — in `backend-planning.md`
       §8 abgehakt und in die betroffenen Abschnitte eingearbeitet:

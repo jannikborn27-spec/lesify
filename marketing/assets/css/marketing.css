@@ -1827,6 +1827,7 @@ select.input {
   color: rgba(255,255,255,0.82);
 }
 .co-line b { font-family: var(--font-display); font-size: 1.15rem; font-weight: 700; letter-spacing: -0.02em; }
+.co-line b .co-unit { font-family: var(--font-body); font-size: 0.62em; font-weight: 500; letter-spacing: normal; color: rgba(255,255,255,0.55); }
 .co-line b del,
 .co-total b del {
   font-family: var(--font-body);

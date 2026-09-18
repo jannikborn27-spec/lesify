@@ -199,6 +199,21 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
          Ergänzung. `checkout.js`s `featureList()` entsprechend vereinfacht;
          `CFG.features.family` in `stripe-config.js` bleibt als Referenz
          stehen, wird von der Kasse aber nicht mehr benutzt.
+- [x] **Kleinigkeit (2026-09-18, behoben): Monatspreis bei Jährlich-Kasse zu
+      unauffällig.** Die „Abo"-Zeile oben zeigte bei Jährlich denselben
+      einmaligen Jahresbetrag wie „Nach der Testphase fällig" weiter unten
+      — der Monatspreis stand nur als Klammerzusatz im Fließtext
+      („…abgebucht (entspricht 15,99 € / Monat)…"), leicht zu übersehen.
+      Jetzt zeigt die „Abo"-Zeile bei Jährlich den Monatspreis prominent
+      (`15,99 € / Monat`, mit durchgestrichenem Normalpreis wie gehabt) —
+      genau wie auf `/preise/` (`priceAmount()` in marketing.js zeigt dort
+      schon immer „X € / Monat", egal ob monatlich oder jährlich
+      abgerechnet wird). „Nach der Testphase fällig" bleibt unverändert der
+      tatsächliche Abbuchungsbetrag (Transparenzpflicht — das wird wirklich
+      einmal im Jahr abgebucht), der Fließtext verweist jetzt direkt darauf
+      statt den Monatspreis zu wiederholen. Live für Einzelplatz **und**
+      Familie × Jährlich verifiziert (`checkout.js` `renderSummary()`, neue
+      CSS-Klasse `.co-unit` in `marketing.css`).
 
 - [x] **Bug (2026-09-17, gemeldet & behoben): „Für dieses Konto besteht
       bereits ein Abo" blockierte für immer, auch nach echter Kündigung.**

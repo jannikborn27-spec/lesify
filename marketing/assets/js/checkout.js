@@ -106,21 +106,33 @@
   var offerOn = !!(CFG.offer && CFG.offer.active);
 
   /* ---------- Zusammenfassung rendern ---------- */
+  // Bei Jährlich zeigt die "Abo"-Zeile jetzt den Monatspreis (wie auf
+  // /preise/, `priceAmount()` in marketing.js — dort ist "X € / Monat"
+  // schon immer die prominente Zahl, egal ob monatlich oder jährlich
+  // abgerechnet wird) statt nur den einmaligen Jahresbetrag zu wiederholen,
+  // der weiter unten in "Nach der Testphase fällig" ohnehin schon steht.
+  // Entscheidung 2026-09-18: vorher stand oben UND unten derselbe
+  // Jahresbetrag, der Monatspreis nur als Klammerzusatz im Fließtext.
   function renderSummary() {
     var t = tier();
-    var was = offerOn && t.normal ? t.normal : '';
-    var price = was ? '<del>' + was + '</del> ' + t.display : t.display;
+    var monthly = interval === 'yearly' ? t.perMonth : t.display;
+    var monthlyWas = interval === 'yearly' ? t.normalPerMonth : t.normal;
+    var priceHtml = (offerOn && monthlyWas ? '<del>' + monthlyWas + '</del> ' : '') + monthly;
+    if (interval === 'yearly') priceHtml += ' <span class="co-unit">/ Monat</span>';
+
+    var totalWas = offerOn && t.normal ? t.normal : '';
+    var totalHtml = (totalWas ? '<del>' + totalWas + '</del> ' : '') + t.display;
 
     $('co-plan').textContent = planName();
-    $('co-price').innerHTML = price;
-    $('co-total').innerHTML = price;
+    $('co-price').innerHTML = priceHtml;
+    $('co-total').innerHTML = totalHtml;
     $('btn-amount').textContent = t.display;
 
     var trial = CFG.trialDays
       ? CFG.trialDays + ' Tage kostenlos testen, danach '
       : '';
     $('co-billing').textContent = trial + (interval === 'yearly'
-      ? 'einmal jährlich abgebucht' + (t.perMonth ? ' (entspricht ' + t.perMonth + ' / Monat)' : '') + ', jederzeit kündbar.'
+      ? t.display + ' einmal jährlich abgebucht, jederzeit kündbar.'
       : 'monatlich abgebucht, jederzeit kündbar.');
 
     $('co-feats').innerHTML = featureList().map(function (f) {

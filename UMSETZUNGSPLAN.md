@@ -577,10 +577,11 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       vorher nicht). Dev-Modus gibt weiterhin zusätzlich den Roh-Token in der
       Antwort zurück, damit der Flow ohne Mail-Postfach testbar bleibt.
       Getestet: `api/src/lib/mailer.test.ts` (2), bestehende `auth.test.ts`
-      (15) weiterhin grün. **Ops-Rest:** Resend-Domain für `lesify.de`
-      verifizieren (SPF/DKIM-DNS-Records eintragen) und `RESEND_API_KEY`/
-      `MARKETING_URL=https://www.lesify.de` in den Railway-Prod-Secrets
-      setzen (Phase 16).
+      (15) weiterhin grün. **Ops erledigt (2026-09-18):** Resend-Domain `send.lesify.de`
+      verifiziert (Absender daher `no-reply@send.lesify.de`), Railway-Variablen
+      `RESEND_API_KEY`/`EMAIL_ABSENDER`/`MARKETING_URL` gesetzt, Live-Test über
+      `www.lesify.de/passwort-vergessen/` erfolgreich. Mails jetzt gestaltet
+      (`api/src/lib/mailTemplates.ts`: Logo, Button, Footer, Klartext-Variante)._
 - [ ] **Klausur-Erinnerung + Wöchentliche Zusammenfassung:** die Toggles
       existieren in `einstellungen.html`, sind aber wirkungslos, bis ein
       Versandweg feststeht (bewusst zurückgestellt, siehe

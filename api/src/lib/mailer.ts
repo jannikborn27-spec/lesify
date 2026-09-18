@@ -1,5 +1,6 @@
 import { Resend } from 'resend';
 import { env, istProd } from '../env.js';
+import { emailBestaetigungMail, passwortResetMail } from './mailTemplates.js';
 
 /**
  * E-Mail-Versand (Phase 10, §5): Double-Opt-in- und Passwort-Reset-Mails.
@@ -53,36 +54,25 @@ export class ResendMailGateway implements MailGateway {
   }
 
   async emailBestaetigungSenden(input: { an: string; name: string; token: string }): Promise<void> {
-    const link = bestaetigungsLink(input.token);
+    const mail = emailBestaetigungMail({ name: input.name, link: bestaetigungsLink(input.token) });
     const { error } = await this.resend.emails.send({
       from: env.EMAIL_ABSENDER,
       to: input.an,
-      subject: 'Bitte E-Mail-Adresse bestätigen — Lesify',
-      html: `<p>Hallo ${escapeHtml(input.name)},</p><p>bitte bestätige deine E-Mail-Adresse für dein Lesify-Konto:</p><p><a href="${link}">E-Mail-Adresse bestätigen</a></p><p>Der Link ist 7 Tage gültig.</p>`,
-      text: `Hallo ${input.name},\n\nbitte bestätige deine E-Mail-Adresse für dein Lesify-Konto:\n${link}\n\nDer Link ist 7 Tage gültig.`,
+      ...mail,
     });
     if (error)
       throw new Error(`Resend-Versand fehlgeschlagen (email_bestaetigung): ${error.message}`);
   }
 
   async passwortResetSenden(input: { an: string; token: string }): Promise<void> {
-    const link = resetLink(input.token);
+    const mail = passwortResetMail({ link: resetLink(input.token) });
     const { error } = await this.resend.emails.send({
       from: env.EMAIL_ABSENDER,
       to: input.an,
-      subject: 'Passwort zurücksetzen — Lesify',
-      html: `<p>Hallo,</p><p>hier kannst du ein neues Passwort für dein Lesify-Konto vergeben:</p><p><a href="${link}">Passwort zurücksetzen</a></p><p>Der Link ist 1 Tag gültig. Falls du das nicht angefordert hast, kannst du diese E-Mail ignorieren.</p>`,
-      text: `Hallo,\n\nhier kannst du ein neues Passwort für dein Lesify-Konto vergeben:\n${link}\n\nDer Link ist 1 Tag gültig. Falls du das nicht angefordert hast, kannst du diese E-Mail ignorieren.`,
+      ...mail,
     });
     if (error) throw new Error(`Resend-Versand fehlgeschlagen (passwort_reset): ${error.message}`);
   }
-}
-
-function escapeHtml(s: string): string {
-  return s.replace(
-    /[&<>"']/g,
-    (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!,
-  );
 }
 
 let instanz: MailGateway | undefined;

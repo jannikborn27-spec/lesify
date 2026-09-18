@@ -657,9 +657,8 @@
      Viewport-Rand), nur ohne Diagonal-Schnitt. Karten-Inhalt identisch
      zur aktuellen Lower-Third-Karte (heroC2b): Icon + Eyebrow + Titel,
      KEIN zusätzlicher Fließtext. EIN gemeinsamer
-     [data-hero-slides="v2"]-Block (heroV2Stage) für alle 5 Text-
-     Varianten — nur die Karten-POSITION/-Optik wechselt über
-     [data-v2-text="1".."5"] auf .hv9v2 (siehe landing-lab.css).
+     [data-hero-slides="v2"]-Block (heroV2Stage) fest als
+     Variante v2.5 ([data-v2-text="5"], siehe landing-lab.css).
      ========================================================= */
   function heroV2Photos() {
     var bg = '<span class="hv9v2__bg" style="background-image:url(\'assets/img/hero-nw/Hero-background-image.png\')"></span>';
@@ -677,7 +676,7 @@
     '</div>';
   }
   function heroV2Stage() {
-    return '<div class="hv9v2" data-hero-slides="v2" data-v2-text="1" hidden aria-hidden="true">' +
+    return '<div class="hv9v2" data-hero-slides="v2" data-v2-text="5" aria-hidden="true">' +
       heroV2Photos() +
       '<div class="hv9v2__card"><span class="hs-progress"></span>' +
         '<span class="hv9v2__logo" aria-hidden="true">' + LOGO_MARK + '</span>' +
@@ -694,7 +693,7 @@
     var panel = document.querySelector('.hv9__panel');
     if (!panel || document.querySelector('.hv9v2')) return;
     panel.insertAdjacentHTML('afterend', heroV2Stage());
-    applyHeroStage(heroStageVariant());
+    applyHeroStage();
   }
 
   /* Foto-Ebenen (.hv9__panel > .hv9__photo, lesi-mgs-nw-hero/69–72,
@@ -3704,72 +3703,13 @@
     document.body.appendChild(panel);
   }
 
-  /* Hero-Stage — Dev-Switch (nur index.html): v1 = aktuelles Foto/
-     Diagonal-Design, v2.1–v2.10 = neue Variante (weißer Hero-Hintergrund,
-     freigestellte PNGs statt Foto) mit 10 verschiedenen Text-Layouts.
-     localStorage['lesify:herostage:v']. */
-  var HERO_STAGE_LIST = [
-    ['1', 'Foto (aktuell)'],
-    ['2.1', 'Karte unten'],
-    ['2.2', 'Icon-Spotlight'],
-    ['2.3', 'Lower-Third'],
-    ['2.4', 'Karte unten (dunkel)'],
-    ['2.5', 'Icon-Spotlight (dunkel)'],
-    ['2.51', 'Groß'],
-    ['2.52', 'Kompakt (Icon links)'],
-    ['2.53', 'Links unten'],
-    ['2.54', 'Oben rechts'],
-    ['2.55', 'Fortschrittsstrich'],
-    ['2.56', 'Pille'],
-    ['2.57', 'Runder Icon-Glow'],
-    ['2.58', 'Mittig unten'],
-    ['2.59', 'Akzent-Rahmen'],
-    ['2.510', 'Eck-Karte + Logo']
-  ];
-  function heroStageVariant() {
-    try {
-      var v = localStorage.getItem('lesify:herostage:v');
-      if (HERO_STAGE_LIST.some(function (o) { return o[0] === v; })) return v;
-    } catch (e) {}
-    return '1';
-  }
-  function applyHeroStage(v) {
+  /* Hero-Stage: fest v2.5 (dunkle Icon-Spotlight-Karte auf freigestelltem
+     Mockup); das v1-Foto-Panel bleibt ausgeblendet. */
+  function applyHeroStage() {
     var sec = document.querySelector('.hv9');
-    if (!sec) return;
-    var isV2 = v !== '1';
-    sec.setAttribute('data-hero-stage', isV2 ? '2' : '1');
-    var v2 = document.querySelector('.hv9v2');
-    if (v2) {
-      v2.hidden = !isV2;
-      var t = isV2 ? v.split('.')[1] : '1';
-      v2.setAttribute('data-v2-text', t);
-      if (t.charAt(0) === '5') v2.setAttribute('data-v2-dark', ''); else v2.removeAttribute('data-v2-dark');
-    }
+    if (sec) sec.setAttribute('data-hero-stage', '2');
     var v1 = document.querySelector('.hv9__panel');
-    if (v1) v1.hidden = isV2;
-  }
-  function mountHeroStageDev() {
-    if (current !== 'index') return;
-    if (!document.querySelector('.hv9v2')) return;
-    if (document.querySelector('.layout-dev.is-herostage')) return;
-    var panel = document.createElement('div');
-    panel.className = 'layout-dev is-herostage';
-    try { if (localStorage.getItem('lesify:lab:min') === '1') panel.classList.add('is-min'); } catch (e) {}
-    panel.innerHTML = '<button type="button" class="layout-dev-title" data-dev-min>Hero-Stage</button>' +
-      devRow('Stage', 'herostage', HERO_STAGE_LIST, heroStageVariant());
-    panel.addEventListener('click', function (e) {
-      if (e.target.closest('[data-dev-min]')) {
-        panel.classList.toggle('is-min');
-        try { localStorage.setItem('lesify:lab:min', panel.classList.contains('is-min') ? '1' : '0'); } catch (err) {}
-        return;
-      }
-      var b = e.target.closest('[data-herostage]'); if (!b) return;
-      var v = b.getAttribute('data-herostage');
-      try { localStorage.setItem('lesify:herostage:v', v); } catch (err) {}
-      panel.querySelectorAll('[data-herostage]').forEach(function (x) { x.classList.toggle('is-on', x === b); });
-      applyHeroStage(v);
-    });
-    document.body.appendChild(panel);
+    if (v1) v1.hidden = true;
   }
 
   /* ---------- Smooth-Scroll für #anker (auch "seite.html#anker" auf
@@ -3842,7 +3782,6 @@
     buildChatSection();
     buildLabSections();
     mountPriceColorDev();
-    mountHeroStageDev();
     /* Dev-Tool (2026-09-16 aktiviert, 2026-09-16 final entfernt) — "orgfaecher"
        auf v2 (Ghost) und "cmp" auf v1 (Cards, mit neuem 9-Zeilen-Content)
        final gewählt (siehe LAB_SECTIONS `fixed`), kein Dev-Panel mehr. */

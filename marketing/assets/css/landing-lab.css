@@ -217,6 +217,7 @@ h1 em::after { content: ""; position: absolute; left: -2px; right: -2px; bottom:
   overflow: visible;
   background: var(--bg-canvas);
   border-bottom-left-radius: var(--section-radius);
+  border-bottom-right-radius: var(--section-radius);
 }
 /* Schwarzer Hintergrund-Zwickel: füllt exakt die Fläche, die der
    border-bottom-left-radius aus dem Papier herausschneidet. Der
@@ -231,6 +232,18 @@ h1 em::after { content: ""; position: absolute; left: -2px; right: -2px; bottom:
   width: var(--section-radius);
   height: var(--section-radius);
   background: radial-gradient(circle var(--section-radius) at 100% 0,
+    transparent 0 var(--section-radius), var(--ink-950) var(--section-radius));
+  z-index: -1;
+  pointer-events: none;
+}
+.hv9::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: var(--section-radius);
+  height: var(--section-radius);
+  background: radial-gradient(circle var(--section-radius) at 0 0,
     transparent 0 var(--section-radius), var(--ink-950) var(--section-radius));
   z-index: -1;
   pointer-events: none;
@@ -506,7 +519,7 @@ body[data-header="2"] .hv9[data-hero-bg="9"] .hv9__panel::after {
 /* =========================================================
    Hero-Stage v2 (Prototyp, per Dev-Panel "Hero-Stage" umschaltbar,
    localStorage['lesify:herostage:v'] — siehe marketing.js
-   applyHeroStage/mountHeroStageDev). Liegt wie .hv9__panel DIREKT in
+   applyHeroStage). Liegt wie .hv9__panel DIREKT in
    .hv9 (Geschwister, gleiche inset-Formel) — dieselbe Größe/Position
    wie das Foto in v1 (rechte Hälfte, volle Section-Höhe, bis zum
    Viewport-Rand), nur ohne Diagonal-Schnitt/Scrim: dasselbe freige-
@@ -515,9 +528,8 @@ body[data-header="2"] .hv9[data-hero-bg="9"] .hv9__panel::after {
    dauerhaft als Basis, hero-mg1/2.png (Bildschirminhalt) blenden
    darüber per Opacity ein/aus. Karten-Inhalt 1:1 wie die aktuelle Lower-Third-Karte
    (heroC2b): Icon + Eyebrow + Titel, kein zusätzlicher Fließtext.
-   EIN Markup (heroV2Stage in marketing.js) für alle 5 Text-
-   Varianten — nur Position/Optik der Karte wechselt über
-   [data-v2-text="1".."5"] auf .hv9v2, kein Re-Render nötig.
+   EIN Markup (heroV2Stage in marketing.js) fest als
+   Variante v2.5 ([data-v2-text="5"]).
    ========================================================= */
 .hv9v2 { position: absolute; inset: 0 0 0 50%; z-index: 0; pointer-events: none; }
 .hv9v2[hidden] { display: none; }
@@ -567,173 +579,32 @@ body[data-header="2"] .hv9[data-hero-bg="9"] .hv9__panel::after {
 .hv9v2 .hs-arrow:hover { border-color: var(--ink-400); color: var(--ink-950); background: var(--paper); }
 /* Karte hat per Variante eine feste Standard-Position — Basiswerte
    hier, jede Variante überschreibt nur, was sie ändert. */
-.hv9v2__card { right: 24px; bottom: 24px; background: var(--bg-surface); border: 1px solid var(--line); border-radius: var(--radius-xl); box-shadow: var(--shadow-xl); padding: 18px 20px; }
+.hv9v2__card { right: 56px; bottom: 56px; background: var(--bg-surface); border: 1px solid var(--line); border-radius: var(--radius-xl); box-shadow: var(--shadow-xl); padding: 18px 20px; }
 /* Fortschrittsstrich (wie heroC2b/.hs-c2 .hs-progress) — nur für v2.3
    sichtbar, initHeroSlides() steuert ihn generisch (jede Gruppe mit
    einem .hs-progress-Kind bekommt automatisch den Takt). */
 .hv9v2__card .hs-progress { display: none; }
 
-/* ---- v2.1 · Karte unten: volle Breite als Leiste am Bildfuß ---- */
-.hv9v2[data-v2-text="1"] .hv9v2__card { left: 0; right: 0; bottom: 0; max-width: none; border-radius: var(--radius-xl) var(--radius-xl) 0 0; }
-
-/* ---- v2.2 · Icon-Spotlight: unten rechts, Icon-Badge über dem Titel ---- */
-.hv9v2[data-v2-text="2"] .hv9v2__icon { display: inline-flex; }
-
-/* ---- v2.3 · Lower-Third: Kopie der aktuellen Foto-Karte (heroC2b/
-   hs-c2--bleed) — volle Breite, dunkel, halbtransparent + Blur, Icon
-   und Eyebrow/Titel nebeneinander in einer Zeile, oben ein farbiger
-   Progress-Strich. Einziger Unterschied zum Original: hier NICHT vom
-   Diagonal-Schnitt begradigt, darum oben links abgerundet. ---- */
-.hv9v2[data-v2-text="3"] .hv9v2__card {
-  left: 0; right: 0; bottom: 0; top: auto; max-width: none;
-  display: flex; align-items: center; gap: 14px;
-  background: rgba(14, 16, 19, 0.74);
-  backdrop-filter: blur(12px) saturate(150%); -webkit-backdrop-filter: blur(12px) saturate(150%);
-  border: 0; border-top: 2px solid var(--hs-accent, #fff);
-  border-radius: var(--radius-xl) 0 0 0;
-  box-shadow: none; padding: 14px clamp(18px, 3vw, 32px);
-  overflow: hidden;
-}
-.hv9v2[data-v2-text="3"] .hv9v2__card .hs-progress {
-  display: block; position: absolute; left: 0; top: 0; height: 2px; width: 0;
-  background: var(--hs-accent, #fff); animation: hsProgress 5.2s linear infinite;
-}
-@media (prefers-reduced-motion: reduce) { .hv9v2[data-v2-text="3"] .hv9v2__card .hs-progress { animation: none; width: 100%; } }
-.hv9v2[data-v2-text="3"] .hv9v2__card [data-hs-slide] { align-items: center; gap: 12px; flex: 1; min-width: 0; }
-.hv9v2[data-v2-text="3"] .hv9v2__card [data-hs-slide].is-active { display: flex; }
-.hv9v2[data-v2-text="3"] .hv9v2__icon { display: inline-flex; margin-bottom: 0; flex-shrink: 0; background: var(--hs-accent, rgba(255,255,255,0.16)); color: #fff; }
-.hv9v2[data-v2-text="3"] .hv9v2__eyebrow { color: rgba(255,255,255,0.7); font-size: 0.58rem; }
-.hv9v2[data-v2-text="3"] .hv9v2__title { color: #fff; margin: 2px 0 0; font-size: 0.96rem; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.hv9v2[data-v2-text="3"] .hv9v2__nav { margin: 0 0 0 auto; flex-shrink: 0; }
-
-/* .hs-count/.hs-dots/.hs-arrow sind (siehe oben) für den weißen v2-
-   Hintergrund auf dunkel umgestellt — v2.3/v2.4 sitzen selbst auf
-   dunklem Blur-Glas und brauchen die ursprüngliche helle Optik
-   (wie .hs-c2/.hs-c3 im Foto-Design v1) zurück. */
-.hv9v2[data-v2-text="3"] .hs-dots button, .hv9v2[data-v2-text="4"] .hs-dots button { background: rgba(255,255,255,0.34); }
-.hv9v2[data-v2-text="3"] .hs-dots button.is-active, .hv9v2[data-v2-text="4"] .hs-dots button.is-active { background: #fff; }
-.hv9v2[data-v2-text="3"] .hs-dots button:hover, .hv9v2[data-v2-text="4"] .hs-dots button:hover { background: rgba(255,255,255,0.65); }
-.hv9v2[data-v2-text="3"] .hs-count, .hv9v2[data-v2-text="4"] .hs-count { color: rgba(255,255,255,0.65); }
-.hv9v2[data-v2-text="3"] .hs-count b, .hv9v2[data-v2-text="4"] .hs-count b { color: #fff; }
-.hv9v2[data-v2-text="3"] .hs-arrow, .hv9v2[data-v2-text="4"] .hs-arrow { border: 1px solid rgba(255,255,255,0.24); background: rgba(255,255,255,0.12); color: #fff; box-shadow: none; }
-.hv9v2[data-v2-text="3"] .hs-arrow:hover, .hv9v2[data-v2-text="4"] .hs-arrow:hover { background: rgba(255,255,255,0.26); border-color: rgba(255,255,255,0.5); }
-
-/* ---- v2.4 · Lower-Third (dunkel + Logo): inhaltlich wie v1/v2.3 —
-   Feature-Icon + Eyebrow/Titel nebeneinander in einer Zeile, ändert
-   sich also mit dem Inhalt der Folie —, aber wie v2.1 mit BEIDEN
-   oberen Ecken rund (nicht nur oben links) + Lesify-Logo als kleine
-   Wasserzeichen-Marke oben rechts in der Leiste. ---- */
-.hv9v2[data-v2-text="4"] .hv9v2__card {
-  left: 0; right: 0; bottom: 0; top: auto; max-width: none;
-  display: flex; align-items: center; gap: 14px;
-  background: rgba(14, 16, 19, 0.74);
-  backdrop-filter: blur(12px) saturate(150%); -webkit-backdrop-filter: blur(12px) saturate(150%);
-  border: 0; border-top: 2px solid var(--hs-accent, #fff);
-  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-  box-shadow: none; padding: 14px clamp(18px, 3vw, 32px);
-  overflow: hidden;
-}
-.hv9v2[data-v2-text="4"] .hv9v2__card .hs-progress {
-  display: block; position: absolute; left: 0; top: 0; height: 2px; width: 0;
-  background: var(--hs-accent, #fff); animation: hsProgress 5.2s linear infinite;
-}
-@media (prefers-reduced-motion: reduce) { .hv9v2[data-v2-text="4"] .hv9v2__card .hs-progress { animation: none; width: 100%; } }
-.hv9v2[data-v2-text="4"] .hv9v2__card [data-hs-slide] { align-items: center; gap: 12px; flex: 1; min-width: 0; }
-.hv9v2[data-v2-text="4"] .hv9v2__card [data-hs-slide].is-active { display: flex; }
-.hv9v2[data-v2-text="4"] .hv9v2__icon { display: inline-flex; margin-bottom: 0; flex-shrink: 0; background: rgba(255,255,255,0.16); color: #fff; }
-.hv9v2[data-v2-text="4"] .hv9v2__eyebrow { color: rgba(255,255,255,0.7); font-size: 0.58rem; }
-.hv9v2[data-v2-text="4"] .hv9v2__title { color: #fff; margin: 2px 0 0; font-size: 0.96rem; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.hv9v2[data-v2-text="4"] .hv9v2__nav { margin: 0 0 0 auto; flex-shrink: 0; }
-.hv9v2[data-v2-text="4"] .hv9v2__logo {
-  display: inline-flex; align-items: center; justify-content: center;
-  position: absolute; top: 10px; right: clamp(18px, 3vw, 32px);
-  width: 20px; height: 20px; border-radius: 6px;
-  background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.85);
-}
-.hv9v2[data-v2-text="4"] .hv9v2__logo svg { width: 12px; height: 12px; }
-
 /* ---- v2.5 · Icon-Spotlight (dunkel): Kopie von v2.2 (Karte unten
    rechts, Icon-Badge über dem Titel, gleiche Position/Größe) — nur
    die Farbpalette ist die von v2.3 (dunkles Blur-Glas, farbiger
    Top-Rand, weißer Text/weiße Dots/Pfeile) statt der hellen v1-Karte. ---- */
-.hv9v2[data-v2-dark] .hv9v2__icon { display: inline-flex; background: var(--hs-accent, rgba(255,255,255,0.16)); color: #fff; }
-.hv9v2[data-v2-dark] .hv9v2__card {
+.hv9v2[data-v2-text="5"] .hv9v2__icon { display: inline-flex; background: var(--hs-accent, rgba(255,255,255,0.16)); color: #fff; }
+.hv9v2[data-v2-text="5"] .hv9v2__card {
   background: rgba(14, 16, 19, 0.74);
   backdrop-filter: blur(12px) saturate(150%); -webkit-backdrop-filter: blur(12px) saturate(150%);
   border: 0; border-top: 2px solid var(--hs-accent, #fff);
   box-shadow: none;
 }
-.hv9v2[data-v2-dark] .hv9v2__eyebrow { color: rgba(255,255,255,0.7); }
-.hv9v2[data-v2-dark] .hv9v2__title { color: #fff; }
-.hv9v2[data-v2-dark] .hs-dots button { background: rgba(255,255,255,0.34); }
-.hv9v2[data-v2-dark] .hs-dots button.is-active { background: #fff; }
-.hv9v2[data-v2-dark] .hs-dots button:hover { background: rgba(255,255,255,0.65); }
-.hv9v2[data-v2-dark] .hs-count { color: rgba(255,255,255,0.65); }
-.hv9v2[data-v2-dark] .hs-count b { color: #fff; }
-.hv9v2[data-v2-dark] .hs-arrow { border: 1px solid rgba(255,255,255,0.24); background: rgba(255,255,255,0.12); color: #fff; box-shadow: none; }
-.hv9v2[data-v2-dark] .hs-arrow:hover { background: rgba(255,255,255,0.26); border-color: rgba(255,255,255,0.5); }
-
-/* ---- v2.51–v2.510: 10 Layout-Abwandlungen von v2.5 (gleiche Palette
-   über [data-v2-dark]; jede Variante überschreibt nur, was sie ändert). ---- */
-
-/* 2.51 · Groß: mehr Padding, größerer Titel + Icon */
-.hv9v2[data-v2-text="51"] .hv9v2__card { padding: 26px 28px; max-width: min(400px, 50vw); }
-.hv9v2[data-v2-text="51"] .hv9v2__title { font-size: clamp(1.4rem, 1.1rem + 1vw, 1.8rem); }
-.hv9v2[data-v2-text="51"] .hv9v2__icon { width: 44px; height: 44px; margin-bottom: 14px; }
-.hv9v2[data-v2-text="51"] .hv9v2__icon svg { width: 22px; height: 22px; }
-
-/* 2.52 · Kompakt: Icon links neben Eyebrow/Titel, Navigation darunter */
-.hv9v2[data-v2-text="52"] .hv9v2__card { padding: 14px 18px; }
-.hv9v2[data-v2-text="52"] .hv9v2__card [data-hs-slide].is-active { display: grid; grid-template-columns: auto 1fr; column-gap: 12px; align-items: center; }
-.hv9v2[data-v2-text="52"] .hv9v2__icon { grid-row: 1 / span 2; margin-bottom: 0; }
-.hv9v2[data-v2-text="52"] .hv9v2__title { margin-top: 2px; font-size: 1.05rem; }
-
-/* 2.53 · Links unten: Karte an der linken Bildkante */
-.hv9v2[data-v2-text="53"] .hv9v2__card { right: auto; left: 24px; }
-
-/* 2.54 · Oben rechts: Karte am oberen Bildrand */
-.hv9v2[data-v2-text="54"] .hv9v2__card { bottom: auto; top: 96px; }
-
-/* 2.55 · Fortschrittsstrich: animierter Progress-Balken oben (wie v2.3) */
-.hv9v2[data-v2-text="55"] .hv9v2__card { overflow: hidden; }
-.hv9v2[data-v2-text="55"] .hv9v2__card .hs-progress {
-  display: block; position: absolute; left: 0; top: 0; height: 2px; width: 0;
-  background: var(--hs-accent, #fff); animation: hsProgress 5.2s linear infinite;
-}
-@media (prefers-reduced-motion: reduce) { .hv9v2[data-v2-text="55"] .hv9v2__card .hs-progress { animation: none; width: 100%; } }
-
-/* 2.56 · Pille: eine Zeile — Icon, Titel, Navigation; stark gerundet */
-.hv9v2[data-v2-text="56"] .hv9v2__card { display: flex; align-items: center; gap: 14px; padding: 10px 12px 10px 12px; border-radius: 999px; max-width: none; }
-.hv9v2[data-v2-text="56"] .hv9v2__card [data-hs-slide].is-active { display: flex; align-items: center; gap: 12px; }
-.hv9v2[data-v2-text="56"] .hv9v2__icon { margin-bottom: 0; border-radius: 50%; width: 38px; height: 38px; }
-.hv9v2[data-v2-text="56"] .hv9v2__eyebrow { display: none; }
-.hv9v2[data-v2-text="56"] .hv9v2__title { margin: 0; font-size: 0.98rem; white-space: nowrap; }
-.hv9v2[data-v2-text="56"] .hv9v2__nav { margin: 0 0 0 4px; }
-.hv9v2[data-v2-text="56"] .hs-count, .hv9v2[data-v2-text="56"] .hs-dots { display: none; }
-
-/* 2.57 · Runder Icon-Badge mit Glow in der Akzentfarbe */
-.hv9v2[data-v2-text="57"] .hv9v2__icon { width: 46px; height: 46px; border-radius: 50%; margin-bottom: 14px; box-shadow: 0 0 0 6px color-mix(in srgb, var(--hs-accent, #fff) 24%, transparent); }
-.hv9v2[data-v2-text="57"] .hv9v2__icon svg { width: 22px; height: 22px; }
-
-/* 2.58 · Mittig unten: Karte horizontal zentriert am Bildfuß */
-.hv9v2[data-v2-text="58"] .hv9v2__card { right: auto; left: 50%; transform: translateX(-50%); text-align: center; }
-.hv9v2[data-v2-text="58"] .hv9v2__card [data-hs-slide].is-active { display: flex; flex-direction: column; align-items: center; }
-.hv9v2[data-v2-text="58"] .hv9v2__nav { justify-content: center; gap: 14px; }
-
-/* 2.59 · Akzent-Rahmen: voller farbiger Rand + Glow statt nur Top-Strich */
-.hv9v2[data-v2-text="59"] .hv9v2__card {
-  border: 1px solid color-mix(in srgb, var(--hs-accent, #fff) 70%, transparent);
-  box-shadow: 0 18px 48px color-mix(in srgb, var(--hs-accent, #fff) 22%, transparent);
-}
-
-/* 2.510 · Eck-Karte: bündig in der Bildecke unten rechts + Logo-Marke */
-.hv9v2[data-v2-text="510"] .hv9v2__card { right: 0; bottom: 0; border-radius: var(--radius-xl) 0 0 0; padding: 20px 24px; }
-.hv9v2[data-v2-text="510"] .hv9v2__logo {
-  display: inline-flex; align-items: center; justify-content: center;
-  position: absolute; top: 12px; right: 14px; width: 20px; height: 20px; border-radius: 6px;
-  background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.85);
-}
-.hv9v2[data-v2-text="510"] .hv9v2__logo svg { width: 12px; height: 12px; }
+.hv9v2[data-v2-text="5"] .hv9v2__eyebrow { color: rgba(255,255,255,0.7); }
+.hv9v2[data-v2-text="5"] .hv9v2__title { color: #fff; }
+.hv9v2[data-v2-text="5"] .hs-dots button { background: rgba(255,255,255,0.34); }
+.hv9v2[data-v2-text="5"] .hs-dots button.is-active { background: #fff; }
+.hv9v2[data-v2-text="5"] .hs-dots button:hover { background: rgba(255,255,255,0.65); }
+.hv9v2[data-v2-text="5"] .hs-count { color: rgba(255,255,255,0.65); }
+.hv9v2[data-v2-text="5"] .hs-count b { color: #fff; }
+.hv9v2[data-v2-text="5"] .hs-arrow { border: 1px solid rgba(255,255,255,0.24); background: rgba(255,255,255,0.12); color: #fff; box-shadow: none; }
+.hv9v2[data-v2-text="5"] .hs-arrow:hover { background: rgba(255,255,255,0.26); border-color: rgba(255,255,255,0.5); }
 
 @media (max-width: 899px) {
   /* Wie .hv9__panel (v1) auf Mobile: kein Voll-Bleed mehr, normale
@@ -741,7 +612,6 @@ body[data-header="2"] .hv9[data-hero-bg="9"] .hv9__panel::after {
   .hv9[data-hero-bg="9"] .hv9v2 { position: relative; inset: auto; width: 100%; height: clamp(240px, 58vw, 360px); border-radius: var(--radius-2xl); margin-top: 1.4rem; }
   .hv9v2__bg, .hv9v2__photo { inset: 0; top: 0; right: 0; width: 100%; min-width: 0; height: 100%; aspect-ratio: auto; }
   .hv9v2__card { position: static; left: auto !important; right: auto !important; top: auto !important; bottom: auto !important; transform: none !important; margin-top: 14px; max-width: none; }
-  .hv9v2[data-v2-text="3"] .hv9v2__card { margin-top: 0; border-radius: 0 0 var(--radius-2xl) var(--radius-2xl); }
 }
 
 /* =========================================================

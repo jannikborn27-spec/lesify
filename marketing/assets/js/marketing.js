@@ -645,13 +645,14 @@
      Hero-Stage v2 (Prototyp, per Dev-Panel "Hero-Stage") — statt
      Vollbild-Foto + diagonalem Schnitt: schlichter weißer Section-
      Hintergrund, darauf freigestellte PNGs (her0-trans-bg-1/2.png,
-     alternierend Folie 1+3 = bg-1, 2+4 = bg-2). EIN gemeinsamer
-     [data-hero-slides="v2"]-Block (heroV2Stage) für alle 10 Text-
-     Varianten — initHeroSlides()/setHeroPhoto() brauchen dafür keine
-     Änderung, nur der Foto-Selektor unten wird um .hv9v2__photo
-     erweitert. Die 10 Varianten sind reines CSS über
-     [data-v2-text="1".."10"] auf .hv9v2 (siehe landing-lab.css),
-     dieselbe Karten-Markup wird nur umgestylt/umsortiert.
+     alternierend Folie 1+3 = bg-1, 2+4 = bg-2). Liegt wie .hv9__panel
+     DIREKT in .hv9 (nicht im Grid) — gleiche Größe/Position (rechte
+     Hälfte, volle Section-Höhe, bis zum Viewport-Rand), nur ohne
+     Diagonal-Schnitt. Inhalt identisch zur aktuellen Lower-Third-Karte
+     (heroC2b): Icon + Eyebrow + Titel, KEIN zusätzlicher Fließtext.
+     EIN gemeinsamer [data-hero-slides="v2"]-Block (heroV2Stage) für
+     alle 10 Text-Varianten — nur die Karten-POSITION/-Optik wechselt
+     über [data-v2-text="1".."10"] auf .hv9v2 (siehe landing-lab.css).
      ========================================================= */
   function heroV2Photos() {
     return HERO_FEATURES.map(function (f, i) {
@@ -664,12 +665,11 @@
       '<span class="hv9v2__icon">' + f.icon + '</span>' +
       '<span class="hv9v2__eyebrow">' + pad(i) + ' — ' + f.label + '</span>' +
       '<h3 class="hv9v2__title">' + f.title + '</h3>' +
-      '<p class="hv9v2__desc">' + f.desc + '</p>' +
     '</div>';
   }
   function heroV2Stage() {
-    return '<div class="hs-stage hv9v2" data-hero-slides="v2" data-v2-text="1" hidden>' +
-      '<div class="hv9v2__photos">' + heroV2Photos() + '</div>' +
+    return '<div class="hv9v2" data-hero-slides="v2" data-v2-text="1" hidden aria-hidden="true">' +
+      heroV2Photos() +
       '<div class="hv9v2__card">' + hsMap(heroV2Slide) +
         '<div class="hv9v2__nav hs-nav hs-nav--between">' +
           '<span class="hs-count"><b data-hs-count>01</b> / ' + pad(HERO_FEATURES.length - 1) + '</span>' +
@@ -680,9 +680,9 @@
     '</div>';
   }
   function buildHeroStageV2() {
-    var host = document.getElementById('hero-stage-v2');
-    if (!host || host.querySelector('.hv9v2')) return;
-    host.innerHTML = heroV2Stage();
+    var panel = document.querySelector('.hv9__panel');
+    if (!panel || document.querySelector('.hv9v2')) return;
+    panel.insertAdjacentHTML('afterend', heroV2Stage());
     applyHeroStage(heroStageVariant());
   }
 
@@ -3700,14 +3700,6 @@
     }
     var v1 = document.querySelector('.hv9__panel');
     if (v1) v1.hidden = isV2;
-    /* #hero-stage/#hero-stage-v2 sind beide `display:flex;width:100%` als
-       Geschwister in .hv9__media (display:flex) — bleiben beide sichtbar,
-       teilt sich die Flex-Breite fälschlich durch 2 (siehe [hidden]-Regel
-       in landing-lab.css), darum hier zusätzlich hart ausblenden. */
-    var s1 = document.getElementById('hero-stage');
-    var s2 = document.getElementById('hero-stage-v2');
-    if (s1) s1.hidden = isV2;
-    if (s2) s2.hidden = !isV2;
   }
   function mountHeroStageDev() {
     if (current !== 'index') return;

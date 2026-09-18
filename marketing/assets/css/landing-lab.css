@@ -257,8 +257,7 @@ h1 em::after { content: ""; position: absolute; left: -2px; right: -2px; bottom:
    unverändert — hier nur der Karten-Inhalt.
    --------------------------------------------------------- */
 .hv9__media { overflow-x: hidden; }
-#hero-stage, #hero-stage-v2 { display: flex; width: 100%; }
-#hero-stage[hidden], #hero-stage-v2[hidden] { display: none; }
+#hero-stage { display: flex; width: 100%; }
 .hs-stage { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; min-width: 0; }
 .hs-stage[hidden] { display: none; }
 
@@ -493,25 +492,28 @@ body[data-header="2"] .hv9[data-hero-bg="9"] .hv9__panel::after {
 /* =========================================================
    Hero-Stage v2 (Prototyp, per Dev-Panel "Hero-Stage" umschaltbar,
    localStorage['lesify:herostage:v'] — siehe marketing.js
-   applyHeroStage/mountHeroStageDev). Statt Vollbild-Foto + diagonalem
-   Schnitt (.hv9__panel, v1): schlichter weißer Section-Hintergrund,
-   darauf freigestellte PNGs (her0-trans-bg-1/2.png, buildHeroStageV2
-   in marketing.js). EIN Markup (.hv9v2, in #hero-stage-v2) für alle
-   10 Text-Varianten — [data-v2-text="1".."10"] auf .hv9v2 ordnet
-   dieselben Bausteine (.hv9v2__icon/__eyebrow/__title/__desc, plus
-   .hs-count/.hs-dots/.hs-arrows aus dem generischen Hero-Slide-Motor)
-   nur um/stylt sie um, kein Re-Render nötig.
+   applyHeroStage/mountHeroStageDev). Liegt wie .hv9__panel DIREKT in
+   .hv9 (Geschwister, gleiche inset-Formel) — dieselbe Größe/Position
+   wie das Foto in v1 (rechte Hälfte, volle Section-Höhe, bis zum
+   Viewport-Rand), nur ohne Diagonal-Schnitt/Scrim: die freigestellten
+   PNGs (her0-trans-bg-1/2.png) liegen direkt auf dem weißen Section-
+   Hintergrund. Karten-Inhalt 1:1 wie die aktuelle Lower-Third-Karte
+   (heroC2b): Icon + Eyebrow + Titel, kein zusätzlicher Fließtext.
+   EIN Markup (heroV2Stage in marketing.js) für alle 10 Text-
+   Varianten — nur Position/Optik der Karte wechselt über
+   [data-v2-text="1".."10"] auf .hv9v2, kein Re-Render nötig.
    ========================================================= */
-.hv9v2 { position: relative; width: 100%; display: flex; flex-direction: column; gap: 18px; }
-.hv9v2__photos { position: relative; flex: 1; min-height: 0; }
+.hv9v2 { position: absolute; inset: 0 0 0 50%; z-index: 0; pointer-events: none; }
+.hv9v2[hidden] { display: none; }
 .hv9v2__photo {
-  position: absolute; inset: 0;
+  position: absolute; top: 0; right: 0;
+  height: 100%; width: auto; min-width: 52vw; aspect-ratio: 1 / 1;
   background-size: contain; background-position: center; background-repeat: no-repeat;
   opacity: 0; transition: opacity 340ms var(--ease-out);
 }
 .hv9v2__photo.is-on { opacity: 1; }
 @media (prefers-reduced-motion: reduce) { .hv9v2__photo { transition: none; } }
-.hv9v2__card { position: relative; flex-shrink: 0; }
+.hv9v2__card { position: absolute; z-index: 2; max-width: min(320px, 46vw); pointer-events: auto; }
 .hv9v2__card [data-hs-slide] { display: none; }
 .hv9v2__card [data-hs-slide].is-active { display: block; }
 .hv9v2__icon {
@@ -521,9 +523,8 @@ body[data-header="2"] .hv9[data-hero-bg="9"] .hv9__panel::after {
 }
 .hv9v2__icon svg { width: 18px; height: 18px; }
 .hv9v2__eyebrow { display: block; font-size: 0.64rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--hs-accent, var(--ink-500)); }
-.hv9v2__title { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.3rem, 1rem + 1.2vw, 1.7rem); line-height: 1.16; letter-spacing: -0.02em; margin: 8px 0 8px; color: var(--ink-950); }
-.hv9v2__desc { font-size: 0.92rem; line-height: 1.55; color: var(--ink-600); margin: 0; max-width: 42ch; }
-.hv9v2__nav { margin-top: 18px; }
+.hv9v2__title { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.2rem, 1rem + 0.9vw, 1.5rem); line-height: 1.18; letter-spacing: -0.02em; margin: 8px 0 0; color: var(--ink-950); }
+.hv9v2__nav { margin-top: 14px; }
 /* .hs-count/.hs-dots/.hs-arrow sind für dunkle Foto-Karten gebaut
    (weißer Text, Glas-Optik) — auf dem weißen v2-Hintergrund dunkel. */
 .hv9v2 .hs-count { font-family: var(--font-mono); font-size: 0.76rem; color: var(--ink-500); }
@@ -533,75 +534,69 @@ body[data-header="2"] .hv9[data-hero-bg="9"] .hv9__panel::after {
 .hv9v2 .hs-dots button:hover { background: var(--ink-400); }
 .hv9v2 .hs-arrow { border: 1px solid var(--line); background: var(--bg-surface); color: var(--ink-600); box-shadow: var(--shadow-sm); }
 .hv9v2 .hs-arrow:hover { border-color: var(--ink-400); color: var(--ink-950); background: var(--paper); }
+/* Karte hat per Variante eine feste Standard-Position — Basiswerte
+   hier, jede Variante überschreibt nur, was sie ändert. */
+.hv9v2__card { right: 24px; bottom: 24px; background: var(--bg-surface); border: 1px solid var(--line); border-radius: var(--radius-xl); box-shadow: var(--shadow-xl); padding: 18px 20px; }
 
-/* ---- v2.1 · Karte unten: Karte überlappt die Bild-Unterkante ---- */
-.hv9v2[data-v2-text="1"] .hv9v2__photos { aspect-ratio: 1 / 1; }
-.hv9v2[data-v2-text="1"] .hv9v2__card { background: var(--bg-surface); border: 1px solid var(--line); border-radius: var(--radius-xl); box-shadow: var(--shadow-xl); padding: 20px 22px; margin: -52px 20px 0; }
+/* ---- v2.1 · Karte unten: volle Breite als Leiste am Bildfuß ---- */
+.hv9v2[data-v2-text="1"] .hv9v2__card { left: 0; right: 0; bottom: 0; max-width: none; border-radius: var(--radius-xl) var(--radius-xl) 0 0; }
 
-/* ---- v2.2 · Caption zentriert: Bildunterschrift, mittig ---- */
-.hv9v2[data-v2-text="2"] .hv9v2__photos { aspect-ratio: 1 / 1; }
-.hv9v2[data-v2-text="2"] .hv9v2__card { text-align: center; }
-.hv9v2[data-v2-text="2"] .hv9v2__desc { margin-inline: auto; }
+/* ---- v2.2 · Caption zentriert: mittig unter dem Bild ---- */
+.hv9v2[data-v2-text="2"] .hv9v2__card { left: 50%; right: auto; bottom: 20px; transform: translateX(-50%); text-align: center; max-width: min(360px, 70%); }
 .hv9v2[data-v2-text="2"] .hv9v2__nav, .hv9v2[data-v2-text="2"] .hs-dots { justify-content: center; }
 .hv9v2[data-v2-text="2"] .hv9v2__icon { margin-inline: auto; }
 
-/* ---- v2.3 · Sidebar: Text als schmale Spalte links vom Bild ---- */
-.hv9v2[data-v2-text="3"] { flex-direction: row; align-items: stretch; gap: 28px; }
-.hv9v2[data-v2-text="3"] .hv9v2__photos { order: 2; flex: 1.1 1 0%; min-width: 0; align-self: stretch; }
-.hv9v2[data-v2-text="3"] .hv9v2__card { order: 1; flex: 1 1 0%; min-width: 0; align-self: center; border-right: 2px solid var(--line); padding-right: 22px; }
+/* ---- v2.3 · Sidebar: schmale Karte am linken Bildrand, mittig ---- */
+.hv9v2[data-v2-text="3"] .hv9v2__card { left: 0; right: auto; top: 50%; bottom: auto; transform: translateY(-50%); border-radius: 0 var(--radius-xl) var(--radius-xl) 0; box-shadow: var(--shadow-lg); }
 
-/* ---- v2.4 · Nummern-Rail: vertikale Punkte-Schiene links vom Text ---- */
-.hv9v2[data-v2-text="4"] .hv9v2__photos { aspect-ratio: 1 / 1; }
-.hv9v2[data-v2-text="4"] .hv9v2__card { display: flex; gap: 20px; align-items: flex-start; }
+/* ---- v2.4 · Nummern-Rail: oben links, Punkte als vertikale Schiene ---- */
+.hv9v2[data-v2-text="4"] .hv9v2__card { left: 24px; right: auto; top: clamp(7.5rem, 5.5rem + 6vw, 10.5rem); bottom: auto; }
+.hv9v2[data-v2-text="4"] .hv9v2__card { display: flex; gap: 16px; align-items: flex-start; }
 .hv9v2[data-v2-text="4"] .hv9v2__card [data-hs-slide] { flex: 1; }
 .hv9v2[data-v2-text="4"] .hv9v2__nav { order: -1; margin-top: 3px; }
 .hv9v2[data-v2-text="4"] .hs-count, .hv9v2[data-v2-text="4"] .hs-arrows { display: none; }
-.hv9v2[data-v2-text="4"] .hs-dots { flex-direction: column; gap: 16px; border-left: 2px solid var(--line); padding-left: 14px; }
+.hv9v2[data-v2-text="4"] .hs-dots { flex-direction: column; gap: 14px; border-left: 2px solid var(--line); padding-left: 12px; }
 .hv9v2[data-v2-text="4"] .hs-dots button { width: 9px; height: 9px; }
 
-/* ---- v2.5 · Riesen-Zahl: blasse Großziffer hinter dem Titel ---- */
-.hv9v2[data-v2-text="5"] .hv9v2__photos { aspect-ratio: 1 / 1; }
-.hv9v2[data-v2-text="5"] .hv9v2__card { padding-top: 8px; }
+/* ---- v2.5 · Riesen-Zahl: oben links, blasse Großziffer hinter dem Titel ---- */
+.hv9v2[data-v2-text="5"] .hv9v2__card { left: 24px; right: auto; top: clamp(7.5rem, 5.5rem + 6vw, 10.5rem); bottom: auto; padding-top: 10px; overflow: visible; }
 .hv9v2[data-v2-text="5"] .hv9v2__card [data-hs-slide] { position: relative; }
 .hv9v2[data-v2-text="5"] .hv9v2__card [data-hs-slide]::before {
-  content: attr(data-hs-n); position: absolute; top: -40px; left: -4px; z-index: -1;
-  font-family: var(--font-display); font-weight: 800; font-size: 5.4rem; line-height: 1; color: var(--ink-100);
+  content: attr(data-hs-n); position: absolute; top: -34px; left: -6px; z-index: -1;
+  font-family: var(--font-display); font-weight: 800; font-size: 4.6rem; line-height: 1; color: var(--ink-100);
 }
 
-/* ---- v2.6 · Pillen-Reiter: Punkte werden zu Text-Pillen oben ---- */
-.hv9v2[data-v2-text="6"] .hv9v2__photos { aspect-ratio: 1 / 1; }
-.hv9v2[data-v2-text="6"] .hv9v2__nav { order: -1; margin: 0 0 18px; }
+/* ---- v2.6 · Pillen-Reiter: Punkte als Text-Pillen oben, Karte darunter ---- */
+.hv9v2[data-v2-text="6"] .hv9v2__card { left: 24px; right: 24px; top: clamp(7.5rem, 5.5rem + 6vw, 10.5rem); bottom: auto; max-width: none; background: none; border: 0; box-shadow: none; padding: 0; }
+.hv9v2[data-v2-text="6"] .hv9v2__nav { order: -1; margin: 0 0 14px; }
 .hv9v2[data-v2-text="6"] .hs-count, .hv9v2[data-v2-text="6"] .hs-arrows { display: none; }
 .hv9v2[data-v2-text="6"] .hs-dots { flex-wrap: wrap; gap: 8px; }
-.hv9v2[data-v2-text="6"] .hs-dots button { width: auto; height: auto; padding: 7px 13px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg-surface); }
+.hv9v2[data-v2-text="6"] .hs-dots button { width: auto; height: auto; padding: 7px 13px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg-surface); box-shadow: var(--shadow-sm); }
 .hv9v2[data-v2-text="6"] .hs-dots button.is-active { background: var(--ink-950); border-color: var(--ink-950); }
 .hv9v2[data-v2-text="6"] .hs-dot-label { display: inline; font-size: 0.72rem; font-weight: 600; color: var(--ink-600); }
 .hv9v2[data-v2-text="6"] .hs-dots button.is-active .hs-dot-label { color: #fff; }
+.hv9v2[data-v2-text="6"] [data-hs-slide].is-active { background: var(--bg-surface); border: 1px solid var(--line); border-radius: var(--radius-xl); box-shadow: var(--shadow-xl); padding: 16px 18px; }
 
-/* ---- v2.7 · Zitat-Stil: großes Anführungszeichen, kursiver Titel ---- */
-.hv9v2[data-v2-text="7"] .hv9v2__photos { aspect-ratio: 1 / 1; }
+/* ---- v2.7 · Zitat-Stil: mittig links, großes Anführungszeichen ---- */
+.hv9v2[data-v2-text="7"] .hv9v2__card { left: 24px; right: auto; top: 50%; bottom: auto; transform: translateY(-50%); max-width: min(320px, 50%); }
 .hv9v2[data-v2-text="7"] .hv9v2__card [data-hs-slide].is-active { display: flex; flex-direction: column; }
 .hv9v2[data-v2-text="7"] .hv9v2__card [data-hs-slide]::before {
-  content: "\201C"; display: block; font-family: var(--font-display); font-weight: 700; font-size: 3.4rem; line-height: 1;
-  color: var(--hs-accent, var(--ink-300)); margin-bottom: -14px;
+  content: "\201C"; display: block; font-family: var(--font-display); font-weight: 700; font-size: 3rem; line-height: 1;
+  color: var(--hs-accent, var(--ink-300)); margin-bottom: -12px;
 }
-.hv9v2[data-v2-text="7"] .hv9v2__title { font-size: clamp(1.5rem, 1.1rem + 1.4vw, 2rem); font-style: italic; }
+.hv9v2[data-v2-text="7"] .hv9v2__title { font-size: clamp(1.3rem, 1rem + 1.2vw, 1.7rem); font-style: italic; }
 .hv9v2[data-v2-text="7"] .hv9v2__eyebrow { order: 2; margin-top: 10px; }
 
-/* ---- v2.8 · Icon-Spotlight: Karte schwebt über der rechten Bild-Ecke ---- */
-.hv9v2[data-v2-text="8"] .hv9v2__photos { aspect-ratio: 1 / 1; padding-bottom: 36px; }
-.hv9v2[data-v2-text="8"] .hv9v2__card { position: absolute; right: 0; bottom: 0; max-width: min(300px, 82%); background: var(--bg-surface); border: 1px solid var(--line); border-radius: var(--radius-xl); box-shadow: var(--shadow-xl); padding: 18px 20px; }
+/* ---- v2.8 · Icon-Spotlight: unten rechts, Icon-Badge über dem Titel ---- */
 .hv9v2[data-v2-text="8"] .hv9v2__icon { display: inline-flex; }
 
-/* ---- v2.9 · Editorial-Typo: sehr große Überschrift, ohne Fließtext ---- */
-.hv9v2[data-v2-text="9"] .hv9v2__photos { aspect-ratio: 1 / 1; }
-.hv9v2[data-v2-text="9"] .hv9v2__title { font-size: clamp(2rem, 1.3rem + 2.8vw, 3.1rem); line-height: 1.04; margin-top: 10px; }
-.hv9v2[data-v2-text="9"] .hv9v2__desc { display: none; }
+/* ---- v2.9 · Editorial-Typo: oben links, sehr große Überschrift ---- */
+.hv9v2[data-v2-text="9"] .hv9v2__card { left: 24px; right: auto; top: clamp(7.5rem, 5.5rem + 6vw, 10.5rem); bottom: auto; max-width: min(320px, 50%); }
+.hv9v2[data-v2-text="9"] .hv9v2__title { font-size: clamp(1.8rem, 1.2rem + 2.4vw, 2.6rem); line-height: 1.05; }
 .hv9v2[data-v2-text="9"] .hv9v2__eyebrow { font-size: 0.72rem; }
 
-/* ---- v2.10 · Chat-Bubble: Karte als Sprechblase mit Schnabel ---- */
-.hv9v2[data-v2-text="10"] .hv9v2__photos { aspect-ratio: 1 / 1; }
-.hv9v2[data-v2-text="10"] .hv9v2__card { background: var(--bg-surface); border: 1px solid var(--line); border-radius: 22px; box-shadow: var(--shadow-md); padding: 18px 20px; }
+/* ---- v2.10 · Chat-Bubble: unten links, Karte als Sprechblase ---- */
+.hv9v2[data-v2-text="10"] .hv9v2__card { left: 24px; right: auto; bottom: 40px; border-radius: 22px; }
 .hv9v2[data-v2-text="10"] .hv9v2__card::after {
   content: ""; position: absolute; left: 30px; bottom: -10px; width: 18px; height: 18px;
   background: var(--bg-surface); border-right: 1px solid var(--line); border-bottom: 1px solid var(--line);
@@ -609,15 +604,11 @@ body[data-header="2"] .hv9[data-hero-bg="9"] .hv9__panel::after {
 }
 
 @media (max-width: 899px) {
-  .hv9v2[data-v2-text] { flex-direction: column; }
-  /* Bildbox unabhängig von der Desktop-Variante (Zeilen-Layout/flex:0
-     in v2.3, absolute Karte in v2.8 …) auf eine feste Quadrat-Höhe
-     zurücksetzen — sonst kollabiert eine flex-basis:0-Box ohne
-     Container-Höhe (Spalten-Richtung) auf 0px. */
-  .hv9v2[data-v2-text] .hv9v2__photos { order: 0; flex: none; width: 100%; aspect-ratio: 1 / 1; align-self: stretch; }
-  .hv9v2[data-v2-text] .hv9v2__card { order: 1; position: static; margin: 0; max-width: none; border-right: 0; padding: 18px 0 0; }
-  .hv9v2[data-v2-text="1"] .hv9v2__card, .hv9v2[data-v2-text="10"] .hv9v2__card { padding: 20px 22px; }
-  .hv9v2[data-v2-text="8"] .hv9v2__photos { padding-bottom: 0; }
+  /* Wie .hv9__panel (v1) auf Mobile: kein Voll-Bleed mehr, normale
+     Bild-Box in der Spalte; Karte darunter statisch, immer gleich. */
+  .hv9[data-hero-bg="9"] .hv9v2 { position: relative; inset: auto; width: 100%; height: clamp(240px, 58vw, 360px); border-radius: var(--radius-2xl); margin-top: 1.4rem; }
+  .hv9v2__photo { inset: 0; top: 0; right: 0; width: 100%; min-width: 0; height: 100%; aspect-ratio: auto; }
+  .hv9v2__card { position: static; left: auto !important; right: auto !important; top: auto !important; bottom: auto !important; transform: none !important; margin-top: 14px; max-width: none; }
 }
 
 /* =========================================================

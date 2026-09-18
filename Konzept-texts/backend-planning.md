@@ -1020,7 +1020,15 @@ Stripe-Calls auslösen.
   (`products.retrieve` → 404 → `products.create` mit fester ID).
 - **`subscriptionAnlegen`:** Stripe Customer + Subscription
   (`trial_period_days: 14`, `payment_behavior: 'default_incomplete'`,
-  `payment_settings.save_default_payment_method: 'on_subscription'`). Liefert
+  `payment_settings.save_default_payment_method: 'on_subscription'`,
+  `payment_settings.payment_method_types: ['card','paypal','klarna',
+  'amazon_pay']` — **ohne** `link`: Lesify hat nur ein Produkt pro Konto,
+  „für nächstes Mal speichern" bringt nichts, nur ein zusätzliches Feld in
+  der Kasse; `checkout.js`s `stripe.elements({..., paymentMethodTypes:
+  [...]})` beim Erzeugen des (noch clientSecret-losen) Payment Element
+  muss dieselbe Liste tragen, sonst zeigt das Element vor dem Absenden
+  kurz mehr Methoden, als das Backend nachher zulässt. Entscheidung
+  2026-09-18.). Liefert
   zusätzlich `clientSecret` — bei Trial ohne Sofortbelastung ein
   **SetupIntent** (`pending_setup_intent`, Präfix `seti_…`), sonst das
   PaymentIntent der ersten Rechnung (`latest_invoice.confirmation_secret`,
@@ -1112,9 +1120,14 @@ Stripe-Calls auslösen.
 - **`GET/POST/DELETE /abo/kinder`**: Kind-Profile = `User`-Zeilen mit
   `parentUserId` + `aboId` des Elternkontos, `rolle = schueler`,
   `passwordHash = "kind:kein-login"` (echte Einladung/Passwort-Setzung Phase 12).
-  `POST` nur bei `art = familie`, gedeckelt auf `Abo.sitze` (→ `409
-  sitze_ausgeschoepft`). `DELETE` löscht die `User`-Zeile → **Cascade entfernt
-  alle Inhalte des Sitzes** (Phase-0-Entscheidung).
+  `POST` bei **jedem** Abo (auch `art = einzel`, `sitze = 1`) möglich,
+  gedeckelt auf `Abo.sitze` (→ `409 sitze_ausgeschoepft`) — das Elternkonto
+  besitzt immer nur das Abo, nie selbst den Lernaccount (Eltern-Kind-Modell
+  §1). Fix 2026-09-18: vorher blockierte ein zusätzliches `art !==
+  'familie'`-Gate jedes Einzelplatz-Abo mit `409 kein_familienabo`, obwohl
+  `checkout-erfolg/` nach jedem Checkout — solo wie Familie — auf
+  `eltern-kinder.html` verlinkt. `DELETE` löscht die `User`-Zeile → **Cascade
+  entfernt alle Inhalte des Sitzes** (Phase-0-Entscheidung).
 - **Offen (Phase 9-Rest):** echtes Stripe-Adapter, Rechnungsstellung / Umgang
   mit fehlgeschlagenen Zahlungen (Retry, Mahnlogik, Zugriff bei
   `zahlung_offen`), Stripe-Konto/-Produkte.

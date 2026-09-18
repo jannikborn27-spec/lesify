@@ -97,6 +97,26 @@ describe.runIf(hatDb)('abo — Einzelplatz-Flow (Supabase)', () => {
     expect(res.json().fehler).toBe('abo_vorhanden');
   });
 
+  it('POST /abo/kinder auf Einzelplatz-Abo legt genau 1 Kind an, zweites → 409 sitze_ausgeschoepft', async () => {
+    const erstes = await app.inject({
+      method: 'POST',
+      url: '/abo/kinder',
+      headers: auth(),
+      payload: { name: 'Einzel Kind', klassenstufe: '8. Klasse' },
+    });
+    expect(erstes.statusCode).toBe(201);
+
+    const zweites = await app.inject({
+      method: 'POST',
+      url: '/abo/kinder',
+      headers: auth(),
+      payload: { name: 'Zweites Kind', klassenstufe: '8. Klasse' },
+    });
+    expect(zweites.statusCode).toBe(409);
+    expect(zweites.json().fehler).toBe('sitze_ausgeschoepft');
+    expect(zweites.json().details).toEqual({ sitze: 1, belegt: 1 });
+  });
+
   it('PATCH /abo wechselt den Tarif', async () => {
     const res = await app.inject({
       method: 'PATCH',

@@ -232,7 +232,14 @@ export class StripeZahlungsGateway implements ZahlungsGateway {
       // schon jetzt zu verlangen und dafür den SetupIntent auszustellen.
       trial_settings: { end_behavior: { missing_payment_method: 'cancel' } },
       payment_behavior: 'default_incomplete',
-      payment_settings: { save_default_payment_method: 'on_subscription' },
+      payment_settings: {
+        save_default_payment_method: 'on_subscription',
+        // Explizit ohne `link`: Link bietet 1-Klick-Checkout fürs nächste
+        // Mal, aber Lesify hat nur ein Produkt (ein Abo pro Konto) — kein
+        // "nächstes Mal", nur unnötige Reibung/ein zusätzliches Feld in der
+        // Kasse (Entscheidung 2026-09-18).
+        payment_method_types: ['card', 'paypal', 'klarna', 'amazon_pay'],
+      },
       expand: ['pending_setup_intent', 'latest_invoice.confirmation_secret'],
       metadata: { userId: input.userId, paket: input.paket, sitze: String(input.sitze) },
     });

@@ -144,6 +144,62 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
 
 ### 4. Geld (Phase 9/16)
 
+- [x] **Bug (2026-09-18, gemeldet & behoben): Solo-Checkout landete auf
+      einer Kind-hinzufügen-Seite, die für Einzelplatz-Abos stumm
+      scheiterte.** `checkout-erfolg/` verlinkt „Erstes Kind hinzufügen" für
+      **jeden** Checkout — solo wie Familie — auf `eltern-kinder.html`
+      (schon länger so). Aber `POST /abo/kinder` (`api/src/routes/abo.ts`)
+      hatte ein zusätzliches `if (abo.art !== 'familie') throw new
+      HttpError(409, 'kein_familienabo')` — jedes Einzelplatz-Abo
+      (`sitze=1`) konnte also **nie** ein Kind-Profil anlegen, obwohl das
+      Eltern-Kind-Modell das explizit vorsieht (`backend-planning.md` §1:
+      „1–4 Kind-Profile"). Im Frontend (`app.js`) landete der 409 nirgends
+      als Fehlermeldung — das „Anlegen"-Modal blieb einfach hängen, ganz
+      ohne Hinweis. Live reproduziert (solo registrieren → Checkout → „Erstes
+      Kind hinzufügen" → Anlegen → `409 kein_familienabo`, stiller Fehlschlag).
+      **Fix:** das `art`-Gate entfernt — `belegt + 1 > abo.sitze` reicht als
+      Grenze für Einzel- **und** Familien-Abo. `data.js`s Prototyp-Version
+      (`Lesify.addKind`) entsprechend nachgezogen. Neuer Test in
+      `abo.test.ts` deckt „Einzelplatz-Abo legt genau 1 Kind an, zweites →
+      409 sitze_ausgeschoepft" ab. Alle 180 API-Tests grün.
+- [x] **Vier kleinere Kasse-Änderungen (2026-09-18, auf Nutzerwunsch):**
+      1. **„Name des Kontoinhabers"** hat jetzt einen Hinweistext („Ihr Name
+         als Elternteil — für die Rechnung. Kinder fügen Sie gleich danach
+         im Konto hinzu.") — vorher unklar, wessen Name dort hingehört.
+      2. **Stripes „Für nächstes Mal speichern"-Feld (Link) entfernt** —
+         Lesify hat nur ein Produkt pro Konto (ein Abo), „nächstes Mal"
+         gibt es nicht, nur unnötige Reibung. `payment_settings.
+         payment_method_types` (`zahlung.ts`, serverseitig) **und**
+         `stripe.elements({paymentMethodTypes:[...]})` (`checkout.js`,
+         clientseitig — Elements kennt vor dem Absenden noch kein
+         PaymentIntent, muss also separat wissen, welche Methoden erlaubt
+         sind) jetzt beide explizit auf `['card','paypal','klarna',
+         'amazon_pay']` beschränkt, ohne `link`. **Visuell nicht
+         durchverifizierbar** — das Stripe-Payment-Element rendert in der
+         hiesigen automatisierten Vorschau seit gestern unzuverlässig
+         (bekanntes, umgebungsseitiges Problem, siehe Eintrag oben unter
+         „Untersucht, nicht code-seitig behebbar"); Code ist typgeprüft,
+         wirft keine Fehler, nutzt dieselben Optionen wie vor dem Umbau
+         (nur ohne den Client-Absturz-Verdacht bestätigt — Entfernen der
+         Option und Zurücksetzen hat das Rendering-Problem nicht behoben,
+         es ist also nicht durch diese Änderung verursacht). **Bitte einmal
+         in einem normalen Browser die Kasse öffnen und bestätigen, dass
+         Karte/PayPal/Klarna/Amazon Pay weiter da sind und „Für nächstes Mal
+         speichern" weg ist.**
+      3. **Nach dem Checkout geht es jetzt immer zum Eltern-Konto** — war
+         durch `checkout-erfolg/` schon länger so verlinkt (solo wie
+         Familie → `eltern-kinder.html`), aber siehe Bug oben: erst mit dem
+         `kein_familienabo`-Fix funktioniert das für Solo-Abos tatsächlich.
+      4. **Familien-Kasse zeigt jetzt dieselben Tarif-Checks wie die
+         Einzelplatz-Kasse**, nur mit „pro Kind" ergänzt (z. B. „250
+         KI-Nachrichten / Monat pro Kind"), statt vorher 4 zusätzlicher,
+         familien-spezifischer Marketing-Punkte davor („Ein eigenes Profil
+         je Kind…", „Eine Rechnung für alle Sitzplätze…") — die stehen
+         schon auf `/preise/`, in der Kasse selbst reicht die kleine
+         Ergänzung. `checkout.js`s `featureList()` entsprechend vereinfacht;
+         `CFG.features.family` in `stripe-config.js` bleibt als Referenz
+         stehen, wird von der Kasse aber nicht mehr benutzt.
+
 - [x] **Bug (2026-09-17, gemeldet & behoben): „Für dieses Konto besteht
       bereits ein Abo" blockierte für immer, auch nach echter Kündigung.**
       `POST /abo`s Guard (`eigenesAbo` in `api/src/routes/abo.ts`) fand per

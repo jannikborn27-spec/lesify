@@ -66,9 +66,15 @@
     if (isFamily) return 'Familie · ' + (TIER_NAME[famTier] || famTier) + ' · ' + famSeats + ' Kinder';
     return CFG.plans[planKey].name;
   }
+  // Dieselben Tarif-Checks wie beim Einzelplatz — die Familien-spezifischen
+  // Punkte (eigenes Profil je Kind, eine Rechnung, …) stehen schon auf
+  // /preise/, hier reicht die kleine Ergänzung "pro Kind" an jedem Punkt
+  // (Entscheidung 2026-09-18: vorher ein eigener, 4 Punkte längerer
+  // Marketing-Block statt derselben Liste).
   function featureList() {
-    if (isFamily) return (CFG.features.family || []).concat(CFG.features[famTier] || []);
-    return CFG.features[planKey] || [];
+    var basis = CFG.features[isFamily ? famTier : planKey] || [];
+    if (!isFamily) return basis;
+    return basis.map(function (f) { return f + ' pro Kind'; });
   }
 
   var APPEARANCE = {
@@ -155,7 +161,14 @@
       mode: 'subscription',
       amount: tier().amount,
       currency: CFG.currency,
-      appearance: APPEARANCE
+      appearance: APPEARANCE,
+      // Ohne Link: Lesify hat nur ein Produkt (ein Abo pro Konto), also
+      // keinen Vorteil aus „für nächstes Mal speichern" — nur ein
+      // zusätzliches optionales Feld, das Reibung in der Kasse erzeugt.
+      // Muss dieselbe Liste wie `payment_settings.payment_method_types`
+      // in `zahlung.ts` sein — hier ohne PaymentIntent noch unbekannt,
+      // welche Methoden das Konto sonst anbieten würde.
+      paymentMethodTypes: ['card', 'paypal', 'klarna', 'amazon_pay']
     });
     var paymentElement = elements.create('payment', { layout: 'tabs' });
     paymentElement.on('ready', function () { ready = true; });

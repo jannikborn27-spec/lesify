@@ -1398,12 +1398,14 @@
     };
   };
 
-  // Kind anlegen — gedeckelt auf plan().familie.sitze (wie `POST /abo/kinder`).
+  // Kind anlegen — gedeckelt auf plan().sitze (wie `POST /abo/kinder`). Gilt
+  // auch für Einzelplatz-Abos (sitze=1): das Elternkonto besitzt immer nur
+  // das Abo, nie selbst den Lernaccount (Eltern-Kind-Modell).
   Lesify.addKind = function (d) {
-    var fam = Lesify.plan().familie;
-    if (!fam) throw new Error('kein_familienabo');
+    var plan = Lesify.plan();
+    var sitze = (plan.familie && plan.familie.sitze) || 1;
     var list = kinderListe();
-    if (list.length >= fam.sitze) throw new Error('sitze_ausgeschoepft');
+    if (list.length >= sitze) throw new Error('sitze_ausgeschoepft');
     var kind = {
       id: uid('kind'),
       name: String(d.name || '').trim(),

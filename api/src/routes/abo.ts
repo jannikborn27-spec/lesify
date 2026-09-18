@@ -236,10 +236,16 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
       }));
     });
 
+    // Auch ein Einzelplatz-Abo (`art = einzel`, `sitze = 1`) darf genau EIN
+    // Kind-Profil anlegen — das Elternkonto besitzt immer nur das Abo, nie
+    // selbst den Lernaccount (Eltern-Kind-Modell, `backend-planning.md`
+    // §1: „1–4 Kind-Profile"). `belegt + 1 > abo.sitze` reicht als Grenze
+    // für beide Fälle; ein zusätzliches `art`-Gate war hier falsch (Bug
+    // 2026-09-18 — blockierte jedes Solo-Abo mit `409 kein_familienabo`,
+    // obwohl `checkout-erfolg/` genau dorthin verlinkt).
     authed.post('/abo/kinder', async (req, reply) => {
       const body = parse(kindBody, req.body);
       const abo = oder404(await eigenesAbo(req.userId));
-      if (abo.art !== 'familie') throw new HttpError(409, 'kein_familienabo');
 
       const belegt = await prisma.user.count({ where: { parentUserId: req.userId } });
       if (belegt + 1 > abo.sitze) {

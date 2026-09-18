@@ -1739,9 +1739,9 @@
        wechselt denselben Fokus-Tag wie ein Klick in der Demo selbst). */
     if (v === '5') return lw('kv', v, '<div class="container kvl-cv kvl-cv--center">' + headC +
       kvlPointsRow() +
-      kvlStage(kvlMock({ chrome: true, size: 'xl' })) +
+      kvlStage(kvlMock({ chrome: true, size: 'xl', active: 0 })) +
       '<div class="kvl-dots" role="tablist" aria-label="Lerntag wählen">' + KVL.days.map(function (d, i) {
-        return '<button type="button" class="kvl-dots__d' + (i === 2 ? ' is-active' : '') + '" data-kvl-dot="' + i + '"' +
+        return '<button type="button" class="kvl-dots__d' + (i === 0 ? ' is-active' : '') + '" data-kvl-dot="' + i + '"' +
           ' aria-label="Tag ' + (i + 1) + ': ' + d.t + '">' + (i + 1) + '</button>';
       }).join('') + '</div></div>');
 

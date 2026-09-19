@@ -157,7 +157,7 @@ document.addEventListener('DOMContentLoaded', async function () {
       return;
     }
     thread.innerHTML = lz.revisionen.map(function (m) {
-      if (m.rolle === 'ai') return '<div class="lz-msg from-ai"><span class="lz-avatar">' + I.spark + '</span><span class="lz-bubble md">' + mdSafe(m.text) + '</span></div>';
+      if (m.rolle === 'ai') return '<div class="lz-msg from-ai"><span class="lz-avatar">' + (Lesify.getFachIcon(lz.fachId) || I.spark) + '</span><span class="lz-bubble md">' + mdSafe(m.text) + '</span></div>';
       return '<div class="lz-msg from-user"><span class="lz-avatar">' + userInitials + '</span><span class="lz-bubble">' + escSafe(m.text).replace(/\n/g, '<br>') + '</span></div>';
     }).join('');
     thread.scrollTop = thread.scrollHeight;

@@ -1,10 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  GRATIS_REVISIONEN_PRO_LERNZETTEL,
-  revisionZaehltGegenLimit,
-  usageRatio,
-  usageStufe,
-} from './index.js';
+import { usageRatio, usageStufe } from './index.js';
 
 describe('usageRatio', () => {
   it('null-Limit (unbegrenzt) → 0', () => {
@@ -29,16 +24,5 @@ describe('usageStufe — Schwellen wie usageRatioClass in app.js', () => {
   it('rot ≥ 0.66', () => {
     expect(usageStufe(0.66)).toBe('rot');
     expect(usageStufe(1)).toBe('rot');
-  });
-});
-
-describe('revisionZaehltGegenLimit — erste 10 Revisionen gratis je Lernzettel', () => {
-  it('0–9 gratis', () => {
-    expect(revisionZaehltGegenLimit(0)).toBe(false);
-    expect(revisionZaehltGegenLimit(9)).toBe(false);
-  });
-  it('ab der 11. (freeMessagesUsed === 10) zählt sie', () => {
-    expect(revisionZaehltGegenLimit(GRATIS_REVISIONEN_PRO_LERNZETTEL)).toBe(true);
-    expect(revisionZaehltGegenLimit(25)).toBe(true);
   });
 });

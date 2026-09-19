@@ -1,7 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import type { Lernzettel } from '@prisma/client';
 import { z } from 'zod';
-import { revisionZaehltGegenLimit } from '@lesify/shared';
 import { parse } from '../lib/validate.js';
 import { lernzettelPdf } from '../lib/pdf/dokumente.js';
 import { pdfAntwort } from '../lib/pdf/antwort.js';
@@ -25,7 +24,6 @@ function lernzettelDTO(lz: Lernzettel) {
     themaId: lz.themaId,
     titel: lz.titel,
     content: lz.content,
-    freeMessagesUsed: lz.freeMessagesUsed,
     erstelltAm: lz.erstelltAm,
     aktualisiertAm: lz.aktualisiertAm,
   };
@@ -47,7 +45,7 @@ export async function lernzettelRoutes(app: FastifyInstance): Promise<void> {
     return liste.map(lernzettelDTO);
   });
 
-  // GET /lernzettel/:id — Inhalt + Revisionsverlauf + freeMessagesUsed
+  // GET /lernzettel/:id — Inhalt + Revisionsverlauf
   app.get<{ Params: { id: string } }>('/lernzettel/:id', async (req) => {
     const lz = oder404(
       await prisma.lernzettel.findFirst({
@@ -122,7 +120,8 @@ export async function lernzettelRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // POST /lernzettel/:id/revisionen — Call 09: Such-/Ersetzen-Patches
-  // (Regelfall) statt Vollersatz. Erste 10 Nachrichten je Lernzettel gratis.
+  // (Regelfall) statt Vollersatz. Jede Revisionsnachricht zählt wie eine normale
+  // Chat-Nachricht gegen das Nachrichten-Limit.
   app.post<{ Params: { id: string } }>('/lernzettel/:id/revisionen', async (req) => {
     const body = parse(revisionBody, req.body);
     const lz = oder404(
@@ -133,8 +132,7 @@ export async function lernzettelRoutes(app: FastifyInstance): Promise<void> {
     );
 
     pruefeKiEingabe(req.userId, body.text);
-    const zaehltGegenLimit = revisionZaehltGegenLimit(lz.freeMessagesUsed);
-    if (zaehltGegenLimit) await pruefeUsageLimit(prisma, req.userId, 'nachrichten');
+    await pruefeUsageLimit(prisma, req.userId, 'nachrichten');
 
     const [fach, thema, einstellungen, klassenstufe] = await Promise.all([
       prisma.fach.findUniqueOrThrow({ where: { id: lz.fachId } }),
@@ -167,11 +165,10 @@ export async function lernzettelRoutes(app: FastifyInstance): Promise<void> {
       }
     }
 
-    const freeMessagesUsed = Math.min(10, lz.freeMessagesUsed + 1);
     const [updated] = await prisma.$transaction([
       prisma.lernzettel.update({
         where: { id: lz.id },
-        data: { content: neuerContent, freeMessagesUsed },
+        data: { content: neuerContent },
       }),
       prisma.lernzettelRevision.create({
         data: { userId: req.userId, lernzettelId: lz.id, rolle: 'user', text: body.text },
@@ -181,7 +178,7 @@ export async function lernzettelRoutes(app: FastifyInstance): Promise<void> {
       }),
     ]);
 
-    if (zaehltGegenLimit) await inkrementiereUsage(prisma, req.userId, 'nachrichten');
+    await inkrementiereUsage(prisma, req.userId, 'nachrichten');
 
     const revisionen = await prisma.lernzettelRevision.findMany({
       where: { lernzettelId: lz.id },

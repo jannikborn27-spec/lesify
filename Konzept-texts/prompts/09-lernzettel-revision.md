@@ -6,8 +6,7 @@ Wird bei **jeder Revisions-Nachricht** zu einem bestehenden Lernzettel
 ausgelöst — Endpunkt `POST /lernzettel/:id/revisionen` (siehe §4). Läuft
 chat-artig: der Schüler schreibt eine Anweisung („füge ein Beispiel zu X
 hinzu", „kürze den Abschnitt zu Y"), die KI passt `content` entsprechend an.
-Die ersten 10 Nachrichten pro Lernzettel sind laut §1/§7 kostenlos
-(`Lernzettel.freeMessagesUsed`), danach zählt jede weitere Nachricht wie
+Jede Revisionsnachricht zählt (seit 2026-09-19, kein Gratis-Kontingent mehr) wie
 eine normale Chat-Nachricht gegen das Nutzungslimit — das ist reine
 Abrechnungslogik im Backend, hat aber keinen Einfluss auf diesen
 Prompt-Entwurf selbst.

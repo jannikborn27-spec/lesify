@@ -307,7 +307,6 @@ model Lernzettel {
   themaId          String   @db.Uuid
   titel            String
   content          String // Markdown, vollautomatisch generiert
-  freeMessagesUsed Int      @default(0) // 0–10, §5
   erstelltAm       DateTime @default(now())
   aktualisiertAm   DateTime @updatedAt
 

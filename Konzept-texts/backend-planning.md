@@ -268,7 +268,6 @@ KI-Tonfall und das App-Erscheinungsbild — Kandidat für spätere Erweiterung
 | themaId | uuid (FK) | Pflicht |
 | titel | string | |
 | content | text (Markdown) | vollautomatisch generiert, danach editierbar über Revisionen |
-| freeMessagesUsed | int | 0–10, siehe §5 |
 | erstelltAm / aktualisiertAm | timestamp | |
 
 ### LernzettelRevision
@@ -561,8 +560,8 @@ Quoten; ein `null`-Limit (unbegrenzte Nachrichten bei `infinite`) zählt als 0.
 
 **Was zählt als „Nachricht" gegen das Limit:**
 - Jede User-Nachricht in einem KI-Chat.
-- Jede Lernzettel-Revisionsnachricht **ab der 11.** pro Lernzettel (die ersten
-  10 sind pro Lernzettel gratis, siehe `Lernzettel.freeMessagesUsed`).
+- Jede Lernzettel-Revisionsnachricht (kein Gratis-Kontingent mehr — seit 2026-09-19
+  zählt sie wie eine normale Chat-Nachricht).
 
 **Was zählt als „Content-Aufnahme" gegen das Limit:**
 - Jede Datei, die im Chat angehängt oder über „Dateien" hochgeladen wird.
@@ -701,7 +700,7 @@ cachen/zusammenfassen, wenn der Kontext zu groß wird — nicht vorher optimiere
 | Jede Chat-Nachricht | 1× | Antwort generieren (Modus-abhängiger System-Prompt: erklären / hausaufgaben / üben / zusammenfassen; ohne gewählten Modus ein neutraler „freie Frage"-System-Prompt) | — |
 | Chat-Titel (nur 1. Nachricht) | 1× | Kurzen `Chat.titel` aus der ersten Nutzer-Nachricht erzeugen (`prompts/07-chat-titel.md`) | Günstigste/schnellste Modellklasse, ~20 Output-Tokens; an den ersten `POST /chats/:id/nachrichten` angehängt, kein eigener Call-Roundtrip nötig |
 | Lernzettel erstellen | 1× | Vollautomatisch aus allen Chats + Dateien des Themas generieren | On-demand, nicht bei jeder Chat-Nachricht neu |
-| Lernzettel-Revision | 1× pro Nachricht | Zettel gemäß Anweisung anpassen | Erste 10 Nachrichten pro Lernzettel gratis, danach normale Abrechnung |
+| Lernzettel-Revision | 1× pro Nachricht | Zettel gemäß Anweisung anpassen | Zählt wie eine normale Chat-Nachricht (kein Gratis-Kontingent, seit 2026-09-19) |
 | Testklausur erstellen | 1× | Pro Thema eine Aufgabe generieren (nicht Multiple-Choice), basierend auf Chat- + Datei-Content des Themas | Ein Call für alle Aufgaben der Testklausur zusammen, nicht pro Thema einzeln. **Gleicher Call für Testklausur 1 (alle Themen) und Testklausur 2 (nur die schwachen/wackeligen)** — keine neue Call-Art |
 | Testklausur-Analyse | 1× | Hochgeladene Lösung auswerten: Punktzahl/Note + Aufgabe-für-Aufgabe-Erklärung. Daraus leitet das Backend deterministisch `Vorbereitungsstand` + dreistufige Ampel ab | Ein Call pro Analyse. Kein Nachtest-Pool mehr — das strukturierte Lernen übernimmt der 7-Tage-Lernplan (Lerntage + verlinkte Chat-Prompts), nicht ein Vor-Generierungs-Call |
 | Testklausur 2 (Tag 5) | 1× Erstellung + 1× Analyse | Re-Diagnose, auf die an Tag 1 schwachen/wackeligen Themen beschränkt | **Wiederverwendung** der beiden Testklausur-Calls oben, nur kleinerer `themaIds`-Umfang — keine neue Call-Art |
@@ -893,7 +892,7 @@ Abweichungen von den Tabellen unten:
 |---|---|---|
 | GET | `/lernzettel?themaId=` oder ohne Filter | **Neu (Phase 11, 2026-09-12).** Übersichts-Liste ohne Revisionsverlauf — für Feeds/Dashboards (z. B. „Zuletzt bearbeitet"). Fehlte bis dahin (nur Einzel-Fetch über `:id`) |
 | POST | `/themen/:id/lernzettel` | Vollautomatische Erstellung (Call 08, **Phase 6 verdrahtet**), liefert fertigen Lernzettel |
-| GET | `/lernzettel/:id` | Inhalt + Revisionsverlauf + `freeMessagesUsed` |
+| GET | `/lernzettel/:id` | Inhalt + Revisionsverlauf |
 | POST | `/lernzettel/:id/revisionen` | `{text}` → KI passt `content` an (Call 09, **Phase 6 verdrahtet**: Vorab-Filter + Such-/Ersetzen-Patches), gibt aktualisierten Lernzettel + Revisionsverlauf zurück |
 
 ### Dateien
@@ -1352,8 +1351,7 @@ Scheduler = Phase 16. Weitere Jobs: `usage-historie` (Usage-Zeilen > 12 Monate),
   (Spiegel `stripe-config.js` → `limits`), `USAGE_ZAEHLER`
   (`nachrichten|dateien|lernzettel|testklausuren`), `usageRatio(used, limit)`
   (null-Limit → 0, geklemmt auf [0,1]), `usageStufe(ratio)` (grün < 0.33,
-  gelb < 0.66, rot ≥ 0.66 — bit-genau wie `usageRatioClass` in `app.js`),
-  `GRATIS_REVISIONEN_PRO_LERNZETTEL = 10` + `revisionZaehltGegenLimit(freeMessagesUsed)`.
+  gelb < 0.66, rot ≥ 0.66 — bit-genau wie `usageRatioClass` in `app.js`),.  (`GRATIS_REVISIONEN_PRO_LERNZETTEL`/`revisionZaehltGegenLimit` entfielen 2026-09-19.)
 - **`api/src/lib/usage.ts`**:
   - `usageStand(prisma, userId)` — einzige Quelle für `GET /usage` **und** die
     Durchsetzung. Limits kommen **live** aus `paketFuerUser` (Abo → sonst
@@ -1373,8 +1371,7 @@ Scheduler = Phase 16. Weitere Jobs: `usage-historie` (Usage-Zeilen > 12 Monate),
 - **Durchgesetzt** — alle vier Zähler nach demselben Vor-Prüfen/Nach-Zählen-
   Muster: `nachrichten` in `POST /chats/:id/nachrichten`, `dateien` in
   `POST /themen/:id/dateien` (Phase 5), `lernzettel`/`testklausuren` an den
-  jeweiligen KI-Endpunkten (Phase 6). Lernzettel-Revisionen zählen erst ab der
-  11. je Lernzettel (`revisionZaehltGegenLimit`). Testklausur-Lösungs-Uploads
+  jeweiligen KI-Endpunkten (Phase 6). Jede Lernzettel-Revision zählt als Nachricht. Testklausur-Lösungs-Uploads
   zählen **nicht** (`zweck: testklausurLoesung`).
 - **`GET /usage`** liefert `{ paket, planName, resetDatum, nachrichten, dateien,
   lernzettel, testklausuren, ring: { ratio, stufe } }`; jede Quote ist

@@ -2014,5 +2014,5 @@
     });
   }
 
-  window.LesifyUI = { pdfVorschau: pdfVorschau, pdfDownload: pdfDownload, mdToHtml: mdToHtml, mdEscape: mdEscape, toast: toast, openModal: openModal, closeModal: closeModal, Icons: Icons, Render: Render, searchResultsHtml: searchResultsHtml, searchDropdownHtml: searchDropdownHtml, qs: qs, qsa: qsa, openFachColorPicker: openFachColorPicker, openDateiModal: openDateiModal, setPageWatermark: setPageWatermark };
+  window.LesifyUI = { fachColorVars: fachColorVars, pdfVorschau: pdfVorschau, pdfDownload: pdfDownload, mdToHtml: mdToHtml, mdEscape: mdEscape, toast: toast, openModal: openModal, closeModal: closeModal, Icons: Icons, Render: Render, searchResultsHtml: searchResultsHtml, searchDropdownHtml: searchDropdownHtml, qs: qs, qsa: qsa, openFachColorPicker: openFachColorPicker, openDateiModal: openDateiModal, setPageWatermark: setPageWatermark };
 })();

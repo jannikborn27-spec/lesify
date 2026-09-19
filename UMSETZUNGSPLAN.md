@@ -4384,3 +4384,12 @@ Kritisch, weil Zielgruppe minderjährig ist.
       `lernzettel.html`, `lernplan-lernzettel.html`, `testklausur.html`, Download als PDF.
 - [x] Basisvorlage + Mockups (`docs/pdf-mockups/`), Vorlagencode in `api/src/lib/pdf/`.
 - [ ] Offen: PDF-Vorschau auf Mobilgeräten (iOS zeigt iframe-PDFs nur als erste Seite) — ggf. PDF.js.
+
+## Nachtrag 2026-09-19 (2) — Lernzettel-Revisionen ohne Gratis-Kontingent
+
+- [x] Entscheidung: die „10 gratis Nachrichten je Lernzettel" entfallen; jede Revisionsnachricht zählt wie eine
+      normale Chat-Nachricht (`pruefeUsageLimit`/`inkrementiereUsage 'nachrichten'`). `freeMessagesUsed`,
+      `revisionZaehltGegenLimit` und `GRATIS_REVISIONEN_PRO_LERNZETTEL` sind entfernt; Migration
+      `20260919200000_lernzettel_ohne_gratis_nachrichten` (DROP COLUMN) — **vor Deploy `pnpm db:deploy` ausführen**.
+- [x] Lernzettel-Seite in Fachfarbe (Chat, Sende-Button, Rahmen, Vorschau-Hintergrund); Dev-Account: 4 Überarbeitungs-Chats
+      am If-Sätze-Lernzettel.

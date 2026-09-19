@@ -12,8 +12,8 @@
   .lz-msg { display: flex; gap: 10px; max-width: 90%; animation: fade-up 280ms var(--ease-out); }
   .lz-msg.from-user { align-self: flex-end; flex-direction: row-reverse; }
   .lz-avatar { width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
-  .lz-msg.from-ai .lz-avatar { background: var(--ink-950); color: var(--paper); padding: 6px; }
-  .lz-msg.from-user .lz-avatar { background: var(--ink-200); color: var(--ink-700); font-size: 0.64rem; font-weight: 700; }
+  .lz-msg.from-ai .lz-avatar { background: var(--fach-color, var(--ink-950)); color: #fff; padding: 6px; }
+  .lz-msg.from-user .lz-avatar { background: var(--fach-bg, var(--ink-200)); color: var(--fach-ink, var(--ink-700)); font-size: 0.64rem; font-weight: 700; }
   /* Markdown-Inhalt (LesifyUI.mdToHtml) in KI-Blasen */
   .md > :first-child { margin-top: 0; }
   .md > :last-child { margin-bottom: 0; }
@@ -38,13 +38,27 @@
   .md th, .md td { border: 1px solid var(--line); padding: 5px 12px; text-align: left; }
   .md th { background: var(--bg-canvas); font-weight: 600; }
   .lz-bubble { padding: 10px 13px; border-radius: 13px; font-size: 0.84rem; line-height: 1.5; }
-  .lz-msg.from-ai .lz-bubble { background: var(--bg-surface); border: 1px solid var(--line); border-top-left-radius: 4px; }
-  .lz-msg.from-user .lz-bubble { background: var(--ink-950); color: var(--paper); border-top-right-radius: 4px; }
+  .lz-msg.from-ai .lz-bubble { background: var(--bg-surface); border: 1px solid color-mix(in srgb, var(--fach-color, var(--ink-400)) 24%, var(--line)); border-top-left-radius: 4px; }
+  .lz-msg.from-user .lz-bubble { background: var(--fach-color, var(--ink-950)); color: #fff; border-top-right-radius: 4px; }
   .lz-composer { display: flex; gap: 8px; align-items: flex-end; }
   .lz-composer textarea { flex: 1; border: 1px solid var(--line-strong); border-radius: var(--radius-md); padding: 10px 12px; font-family: inherit; font-size: 0.85rem; resize: none; max-height: 100px; }
-  .lz-composer textarea:focus { outline: none; border-color: var(--ink-900); }
-  .free-counter { font-size: 0.72rem; color: var(--ink-500); }
-  .free-counter strong { color: var(--ink-900); }
+  .lz-composer textarea:focus { outline: none; border-color: var(--fach-color, var(--ink-900)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--fach-color, var(--ink-900)) 16%, transparent); }
+  .lz-hint { font-size: 0.72rem; color: var(--fach-ink, var(--ink-500)); }
+  /* Fachfarbe auf der ganzen Seite */
+  .lz-page .split-view { border-color: color-mix(in srgb, var(--fach-color) 30%, var(--line)); }
+  .lz-page .split-doc { border-right-color: color-mix(in srgb, var(--fach-color) 24%, var(--line)); }
+  .lz-page .pdf-pages { background: color-mix(in srgb, var(--fach-color) 7%, var(--ink-50)); }
+  .lz-page .split-chat { background: color-mix(in srgb, var(--fach-color) 4%, var(--ink-50)); }
+  .lz-page .split-chat-head { background: var(--fach-bg); border-bottom-color: color-mix(in srgb, var(--fach-color) 24%, var(--line)); }
+  .lz-page .split-chat-head .fw-600 { color: var(--fach-ink); }
+  .lz-page .split-chat-composer { border-top-color: color-mix(in srgb, var(--fach-color) 24%, var(--line)); }
+  .lz-page #lz-send { background: var(--fach-color); border-color: var(--fach-color); color: #fff; }
+  .lz-page #lz-send:hover:not(:disabled) { filter: brightness(1.08); }
+  .lz-page #lz-download { border-color: color-mix(in srgb, var(--fach-color) 45%, var(--line-strong)); color: var(--fach-ink); }
+  .lz-page .page-title { color: var(--fach-ink, var(--ink-950)); }
+  .lz-page .empty-state { color: var(--fach-ink, inherit); }
+  .lz-page .empty-state p { color: var(--ink-600); }
+  .lz-crumb-fach { color: var(--fach-ink); font-weight: 600; }
 </style>
 </head>
 <body data-page="themen">
@@ -52,7 +66,7 @@
   <div id="sidebar-root"></div>
   <div class="main">
     <div id="topbar-root"></div>
-    <main class="main-inner" style="padding-bottom:60px">
+    <main class="main-inner lz-page" id="lz-main" style="padding-bottom:60px">
 
       <div id="lz-crumb" class="page-eyebrow" style="margin-bottom:16px"></div>
       <div class="page-head" id="lz-head" style="margin-bottom:var(--sp-6)"></div>
@@ -63,7 +77,7 @@
           <div class="split-chat-head">
             <div class="flex justify-between items-center">
               <span class="text-sm fw-600">Gemeinsam überarbeiten</span>
-              <span class="free-counter" id="lz-free-counter"></span>
+              <span class="lz-hint">Zählt wie eine Chat-Nachricht</span>
             </div>
           </div>
           <div class="split-chat-thread" id="lz-thread"></div>
@@ -108,9 +122,11 @@ document.addEventListener('DOMContentLoaded', async function () {
   var themaLabel = Lesify.label(lz.themaId);
 
   document.title = lz.titel + ' · Lesify';
+  // Fachfarbe (--fach-color/-ink/-bg) auf die ganze Seite legen.
+  document.getElementById('lz-main').setAttribute('style', 'padding-bottom:60px;' + LesifyUI.fachColorVars(lz.fachId));
   document.getElementById('lz-crumb').innerHTML =
-    '<a href="thema.html?id=' + lz.themaId + '&tab=lernzettel" style="color:var(--ink-500)">' + themaLabel.thema + '</a>' +
-    '<span style="color:var(--ink-400);margin:0 6px">/</span><span>Lernzettel</span>';
+    '<a href="thema.html?id=' + lz.themaId + '&tab=lernzettel" style="color:var(--fach-ink,var(--ink-500))">' + themaLabel.thema + '</a>' +
+    '<span style="color:var(--ink-400);margin:0 6px">/</span><span class="lz-crumb-fach">Lernzettel</span>';
 
   document.getElementById('lz-head').innerHTML =
     '<div>' + R.badge(lz.themaId) +
@@ -127,12 +143,6 @@ document.addEventListener('DOMContentLoaded', async function () {
   function renderDoc() {
     // Der Lernzettel ist ein PDF (Basisvorlage + Inhalt); hier die Live-Vorschau davon.
     LesifyUI.pdfVorschau(document.getElementById('lz-doc'), '/lernzettel/' + lzId + '/pdf').catch(function () {});
-  }
-
-  function renderFreeCounter() {
-    var el = document.getElementById('lz-free-counter');
-    if (lz.freeMessagesUsed < 10) el.innerHTML = '<strong>' + (10 - lz.freeMessagesUsed) + '</strong> von 10 gratis Nachrichten übrig';
-    else el.innerHTML = 'Gratis-Kontingent aufgebraucht — zählt jetzt gegen dein Nachrichten-Limit';
   }
 
   // Markdown-Helfer mit Fallback: falls ein gecachtes, älteres app.js noch kein
@@ -157,7 +167,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     thread.scrollTop = thread.scrollHeight;
   }
 
-  renderDoc(); renderFreeCounter(); renderThread();
+  renderDoc(); renderThread();
 
   var input = document.getElementById('lz-input');
   input.addEventListener('input', function () { this.style.height = 'auto'; this.style.height = Math.min(100, this.scrollHeight) + 'px'; });
@@ -176,7 +186,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     input.value = ''; input.style.height = 'auto';
     try {
       lz = await Lesify.addLernzettelRevision(lzId, text);
-      renderDoc(); renderFreeCounter(); renderThread();
+      renderDoc(); renderThread();
     } catch (err) {
       LesifyUI.toast(Lesify.fehlerText(err));
     } finally {

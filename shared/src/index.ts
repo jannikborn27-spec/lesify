@@ -98,20 +98,6 @@ export const USAGE_ZAEHLER: readonly UsageZaehler[] = [
   'testklausuren',
 ];
 
-/**
- * Gratis-Revisionen je Lernzettel, bevor Revisionsnachrichten gegen das
- * Nachrichten-Limit zählen (data.js `addLernzettelRevision`: `freeMessagesUsed < 10`).
- */
-export const GRATIS_REVISIONEN_PRO_LERNZETTEL = 10;
-
-/**
- * Zählt die nächste Lernzettel-Revision gegen das Nachrichten-Limit? Erst ab
- * der 11. Revision je Lernzettel — die ersten 10 sind gratis (§7).
- */
-export function revisionZaehltGegenLimit(freeMessagesUsed: number): boolean {
-  return freeMessagesUsed >= GRATIS_REVISIONEN_PRO_LERNZETTEL;
-}
-
 /** Anteil `used/limit`, geklemmt auf [0,1]; `null`-Limit (unbegrenzt) → 0. */
 export function usageRatio(used: number, limit: number | null): number {
   if (limit == null || limit <= 0) return 0;

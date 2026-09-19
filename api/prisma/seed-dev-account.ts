@@ -918,7 +918,6 @@ interface LzSeed {
   thema: string;
   titel: string;
   vorTagen: number;
-  freeMessagesUsed: number;
   content: string;
   revisionen: Msg[];
 }
@@ -929,7 +928,6 @@ const LERNZETTEL: LzSeed[] = [
     thema: 'lineare-gleichungssysteme',
     titel: 'Lineare Gleichungssysteme — die drei Verfahren',
     vorTagen: 0.2,
-    freeMessagesUsed: 4,
     content: `## Was ist ein lineares Gleichungssystem?
 Zwei Gleichungen mit zwei Unbekannten (x und y), die **gleichzeitig** gelten sollen. Die Lösung ist das Zahlenpaar (x | y), das beide Gleichungen erfüllt — grafisch der **Schnittpunkt** zweier Geraden.
 
@@ -969,7 +967,6 @@ Passt bei Systemen in der Form ax + by = c.
     thema: 'prozentrechnung',
     titel: 'Prozentrechnung — Formeln & Alltag',
     vorTagen: 1,
-    freeMessagesUsed: 2,
     content: `## Die drei Größen
 • **Grundwert G** — das Ganze (entspricht 100 %)
 • **Prozentsatz p %** — der Anteil in Prozent
@@ -999,7 +996,6 @@ Neuer Wert = alter Wert · Faktor.
     thema: 'gedichtanalyse',
     titel: 'Gedichtanalyse — Aufbau und Stilmittel',
     vorTagen: 9,
-    freeMessagesUsed: 7,
     content: `## Aufbau einer Gedichtanalyse
 1. **Einleitung:** Titel, Autor, Erscheinungsjahr, Gedichtart, Thema in einem Satz
 2. **Inhalt:** Was passiert? (Strophe für Strophe, in eigenen Worten, Präsens)
@@ -1035,7 +1031,6 @@ Beispiel: „Die Personifikation ‚der Wind flüstert' (V. 3) erzeugt eine ruhi
     thema: 'present-perfect',
     titel: 'Present Perfect vs. Simple Past',
     vorTagen: 1,
-    freeMessagesUsed: 0,
     content: `## Simple Past — abgeschlossene Handlung in der Vergangenheit
 **Signalwörter:** yesterday, last week/year, in 2019, two days ago, when I was …
 • I **watched** a film last night.
@@ -1062,7 +1057,6 @@ Beispiel: „Die Personifikation ‚der Wind flüstert' (V. 3) erzeugt eine ruhi
     thema: 'zellbiologie',
     titel: 'Zellbiologie — Tier- und Pflanzenzelle im Vergleich',
     vorTagen: 4,
-    freeMessagesUsed: 1,
     content: `## Bestandteile beider Zelltypen
 | Zellbestandteil | Aufgabe |
 |---|---|
@@ -1089,7 +1083,6 @@ Vergrößerung = Okular · Objektiv (z. B. 10 · 40 = 400-fach).`,
     thema: 'gedichtanalyse',
     titel: 'Stilmittel im Überblick — mit Wirkung',
     vorTagen: 2,
-    freeMessagesUsed: 5,
     content: `## Stilmittel bestimmen und deuten
 Ein Stilmittel zu **nennen** reicht nie. Für volle Punkte gehört immer dazu: **Beleg (Vers) + Wirkung**.
 
@@ -1142,9 +1135,41 @@ Ein Stilmittel zu **nennen** reicht nie. Für volle Punkte gehört immer dazu: *
     thema: 'conditional-sentences',
     titel: LZ_CONDITIONALS.titel,
     vorTagen: 0.3,
-    freeMessagesUsed: 0,
     content: LZ_CONDITIONALS.content,
-    revisionen: [],
+    revisionen: [
+      [
+        'user',
+        'Ich verwechsle „unless" ständig mit „if". Kannst du dazu einen eigenen Abschnitt ergänzen?',
+      ],
+      [
+        'ai',
+        'Habe ich ergänzt: Abschnitt **6. Unless — Alternative zu „If … not"** erklärt, dass *unless* dasselbe bedeutet wie *if … not*. Dazu gibt es zwei Beispiele und den Hinweis, dass im Hauptsatz **keine** zusätzliche Verneinung stehen darf.',
+      ],
+      [
+        'user',
+        'Mach bitte noch eine Übersichts-Tabelle, in der Type 1 und Type 2 nebeneinander stehen.',
+      ],
+      [
+        'ai',
+        'Die Tabelle steht jetzt als **Abschnitt 8. Übersichts-Tabelle**. Sie vergleicht Type 1 und Type 2 nach Bedingung, Tempus im If-Teil, Form im Hauptsatz und Beispielsatz.',
+      ],
+      [
+        'user',
+        'Und wie gehe ich Schritt für Schritt vor, wenn ich selbst einen If-Satz bilden muss?',
+      ],
+      [
+        'ai',
+        'Dafür gibt es jetzt **Abschnitt 9**: In vier Schritten prüfst du, ob die Bedingung möglich ist, wählst das Tempus im If-Teil, dann die Form im Hauptsatz und setzt am Ende das Komma, wenn der If-Satz vorne steht.',
+      ],
+      [
+        'user',
+        'Super. Ganz am Ende noch eine Checkliste zum Abhaken, bevor ich die Klausur schreibe.',
+      ],
+      [
+        'ai',
+        'Erledigt — **Abschnitt 10** ist eine Checkliste mit den wichtigsten Punkten (Komma, *were*, kein *will/would* im If-Teil, *unless*). Darunter steht noch einmal das Wichtigste in Kurzform.',
+      ],
+    ],
   },
 ];
 
@@ -1652,7 +1677,6 @@ async function main() {
             themaId: T(lz.thema),
             titel: lz.titel,
             content: lz.content,
-            freeMessagesUsed: lz.freeMessagesUsed,
             erstelltAm: daysAgo(lz.vorTagen + 0.5),
             aktualisiertAm: daysAgo(lz.vorTagen),
           },

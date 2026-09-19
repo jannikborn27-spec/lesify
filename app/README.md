@@ -216,7 +216,7 @@ echten `POST /lernzettel/:id/revisionen` (Call 09). Feldnamen-Anpassung:
 `revisionMessages`/`role` → `revisionen`/`rolle`. `getLernzettel()` bekam
 `mitUpdated()` nachgezogen. `send()` sperrt Eingabe+Button während des
 echten KI-Calls. Live durchgespielt: Revision gesendet, Nutzer- + KI-
-Nachricht im Thread, Gratis-Zähler korrekt runtergezählt. Details:
+Nachricht im Thread, Revision zählt als normale Chat-Nachricht (Gratis-Kontingent entfiel 2026-09-19). Details:
 `backend-planning.md` §9.
 
 **`dateien.html` als dreizehnte Seite umgestellt (2026-09-12).** Nutzt

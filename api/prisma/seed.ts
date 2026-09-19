@@ -281,7 +281,6 @@ const LERNZETTEL: {
   thema: string;
   titel: string;
   updatedDays: number;
-  freeMessagesUsed: number;
   content: string;
   revisionen: Msg[];
 }[] = [
@@ -290,7 +289,6 @@ const LERNZETTEL: {
     thema: 'bruchrechnung',
     titel: 'Bruchrechnung — Grundlagen & Regeln',
     updatedDays: 0.1,
-    freeMessagesUsed: 3,
     content:
       '## Kürzen und Erweitern\nEin Bruch ändert seinen Wert nicht, wenn Zähler und Nenner mit derselben Zahl multipliziert oder durch dieselbe Zahl geteilt werden.\n\nBeispiel: 8/12 → durch 4 teilen → 2/3\n\n## Gleichnamig machen\nUm Brüche zu addieren oder zu subtrahieren, brauchen sie denselben Nenner (das kgV der Nenner).\n\n## Multiplikation und Division\nZähler mal Zähler, Nenner mal Nenner. Bei Division wird mit dem Kehrwert multipliziert.',
     revisionen: [
@@ -306,7 +304,6 @@ const LERNZETTEL: {
     thema: 'prozentrechnung',
     titel: 'Prozentrechnung im Alltag',
     updatedDays: 1,
-    freeMessagesUsed: 0,
     content:
       '## Grundformel\nProzentwert = Grundwert × Prozentsatz / 100\n\n## Typische Anwendungen\nRabatt, Zinsen, Mehrwertsteuer — immer erst den Grundwert identifizieren.',
     revisionen: [],
@@ -316,7 +313,6 @@ const LERNZETTEL: {
     thema: 'gedichtanalyse',
     titel: 'Gedichtanalyse: Aufbau & Fachbegriffe',
     updatedDays: 3,
-    freeMessagesUsed: 10,
     content:
       '## Aufbau einer Gedichtanalyse\n1. Einleitung (Autor, Titel, Erscheinungsjahr, Thema)\n2. Formale Analyse (Metrum, Reimschema, Strophenform)\n3. Inhaltliche Analyse\n4. Sprachliche Mittel und ihre Wirkung\n5. Deutungshypothese\n\n## Wichtige Fachbegriffe\nJambus, Trochäus, Enjambement, Metapher, Anapher.',
     revisionen: [
@@ -332,7 +328,6 @@ const LERNZETTEL: {
     thema: 'vocabulary-environment',
     titel: 'Environment Vocabulary — Wortliste',
     updatedDays: 4,
-    freeMessagesUsed: 1,
     content:
       '## Key Vocabulary\nclimate change, greenhouse gas, renewable energy, deforestation, sustainability, carbon footprint.\n\n## Useful phrases\n"contribute to global warming", "reduce our environmental impact"',
     revisionen: [],
@@ -342,7 +337,6 @@ const LERNZETTEL: {
     thema: 'zellbiologie',
     titel: 'Zellbiologie im Überblick',
     updatedDays: 6,
-    freeMessagesUsed: 0,
     content:
       '## Zellorganellen\nZellkern (Erbgut), Mitochondrien (Energie), bei Pflanzen zusätzlich Chloroplasten (Fotosynthese) und Zellwand.',
     revisionen: [],
@@ -879,7 +873,6 @@ async function main() {
         themaId: uid(`thema:${lz.thema}`),
         titel: lz.titel,
         content: lz.content,
-        freeMessagesUsed: lz.freeMessagesUsed,
         erstelltAm: daysAgo(lz.updatedDays + 1),
         aktualisiertAm: daysAgo(lz.updatedDays),
       },

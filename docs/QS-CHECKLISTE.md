@@ -8,7 +8,7 @@ Vorlage für den QS-Durchlauf vor dem Launch (Phase 16).
 | Bereich                                                                                       | Datei(en)                                      | Status |
 | --------------------------------------------------------------------------------------------- | ---------------------------------------------- | ------ |
 | Notenformel, `noteAmpel`, `lernplanStatus`, Checklist-Keys, Paritäts-Fixtures                 | `shared/src/noten.test.ts`, `lernplan.test.ts` | ✅     |
-| Usage: Ratio/Stufe, Gratis-Revisionen                                                         | `shared/src/usage.test.ts`                     | ✅     |
+| Usage: Ratio/Stufe                                                                            | `shared/src/usage.test.ts`                     | ✅     |
 | Abo-Preise / Sitz-Regeln                                                                      | `shared/src/abo.test.ts`                       | ✅     |
 | Auth-Flow (registrieren → login → bestätigen → reset → logout, Einwilligung)                  | `api/src/routes/auth.test.ts`                  | ✅     |
 | Kern-CRUD (Fächer/Themen/User/Usage/Suche/Kontakt)                                            | `api/src/routes/kern.test.ts`                  | ✅     |
@@ -36,7 +36,7 @@ Vorlage für den QS-Durchlauf vor dem Launch (Phase 16).
 - [ ] Fach anlegen → Farbe ändern → Thema anlegen
 - [ ] Chat: Nachricht senden, Titel entsteht, Usage-Zähler steigt
 - [ ] Datei hochladen (5 MB Grenze prüfen), Status `verarbeitung` → `bereit` per Polling
-- [ ] Lernzettel erzeugen, Revision anfragen (erste 10 gratis)
+- [ ] Lernzettel erzeugen, Revision anfragen (zählt als Chat-Nachricht)
 - [ ] Klausur anlegen → Lernplan + Testklausur 1 entstehen automatisch
 - [ ] Lernplan Tag 1–7 durchklicken, Checklisten-Haken persistieren
 - [ ] Testklausur 1 lösen (Upload) → Analyse → Vorbereitungsstand-Ampel

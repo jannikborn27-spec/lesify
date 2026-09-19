@@ -196,20 +196,20 @@
 
     lernzettel: [
       {
-        id: 'l1', fachId: 'mathematik', themaId: 'bruchrechnung', titel: 'Bruchrechnung — Grundlagen & Regeln', updated: 'vor 2 Stunden', freeMessagesUsed: 3,
+        id: 'l1', fachId: 'mathematik', themaId: 'bruchrechnung', titel: 'Bruchrechnung — Grundlagen & Regeln', updated: 'vor 2 Stunden',
         content: '## Kürzen und Erweitern\nEin Bruch ändert seinen Wert nicht, wenn Zähler und Nenner mit derselben Zahl multipliziert oder durch dieselbe Zahl geteilt werden.\n\nBeispiel: 8/12 → durch 4 teilen → 2/3\n\n## Gleichnamig machen\nUm Brüche zu addieren oder zu subtrahieren, brauchen sie denselben Nenner (das kgV der Nenner).\n\n## Multiplikation und Division\nZähler mal Zähler, Nenner mal Nenner. Bei Division wird mit dem Kehrwert multipliziert.',
         revisionMessages: [
           { role: 'user', text: 'Kannst du ein Beispiel zum Gleichnamig-Machen ergänzen?' },
           { role: 'ai', text: 'Klar — ich habe im Abschnitt „Gleichnamig machen" ein Beispiel ergänzt: 1/4 + 1/6 → kgV(4,6)=12 → 3/12 + 2/12 = 5/12.' }
         ]
       },
-      { id: 'l2', fachId: 'mathematik', themaId: 'prozentrechnung', titel: 'Prozentrechnung im Alltag', updated: 'vor 1 Tag', freeMessagesUsed: 0, content: '## Grundformel\nProzentwert = Grundwert × Prozentsatz / 100\n\n## Typische Anwendungen\nRabatt, Zinsen, Mehrwertsteuer — immer erst den Grundwert identifizieren.', revisionMessages: [] },
-      { id: 'l3', fachId: 'deutsch', themaId: 'gedichtanalyse', titel: 'Gedichtanalyse: Aufbau & Fachbegriffe', updated: 'vor 3 Tagen', freeMessagesUsed: 10, content: '## Aufbau einer Gedichtanalyse\n1. Einleitung (Autor, Titel, Erscheinungsjahr, Thema)\n2. Formale Analyse (Metrum, Reimschema, Strophenform)\n3. Inhaltliche Analyse\n4. Sprachliche Mittel und ihre Wirkung\n5. Deutungshypothese\n\n## Wichtige Fachbegriffe\nJambus, Trochäus, Enjambement, Metapher, Anapher.', revisionMessages: [
+      { id: 'l2', fachId: 'mathematik', themaId: 'prozentrechnung', titel: 'Prozentrechnung im Alltag', updated: 'vor 1 Tag', content: '## Grundformel\nProzentwert = Grundwert × Prozentsatz / 100\n\n## Typische Anwendungen\nRabatt, Zinsen, Mehrwertsteuer — immer erst den Grundwert identifizieren.', revisionMessages: [] },
+      { id: 'l3', fachId: 'deutsch', themaId: 'gedichtanalyse', titel: 'Gedichtanalyse: Aufbau & Fachbegriffe', updated: 'vor 3 Tagen', content: '## Aufbau einer Gedichtanalyse\n1. Einleitung (Autor, Titel, Erscheinungsjahr, Thema)\n2. Formale Analyse (Metrum, Reimschema, Strophenform)\n3. Inhaltliche Analyse\n4. Sprachliche Mittel und ihre Wirkung\n5. Deutungshypothese\n\n## Wichtige Fachbegriffe\nJambus, Trochäus, Enjambement, Metapher, Anapher.', revisionMessages: [
         { role: 'user', text: 'Füg noch eine Erklärung zu Enjambement hinzu.' },
         { role: 'ai', text: 'Enjambement = ein Satz läuft über das Zeilenende hinaus in die nächste Zeile weiter. Wirkung: erzeugt Lesefluss oder Spannung.' }
       ] },
-      { id: 'l4', fachId: 'englisch', themaId: 'vocabulary-environment', titel: 'Environment Vocabulary — Wortliste', updated: 'vor 4 Tagen', freeMessagesUsed: 1, content: '## Key Vocabulary\nclimate change, greenhouse gas, renewable energy, deforestation, sustainability, carbon footprint.\n\n## Useful phrases\n"contribute to global warming", "reduce our environmental impact"', revisionMessages: [] },
-      { id: 'l5', fachId: 'biologie', themaId: 'zellbiologie', titel: 'Zellbiologie im Überblick', updated: 'vor 6 Tagen', freeMessagesUsed: 0, content: '## Zellorganellen\nZellkern (Erbgut), Mitochondrien (Energie), bei Pflanzen zusätzlich Chloroplasten (Fotosynthese) und Zellwand.', revisionMessages: [] }
+      { id: 'l4', fachId: 'englisch', themaId: 'vocabulary-environment', titel: 'Environment Vocabulary — Wortliste', updated: 'vor 4 Tagen', content: '## Key Vocabulary\nclimate change, greenhouse gas, renewable energy, deforestation, sustainability, carbon footprint.\n\n## Useful phrases\n"contribute to global warming", "reduce our environmental impact"', revisionMessages: [] },
+      { id: 'l5', fachId: 'biologie', themaId: 'zellbiologie', titel: 'Zellbiologie im Überblick', updated: 'vor 6 Tagen', content: '## Zellorganellen\nZellkern (Erbgut), Mitochondrien (Energie), bei Pflanzen zusätzlich Chloroplasten (Fotosynthese) und Zellwand.', revisionMessages: [] }
     ],
 
     dateien: [
@@ -776,7 +776,7 @@
   Lesify.addLernzettel = function (data) {
     var thema = Lesify.getThema(data.themaId);
     var content = '# ' + (thema ? thema.name : 'Lernzettel') + '\n\n' + LERNZETTEL_ABSCHNITTE.join('\n\n');
-    var l = { id: uid('lz'), fachId: data.fachId, themaId: data.themaId, titel: (thema ? thema.name : 'Thema') + ' — Lernzettel', updated: 'gerade eben', content: content, freeMessagesUsed: 0, revisionMessages: [] };
+    var l = { id: uid('lz'), fachId: data.fachId, themaId: data.themaId, titel: (thema ? thema.name : 'Thema') + ' — Lernzettel', updated: 'gerade eben', content: content, revisionMessages: [] };
     store.lernzettel.push(l); persist();
     return l;
   };
@@ -790,8 +790,7 @@
     storeItem.revisionMessages.push({ role: 'user', text: userText });
     storeItem.revisionMessages.push({ role: 'ai', text: aiText });
     if (contentAppend) storeItem.content += '\n\n' + contentAppend;
-    if (storeItem.freeMessagesUsed < 10) storeItem.freeMessagesUsed++;
-    else Lesify.incrementUsage('nachrichten', 1);
+    Lesify.incrementUsage('nachrichten', 1); // zählt wie eine normale Chat-Nachricht
     storeItem.updated = 'gerade eben';
     persist();
     return storeItem;

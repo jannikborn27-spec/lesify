@@ -181,7 +181,7 @@ describe.runIf(hatDb)('Phase 6 — KI-Endpunkte gegen den FakeKiClient (Supabase
       expect(andereThemaId.json().map((l: { id: string }) => l.id)).not.toContain(lernzettelId);
     });
 
-    it('erste Revision ist gratis (freeMessagesUsed 0 → 1), zählt nicht gegen Nachrichten', async () => {
+    it('Revision zählt wie eine normale Chat-Nachricht gegen das Nachrichten-Limit', async () => {
       const vorher = (await app.inject({ method: 'GET', url: '/usage', headers: auth() })).json();
       const res = await app.inject({
         method: 'POST',
@@ -190,25 +190,7 @@ describe.runIf(hatDb)('Phase 6 — KI-Endpunkte gegen den FakeKiClient (Supabase
         payload: { text: 'Füge ein Beispiel hinzu.' },
       });
       expect(res.statusCode).toBe(200);
-      expect(res.json().freeMessagesUsed).toBe(1);
       expect(res.json().revisionen).toHaveLength(2);
-      const nachher = (await app.inject({ method: 'GET', url: '/usage', headers: auth() })).json();
-      expect(nachher.nachrichten.used).toBe(vorher.nachrichten.used);
-    });
-
-    it('ab der 11. Revision zählt sie gegen das Nachrichten-Limit', async () => {
-      await prisma.lernzettel.update({
-        where: { id: lernzettelId },
-        data: { freeMessagesUsed: 10 },
-      });
-      const vorher = (await app.inject({ method: 'GET', url: '/usage', headers: auth() })).json();
-      const res = await app.inject({
-        method: 'POST',
-        url: `/lernzettel/${lernzettelId}/revisionen`,
-        headers: auth(),
-        payload: { text: 'Noch eine Änderung.' },
-      });
-      expect(res.statusCode).toBe(200);
       const nachher = (await app.inject({ method: 'GET', url: '/usage', headers: auth() })).json();
       expect(nachher.nachrichten.used).toBe(vorher.nachrichten.used + 1);
     });

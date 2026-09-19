@@ -1544,7 +1544,7 @@
         '<p>Der entsteht automatisch ab Tag 3 deines Lernplans.</p>' +
         '<a class="btn btn-secondary" href="lernplan.html?id=' + lernplanId + '">Zum Lernplan</a></div>';
     }
-    return '<div class="split-doc">' + lpMdBlocks(lp.lernzettel.content) + '</div>';
+    return '<div class="pdf-slot" data-pdf-path="/lernplaene/' + lernplanId + '/lernzettel/dokument"></div>';
   }
 
   function wireLernplan(root, lernplanId, onChange) {
@@ -1921,5 +1921,28 @@
     return out.join('');
   }
 
-  window.LesifyUI = { mdToHtml: mdToHtml, mdEscape: mdEscape, toast: toast, openModal: openModal, closeModal: closeModal, Icons: Icons, Render: Render, searchResultsHtml: searchResultsHtml, searchDropdownHtml: searchDropdownHtml, qs: qs, qsa: qsa, openFachColorPicker: openFachColorPicker, openDateiModal: openDateiModal, setPageWatermark: setPageWatermark };
+  /* PDF-Vorschau/-Download (Lernzettel, Testklausur): das PDF liegt hinter
+     dem Auth-Header, darum per fetch → Blob → Object-URL. */
+  function pdfVorschau(el, pfad) {
+    el.innerHTML = '<div class="pdf-loading">PDF wird erstellt …</div>';
+    return Lesify.pdfBlob(pfad).then(function (blob) {
+      if (el._pdfUrl) URL.revokeObjectURL(el._pdfUrl);
+      el._pdfUrl = URL.createObjectURL(blob);
+      el.innerHTML = '<iframe class="pdf-frame" title="PDF-Vorschau" src="' + el._pdfUrl + '#toolbar=0&navpanes=0"></iframe>';
+    }).catch(function (err) {
+      el.innerHTML = '<div class="pdf-loading">Die Vorschau konnte nicht geladen werden.</div>';
+      throw err;
+    });
+  }
+  function pdfDownload(pfad, dateiname) {
+    return Lesify.pdfBlob(pfad + (pfad.indexOf('?') < 0 ? '?' : '&') + 'download=1').then(function (blob) {
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url; a.download = dateiname + '.pdf';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    });
+  }
+
+  window.LesifyUI = { pdfVorschau: pdfVorschau, pdfDownload: pdfDownload, mdToHtml: mdToHtml, mdEscape: mdEscape, toast: toast, openModal: openModal, closeModal: closeModal, Icons: Icons, Render: Render, searchResultsHtml: searchResultsHtml, searchDropdownHtml: searchDropdownHtml, qs: qs, qsa: qsa, openFachColorPicker: openFachColorPicker, openDateiModal: openDateiModal, setPageWatermark: setPageWatermark };
 })();

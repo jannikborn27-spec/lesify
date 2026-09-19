@@ -3,6 +3,8 @@ import type { Lernplan, PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { parse } from '../lib/validate.js';
 import { oder404 } from '../lib/scope.js';
+import { lernzettelPdf } from '../lib/pdf/dokumente.js';
+import { pdfAntwort } from '../lib/pdf/antwort.js';
 import { HttpError } from '../lib/http.js';
 import {
   berechneLernplanStatus,
@@ -151,13 +153,24 @@ export async function lernplaeneRoutes(app: FastifyInstance): Promise<void> {
     return { ...lernplanDTO(await laden(req.userId, req.params.id)), chatMap };
   });
 
-  // GET /lernplaene/:id/lernzettel/dokument — Markdown-Download
+  // GET /lernplaene/:id/lernzettel/dokument — Lern-Lernzettel als PDF (Basisvorlage
+  // + Markdown-Inhalt); `?download=1` erzwingt den Speichern-Dialog.
   app.get<{ Params: { id: string } }>('/lernplaene/:id/lernzettel/dokument', async (req, reply) => {
+    const { download } = parse(z.object({ download: z.enum(['0', '1']).optional() }), req.query);
     const lp = await laden(req.userId, req.params.id);
-    const doc = lp.lernzettel as { content?: string } | null;
-    return reply
-      .type('text/markdown; charset=utf-8')
-      .send(doc?.content ?? '# Lernzettel\n\n_(noch leer)_\n');
+    const doc = lp.lernzettel as { content?: string; aktualisiertAm?: string } | null;
+    const klausur = await prisma.klausur.findUniqueOrThrow({ where: { id: lp.klausurId } });
+    const fach = await prisma.fach.findUniqueOrThrow({ where: { id: klausur.fachId } });
+    const pdf = await lernzettelPdf({
+      titel: `Lernzettel — ${klausur.titel}`,
+      content: doc?.content ?? '',
+      fachName: fach.name,
+      fachFarbe: fach.farbe,
+      klasse: fach.klasse,
+      themaName: null,
+      stand: doc?.aktualisiertAm ? new Date(doc.aktualisiertAm) : new Date(),
+    });
+    return pdfAntwort(reply, pdf, `lernzettel-${klausur.titel}`, download === '1');
   });
 
   // POST /lernplaene/:id/testklausur2 — Call 10, begrenzt auf die an Tag 1

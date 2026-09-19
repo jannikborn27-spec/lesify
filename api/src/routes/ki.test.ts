@@ -145,6 +145,23 @@ describe.runIf(hatDb)('Phase 6 — KI-Endpunkte gegen den FakeKiClient (Supabase
       lernzettelId = res.json().id;
     });
 
+    it('GET /lernzettel/:id/pdf liefert den Lernzettel als PDF', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/lernzettel/${lernzettelId}/pdf`,
+        headers: auth(),
+      });
+      expect(res.statusCode).toBe(200);
+      expect(res.headers['content-type']).toContain('application/pdf');
+      expect(res.rawPayload.subarray(0, 5).toString()).toBe('%PDF-');
+      const dl = await app.inject({
+        method: 'GET',
+        url: `/lernzettel/${lernzettelId}/pdf?download=1`,
+        headers: auth(),
+      });
+      expect(dl.headers['content-disposition']).toContain('attachment');
+    });
+
     it('GET /lernzettel(?themaId=) listet ihn (Dashboard-/Übersichts-Feed)', async () => {
       const alle = await app.inject({ method: 'GET', url: '/lernzettel', headers: auth() });
       expect(alle.json().map((l: { id: string }) => l.id)).toContain(lernzettelId);

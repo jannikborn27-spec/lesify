@@ -725,6 +725,13 @@
     ApiError: ApiError,
     _setToken: setToken,
     _getToken: getToken,
+    /** Lädt ein PDF (Auth-Header nötig → kein <a href>/<iframe src> direkt) und liefert ein Blob. */
+    pdfBlob: function (pfad) {
+      return fetch(BASE + pfad, { headers: { Authorization: 'Bearer ' + getToken() } }).then(function (r) {
+        if (!r.ok) throw new Error('PDF konnte nicht geladen werden (' + r.status + ')');
+        return r.blob();
+      });
+    },
     _base: BASE,
     /** Elternmodus „Als Kind ansehen" (Phase 12/11): merkt das aktuelle
         (Eltern-)Token, bevor auf die Kind-Session gewechselt wird — sonst

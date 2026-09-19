@@ -3,6 +3,8 @@ import type { Lernzettel } from '@prisma/client';
 import { z } from 'zod';
 import { revisionZaehltGegenLimit } from '@lesify/shared';
 import { parse } from '../lib/validate.js';
+import { lernzettelPdf } from '../lib/pdf/dokumente.js';
+import { pdfAntwort } from '../lib/pdf/antwort.js';
 import { oder404 } from '../lib/scope.js';
 import { inkrementiereUsage, pruefeUsageLimit } from '../lib/usage.js';
 import { pruefeKiEingabe } from '../lib/ki/guard.js';
@@ -62,6 +64,30 @@ export async function lernzettelRoutes(app: FastifyInstance): Promise<void> {
         erstelltAm: r.erstelltAm,
       })),
     };
+  });
+
+  // GET /lernzettel/:id/pdf — der Lernzettel als PDF (Basisvorlage + Markdown-Inhalt).
+  // Das PDF wird bei jedem Abruf frisch aus `content` gerendert, damit es nach
+  // einer Revision nie veraltet; `?download=1` erzwingt den Speichern-Dialog.
+  app.get<{ Params: { id: string } }>('/lernzettel/:id/pdf', async (req, reply) => {
+    const { download } = parse(z.object({ download: z.enum(['0', '1']).optional() }), req.query);
+    const lz = oder404(
+      await prisma.lernzettel.findFirst({ where: { id: req.params.id, userId: req.userId } }),
+    );
+    const [fach, thema] = await Promise.all([
+      prisma.fach.findUniqueOrThrow({ where: { id: lz.fachId } }),
+      prisma.thema.findUniqueOrThrow({ where: { id: lz.themaId } }),
+    ]);
+    const pdf = await lernzettelPdf({
+      titel: lz.titel,
+      content: lz.content,
+      fachName: fach.name,
+      fachFarbe: fach.farbe,
+      klasse: fach.klasse,
+      themaName: thema.name,
+      stand: lz.aktualisiertAm,
+    });
+    return pdfAntwort(reply, pdf, `lernzettel-${lz.titel}`, download === '1');
   });
 
   // POST /themen/:id/lernzettel — Call 08: vollautomatisch aus allen Chats +

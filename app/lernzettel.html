@@ -58,7 +58,7 @@
       <div class="page-head" id="lz-head" style="margin-bottom:var(--sp-6)"></div>
 
       <div class="split-view">
-        <div class="split-doc md" id="lz-doc"></div>
+        <div class="split-doc is-pdf" id="lz-doc"></div>
         <div class="split-chat">
           <div class="split-chat-head">
             <div class="flex justify-between items-center">
@@ -82,7 +82,7 @@
 
 <script src="assets/js/api.js"></script>
 <script src="assets/js/auth-gate.js"></script>
-<script src="assets/js/app.js?v=20260919md"></script>
+<script src="assets/js/app.js?v=20260919pdf"></script>
 <script>
 document.addEventListener('DOMContentLoaded', async function () {
   var I = LesifyUI.Icons, R = LesifyUI.Render;
@@ -117,10 +117,16 @@ document.addEventListener('DOMContentLoaded', async function () {
       '<h1 class="page-title" style="margin-top:14px;font-size:1.6rem">' + lz.titel + '</h1>' +
       '<p class="page-sub">Zuletzt bearbeitet ' + lz.updated + '</p>' +
     '</div>' +
-    '<div class="page-actions"><a href="thema.html?id=' + lz.themaId + '&tab=lernzettel" class="btn btn-ghost btn-sm">Zurück zum Thema</a></div>';
+    '<div class="page-actions"><button class="btn btn-secondary btn-sm" id="lz-download">' + I.download + ' Als PDF herunterladen</button>' +
+      '<a href="thema.html?id=' + lz.themaId + '&tab=lernzettel" class="btn btn-ghost btn-sm">Zurück zum Thema</a></div>';
+  document.getElementById('lz-download').addEventListener('click', function () {
+    LesifyUI.pdfDownload('/lernzettel/' + lzId + '/pdf', Lesify.slugify(lz.titel))
+      .catch(function (err) { LesifyUI.toast(Lesify.fehlerText(err)); });
+  });
 
   function renderDoc() {
-    document.getElementById('lz-doc').innerHTML = mdSafe(lz.content, { headingShift: 0 });
+    // Der Lernzettel ist ein PDF (Basisvorlage + Inhalt); hier die Live-Vorschau davon.
+    LesifyUI.pdfVorschau(document.getElementById('lz-doc'), '/lernzettel/' + lzId + '/pdf').catch(function () {});
   }
 
   function renderFreeCounter() {

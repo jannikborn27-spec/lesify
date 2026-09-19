@@ -245,15 +245,15 @@ describe.runIf(hatDb)('chats + klausuren/lernplan/testklausur — Flow (Supabase
     expect(patch.json().chatMap[`3|ueben|${themaA}`]).toBe(chatId);
   });
 
-  it('GET /lernplaene/:id/lernzettel/dokument → Markdown', async () => {
+  it('GET /lernplaene/:id/lernzettel/dokument → PDF', async () => {
     const res = await app.inject({
       method: 'GET',
       url: `/lernplaene/${lernplanId}/lernzettel/dokument`,
       headers: auth(),
     });
     expect(res.statusCode).toBe(200);
-    expect(res.headers['content-type']).toContain('text/markdown');
-    expect(res.body).toContain('Lernzettel');
+    expect(res.headers['content-type']).toContain('application/pdf');
+    expect(res.rawPayload.subarray(0, 5).toString()).toBe('%PDF-');
   });
 
   it('GET /testklausuren/:id + /dokument', async () => {
@@ -271,8 +271,9 @@ describe.runIf(hatDb)('chats + klausuren/lernplan/testklausur — Flow (Supabase
       url: `/testklausuren/${testklausur1Id}/dokument`,
       headers: auth(),
     });
-    expect(doc.headers['content-type']).toContain('text/plain');
-    expect(doc.body).toContain('Testklausur 1');
+    expect(doc.headers['content-type']).toContain('application/pdf');
+    expect(doc.rawPayload.subarray(0, 5).toString()).toBe('%PDF-');
+    expect(doc.headers['content-disposition']).toContain('inline');
   });
 
   it('nach Analyse von Testklausur 1 rechnet status.aktuellerTag korrekt (Phase 7)', async () => {

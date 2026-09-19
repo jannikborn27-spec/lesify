@@ -4375,3 +4375,12 @@ Kritisch, weil Zielgruppe minderjährig ist.
 - [ ] **Feedback-Schleife** mit Schüler:innen/Eltern; Backlog priorisieren.
 - [ ] **`backend-planning.md` bleibt das lebende Dokument** — bei jeder Änderung an
       Datenmodell, Notenlogik, Limits oder Endpunkten zuerst dort einpflegen.
+
+
+## Nachtrag 2026-09-19 — Lernzettel & Testklausur als PDF
+
+- [x] Lernzettel + Testklausur werden als PDF ausgeliefert (`GET /lernzettel/:id/pdf`,
+      `/lernplaene/:id/lernzettel/dokument`, `/testklausuren/:id/dokument`), Vorschau per iframe in
+      `lernzettel.html`, `lernplan-lernzettel.html`, `testklausur.html`, Download als PDF.
+- [x] Basisvorlage + Mockups (`docs/pdf-mockups/`), Vorlagencode in `api/src/lib/pdf/`.
+- [ ] Offen: PDF-Vorschau auf Mobilgeräten (iOS zeigt iframe-PDFs nur als erste Seite) — ggf. PDF.js.

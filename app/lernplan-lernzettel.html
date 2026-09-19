@@ -27,7 +27,7 @@
 
 <script src="assets/js/api.js"></script>
 <script src="assets/js/auth-gate.js"></script>
-<script src="assets/js/app.js"></script>
+<script src="assets/js/app.js?v=20260919pdf"></script>
 <script>
 document.addEventListener('DOMContentLoaded', async function () {
   var I = LesifyUI.Icons, R = LesifyUI.Render;
@@ -77,24 +77,16 @@ document.addEventListener('DOMContentLoaded', async function () {
     '</div>' + actions;
 
   document.getElementById('sp-doc').innerHTML = R.lernzettelSeite(lernplanId);
+  var slot = document.querySelector('#sp-doc .pdf-slot');
+  if (slot) {
+    document.getElementById('sp-doc').classList.add('is-pdf');
+    LesifyUI.pdfVorschau(slot, slot.getAttribute('data-pdf-path')).catch(function () {});
+  }
 
   var dl = document.getElementById('sp-download');
-  if (dl) dl.addEventListener('click', async function () {
-    // GET /lernplaene/:id/lernzettel/dokument braucht den Authorization-
-    // Header (kein ?token=-Fallback wie bei Dateien) — darum per fetch +
-    // Blob statt einer einfachen <a href>-Navigation.
-    var text = await fetch(Lesify._base + '/lernplaene/' + lernplanId + '/lernzettel/dokument', {
-      headers: { Authorization: 'Bearer ' + Lesify._getToken() }
-    }).then(function (r) { return r.text(); });
-    var blob = new Blob([text], { type: 'text/markdown' });
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url;
-    a.download = 'lernzettel-' + Lesify.slugify(k ? k.titel : 'lernplan') + '.md';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
+  if (dl) dl.addEventListener('click', function () {
+    LesifyUI.pdfDownload('/lernplaene/' + lernplanId + '/lernzettel/dokument', 'lernzettel-' + Lesify.slugify(k ? k.titel : 'lernplan'))
+      .catch(function (err) { LesifyUI.toast(Lesify.fehlerText(err)); });
   });
 });
 </script>

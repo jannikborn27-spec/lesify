@@ -113,7 +113,7 @@
 
 <script src="assets/js/api.js"></script>
 <script src="assets/js/auth-gate.js"></script>
-<script src="assets/js/app.js"></script>
+<script src="assets/js/app.js?v=20260919pdf"></script>
 <script>
 document.addEventListener('DOMContentLoaded', async function () {
   var R = LesifyUI.Render, I = LesifyUI.Icons;
@@ -194,38 +194,20 @@ document.addEventListener('DOMContentLoaded', async function () {
     }).join('') + '</div>';
   }
 
-  // `GET /testklausuren/:id/dokument` braucht den Authorization-Header (kein
-  // `?token=`-Fallback) — darum per fetch + Blob statt `<a href>` (wie beim
-  // Lernzettel-Download in lernplan-lernzettel.html).
-  async function downloadTestklausur() {
-    var text = await fetch(Lesify._base + '/testklausuren/' + tkId + '/dokument', {
-      headers: { Authorization: 'Bearer ' + Lesify._getToken() }
-    }).then(function (r) { return r.text(); });
-    var blob = new Blob([text], { type: 'text/plain' });
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url;
-    a.download = Lesify.slugify(t.titel) + '.txt';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
+  // Das PDF liegt hinter dem Authorization-Header → LesifyUI.pdfVorschau/pdfDownload
+  // laden es per fetch als Blob (kein einfaches <a href>/<iframe src>).
+  function downloadTestklausur() {
+    LesifyUI.pdfDownload('/testklausuren/' + tkId + '/dokument', Lesify.slugify(t.titel))
+      .catch(function (err) { LesifyUI.toast(Lesify.fehlerText(err)); });
   }
 
   function drawErstelltPanel() {
-    var aufgabenHtml = t.aufgaben.map(function (a, i) {
-      var label = Lesify.label(a.themaId);
-      return '<div style="padding:14px 0' + (i ? ';border-top:1px solid color-mix(in srgb,var(--fach-color) 20%,var(--line))' : '') + '">' +
-        '<div class="text-xs fw-600" style="margin-bottom:4px;color:var(--fach-ink,var(--ink-700))">Aufgabe ' + (i + 1) + ' · ' + label.thema + '</div>' +
-        '<div class="text-sm text-muted">' + a.frage + '</div></div>';
-    }).join('');
-
     return '<div>' +
       '<h3 style="font-size:1.05rem;margin-bottom:6px;color:var(--fach-ink,var(--ink-950))">Aufgaben bereit</h3>' +
       '<p class="text-sm text-muted" style="max-width:60ch;margin-bottom:18px">Jedes Thema hat eine Aufgabe bekommen. Lade die Testklausur herunter, löse sie eigenständig und lade deine Lösung anschließend als Dokument hoch.</p>' +
-      '<div class="tk-aufgaben-box">' + aufgabenHtml + '</div>' +
+      '<div class="pdf-slot is-boxed" id="tk-pdf-slot"></div>' +
       '<div class="flex gap-3" style="flex-wrap:wrap">' +
-        '<button class="btn btn-secondary" id="download-btn" style="border-color:color-mix(in srgb,var(--fach-color) 45%,var(--line-strong))">' + I.download + ' Testklausur herunterladen</button>' +
+        '<button class="btn btn-secondary" id="download-btn" style="border-color:color-mix(in srgb,var(--fach-color) 45%,var(--line-strong))">' + I.download + ' Als PDF herunterladen</button>' +
       '</div>' +
       '<label class="upload-dropzone tk-dropzone" style="margin-top:18px;position:relative">' +
         '<span class="spark" style="width:32px;height:32px;color:var(--fach-color,var(--ink-500))">' + I.upload + '</span>' +
@@ -252,6 +234,9 @@ document.addEventListener('DOMContentLoaded', async function () {
     // direkt darunter. Leeres Panel wird per CSS (:empty) ausgeblendet.
     el.innerHTML = st === 'erstellt' ? drawErstelltPanel()
       : (st === 'geloest' ? drawGeloestPanel() : '');
+
+    var pdfSlot = document.getElementById('tk-pdf-slot');
+    if (pdfSlot) LesifyUI.pdfVorschau(pdfSlot, '/testklausuren/' + tkId + '/dokument').catch(function () {});
 
     var dl = document.getElementById('download-btn');
     if (dl) dl.addEventListener('click', downloadTestklausur);

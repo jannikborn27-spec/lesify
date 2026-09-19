@@ -919,7 +919,8 @@ Kein `PATCH /klausuren/:id` — eine `Klausur` hat keine editierbaren Felder (En
 | GET | `/lernplaene/:id` bzw. `/klausuren/:id/lernplan` | Persistierte Felder + berechneter `status` (aktueller Tag, schwache Themen, Tag-1↔Tag-5-Vergleich, ob Testklausur 2 nötig ist) **+ (2026-09-12) volle `klausur`/`testklausur1`/`testklausur2`-Objekte** in der data.js-Prototyp-Form — `Lesify.lernplanStatus` im Frontend faltet das auf `{lernplan, klausur, testklausur1, testklausur2, tag1..tag7, aktuellerTag, letzteTestNote, letzteTestNr, gesamtnoteAktuell}` zusammen (§9 „api.js-Cache-Layer") |
 | POST | `/lernplaene/:id/testklausur2` | Startet Testklausur 2 (Tag 5), begrenzt auf die an Tag 1 schwachen/wackeligen Themen — intern derselbe `testklausurErstellen()` wie `POST /testklausuren` (**Phase 6 verdrahtet**), danach `Lernplan.testklausur2Id` gesetzt. `409`, wenn Tag 5 noch nicht verfügbar/nötig oder schon gestartet |
 | POST | `/lernplaene/:id/lernzettel` | `{themaIds}` → erzeugt/ergänzt den Lernzettel (Call 12, **Phase 6 verdrahtet**, hängt Markdown-Abschnitte an), gibt `Lernplan.lernzettel` zurück |
-| GET | `/lernplaene/:id/lernzettel/dokument` | Lernzettel als Markdown-Download |
+| GET | `/lernplaene/:id/lernzettel/dokument` | Lern-Lernzettel als **PDF** (Basisvorlage + Markdown-Inhalt; `?download=1` = attachment) |
+| GET | `/lernzettel/:id/pdf` | Themen-Lernzettel als **PDF** (gleiche Vorlage; wird bei jedem Abruf frisch aus `content` gerendert; `?download=1`) |
 | PATCH | `/lernplaene/:id/checklist` | `{tag, key, checked}` (ein Punkt) bzw. `{tag, checked}` (alle Punkte des Tages = „Tag abschließen") — pflegt `Lernplan.checklist`; Tag-Erledigt-Status ergibt sich daraus. Override-Muster wie `PATCH /faecher/:id` |
 | PATCH | `/lernplaene/:id` (bzw. gebündelt in `POST /chats/:id/nachrichten`) | Setzt einen `chatMap`-Eintrag `"<tag>\|<modus>\|<themaId>" → chatId` (Override-Muster). Im Prototyp: `Lesify.setLernplanChatId`. Client liest die Zuordnung aus `GET /lernplaene/:id` und deep-linkt Lernplan-Chips entsprechend frisch oder als Chat-Fortsetzung |
 
@@ -928,7 +929,7 @@ Kein `PATCH /klausuren/:id` — eine `Klausur` hat keine editierbaren Felder (En
 |---|---|---|
 | POST | `/testklausuren` | `{fachId, themaIds, titel, klausurId?}` → generiert Aufgaben (Call 10, **Phase 6 verdrahtet**, `testklausurErstellen()`), Status `erstellt`. Genutzt für Testklausur 1 (auch via `POST /klausuren`, alle Themen) **und** Testklausur 2 (nur schwache/wackelige Themen). Ein **dritter** Aufruf zur selben `klausurId` → `409 testklausur_limit_erreicht` (max. 2 pro Klausurvorbereitung) |
 | GET | `/testklausuren/:id` | Voller Zustand: Aufgaben, Ergebnis (falls vorhanden), Vorbereitungsstand |
-| GET | `/testklausuren/:id/dokument` | Aufgaben als Download (Text/PDF) |
+| GET | `/testklausuren/:id/dokument` | Testklausur als **PDF** (Basisvorlage: Namensfelder, Hinweisbox, Aufgaben mit Antwortlinien; `?download=1`) |
 | POST | `/testklausuren/:id/loesung` | **Phase 5 verdrahtet.** multipart Upload → `Datei` (`zweck: testklausurLoesung`, zählt nicht gegen das Content-Limit, nicht in der Themenliste) → Text-Extraktion/Vision-Transkription synchron im Request → `loesungsText` gesetzt, Status `geloest`. Der direkte JSON-`{loesungsText}`-Pfad (Phase 6) bleibt als Bridge/Testing-Weg erhalten |
 | POST | `/testklausuren/:id/analyse` | Triggert Auswertung (Call 11, **Phase 6 verdrahtet**) → `TestklausurErgebnis` + `Vorbereitungsstand` (dreistufige Ampel) → Status `analysiert`. Braucht `status=geloest` **und** `loesungsText` (sonst `409`/`422`) |
 
@@ -2102,3 +2103,16 @@ Hanken Grotesk, Ampel-Farben, „Fog Blue"-Tonleiter). Kein Build, Vanilla JS.
   „Klausurvorbereitungen" (technisch weiter `testklausuren`).
 - **Seed-Daten:** Test-Chat `c6` („Rendering-Test") aus `data.js` entfernt; Dateigrößen
   mit Dezimalkomma.
+
+
+## PDF-Erzeugung (Lernzettel + Testklausur) — Stand 2026-09-19
+
+- `Lernzettel.content` bleibt **Markdown** (Revisionen/Patches der KI arbeiten darauf). Das PDF ist die
+  ausgelieferte Form: `api/src/lib/pdf/` rendert Markdown serverseitig mit `pdfkit` + `marked` in eine
+  gemeinsame **Basisvorlage** (`basis.ts`: Akzentbalken in Fachfarbe, Logo-Kopf, Laufkopf, Fußzeile
+  „Seite x von y"). `dokumente.ts` enthält `lernzettelPdf()` / `testklausurPdf()`.
+- Schriften (Hanken Grotesk, Outfit) kommen aus `@fontsource/*`, Logo aus `api/assets/lesify-logo.png`.
+- Fachfarben-Tabelle in `theme.ts` spiegelt `Lesify.FACH_COLORS` (`data.js`) — bei Änderung dort nachziehen.
+- Design-Mockups: `docs/pdf-mockups/*.pdf`, erzeugt aus denselben Funktionen mit Beispieldaten
+  (`pnpm --filter @lesify/api pdf:mockups`). Design ändern = `basis.ts`/`dokumente.ts` anpassen + Mockups neu erzeugen.
+- Kein PDF-Storage: bei jedem Abruf frisch gerendert (kein veraltetes PDF nach Revision). Bei Last ggf. später cachen.

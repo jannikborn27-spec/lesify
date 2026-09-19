@@ -4,6 +4,8 @@ import { z } from 'zod';
 import { noteAmpel, prozentZuNote } from '@lesify/shared';
 import { parse } from '../lib/validate.js';
 import { oder404 } from '../lib/scope.js';
+import { testklausurPdf } from '../lib/pdf/dokumente.js';
+import { pdfAntwort } from '../lib/pdf/antwort.js';
 import { HttpError } from '../lib/http.js';
 import { testklausurErstellen } from '../lib/testklausur.js';
 import { klassenstufeFuer, themaMaterial } from '../lib/ki/kontext.js';
@@ -74,14 +76,27 @@ export async function testklausurenRoutes(app: FastifyInstance): Promise<void> {
     };
   });
 
-  // GET /testklausuren/:id/dokument — Aufgaben als Text-Download
+  // GET /testklausuren/:id/dokument — Testklausur als PDF (Basisvorlage +
+  // Aufgaben mit Antwortfeldern); `?download=1` erzwingt den Speichern-Dialog.
   app.get<{ Params: { id: string } }>('/testklausuren/:id/dokument', async (req, reply) => {
+    const { download } = parse(z.object({ download: z.enum(['0', '1']).optional() }), req.query);
     const t = oder404(await laden(req.userId, req.params.id));
-    const text =
-      `${t.titel}\n\n` +
-      t.aufgaben.map((a, i) => `Aufgabe ${i + 1}\n${a.frage}\n`).join('\n') +
-      '\n';
-    return reply.type('text/plain; charset=utf-8').send(text);
+    const [fach, themen] = await Promise.all([
+      prisma.fach.findUniqueOrThrow({ where: { id: t.fachId } }),
+      prisma.thema.findMany({ where: { id: { in: t.themaIds }, userId: req.userId } }),
+    ]);
+    const pdf = await testklausurPdf({
+      titel: t.titel,
+      fachName: fach.name,
+      fachFarbe: fach.farbe,
+      klasse: fach.klasse,
+      erstelltAm: t.erstelltAm,
+      aufgaben: t.aufgaben.map((a) => ({
+        themaName: themen.find((th) => th.id === a.themaId)?.name ?? 'Thema',
+        frage: a.frage,
+      })),
+    });
+    return pdfAntwort(reply, pdf, t.titel, download === '1');
   });
 
   // POST /testklausuren/:id/loesung

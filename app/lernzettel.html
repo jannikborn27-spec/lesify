@@ -45,6 +45,13 @@
   .lz-composer textarea:focus { outline: none; border-color: var(--fach-color, var(--ink-900)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--fach-color, var(--ink-900)) 16%, transparent); }
   .lz-hint { font-size: 0.72rem; color: var(--fach-ink, var(--ink-500)); }
   /* Fachfarbe auf der ganzen Seite */
+  /* Feste Kartenhöhe: der Chat scrollt intern, die Karte wächst nicht mit den Nachrichten. */
+  .lz-page .split-view { height: clamp(520px, 72vh, 780px); min-height: 0; grid-template-rows: minmax(0, 1fr); }
+  .lz-page .split-doc, .lz-page .split-chat { min-height: 0; height: 100%; }
+  .lz-page .split-chat-thread { min-height: 0; }
+  .lz-page .pdf-pages { height: 100%; min-height: 0; }
+  .lz-page .pdf-frame { height: 100%; min-height: 0; }
+  @media (max-width: 980px) { .lz-page .split-view { height: auto; grid-template-rows: none; } .lz-page .split-doc { height: 70vh; } .lz-page .split-chat { height: 60vh; } }
   .lz-page .split-view { border-color: color-mix(in srgb, var(--fach-color) 30%, var(--line)); }
   .lz-page .split-doc { border-right-color: color-mix(in srgb, var(--fach-color) 24%, var(--line)); }
   .lz-page .pdf-pages { background: color-mix(in srgb, var(--fach-color) 7%, var(--ink-50)); }
@@ -101,7 +108,7 @@
 document.addEventListener('DOMContentLoaded', async function () {
   var I = LesifyUI.Icons, R = LesifyUI.Render;
   var params = new URLSearchParams(window.location.search);
-  await Lesify.themen(); // Cache für R.badge()/Lesify.label() unten
+  await Promise.all([Lesify.themen(), Lesify.faecher()]); // Caches für R.badge()/Lesify.label()/Fachfarbe unten
 
   // Kein `?id=` (Prototyp-Komfort): jüngsten Lernzettel des Users nehmen
   // (GET /lernzettel ist bereits nach aktualisiertAm desc sortiert).
@@ -123,6 +130,8 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   document.title = lz.titel + ' · Lesify';
   // Fachfarbe (--fach-color/-ink/-bg) auf die ganze Seite legen.
+  var fach = Lesify.getFach(lz.fachId);
+  if (fach) LesifyUI.setPageWatermark(Lesify.getFachIcon(lz.fachId) || '', Lesify.getFachColor(fach.farbe).base);
   document.getElementById('lz-main').setAttribute('style', 'padding-bottom:60px;' + LesifyUI.fachColorVars(lz.fachId));
   document.getElementById('lz-crumb').innerHTML =
     '<a href="thema.html?id=' + lz.themaId + '&tab=lernzettel" style="color:var(--fach-ink,var(--ink-500))">' + themaLabel.thema + '</a>' +

@@ -505,6 +505,146 @@ Das ergibt **abab** — einen **Kreuzreim**. Bei **abba** würde der zweite Reim
       ],
     ],
   },
+  {
+    slug: 'enjambement-deuten',
+    thema: 'gedichtanalyse',
+    titel: 'Enjambement erkennen und deuten',
+    modus: 'erklaeren',
+    vorStunden: 40,
+    messages: [
+      ['user', 'Ich erkenne ein Enjambement nie sicher. Woran sehe ich das?'],
+      [
+        'ai',
+        `Ein **Enjambement** (Zeilensprung) liegt vor, wenn ein Satz oder eine Wortgruppe **nicht am Versende endet**, sondern in der nächsten Zeile weiterläuft.
+
+**So prüfst du es:** Lies das Gedicht laut und achte darauf, ob am Ende des Verses eine natürliche Pause (Punkt, Komma) steht. Wenn nicht, sondern du „mitten im Satz" in die nächste Zeile springst, ist es ein Enjambement.
+
+**Beispiel:**
+> Der Mond steht still und schaut herab auf
+> die Stadt, die schläft.
+
+Hier bricht der Vers nach „auf" ab — der Satz läuft in der nächsten Zeile weiter.`,
+      ],
+      ['user', 'Und was schreibe ich dann zur Wirkung?'],
+      [
+        'ai',
+        `Die Wirkung hängt vom Inhalt ab. Typische Deutungen:
+
+• **Fließender Rhythmus:** Der Lesefluss wird nicht unterbrochen, das Gedicht wirkt ruhig oder dahinströmend.
+• **Spannung:** Die Pause am Versende lässt auf die Fortsetzung warten.
+• **Betonung:** Das Wort am Anfang der nächsten Zeile wird hervorgehoben.
+
+**Musterformulierung:** „Das Enjambement in V. 1–2 lässt den Satz über das Versende hinausfließen und erzeugt so einen ruhigen, fast schwebenden Lesefluss, der zur nächtlichen Stimmung passt."`,
+      ],
+      ['user', 'Verstanden. Was ist dann der Gegensatz, wenn der Satz am Versende endet?'],
+      [
+        'ai',
+        `Das nennt man **Zeilenstil** (oder Zeilenstil-Vers): Vers- und Satzende fallen zusammen. Er wirkt geordnet, klar, manchmal streng oder feierlich.
+
+**Faustregel für die Klausur:** Beobachte, was im Gedicht *überwiegt* — und begründe, warum das zur Aussage passt. Wenn Enjambements bei einer Stelle auffallend **gehäuft** auftreten, lohnt sich eine eigene Deutung.`,
+      ],
+    ],
+  },
+  {
+    slug: 'einleitung-formulieren',
+    thema: 'gedichtanalyse',
+    titel: 'Einleitung zur Gedichtanalyse formulieren',
+    modus: 'hausaufgaben',
+    vorStunden: 66,
+    messages: [
+      [
+        'user',
+        'Ich muss eine Einleitung für die Analyse von „Herbstmorgen" schreiben, aber ich weiß nie, wie ich anfangen soll.',
+      ],
+      [
+        'ai',
+        `Eine Einleitung besteht immer aus **fünf Bausteinen** — dann kann fast nichts schiefgehen:
+
+1. **Textsorte:** Gedicht
+2. **Titel**
+3. **Autor:in**
+4. **Erscheinungsjahr** (falls bekannt)
+5. **Thema** in einem Satz
+
+**Vorlage:** „Das Gedicht ‚Titel' von *Autor:in*, erschienen im Jahr …, thematisiert …"
+
+Was weißt du über das Gedicht? Dann bauen wir sie zusammen.`,
+      ],
+      [
+        'user',
+        'Es heißt „Herbstmorgen", der Autor ist unbekannt, es geht um den Herbst und dass alles vergeht.',
+      ],
+      [
+        'ai',
+        `Dann so, wenn Autor:in und Jahr unbekannt sind — einfach weglassen:
+
+> „Das Gedicht ‚Herbstmorgen' thematisiert den Herbst als Zeit des Abschieds und der Vergänglichkeit."
+
+**Noch besser:** eine kurze **Deutungsvorwegnahme**, die zum Hauptteil hinführt:
+
+> „Das Gedicht ‚Herbstmorgen' thematisiert die Vergänglichkeit der Natur. Im Folgenden wird untersucht, wie Form und Sprache diese wehmütige Stimmung erzeugen."
+
+Der zweite Satz zeigt der Lehrkraft direkt, dass du **einen Plan** hast.`,
+      ],
+      ['user', 'Darf ich Ich-Formulierungen benutzen, zum Beispiel „Ich finde"?'],
+      [
+        'ai',
+        `In der Analyse besser **nicht**. Schreib sachlich und im **Präsens**:
+
+✗ „Ich finde, der Autor will sagen …"
+✓ „Der Sprecher des Gedichts bringt zum Ausdruck, dass …"
+
+Deine eigene Meinung ist in der Analyse nur als **begründete Deutung** gefragt („Dies lässt darauf schließen, dass …"). Achte außerdem darauf, „lyrisches Ich" oder „Sprecher" zu schreiben — nicht „der Autor", denn das Ich im Gedicht ist nicht automatisch der Dichter.`,
+      ],
+    ],
+  },
+  {
+    slug: 'stilmittel-quiz',
+    thema: 'gedichtanalyse',
+    titel: 'Quiz: Stilmittel erkennen',
+    modus: 'ueben',
+    vorStunden: 100,
+    messages: [
+      ['user', 'Kannst du mich zu Stilmitteln abfragen? Am besten mit kurzen Beispielversen.'],
+      [
+        'ai',
+        `Klar! Bestimme das Stilmittel in jedem Beispiel:
+
+**1.** „Die Sonne lacht vom Himmelszelt."
+**2.** „Er war stark wie ein Bär."
+**3.** „Milch und Mehl macht Mädchen munter."
+**4.** „Ich sah dich, ich hörte dich, ich vermisste dich."
+
+Schreib mir deine Zuordnungen.`,
+      ],
+      [
+        'user',
+        '1) Personifikation\n2) Vergleich\n3) Alliteration\n4) Anapher — weil es dreimal mit „Ich" beginnt',
+      ],
+      [
+        'ai',
+        `Alle vier richtig! 🎉
+
+**1.** ✅ Personifikation — die Sonne „lacht" wie ein Mensch.
+**2.** ✅ Vergleich — erkennbar an „wie".
+**3.** ✅ Alliteration — viermal der Anlaut M.
+**4.** ✅ Anapher. Zusätzlich liegt hier eine **Klimax** vor, weil die Aussagen sich steigern (sehen → hören → vermissen).
+
+Noch eine Runde, diesmal schwerer? Dann gebe ich dir Verse, in denen zwei Stilmittel gleichzeitig stecken.`,
+      ],
+      ['user', 'Ja, bitte.'],
+      [
+        'ai',
+        `Hier deine Runde 2 — nenne je zwei Stilmittel:
+
+**1.** „Der Wind flüstert leise Lieder in das lange Gras."
+**2.** „Es ist Tag und es ist Nacht — beides zugleich in mir."
+**3.** „Wie ein Vogel im Käfig, so sitzt die Zeit in meinem Zimmer."
+
+*(Tipp zu 1: Achte auf Bewegung **und** Klang.)*`,
+      ],
+    ],
+  },
   // ---- Ökosystem Wald: langer Chat (Frontend-Showcase) ----
   {
     slug: 'wald-lernsession',
@@ -1111,6 +1251,15 @@ const DATEIEN: [string, string, string, keyof typeof DateiTyp, number, number, s
     'Zweiseitige Übersicht der wichtigsten Stilmittel mit Definition, Beispielvers und Wirkung sowie Tipps zur Formulierung.',
   ],
   [
+    'd13',
+    'gedichtanalyse',
+    'Checkliste_Gedichtanalyse.pdf',
+    'pdf',
+    210_000,
+    1,
+    'Einseitige Checkliste für die Klausur: Einleitung, Form, Sprache und Deutung Punkt für Punkt, mit Formulierungshilfen für Einleitung und Fazit.',
+  ],
+  [
     'd12',
     'conditional-sentences',
     'Conditionals_Uebungsblatt.pdf',
@@ -1441,7 +1590,7 @@ async function main() {
         data: {
           userId: U,
           monat: new Date(now).toISOString().slice(0, 7),
-          nachrichtenUsed: 131,
+          nachrichtenUsed: 139,
           nachrichtenLimit: L.nachrichten,
           dateienUsed: DATEIEN.length,
           dateienLimit: L.dateien,

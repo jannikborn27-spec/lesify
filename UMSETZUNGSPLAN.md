@@ -3007,10 +3007,10 @@ Grundlage: `backend-planning.md` §1. Reihenfolge so, dass FKs immer schon exist
 - [x] **Dev-Account mit Screenshot-Content befüllen** — _2026-09-18/19:
       `api/prisma/seed-dev-account.ts` (idempotent, nur `dev@lesify.de`,
       Login bleibt) leert den Account und legt realistischen Beispiel-Content
-      an: „Lena M.", Premium-Abo, 5 Fächer / 15 Themen, 15 Chats (84
+      an: „Lena M.", Premium-Abo, 5 Fächer / 15 Themen, 18 Chats (102
       Nachrichten, darunter ein langer Bio-Chat „Ökosystem Wald" mit 20
-      Nachrichten und Gedichtanalyse als materialreichstes Thema mit 4 Chats /
-      3 Dateien / 2 Lernzetteln), 7 Lernzettel, 12 Dateien (`seed://`, ohne
+      Nachrichten und Gedichtanalyse als materialreichstes Thema mit 7 Chats /
+      4 Dateien / 2 Lernzetteln), 7 Lernzettel, 13 Dateien (`seed://`, ohne
       Storage-Inhalt), 6 Klausuren (1 geschrieben), 4 Testklausuren, 3
       Lernpläne in verschiedenen Zuständen. Der englische Lernzettel
       „Conditional Sentences" ist echt KI-generiert (echter Prompt aus

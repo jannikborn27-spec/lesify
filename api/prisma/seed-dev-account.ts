@@ -28,9 +28,15 @@ import {
   type Ampel,
 } from '@prisma/client';
 import { randomUUID } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { PLAN_LIMITS, prozentZuNote, noteAmpel } from '@lesify/shared';
 
 const prisma = new PrismaClient();
+
+/** Echt KI-generierter Lernzettel (siehe `_herkunft` in der JSON-Datei). */
+const LZ_CONDITIONALS = JSON.parse(
+  readFileSync(new URL('./seed-data/lernzettel-conditionals.json', import.meta.url), 'utf8'),
+) as { titel: string; content: string };
 const DEV_EMAIL = 'dev@lesify.de';
 
 const now = Date.now();
@@ -351,6 +357,419 @@ const CHATS: ChatSeed[] = [
       ],
     ],
   },
+  // ---- Gedichtanalyse: bewusst das materialreichste Thema (4 Chats) ----
+  {
+    slug: 'herbstgedicht-analyse',
+    thema: 'gedichtanalyse',
+    titel: 'Analyse „Herbstmorgen" Schritt für Schritt',
+    modus: 'ueben',
+    vorStunden: 9,
+    messages: [
+      [
+        'user',
+        `Ich soll für die Klausur üben und habe mir eine Strophe aus einem Herbstgedicht rausgesucht. Kannst du mit mir die Analyse durchgehen?
+
+Der Nebel liegt auf stillem Feld,
+die Bäume stehn im gelben Kleid,
+der Wind, der durch die Zweige fällt,
+erzählt von der vergangnen Zeit.`,
+      ],
+      [
+        'ai',
+        `Gern — wir gehen es in der Reihenfolge einer Klausur durch. Fangen wir mit der **Form** an. Versuch zuerst selbst: Wie viele Verse hat die Strophe, und welches Reimschema erkennst du?`,
+      ],
+      ['user', 'Vier Verse. Feld – Kleid – fällt – Zeit, also abab?'],
+      [
+        'ai',
+        `Genau, das ist ein **Kreuzreim (abab)**. 👍 Ein Detail für volle Punkte: „Feld" und „fällt" reimen sich nicht ganz sauber (e ↔ ä, d ↔ t). Das nennt man einen **unreinen Reim**. Kleid und Zeit dagegen sind ein reiner Reim.
+
+Jetzt das **Metrum**. Lies Vers 1 laut und markiere die betonten Silben.`,
+      ],
+      ['user', 'Der NE-bel LIEGT auf STIL-lem FELD — das wäre Jambus, oder?'],
+      [
+        'ai',
+        `Richtig, ein **Jambus** (unbetont – betont). Alle vier Verse haben acht Silben und vier Hebungen, also ein **vierhebiger Jambus**. Alle Verse enden auf einer betonten Silbe — das ist eine **männliche Kadenz**.
+
+So könntest du es in der Klausur zusammenfassen:
+
+| Merkmal | Befund |
+|---|---|
+| Strophe | 1 Strophe, 4 Verse |
+| Reimschema | Kreuzreim (abab), Vers 1/3 unrein |
+| Metrum | vierhebiger Jambus |
+| Kadenz | durchgehend männlich |
+
+Nun zur **Sprache**: Welche sprachlichen Mittel fallen dir auf?`,
+      ],
+      [
+        'user',
+        'Der Wind „erzählt" — das ist eine Personifikation. Und „im gelben Kleid" ist eine Metapher für die Blätter?',
+      ],
+      [
+        'ai',
+        `Beides stimmt! ✅ Und jetzt kommt der wichtigste Schritt, den viele vergessen — die **Wirkung**:
+
+• **Personifikation** („Der Wind … erzählt"): Die Natur wird lebendig, fast wie eine Erzählerin. Das erzeugt eine ruhige, wehmütige Stimmung.
+• **Metapher** („im gelben Kleid"): Die Bäume erscheinen festlich geschmückt — der Herbst wirkt schön, aber auch wie ein letzter Auftritt vor dem Winter.
+• Zusätzlich das Adjektiv **„vergangnen"** im letzten Vers: Es lenkt den Blick auf Vergänglichkeit.
+
+Formulier daraus jetzt eine **Deutungshypothese** in ein bis zwei Sätzen — dann korrigiere ich sie.`,
+      ],
+      [
+        'user',
+        'Das Gedicht zeigt den Herbst als schöne, aber wehmütige Zeit und steht damit für die Vergänglichkeit.',
+      ],
+      [
+        'ai',
+        `Sehr gut, das ist eine tragfähige Deutungshypothese. Noch stärker wird sie, wenn du **Form und Inhalt verbindest**:
+
+> „Der gleichmäßige Jambus und der Kreuzreim unterstreichen die ruhige, fast resignierte Stimmung: Der Wechsel der Jahreszeiten geschieht regelmäßig und unaufhaltsam."
+
+Das ist genau die Verbindung, die in der Klausur die meisten Punkte bringt. Wenn du magst, üben wir als Nächstes den **Einleitungssatz** (Titel, Textsorte, Thema).`,
+      ],
+    ],
+  },
+  {
+    slug: 'stilmittel-uebersicht-chat',
+    thema: 'gedichtanalyse',
+    titel: 'Wichtigste Stilmittel für die Klausur',
+    modus: 'zusammenfassen',
+    vorStunden: 54,
+    messages: [
+      [
+        'user',
+        'Kannst du mir die wichtigsten Stilmittel kompakt zusammenfassen, mit Wirkung? Für die Deutschklausur.',
+      ],
+      [
+        'ai',
+        `Hier die Stilmittel, die in Gedichtanalysen am häufigsten vorkommen:
+
+| Stilmittel | Erklärung | Typische Wirkung |
+|---|---|---|
+| **Metapher** | Bild ohne „wie" („Wolkenmeer") | macht abstrakte Dinge anschaulich |
+| **Vergleich** | Bild mit „wie" („leise wie Schnee") | veranschaulicht, verstärkt |
+| **Personifikation** | Dinge handeln wie Menschen | belebt die Natur, schafft Nähe |
+| **Anapher** | gleicher Wortanfang in mehreren Versen | betont, erzeugt Rhythmus |
+| **Alliteration** | gleicher Anlaut nah beieinander („Wind und Wellen") | Klangwirkung, Einprägsamkeit |
+| **Enjambement** | Satz läuft über das Versende hinaus | Lesefluss, Spannung |
+| **Antithese** | Gegensatz („Licht und Schatten") | Spannung, Konflikt |
+| **Klimax** | Steigerung | Dramatik |
+
+Wichtig: Nie nur nennen — immer **Beleg + Wirkung** dazuschreiben.`,
+      ],
+      ['user', 'Wie formuliere ich die Wirkung, ohne dass es immer gleich klingt?'],
+      [
+        'ai',
+        `Mit Formulierungsbausteinen, die du abwechseln kannst:
+
+• Dadurch wirkt … / Dies erzeugt den Eindruck von …
+• Der Leser erhält den Eindruck, dass …
+• Das Stilmittel hebt … hervor / unterstreicht …
+• So entsteht eine … Stimmung (z. B. düstere, ruhige, bedrohliche).
+• Auffällig ist … — das verdeutlicht, dass …
+
+**Beispiel:** „Die Anapher ‚Es war … es war …' (V. 1–2) betont die Wiederholung und erzeugt einen eintönigen, beklemmenden Rhythmus."`,
+      ],
+    ],
+  },
+  {
+    slug: 'reimschema-bestimmen',
+    thema: 'gedichtanalyse',
+    titel: 'Reimschema bestimmen: abba oder abab?',
+    modus: 'hausaufgaben',
+    vorStunden: 80,
+    messages: [
+      [
+        'user',
+        'In der Hausaufgabe steht ein Gedicht mit den Reimwörtern Nacht – Tag – Wacht – Klag. Ist das abab oder abba?',
+      ],
+      [
+        'ai',
+        `Schreib die Reimwörter untereinander und gib jedem Klang einen Buchstaben:
+
+• Nacht → **a**
+• Tag → **b**
+• Wacht → **a** (reimt auf Nacht)
+• Klag → **b** (reimt auf Tag)
+
+Das ergibt **abab** — einen **Kreuzreim**. Bei **abba** würde der zweite Reim in der Mitte „umarmt" werden (z. B. Nacht – Tag – Klag – Wacht).`,
+      ],
+      ['user', 'Ah, verstehe. Und wie heißt aabb?'],
+      [
+        'ai',
+        `**aabb** heißt **Paarreim** — immer zwei aufeinanderfolgende Verse reimen sich. Die drei Klassiker zum Auswendiglernen:
+
+• Paarreim: aabb
+• Kreuzreim: abab
+• Umarmender Reim: abba`,
+      ],
+    ],
+  },
+  // ---- Ökosystem Wald: langer Chat (Frontend-Showcase) ----
+  {
+    slug: 'wald-lernsession',
+    thema: 'oekosystem-wald',
+    titel: 'Ökosystem Wald — komplette Lernsession vor der Klausur',
+    modus: 'erklaeren',
+    vorStunden: 14,
+    messages: [
+      [
+        'user',
+        'Ich schreibe bald eine Klausur zum Ökosystem Wald und habe den Stoff kaum verstanden. Kannst du mir erst mal einen Überblick geben?',
+      ],
+      [
+        'ai',
+        `Klar, wir gehen das Schritt für Schritt durch. Zuerst der **Überblick** — danach vertiefen wir, was dir unklar ist. 🌲
+
+## Was ist ein Ökosystem?
+Ein Ökosystem besteht aus zwei Teilen:
+
+• **Biotop** — der Lebensraum mit seinen unbelebten Bedingungen (Boden, Licht, Wasser, Temperatur)
+• **Biozönose** — die Lebensgemeinschaft aller Pflanzen, Tiere und Kleinstlebewesen darin
+
+## Die Stockwerke des Waldes
+Ein Wald ist in Schichten aufgebaut, jede mit eigenen Bedingungen und Bewohnern:
+
+1. **Baumschicht** (ab ca. 5 m): Buchen, Eichen, Fichten — Lebensraum von Vögeln, Eichhörnchen
+2. **Strauchschicht** (ca. 1–5 m): Holunder, Haselnuss, junge Bäume
+3. **Krautschicht** (bis ca. 1 m): Farne, Gräser, Blumen wie das Buschwindröschen
+4. **Moosschicht:** Moose direkt am Boden
+5. **Bodenschicht / Wurzelschicht:** Laubstreu, Humus, Wurzeln, Regenwürmer, Pilze
+
+Das Licht nimmt von oben nach unten stark ab — deshalb blühen viele Frühjahrsblüher, **bevor** die Bäume ihr Laub austreiben.
+
+Wo möchtest du anfangen?`,
+      ],
+      [
+        'user',
+        'Was ist der Unterschied zwischen abiotischen und biotischen Faktoren? Das habe ich im Heft, aber nicht kapiert.',
+      ],
+      [
+        'ai',
+        `Ganz einfach: **a-biotisch** = „nicht lebendig", **biotisch** = „lebendig".
+
+| | Abiotische Faktoren | Biotische Faktoren |
+|---|---|---|
+| **Bedeutung** | unbelebte Umweltbedingungen | Einflüsse durch andere Lebewesen |
+| **Beispiele** | Licht, Temperatur, Wasser, Bodenart, pH-Wert, Wind | Konkurrenz, Fressfeinde, Nahrung, Symbiose, Parasiten |
+| **Im Wald** | Schatten unter dem Blätterdach, Feuchtigkeit im Boden | Rehe fressen Jungpflanzen, Pilze versorgen Baumwurzeln |
+
+**Merkhilfe:** Kannst du dir vorstellen, dass ein *Stein* den Faktor verursacht? Dann ist er abiotisch. Geht der Einfluss von *Lebewesen* aus, ist er biotisch.
+
+Wichtig für die Klausur: Beide Faktoren wirken **gleichzeitig** und beeinflussen sich gegenseitig — Bäume (biotisch) verändern zum Beispiel das Licht am Boden (abiotisch).`,
+      ],
+      ['user', 'Okay, das hilft. Wie sieht ein Nahrungsnetz im Wald aus?'],
+      [
+        'ai',
+        `Fangen wir mit einer **Nahrungskette** an und bauen daraus das Netz:
+
+**Eichenblatt → Raupe → Kohlmeise → Sperber**
+
+Jedes Glied hat eine Rolle:
+
+• **Produzenten** (Erzeuger): Pflanzen — sie bauen mit Fotosynthese aus Licht, Wasser und CO₂ energiereiche Stoffe auf (z. B. Eiche)
+• **Konsumenten 1. Ordnung** (Pflanzenfresser): Raupe, Reh, Maus
+• **Konsumenten 2. Ordnung** (Fleischfresser): Kohlmeise (frisst Raupen), Fuchs (frisst Mäuse)
+• **Konsumenten 3. Ordnung** (Endkonsumenten): Sperber, Habicht
+• **Destruenten** (Zersetzer): Bakterien und Pilze — sie verwerten totes Material
+
+Im **Nahrungsnetz** sind viele Ketten miteinander verbunden, denn fast kein Tier frisst nur eine Sache: Die Maus frisst Samen *und* Insekten, der Fuchs frisst Mäuse *und* Beeren. Dadurch ist das Netz stabiler — fällt eine Art aus, springen andere ein.`,
+      ],
+      [
+        'user',
+        'Und was machen Destruenten genau? Warum sind die so wichtig? Ich dachte, die ganze Energie kommt von der Sonne.',
+      ],
+      [
+        'ai',
+        `Gute Frage — du hast beides richtig verstanden. Die **Energie** kommt von der Sonne und fließt in eine Richtung (durch die Nahrungskette, am Ende als Wärme verloren). Die **Stoffe** dagegen (Kohlenstoff, Stickstoff, Mineralstoffe) werden im **Kreislauf** immer wieder verwendet — und hier sind die Destruenten unverzichtbar.
+
+**Wer zersetzt was?**
+• **Zersetzer** (Bodentiere): Regenwurm, Assel, Springschwanz — zerkleinern Laub und Totholz
+• **Destruenten** (Bakterien, Pilze): bauen die Reste vollständig ab bis zu **Mineralstoffen, Wasser und CO₂** (Mineralisierung)
+
+**Warum wichtig?** Ohne sie würde sich das Laub einfach immer weiter stapeln, und die Bäume hätten keine Nährstoffe mehr. Die Mineralstoffe, die die Destruenten freisetzen, nehmen die Pflanzenwurzeln wieder auf — und der Kreislauf beginnt von vorn.`,
+      ],
+      ['user', 'Kannst du den Stoffkreislauf bitte nochmal Schritt für Schritt erklären?'],
+      [
+        'ai',
+        `Klar — am Beispiel einer Buche:
+
+1. **Aufbau:** Die Buche nimmt CO₂ aus der Luft, Wasser und Mineralstoffe aus dem Boden auf und stellt per **Fotosynthese** Traubenzucker her.
+2. **Weitergabe:** Ein Reh frisst Buchenblätter, ein Fuchs frisst das Reh — die Stoffe wandern durch die Nahrungskette.
+3. **Abfall:** Laub fällt im Herbst zu Boden, Tiere sterben, Ausscheidungen bleiben liegen.
+4. **Zerkleinerung:** Regenwürmer und Asseln zerkleinern das Material, es entsteht **Humus**.
+5. **Mineralisierung:** Pilze und Bakterien zersetzen den Humus zu **Mineralstoffen**, Wasser und CO₂.
+6. **Wiederaufnahme:** Die Wurzeln der Buche nehmen die Mineralstoffe wieder auf — der Kreislauf ist geschlossen.
+
+**Merksatz:** *Energie fließt durch (Einbahnstraße), Stoffe kreisen (Kreislauf).*`,
+      ],
+      ['user', 'Was bedeutet nochmal Biotop und Biozönose? Ich verwechsle die immer.'],
+      [
+        'ai',
+        `Eine Eselsbrücke aus dem Griechischen:
+
+• **Biotop** = *bios* (Leben) + *topos* (Ort) → der **Ort**, an dem gelebt wird, also der Lebensraum
+• **Biozönose** = *bios* (Leben) + *koinos* (gemeinsam) → die **Gemeinschaft** aller Lebewesen
+
+**Ökosystem = Biotop + Biozönose**
+
+Am Beispiel Wald: Der Boden, das Klima und das Licht im Buchenwald sind das Biotop. Alle Buchen, Rehe, Meisen, Pilze und Regenwürmer zusammen sind die Biozönose.`,
+      ],
+      ['user', 'Was würde passieren, wenn alle Füchse im Wald verschwinden würden?'],
+      [
+        'ai',
+        `Das ist eine typische Transferfrage! Denk in **Ketten von Folgen**:
+
+1. Füchse fressen Mäuse → **ohne Füchse nimmt die Mäusepopulation zu** (zunächst).
+2. Mehr Mäuse fressen mehr Samen und Jungpflanzen → **die Verjüngung des Waldes leidet**.
+3. Andere Beutegreifer (Eulen, Greifvögel) profitieren vom größeren Angebot und vermehren sich.
+4. Irgendwann fehlt den Mäusen die Nahrung → die Population **bricht wieder ein**.
+
+Das Zusammenspiel von Räuber und Beute führt normalerweise zu **regelmäßigen Schwankungen** um einen Mittelwert. Fällt ein Glied aus, gerät das **biologische Gleichgewicht** durcheinander.
+
+Ein bekanntes Beispiel für so eine Kettenreaktion ist die Wiederansiedlung der Wölfe im Yellowstone-Nationalpark: Die Wölfe beeinflussten die Hirschbestände, und dadurch erholte sich an vielen Stellen die Vegetation.`,
+      ],
+      [
+        'user',
+        'Das war richtig gut erklärt. Kannst du mir zum Schluss drei Klausurfragen stellen?',
+      ],
+      [
+        'ai',
+        `Sehr gern, hier deine Übungsfragen — vom Einfachen zum Schwierigen:
+
+**1.** Nenne je zwei abiotische und zwei biotische Faktoren im Wald und erkläre, wie sich ein Faktor aus jeder Gruppe gegenseitig beeinflusst.
+
+**2.** Stelle eine Nahrungskette mit vier Gliedern aus dem Wald auf und ordne jedem Glied seine Rolle zu (Produzent, Konsument, Destruent).
+
+**3.** Erkläre, warum man sagt „Energie fließt, Stoffe kreisen", und begründe die Rolle der Destruenten.
+
+Schreib deine Antworten gern in ganzen Sätzen — ich gebe dir Feedback wie ein Lehrer.`,
+      ],
+      [
+        'user',
+        `1) Abiotisch: Licht und Temperatur. Biotisch: Konkurrenz und Fressfeinde. Die Bäume (biotisch) machen Schatten, dadurch wird es am Boden dunkler (Licht).
+2) Eichenblatt (Produzent) → Raupe (Konsument 1) → Kohlmeise (Konsument 2) → Sperber (Konsument 3). Destruenten zersetzen alles Tote.
+3) Energie kommt von der Sonne und geht am Ende verloren, Stoffe werden wieder verwendet weil Destruenten alles zu Mineralstoffen abbauen.`,
+      ],
+      [
+        'ai',
+        `Das sind schon sehr gute Antworten! Mein Feedback:
+
+**Aufgabe 1 — 3/4 Punkte** ✅
+Faktoren richtig zugeordnet, und das Beispiel mit dem Schatten ist genau die geforderte gegenseitige Beeinflussung. *Verbesserung:* Nenne auch die Richtung zurück — z. B. „Wenig Licht beschränkt außerdem das Wachstum der Krautschicht".
+
+**Aufgabe 2 — 4/4 Punkte** ✅
+Kette und Rollen stimmen. Der Hinweis auf die Destruenten ist ein Pluspunkt.
+
+**Aufgabe 3 — 3/4 Punkte** ✅
+Inhaltlich richtig. Damit es volle Punkte gibt, ergänze noch: Energie geht als **Wärme** verloren (jede Stufe „verbraucht" Energie durch Stoffwechsel). Außerdem: Die Mineralstoffe werden von den **Produzenten** wieder aufgenommen — so schließt sich der Kreislauf.
+
+**Gesamt: 10/12 Punkte** — das entspricht ungefähr einer 2. Nur an der Formulierung feilen, dann bist du bereit. 💪`,
+      ],
+      ['user', 'Danke! Kannst du mir noch die wichtigsten Punkte kurz zum Lernen zusammenfassen?'],
+      [
+        'ai',
+        `## Ökosystem Wald — das musst du wissen
+
+• **Ökosystem** = Biotop (Lebensraum) + Biozönose (Lebensgemeinschaft)
+• **Stockwerke:** Baum-, Strauch-, Kraut-, Moos-, Bodenschicht — Licht nimmt nach unten ab
+• **Abiotisch** (Licht, Temperatur, Wasser, Boden) und **biotisch** (Konkurrenz, Fressfeinde, Symbiose) wirken zusammen
+• **Nahrungskette:** Produzent → Konsument 1. Ordnung → 2. Ordnung → Endkonsument; **Destruenten** bauen alles Tote ab
+• **Nahrungsnetz** = vernetzte Ketten → stabiler als eine Kette
+• **Energie fließt** (Sonne → Wärme), **Stoffe kreisen** (Mineralisierung durch Destruenten)
+• **Gleichgewicht:** Räuber und Beute schwanken regelmäßig; fällt ein Glied aus, gerät das System durcheinander
+
+Viel Erfolg bei der Klausur! Wenn du willst, machen wir morgen noch eine Runde mit neuen Übungsfragen. 🌲`,
+      ],
+    ],
+  },
+  // ---- Conditional Sentences: Material für den generierten Lernzettel ----
+  {
+    slug: 'conditionals-erklaert',
+    thema: 'conditional-sentences',
+    titel: 'If-Sätze Typ 1 und 2 verstehen',
+    modus: 'erklaeren',
+    vorStunden: 34,
+    messages: [
+      [
+        'user',
+        'Ich verstehe den Unterschied zwischen If-Sätzen Typ 1 und Typ 2 nicht. Wann benutze ich was?',
+      ],
+      [
+        'ai',
+        `Der Unterschied liegt darin, **wie wahrscheinlich** die Bedingung ist.
+
+**Type 1 — real / möglich**
+If + Simple Present, **will** + Infinitiv
+• If it **rains** tomorrow, we **will stay** at home.
+→ Es kann wirklich passieren.
+
+**Type 2 — unreal / unwahrscheinlich**
+If + Simple Past, **would** + Infinitiv
+• If I **had** a million euros, I **would buy** a house.
+→ Ich habe die Million nicht, es ist nur ein Gedankenspiel.
+
+**Wichtig:** Im Type 2 steht im If-Teil das *Simple Past*, obwohl es um Gegenwart oder Zukunft geht — die Vergangenheitsform zeigt hier nur „das ist nicht wirklich".`,
+      ],
+      ['user', 'Und wo kommt das Komma hin? Und was ist mit „were"?'],
+      [
+        'ai',
+        `**Komma:** Steht der If-Satz vorne, kommt nach ihm ein Komma. Steht er hinten, gibt es **keins**.
+• If I **were** you, I would apologise.
+• I would apologise if I **were** you.
+
+**„were" bei allen Personen:** Im Type 2 benutzt man in der Regel **were** statt was — also *If I were, if he were, if she were*. Umgangssprachlich hört man auch „If I was …", aber in der Schule schreibst du **were**.
+
+**Extra-Tipp:** Statt „if … not" kann man in Type 1 auch **unless** verwenden:
+• *Unless* you hurry, you will miss the bus. (= If you don't hurry, …)`,
+      ],
+      ['user', 'Kann ich in Type 1 auch was anderes als will benutzen?'],
+      [
+        'ai',
+        `Ja! Im Hauptsatz von Type 1 sind auch **Modalverben** möglich (can, must, may) und sogar der **Imperativ**:
+• If you **can** come, **call** me.
+• If she feels sick, she **must** stay in bed.
+
+Nur im **If-Teil** selbst steht nie *will* oder *would* — dazu gleich noch eine Übung, wenn du magst.`,
+      ],
+    ],
+  },
+  {
+    slug: 'conditionals-ueben',
+    thema: 'conditional-sentences',
+    titel: 'Übungssätze zu Conditionals',
+    modus: 'ueben',
+    vorStunden: 30,
+    messages: [
+      ['user', 'Gib mir bitte vier Lückensätze zu If-Sätzen zum Üben.'],
+      [
+        'ai',
+        `Setze jeweils die richtige Form ein:
+
+**1.** If it ___ (rain) this weekend, we ___ (cancel) the barbecue.
+**2.** If I ___ (be) you, I ___ (talk) to my teacher.
+**3.** If she ___ (study) harder, she ___ (pass) the test.
+**4.** We ___ (go) to the beach if the weather ___ (be) nice.
+
+Tipp: Überlege bei jedem Satz zuerst, ob die Bedingung *möglich* (Type 1) oder *unwahrscheinlich* (Type 2) ist.`,
+      ],
+      [
+        'user',
+        '1) rains, will cancel\n2) were, would talk\n3) would study, would pass\n4) will go, is',
+      ],
+      [
+        'ai',
+        `Fast alles richtig — drei von vier! 👏
+
+**1.** ✅ rains / will cancel (Type 1)
+**2.** ✅ were / would talk (Type 2)
+**3.** ❌ Hier ist ein klassischer Fehler: Im **If-Teil** steht nie *would*. Richtig: *If she **studied** harder, she **would pass** the test.* (Type 2)
+**4.** ✅ will go / is (Type 1)
+
+**Merksatz:** *Would* gehört in den **Hauptsatz**, niemals in den if-Satz. Im if-Teil steht bei Type 1 Simple Present, bei Type 2 Simple Past.`,
+      ],
+    ],
+  },
 ];
 
 // -------------------------------------------------------------- Lernzettel
@@ -525,6 +944,68 @@ Chloroplasten *bauen auf* (Zucker herstellen), Mitochondrien *verbrennen* (Energ
 Vergrößerung = Okular · Objektiv (z. B. 10 · 40 = 400-fach).`,
     revisionen: [],
   },
+  {
+    slug: 'stilmittel',
+    thema: 'gedichtanalyse',
+    titel: 'Stilmittel im Überblick — mit Wirkung',
+    vorTagen: 2,
+    freeMessagesUsed: 5,
+    content: `## Stilmittel bestimmen und deuten
+Ein Stilmittel zu **nennen** reicht nie. Für volle Punkte gehört immer dazu: **Beleg (Vers) + Wirkung**.
+
+## Bilder und Vergleiche
+| Stilmittel | Erklärung | Beispiel |
+|---|---|---|
+| Metapher | Bild ohne „wie" | „im gelben Kleid" (Blätter) |
+| Vergleich | Bild mit „wie" | „leise wie Schnee" |
+| Personifikation | Dinge handeln wie Menschen | „der Wind erzählt" |
+| Symbol | Ding steht für einen größeren Gedanken | Herbst = Vergänglichkeit |
+
+## Klang und Rhythmus
+• **Alliteration:** gleicher Anlaut, z. B. „Wind und Wellen" — Klangwirkung
+• **Anapher:** gleicher Versanfang in mehreren Versen — Betonung, Rhythmus
+• **Enjambement:** Satz läuft über das Versende — Lesefluss oder Spannung
+• **Refrain:** wiederkehrende Zeile — Einprägsamkeit
+
+## Aufbau und Spannung
+• **Antithese:** Gegensatz („Licht und Schatten") — Spannung, Konflikt
+• **Klimax:** Steigerung — Dramatik
+• **Parallelismus:** gleich gebaute Sätze — Nachdruck
+
+## Formulierungsbausteine für die Wirkung
+> Dadurch wirkt … / Dies erzeugt den Eindruck von … / Das hebt … hervor.
+
+**Beispiel:** „Die Personifikation ‚der Wind erzählt' (V. 3–4) macht die Natur lebendig und erzeugt eine ruhige, wehmütige Stimmung."
+
+## Häufige Fehler
+⚠️ Stilmittel nur aufzählen, ohne Wirkung · Metapher und Vergleich verwechseln · Zitat ohne Versangabe`,
+    revisionen: [
+      ['user', 'Kannst du die Tabelle um Symbol ergänzen?'],
+      [
+        'ai',
+        'Erledigt — ich habe in der Tabelle „Bilder und Vergleiche" eine Zeile zum **Symbol** mit dem Beispiel „Herbst = Vergänglichkeit" ergänzt.',
+      ],
+      ['user', 'Und schreib bitte noch Formulierungsbausteine für die Wirkung dazu.'],
+      [
+        'ai',
+        'Habe ich ergänzt: Am Ende gibt es jetzt den Abschnitt „Formulierungsbausteine für die Wirkung" mit drei Satzanfängen und einem Musterbeispiel.',
+      ],
+      ['user', 'Super, danke. Und die häufigsten Fehler bitte auch.'],
+      [
+        'ai',
+        'Klar — der Abschnitt „Häufige Fehler" steht jetzt unten: Stilmittel ohne Wirkung, Metapher/Vergleich verwechseln und fehlende Versangaben beim Zitieren.',
+      ],
+    ],
+  },
+  {
+    slug: 'conditionals',
+    thema: 'conditional-sentences',
+    titel: LZ_CONDITIONALS.titel,
+    vorTagen: 0.3,
+    freeMessagesUsed: 0,
+    content: LZ_CONDITIONALS.content,
+    revisionen: [],
+  },
 ];
 
 // ----------------------------------------------------------------- Dateien
@@ -610,6 +1091,33 @@ const DATEIEN: [string, string, string, keyof typeof DateiTyp, number, number, s
     1_350_000,
     14,
     'Scan der Buchseiten zur Industrialisierung: Dampfmaschine, Eisenbahn, Fabrikarbeit und die „Soziale Frage".',
+  ],
+  [
+    'd10',
+    'gedichtanalyse',
+    'Herbstmorgen_Gedicht_Kopie.jpg',
+    'img',
+    1_650_000,
+    4,
+    'Foto der Kopie des Gedichts „Herbstmorgen" mit handschriftlich markierten Betonungen und Reimwörtern.',
+  ],
+  [
+    'd11',
+    'gedichtanalyse',
+    'Stilmittel_Uebersicht_Klasse8.pdf',
+    'pdf',
+    470_000,
+    9,
+    'Zweiseitige Übersicht der wichtigsten Stilmittel mit Definition, Beispielvers und Wirkung sowie Tipps zur Formulierung.',
+  ],
+  [
+    'd12',
+    'conditional-sentences',
+    'Conditionals_Uebungsblatt.pdf',
+    'pdf',
+    350_000,
+    6,
+    'Übungsblatt zu If-Sätzen Type 1 und 2: Lückentexte, Satzumformungen und Fehlersuche, inkl. Lösungen.',
   ],
 ];
 
@@ -933,7 +1441,7 @@ async function main() {
         data: {
           userId: U,
           monat: new Date(now).toISOString().slice(0, 7),
-          nachrichtenUsed: 96,
+          nachrichtenUsed: 131,
           nachrichtenLimit: L.nachrichten,
           dateienUsed: DATEIEN.length,
           dateienLimit: L.dateien,

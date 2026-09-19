@@ -246,6 +246,7 @@
   .md h4 { font-size: 0.95em; }
   .md ul, .md ol { margin: 0 0 0.7em; padding-left: 1.3em; }
   .md ul { list-style: disc; }
+  .md li.md-task { list-style: none; margin-left: -1.1em; }
   .md ol { list-style: decimal; }
   .md li { margin: 0.2em 0; }
   .md strong { font-weight: 700; }
@@ -470,7 +471,7 @@
 
 <script src="assets/js/api.js"></script>
 <script src="assets/js/auth-gate.js"></script>
-<script src="assets/js/app.js"></script>
+<script src="assets/js/app.js?v=20260919md"></script>
 <script>
 document.addEventListener('DOMContentLoaded', async function () {
   var I = LesifyUI.Icons, R = LesifyUI.Render;
@@ -974,6 +975,11 @@ document.addEventListener('DOMContentLoaded', async function () {
     return svg || fallback;
   }
 
+  // Markdown-Helfer mit Fallback: falls ein gecachtes, älteres app.js noch kein
+  // LesifyUI.mdToHtml kennt, bleibt der Verlauf lesbar statt leer zu rendern.
+  function escSafe(t) { return (window.LesifyUI && LesifyUI.mdEscape) ? LesifyUI.mdEscape(t) : String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function mdSafe(t, o) { return (window.LesifyUI && LesifyUI.mdToHtml) ? LesifyUI.mdToHtml(t, o) : escSafe(t).replace(/\n/g, '<br>'); }
+
   // Initialen der angemeldeten Person für den Nutzer-Avatar (statt fest „JB").
   var userInitials = '';
   try { Lesify.getUser().then(function (u) { userInitials = (u && u.initials) || ''; if (state && state.messages) renderThread(); }, function () {}); } catch (e) {}
@@ -983,9 +989,9 @@ document.addEventListener('DOMContentLoaded', async function () {
     if (!thread) return;
     var aiAvatar = fachIconSvg(I.spark);
     thread.innerHTML = state.messages.map(function (m) {
-      if (m.role === 'ai') return '<div class="msg from-ai"><span class="msg-avatar">' + aiAvatar + '</span><span class="msg-bubble md">' + LesifyUI.mdToHtml(m.text) + '</span></div>';
+      if (m.role === 'ai') return '<div class="msg from-ai"><span class="msg-avatar">' + aiAvatar + '</span><span class="msg-bubble md">' + mdSafe(m.text) + '</span></div>';
       var att = m.attachment ? '<div style="margin-top:8px"><span class="attach-chip" style="background:rgba(255,255,255,0.15);color:#fff">' + I.paperclip + m.attachment + '</span></div>' : '';
-      return '<div class="msg from-user"><span class="msg-avatar">' + userInitials + '</span><span class="msg-bubble">' + LesifyUI.mdEscape(m.text).replace(/\n/g, '<br>') + att + '</span></div>';
+      return '<div class="msg from-user"><span class="msg-avatar">' + userInitials + '</span><span class="msg-bubble">' + escSafe(m.text).replace(/\n/g, '<br>') + att + '</span></div>';
     }).join('');
     thread.scrollTop = thread.scrollHeight;
   }

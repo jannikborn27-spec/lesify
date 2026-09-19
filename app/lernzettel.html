@@ -24,6 +24,7 @@
   .md h4 { font-size: 0.95em; }
   .md ul, .md ol { margin: 0 0 0.7em; padding-left: 1.3em; }
   .md ul { list-style: disc; }
+  .md li.md-task { list-style: none; margin-left: -1.1em; }
   .md ol { list-style: decimal; }
   .md li { margin: 0.2em 0; }
   .md strong { font-weight: 700; }
@@ -81,7 +82,7 @@
 
 <script src="assets/js/api.js"></script>
 <script src="assets/js/auth-gate.js"></script>
-<script src="assets/js/app.js"></script>
+<script src="assets/js/app.js?v=20260919md"></script>
 <script>
 document.addEventListener('DOMContentLoaded', async function () {
   var I = LesifyUI.Icons, R = LesifyUI.Render;
@@ -119,7 +120,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     '<div class="page-actions"><a href="thema.html?id=' + lz.themaId + '&tab=lernzettel" class="btn btn-ghost btn-sm">Zurück zum Thema</a></div>';
 
   function renderDoc() {
-    document.getElementById('lz-doc').innerHTML = LesifyUI.mdToHtml(lz.content, { headingShift: 0 });
+    document.getElementById('lz-doc').innerHTML = mdSafe(lz.content, { headingShift: 0 });
   }
 
   function renderFreeCounter() {
@@ -127,6 +128,11 @@ document.addEventListener('DOMContentLoaded', async function () {
     if (lz.freeMessagesUsed < 10) el.innerHTML = '<strong>' + (10 - lz.freeMessagesUsed) + '</strong> von 10 gratis Nachrichten übrig';
     else el.innerHTML = 'Gratis-Kontingent aufgebraucht — zählt jetzt gegen dein Nachrichten-Limit';
   }
+
+  // Markdown-Helfer mit Fallback: falls ein gecachtes, älteres app.js noch kein
+  // LesifyUI.mdToHtml kennt, bleibt der Verlauf lesbar statt leer zu rendern.
+  function escSafe(t) { return (window.LesifyUI && LesifyUI.mdEscape) ? LesifyUI.mdEscape(t) : String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function mdSafe(t, o) { return (window.LesifyUI && LesifyUI.mdToHtml) ? LesifyUI.mdToHtml(t, o) : escSafe(t).replace(/\n/g, '<br>'); }
 
   // Initialen der angemeldeten Person für den Nutzer-Avatar (statt fest „JB").
   var userInitials = '';
@@ -139,8 +145,8 @@ document.addEventListener('DOMContentLoaded', async function () {
       return;
     }
     thread.innerHTML = lz.revisionen.map(function (m) {
-      if (m.rolle === 'ai') return '<div class="lz-msg from-ai"><span class="lz-avatar">' + I.spark + '</span><span class="lz-bubble md">' + LesifyUI.mdToHtml(m.text) + '</span></div>';
-      return '<div class="lz-msg from-user"><span class="lz-avatar">' + userInitials + '</span><span class="lz-bubble">' + LesifyUI.mdEscape(m.text).replace(/\n/g, '<br>') + '</span></div>';
+      if (m.rolle === 'ai') return '<div class="lz-msg from-ai"><span class="lz-avatar">' + I.spark + '</span><span class="lz-bubble md">' + mdSafe(m.text) + '</span></div>';
+      return '<div class="lz-msg from-user"><span class="lz-avatar">' + userInitials + '</span><span class="lz-bubble">' + escSafe(m.text).replace(/\n/g, '<br>') + '</span></div>';
     }).join('');
     thread.scrollTop = thread.scrollHeight;
   }

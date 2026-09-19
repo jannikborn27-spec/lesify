@@ -1902,7 +1902,11 @@
         out.push('<blockquote>' + mdInline(q.join('\n')).replace(/\n/g, '<br>') + '</blockquote>');
       } else if (/^\s*[-*•]\s+/.test(l)) {
         var ul = [];
-        while (i < lines.length && /^\s*[-*•]\s+/.test(lines[i])) ul.push('<li>' + mdInline(lines[i++].replace(/^\s*[-*•]\s+/, '')) + '</li>');
+        while (i < lines.length && /^\s*[-*•]\s+/.test(lines[i])) {
+          var item = lines[i++].replace(/^\s*[-*•]\s+/, ''), task = /^\[([ xX])\]\s+/.exec(item);
+          if (task) item = item.slice(task[0].length);
+          ul.push('<li' + (task ? ' class="md-task"' : '') + '>' + (task ? (task[1] === ' ' ? '☐ ' : '☑ ') : '') + mdInline(item) + '</li>');
+        }
         out.push('<ul>' + ul.join('') + '</ul>');
       } else if (/^\s*\d+[.)]\s+/.test(l)) {
         var ol = [], start = parseInt(l, 10);

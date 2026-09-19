@@ -559,15 +559,15 @@
   function pad(i) { return ('0' + (i + 1)).slice(-2); }
 
   var HERO_FEATURES = [
-    { key: 'klausurvorbereitung', label: 'Klausurvorbereitung', url: 'app.lesify.de/lernplan', accent: 'var(--fach-teal)',
+    { key: 'klausurvorbereitung', label: 'Klausurvorbereitung', url: 'app.lesify.de/lernplan', accent: 'var(--fach-blue)',
       title: 'mit Lernplan und Testklausuren',
       desc: 'Ein Testklausur-Ergebnis wird automatisch zum Tagesplan für die Woche vor der nächsten Klausur.',
       icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a1.5 1.5 0 0 0-1.5 1.5v15A1.5 1.5 0 0 0 7 21h10a1.5 1.5 0 0 0 1.5-1.5V8L14 3Z"></path><path d="m9 14 2 2 4-4"></path></svg>' },
-    { key: 'chat', label: 'KI Chat', url: 'app.lesify.de/ki-chat', accent: 'var(--fach-blue)',
+    { key: 'chat', label: 'KI Chat', url: 'app.lesify.de/ki-chat', accent: 'var(--fach-teal)',
       title: 'Verständlich, sicher, für Schüler entwickelt',
       desc: 'Erklären, üben, mündlich abfragen, Hausaufgaben besprechen: vier Modi, passend zu Fach und Thema.',
       icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5C4 4.67 4.67 4 5.5 4h13c.83 0 1.5.67 1.5 1.5v10c0 .83-.67 1.5-1.5 1.5H9l-4 3.5v-3.5H5.5C4.67 16.5 4 15.83 4 15V5.5Z"></path></svg>' },
-    { key: 'struktur', label: 'Organisation', url: 'app.lesify.de/faecher', accent: 'var(--fach-violet)',
+    { key: 'struktur', label: 'Organisation', url: 'app.lesify.de/faecher', accent: 'var(--fach-rose)',
       title: 'immer nach Fach und Thema geordnet',
       desc: 'Jedes Fach in Themen sortiert, jedes Thema mit eigenen Chats, Lernzetteln und Dateien am gleichen Ort.',
       icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 8l9 5 9-5-9-5Z"></path><path d="M3 12l9 5 9-5"></path></svg>' },
@@ -662,7 +662,7 @@
   function heroV2Photos() {
     var bg = '<span class="hv9v2__bg" style="background-image:url(\'assets/img/hero-nw/Hero-background-image.png\')"></span>';
     var screens = HERO_FEATURES.map(function (f, i) {
-      var src = 'assets/img/hero-nw/hero-mg' + (i % 2 === 0 ? '1' : '2') + '.png';
+      var src = 'assets/img/hero-nw-fin/hero-nw-slidemgs-' + (i + 1) + '.png';
       return '<span class="hv9v2__photo' + (i === 0 ? ' is-on' : '') + '" style="background-image:url(\'' + src + '\')"></span>';
     }).join('');
     return bg + screens;

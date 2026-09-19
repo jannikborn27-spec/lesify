@@ -1923,14 +1923,84 @@
 
   /* PDF-Vorschau/-Download (Lernzettel, Testklausur): das PDF liegt hinter
      dem Auth-Header, darum per fetch → Blob → Object-URL. */
+  // PDF.js (cdnjs) rendert die Seiten auf Canvas: läuft überall gleich — auch dort,
+  // wo ein <iframe> mit PDF leer bleibt (In-App-Browser, iOS: nur Seite 1).
+  var PDFJS_VER = '3.11.174';
+  var pdfjsPromise = null;
+  function ladePdfJs() {
+    if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+    if (pdfjsPromise) return pdfjsPromise;
+    pdfjsPromise = new Promise(function (resolve, reject) {
+      var sc = document.createElement('script');
+      sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/' + PDFJS_VER + '/pdf.min.js';
+      sc.onload = function () {
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/' + PDFJS_VER + '/pdf.worker.min.js';
+        resolve(window.pdfjsLib);
+      };
+      sc.onerror = function () { pdfjsPromise = null; reject(new Error('PDF.js nicht ladbar')); };
+      document.head.appendChild(sc);
+    });
+    return pdfjsPromise;
+  }
+
   function pdfVorschau(el, pfad) {
     el.innerHTML = '<div class="pdf-loading">PDF wird erstellt …</div>';
     return Lesify.pdfBlob(pfad).then(function (blob) {
-      if (el._pdfUrl) URL.revokeObjectURL(el._pdfUrl);
-      el._pdfUrl = URL.createObjectURL(blob);
-      el.innerHTML = '<iframe class="pdf-frame" title="PDF-Vorschau" src="' + el._pdfUrl + '#toolbar=0&navpanes=0"></iframe>';
+      return ladePdfJs().then(function (lib) {
+        return blob.arrayBuffer().then(function (buf) { return lib.getDocument({ data: buf }).promise; });
+      }).then(function (pdf) {
+        var pages = document.createElement('div');
+        pages.className = 'pdf-pages';
+        el.innerHTML = '';
+        el.appendChild(pages);
+        var token = (el._pdfToken = (el._pdfToken || 0) + 1);
+        function zeichne() {
+          var my = ++token; el._pdfToken = my;
+          var breite = Math.max(240, pages.clientWidth - 32);
+          var dpr = window.devicePixelRatio || 1;
+          var jobs = [];
+          for (var i = 1; i <= pdf.numPages; i++) jobs.push(i);
+          jobs.reduce(function (kette, n) {
+            return kette.then(function () {
+              if (el._pdfToken !== my) return null;
+              return pdf.getPage(n).then(function (page) {
+                var vp0 = page.getViewport({ scale: 1 });
+                var scale = breite / vp0.width;
+                var vp = page.getViewport({ scale: scale * dpr });
+                var canvas = document.createElement('canvas');
+                canvas.className = 'pdf-page';
+                canvas.width = Math.floor(vp.width); canvas.height = Math.floor(vp.height);
+                canvas.style.width = Math.floor(breite) + 'px';
+                canvas.style.height = Math.floor(vp0.height * scale) + 'px';
+                return page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise.then(function () {
+                  if (el._pdfToken !== my) return;
+                  if (n === 1) pages.innerHTML = '';
+                  pages.appendChild(canvas);
+                });
+              });
+            });
+          }, Promise.resolve());
+        }
+        zeichne();
+        if (!el._pdfResize) {
+          var last = pages.clientWidth, t;
+          el._pdfResize = true;
+          window.addEventListener('resize', function () {
+            clearTimeout(t);
+            t = setTimeout(function () {
+              var pg = el.querySelector('.pdf-pages');
+              if (pg && Math.abs(pg.clientWidth - last) > 8) { last = pg.clientWidth; pg.innerHTML = ''; zeichne(); }
+            }, 250);
+          });
+        }
+      }).catch(function () {
+        // Fallback: eingebetteter Browser-PDF-Viewer
+        if (el._pdfUrl) URL.revokeObjectURL(el._pdfUrl);
+        el._pdfUrl = URL.createObjectURL(blob);
+        el.innerHTML = '<iframe class="pdf-frame" title="PDF-Vorschau" src="' + el._pdfUrl + '"></iframe>';
+      });
     }).catch(function (err) {
-      el.innerHTML = '<div class="pdf-loading">Die Vorschau konnte nicht geladen werden.</div>';
+      el.innerHTML = '<div class="pdf-loading">Die Vorschau konnte nicht geladen werden. Über „Als PDF herunterladen" bekommst du das Dokument trotzdem.</div>';
       throw err;
     });
   }

@@ -99,7 +99,8 @@ export class LesifyVorlage {
       '\u2713': '\u2714',
       '\u2717': '\u2718',
     };
-    if (name === 'mono') return text.replace(/[^\x20-\xff\n]/g, '?');
+    if (name === 'mono')
+      return text.replace(/[^\x20-\xff\n\u2013\u2014\u2018-\u201e\u2022\u2026]/g, '?');
     let set = this.glyphen.get(name);
     if (!set) {
       set = new Set();

@@ -72,7 +72,7 @@ function decode(s: string): string {
 }
 
 function schriftFuer(l: Lauf, basisFett: boolean): SchriftName {
-  if (l.code) return 'mono';
+  if (l.code) return 'bodyFett'; // Courier würde die Baseline in Fließtext verschieben
   const fett = l.fett || basisFett;
   if (fett && l.kursiv) return 'bodyFettKursiv';
   if (fett) return 'bodyFett';
@@ -103,8 +103,8 @@ export function schreibeInline(
   const start = doc.y;
   teile.forEach((l, i) => {
     const name = schriftFuer(l, !!o.basisFett);
-    v.schrift(name, l.code ? groesse - 1 : groesse);
-    doc.fillColor(l.code ? INK[800] : (o.farbe ?? INK[800]));
+    v.schrift(name, groesse);
+    doc.fillColor(l.code ? v.farbe.ink : (o.farbe ?? INK[800]));
     const t = v.bereinige(l.text, name);
     const letzter = i === teile.length - 1;
     if (i === 0) doc.text(t, x, start, { width: breite, lineGap: ZEILE, continued: !letzter });
@@ -135,6 +135,14 @@ export function messeInline(
 
 export function rendereMarkdown(v: LesifyVorlage, markdown: string): void {
   const tokens = new Lexer({ gfm: true, breaks: false }).lex(markdown.replace(/\r\n/g, '\n'));
+  // Ein führendes „# Titel" steht schon im Kopf der Vorlage → nicht doppelt drucken.
+  const erste = tokens.findIndex((t) => t.type !== 'space');
+  if (
+    erste >= 0 &&
+    tokens[erste]!.type === 'heading' &&
+    (tokens[erste] as Tokens.Heading).depth === 1
+  )
+    tokens.splice(erste, 1);
   rendereBloecke(v, tokens, { x: v.links, breite: v.inhaltBreite });
 }
 
@@ -211,6 +219,18 @@ function rendereBloecke(v: LesifyVorlage, tokens: Token[], sp: Spalte): void {
   }
 }
 
+/** ✅/❌ (bzw. ✓/✗) am Listenanfang → gezeichnetes Häkchen/Kreuz; entfernt das Zeichen aus dem Text. */
+function statusIcon(kopf: Tokens.Text | Tokens.Paragraph | undefined): { ok: boolean } | null {
+  const erstes = kopf?.tokens?.[0] as Tokens.Text | undefined;
+  if (!erstes || erstes.type !== 'text') return null;
+  const mm = /^\s*(\u2705|\u2714\ufe0f?|\u2713|\u274c|\u2716\ufe0f?|\u2717|\u274e)\s*/u.exec(
+    erstes.text,
+  );
+  if (!mm) return null;
+  erstes.text = erstes.text.slice(mm[0].length);
+  return { ok: /[\u2705\u2714\u2713]/u.test(mm[1]!) };
+}
+
 function rendereListe(v: LesifyVorlage, liste: Tokens.List, sp: Spalte): void {
   const { doc } = v;
   const einzug = 16;
@@ -224,8 +244,26 @@ function rendereListe(v: LesifyVorlage, liste: Tokens.List, sp: Spalte): void {
     const h = kopf ? messeInline(v, kopf.tokens, breite) : TEXT;
     v.platz(Math.min(h, TEXT * 2.6));
 
+    const status = statusIcon(kopf);
     const y = doc.y;
-    if (item.task) {
+    if (status) {
+      const farbe = status.ok ? '#2f8f5b' : '#c1443c';
+      doc.circle(sp.x + 5, y + 6, 5.2).fill(farbe);
+      doc.lineWidth(1.2).strokeColor('#ffffff');
+      if (status.ok)
+        doc
+          .moveTo(sp.x + 2.8, y + 6.2)
+          .lineTo(sp.x + 4.5, y + 7.9)
+          .lineTo(sp.x + 7.6, y + 4.2)
+          .stroke();
+      else
+        doc
+          .moveTo(sp.x + 3, y + 4)
+          .lineTo(sp.x + 7, y + 8)
+          .moveTo(sp.x + 7, y + 4)
+          .lineTo(sp.x + 3, y + 8)
+          .stroke();
+    } else if (item.task) {
       doc
         .roundedRect(sp.x + 1, y + 1.5, 9, 9, 2)
         .lineWidth(0.9)

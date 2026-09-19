@@ -1090,15 +1090,7 @@
   function lpMdBlocks(content, limit) {
     var blocks = String(content || '').split('\n\n');
     if (limit) blocks = blocks.slice(0, limit);
-    return blocks.map(function (block) {
-      return block.split('\n').map(function (line) {
-        if (line.indexOf('# ') === 0) return '<h1>' + line.slice(2) + '</h1>';
-        if (line.indexOf('## ') === 0) return '<h2>' + line.slice(3) + '</h2>';
-        if (line.indexOf('### ') === 0) return '<h3>' + line.slice(4) + '</h3>';
-        if (!line.trim()) return '';
-        return '<p>' + line + '</p>';
-      }).join('');
-    }).join('');
+    return mdToHtml(blocks.join('\n\n'), { headingShift: 0 });
   }
 
   /* =========================================================
@@ -1857,5 +1849,73 @@
     initUsageWidget();
   });
 
-  window.LesifyUI = { toast: toast, openModal: openModal, closeModal: closeModal, Icons: Icons, Render: Render, searchResultsHtml: searchResultsHtml, searchDropdownHtml: searchDropdownHtml, qs: qs, qsa: qsa, openFachColorPicker: openFachColorPicker, openDateiModal: openDateiModal, setPageWatermark: setPageWatermark };
+  /* =========================================================
+     Markdown → HTML (KI-Antworten, Lernzettel). Escaped ZUERST, dann
+     formatiert — Nutzer-/KI-Text kann so kein HTML einschleusen.
+     Unterstützt: #-Überschriften, **fett**, *kursiv*, ~~durch~~, `code`,
+     ``` Codeblöcke, Aufzählungen (Strich, Stern, Punkt), nummerierte Listen, > Zitate, --- Trenner,
+     | Tabellen | und Zeilenumbrüche.
+     ========================================================= */
+  function mdEscape(t) {
+    return String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function mdInline(t) {
+    var codes = [];
+    t = mdEscape(t).replace(/`([^`\n]+)`/g, function (_, c) { codes.push(c); return '@@MDC' + (codes.length - 1) + '@@'; });
+    t = t.replace(/\*\*(?=\S)([^\n]+?)(?<=\S)\*\*/g, '<strong>$1</strong>')
+      .replace(/~~(?=\S)([^\n]+?)(?<=\S)~~/g, '<del>$1</del>')
+      .replace(/(^|[^*\w])\*(?=[^\s*])([^*\n]+?)(?<=[^\s*])\*(?![*\w])/g, '$1<em>$2</em>');
+    return t.replace(/@@MDC(\d+)@@/g, function (_, i) { return '<code>' + codes[+i] + '</code>'; });
+  }
+  function mdToHtml(text, opts) {
+    var shift = opts && opts.headingShift != null ? opts.headingShift : 1; // Chat: # → h2; Lernzettel: 0
+    var lines = String(text == null ? '' : text).replace(/\r\n?/g, '\n').split('\n');
+    var out = [], i = 0, m;
+    var isTableSep = function (l) { return /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)*\|?\s*$/.test(l); };
+    var cells = function (l) { return l.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map(function (c) { return c.trim(); }); };
+    var tableAt = function (k) { return lines[k].indexOf('|') !== -1 && k + 1 < lines.length && isTableSep(lines[k + 1]); };
+    var isBlockStart = function (l) {
+      return /^\s*(#{1,4}\s|>\s?|[-*•]\s+|\d+[.)]\s+|```|(-{3,}|\*{3,})\s*$)/.test(l);
+    };
+    while (i < lines.length) {
+      var l = lines[i];
+      if (!l.trim()) { i++; continue; }
+      if (/^\s*```/.test(l)) {
+        var buf = []; i++;
+        while (i < lines.length && !/^\s*```/.test(lines[i])) buf.push(lines[i++]);
+        i++;
+        out.push('<pre><code>' + mdEscape(buf.join('\n')) + '</code></pre>');
+      } else if ((m = /^(#{1,4})\s+(.*)$/.exec(l))) {
+        var lvl = Math.min(m[1].length + shift, 4);
+        out.push('<h' + lvl + '>' + mdInline(m[2]) + '</h' + lvl + '>'); i++;
+      } else if (/^\s*(-{3,}|\*{3,})\s*$/.test(l)) {
+        out.push('<hr>'); i++;
+      } else if (tableAt(i)) {
+        var head = cells(l); i += 2;
+        var rows = [];
+        while (i < lines.length && lines[i].trim() && lines[i].indexOf('|') !== -1) rows.push(cells(lines[i++]));
+        out.push('<div class="md-table-wrap"><table><thead><tr>' + head.map(function (c) { return '<th>' + mdInline(c) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+          rows.map(function (r) { return '<tr>' + head.map(function (_, k) { return '<td>' + mdInline(r[k] || '') + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table></div>');
+      } else if (/^\s*>\s?/.test(l)) {
+        var q = [];
+        while (i < lines.length && /^\s*>\s?/.test(lines[i])) q.push(lines[i++].replace(/^\s*>\s?/, ''));
+        out.push('<blockquote>' + mdInline(q.join('\n')).replace(/\n/g, '<br>') + '</blockquote>');
+      } else if (/^\s*[-*•]\s+/.test(l)) {
+        var ul = [];
+        while (i < lines.length && /^\s*[-*•]\s+/.test(lines[i])) ul.push('<li>' + mdInline(lines[i++].replace(/^\s*[-*•]\s+/, '')) + '</li>');
+        out.push('<ul>' + ul.join('') + '</ul>');
+      } else if (/^\s*\d+[.)]\s+/.test(l)) {
+        var ol = [], start = parseInt(l, 10);
+        while (i < lines.length && /^\s*\d+[.)]\s+/.test(lines[i])) ol.push('<li>' + mdInline(lines[i++].replace(/^\s*\d+[.)]\s+/, '')) + '</li>');
+        out.push('<ol' + (start > 1 ? ' start="' + start + '"' : '') + '>' + ol.join('') + '</ol>');
+      } else {
+        var para = [l]; i++;
+        while (i < lines.length && lines[i].trim() && !isBlockStart(lines[i]) && !tableAt(i)) para.push(lines[i++]);
+        out.push('<p>' + mdInline(para.join('\n')).replace(/\n/g, '<br>') + '</p>');
+      }
+    }
+    return out.join('');
+  }
+
+  window.LesifyUI = { mdToHtml: mdToHtml, mdEscape: mdEscape, toast: toast, openModal: openModal, closeModal: closeModal, Icons: Icons, Render: Render, searchResultsHtml: searchResultsHtml, searchDropdownHtml: searchDropdownHtml, qs: qs, qsa: qsa, openFachColorPicker: openFachColorPicker, openDateiModal: openDateiModal, setPageWatermark: setPageWatermark };
 })();

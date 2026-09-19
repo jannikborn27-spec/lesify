@@ -14,6 +14,28 @@
   .lz-avatar { width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
   .lz-msg.from-ai .lz-avatar { background: var(--ink-950); color: var(--paper); padding: 6px; }
   .lz-msg.from-user .lz-avatar { background: var(--ink-200); color: var(--ink-700); font-size: 0.64rem; font-weight: 700; }
+  /* Markdown-Inhalt (LesifyUI.mdToHtml) in KI-Blasen */
+  .md > :first-child { margin-top: 0; }
+  .md > :last-child { margin-bottom: 0; }
+  .md p { margin: 0 0 0.7em; }
+  .md h2, .md h3, .md h4 { margin: 1em 0 0.4em; line-height: 1.3; font-weight: 700; }
+  .md h2 { font-size: 1.05em; }
+  .md h3 { font-size: 1em; }
+  .md h4 { font-size: 0.95em; }
+  .md ul, .md ol { margin: 0 0 0.7em; padding-left: 1.3em; }
+  .md ul { list-style: disc; }
+  .md ol { list-style: decimal; }
+  .md li { margin: 0.2em 0; }
+  .md strong { font-weight: 700; }
+  .md blockquote { margin: 0 0 0.7em; padding: 8px 12px; background: var(--bg-canvas); border-radius: 10px; color: var(--ink-700, inherit); }
+  .md code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.86em; background: var(--bg-canvas); padding: 1px 5px; border-radius: 5px; }
+  .md pre { margin: 0 0 0.7em; padding: 10px 12px; background: var(--bg-canvas); border-radius: 10px; overflow-x: auto; }
+  .md pre code { background: none; padding: 0; }
+  .md hr { border: 0; border-top: 1px solid var(--line); margin: 0.9em 0; }
+  .md-table-wrap { overflow-x: auto; margin: 0 0 0.7em; }
+  .md table { border-collapse: collapse; font-size: 0.92em; }
+  .md th, .md td { border: 1px solid var(--line); padding: 5px 12px; text-align: left; }
+  .md th { background: var(--bg-canvas); font-weight: 600; }
   .lz-bubble { padding: 10px 13px; border-radius: 13px; font-size: 0.84rem; line-height: 1.5; }
   .lz-msg.from-ai .lz-bubble { background: var(--bg-surface); border: 1px solid var(--line); border-top-left-radius: 4px; }
   .lz-msg.from-user .lz-bubble { background: var(--ink-950); color: var(--paper); border-top-right-radius: 4px; }
@@ -35,7 +57,7 @@
       <div class="page-head" id="lz-head" style="margin-bottom:var(--sp-6)"></div>
 
       <div class="split-view">
-        <div class="split-doc" id="lz-doc"></div>
+        <div class="split-doc md" id="lz-doc"></div>
         <div class="split-chat">
           <div class="split-chat-head">
             <div class="flex justify-between items-center">
@@ -97,16 +119,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     '<div class="page-actions"><a href="thema.html?id=' + lz.themaId + '&tab=lernzettel" class="btn btn-ghost btn-sm">Zurück zum Thema</a></div>';
 
   function renderDoc() {
-    var html = lz.content.split('\n\n').map(function (block) {
-      var lines = block.split('\n');
-      return lines.map(function (line) {
-        if (line.indexOf('# ') === 0) return '<h1>' + line.slice(2) + '</h1>';
-        if (line.indexOf('## ') === 0) return '<h2>' + line.slice(3) + '</h2>';
-        if (!line.trim()) return '';
-        return '<p>' + line + '</p>';
-      }).join('');
-    }).join('');
-    document.getElementById('lz-doc').innerHTML = html;
+    document.getElementById('lz-doc').innerHTML = LesifyUI.mdToHtml(lz.content, { headingShift: 0 });
   }
 
   function renderFreeCounter() {
@@ -115,6 +128,10 @@ document.addEventListener('DOMContentLoaded', async function () {
     else el.innerHTML = 'Gratis-Kontingent aufgebraucht — zählt jetzt gegen dein Nachrichten-Limit';
   }
 
+  // Initialen der angemeldeten Person für den Nutzer-Avatar (statt fest „JB").
+  var userInitials = '';
+  try { Lesify.getUser().then(function (u) { userInitials = (u && u.initials) || ''; renderThread(); }, function () {}); } catch (e) {}
+
   function renderThread() {
     var thread = document.getElementById('lz-thread');
     if (!lz.revisionen.length) {
@@ -122,8 +139,8 @@ document.addEventListener('DOMContentLoaded', async function () {
       return;
     }
     thread.innerHTML = lz.revisionen.map(function (m) {
-      if (m.rolle === 'ai') return '<div class="lz-msg from-ai"><span class="lz-avatar">' + I.spark + '</span><span class="lz-bubble">' + m.text + '</span></div>';
-      return '<div class="lz-msg from-user"><span class="lz-avatar">JB</span><span class="lz-bubble">' + m.text + '</span></div>';
+      if (m.rolle === 'ai') return '<div class="lz-msg from-ai"><span class="lz-avatar">' + I.spark + '</span><span class="lz-bubble md">' + LesifyUI.mdToHtml(m.text) + '</span></div>';
+      return '<div class="lz-msg from-user"><span class="lz-avatar">' + userInitials + '</span><span class="lz-bubble">' + LesifyUI.mdEscape(m.text).replace(/\n/g, '<br>') + '</span></div>';
     }).join('');
     thread.scrollTop = thread.scrollHeight;
   }

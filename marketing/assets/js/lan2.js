@@ -34,10 +34,12 @@
   var LZ_LEAD = M.TLDR.points[5].s;
 
   var SECTIONS = [
-    { key: 'hero', label: 'Hero', tone: 'light', hero: true, accent: 'var(--fach-blue)' },
+    { key: 'hero', label: 'Hero', tone: 'light', hero: true, single: true, accent: 'var(--fach-blue)' },
     {
       key: 'kv',
       label: 'Klausur',
+      single: true,
+      dotsIn: 'text',
       tone: 'light',
       accent: 'var(--fach-blue)',
       eb: KVL.eb,
@@ -78,6 +80,8 @@
     {
       key: 'org',
       label: 'Orga',
+      single: true,
+      dotsIn: 'none',
       tone: 'dark',
       accent: 'var(--fach-rose)',
       eb: ORG.eb,
@@ -97,60 +101,32 @@
   ];
 
   var NAMES = {
-    hero: ['Karte überlappt', 'Karte darunter', 'Tab-Leiste', 'Karte im Text', 'Karte oben', 'Groß', 'Groß 6.1 (75 %)', 'Groß 6.2 (50 %)', 'Groß 6.3 (25 %)'],
-    kv: ['Liste', 'Karten', 'Ziffern', 'Tabs', 'Bento'],
-    chat: ['Flanke', 'Unten', 'Modi-Tabs', 'Overlap', 'Editorial'],
-    lz: ['Liste', 'Zettel-Karten', 'Tabs', 'Overlay', 'Editorial'],
-    org: ['Satelliten', 'Ecken', 'Leitlinien', 'Schiene', 'Hotspots', 'Karten', 'Pfad', 'Tabs', 'Ziffern', 'Karten unten']
+    chat: ['Flanke', 'Links/Rechts'],
+    lz: ['Liste', 'Karten', 'Tabs', 'Overlay', 'Notizzettel']
   };
 
   /* ---------- Bausteine ---------- */
   /* Mockup als Slideshow-Stapel; Punkte nur, wenn s.slides > 1 (Klausur, Orga).
      `after` liegt im Stapel (z. B. Overlay-Karte). */
+  function slideDots(s) {
+    var d = '<div class="l2-dots" role="tablist" aria-label="Folie wählen">';
+    for (var i = 0; i < s.slides; i++) {
+      d +=
+        '<button type="button" role="tab" class="l2-dots__d' + (i === 0 ? ' is-active' : '') + '" data-l2dot="' + i + '" aria-label="' + s.slideLabels[i] + '">' + (i + 1) + '</button>';
+    }
+    return d + '</div>';
+  }
   function media(s, cls, after) {
     var n = s.slides || 1,
-      pics = '',
-      dots = '';
+      pics = '';
     for (var i = 0; i < n; i++) {
       pics +=
-        '<img class="l2-slide' +
-        (i === 0 ? ' is-on' : '') +
-        '" src="/assets/img/lan2/' +
-        s.imgs[i % s.imgs.length] +
-        '.webp" alt="' +
-        (i === 0 ? s.alt : '') +
-        '"' +
-        (i === 0 ? '' : ' aria-hidden="true"') +
-        ' width="1416" height="1117" loading="lazy" decoding="async">';
+        '<img class="l2-slide' + (i === 0 ? ' is-on' : '') + '" src="/assets/img/lan2/' + s.imgs[i % s.imgs.length] + '.webp" alt="' + (i === 0 ? s.alt : '') + '"' +
+        (i === 0 ? '' : ' aria-hidden="true"') + ' width="1416" height="1117" loading="lazy" decoding="async">';
     }
-    if (n > 1) {
-      dots = '<div class="l2-dots" role="tablist" aria-label="Folie wählen">';
-      for (var d = 0; d < n; d++) {
-        dots +=
-          '<button type="button" role="tab" class="l2-dots__d' +
-          (d === 0 ? ' is-active' : '') +
-          '" data-l2dot="' +
-          d +
-          '" aria-label="' +
-          s.slideLabels[d] +
-          '">' +
-          (d + 1) +
-          '</button>';
-      }
-      dots += '</div>';
-    }
-    return (
-      '<figure class="l2-media ' +
-      cls +
-      '"' +
-      (n > 1 ? ' data-l2show' : '') +
-      '><div class="l2-slides">' +
-      pics +
-      (after || '') +
-      '</div>' +
-      dots +
-      '</figure>'
-    );
+    /* Punkte: unter dem Bild (Standard), im Textblock (dotsIn 'text') oder gar nicht (dotsIn 'none') */
+    var dots = n > 1 && !s.dotsIn ? slideDots(s) : '';
+    return '<figure class="l2-media ' + cls + '"' + (n > 1 ? ' data-l2show' : '') + '><div class="l2-slides">' + pics + (after || '') + '</div>' + dots + '</figure>';
   }
   function head(s, center) {
     return (
@@ -221,42 +197,12 @@
     return '<div class="l2-inner"><div class="container l2-4">' + head(s, true) + body + '</div></div>';
   }
 
-  /* ---------- Klausur (kv, hell) ---------- */
-  function kvRows() {
-    return (
-      '<ul class="l2-prow">' +
-      KVL.points
-        .map(function (p) {
-          return li('', ico(M.KVL_ICON[p.ic]) + '<div><b>' + p.t + '</b><span>' + p.s + '</span></div>');
-        })
-        .join('') +
-      '</ul>'
-    );
-  }
-  function kvFacts(cls) {
-    return (
-      '<div class="l2-facts ' +
-      (cls || '') +
-      '">' +
-      KVL.facts
-        .map(function (f) {
-          return '<div><b>' + f.n + '</b><span>' + f.l + '</span></div>';
-        })
-        .join('') +
-      '</div>'
-    );
-  }
-  var KV_CTA = 'Klausur anlegen';
+  /* ---------- Klausur (kv, hell) — final: Karten; Kennzahlen-Pills + CTA entfallen, die 7 Lerntage-Punkte stehen im Textblock ---------- */
   var KV = [
-    /* 1 · Liste — wie live: Icon-Zeilen, Kennzahlen, CTA */
-    function (s) {
-      return bleed(s, kvRows() + kvFacts() + cta(KV_CTA));
-    },
-    /* 2 · Karten — Kennzahlen im Text, vier Karten in voller Breite darunter */
     function (s) {
       return bleed(
         s,
-        kvFacts('is-pills') + cta(KV_CTA),
+        slideDots(s),
         '<ul class="l2-cards c4">' +
           KVL.points
             .map(function (p) {
@@ -264,65 +210,6 @@
             })
             .join('') +
           '</ul>'
-      );
-    },
-    /* 3 · Ziffern — nummerierte Editorial-Zeilen ohne Icons */
-    function (s) {
-      return bleed(
-        s,
-        '<ol class="l2-nrow">' +
-          KVL.points
-            .map(function (p, i) {
-              return li('', '<span class="l2-num">' + pad(i) + '</span><div><b>' + p.t + '</b><span>' + p.s + '</span></div>');
-            })
-            .join('') +
-          '</ol>' +
-          kvFacts('is-line') +
-          cta(KV_CTA)
-      );
-    },
-    /* 4 · Tabs — Punkte umschaltbar, Kennzahlen groß */
-    function (s) {
-      return bleed(
-        s,
-        tabs(
-          KVL.points.map(function (p) {
-            return ico(M.KVL_ICON[p.ic]) + p.t;
-          }),
-          KVL.points.map(function (p) {
-            return '<b>' + p.t + '</b><span>' + p.s + '</span>';
-          })
-        ) +
-          kvFacts('is-big') +
-          cta(KV_CTA)
-      );
-    },
-    /* 5 · Bento — Punkte + Kennzahlen als Kachel-Raster in voller Breite */
-    function (s) {
-      var P = KVL.points,
-        T = KVL.facts;
-      var card = function (p, cls) {
-        return '<div class="l2-bc ' + cls + '">' + ico(M.KVL_ICON[p.ic]) + '<b>' + p.t + '</b><span>' + p.s + '</span></div>';
-      };
-      var fact = function (f) {
-        return '<div class="l2-bc is-fact"><b>' + f.n + '</b><span>' + f.l + '</span></div>';
-      };
-      return bleed(
-        s,
-        cta(KV_CTA),
-        '<div class="l2-bento">' +
-          card(P[0], 'is-big') +
-          card(P[1], '') +
-          card(P[2], '') +
-          card(P[3], 'is-wide') +
-          fact(T[0]) +
-          fact(T[1]) +
-          fact(T[2]) +
-          '<a class="l2-bc is-cta" href="/preise/"><b>In zwei Minuten startklar</b><span>' +
-          KV_CTA +
-          ' ' +
-          ARROW +
-          '</span></a></div>'
       );
     }
   ];
@@ -358,108 +245,32 @@
           '</div></div>'
       );
     },
-    /* 2 · Unten — Mockup groß, darunter Perks-Reihe und Modi-Reihe */
+    /* 2 · Links/Rechts — Text + Perks links, Mockup rechts (wie die hellen Sections), die vier Modi als Karten darunter */
     function (s) {
-      return dark(
+      return bleed(
         s,
-        media(s, 'l2-4__media is-solo') +
-          '<div class="l2-row r3">' +
+        '<ul class="l2-prow">' +
           CHAT.perks
             .map(function (p) {
-              return perkCard(p);
+              return li('', ico(p.icon) + '<div><b>' + p.title + '</b><span>' + p.text + '</span></div>');
             })
             .join('') +
-          '</div>' +
-          colH('Vier Modi, passend zu Fach und Thema') +
-          '<div class="l2-row r4">' +
+          '</ul>',
+        colH('Die vier Chat-Modi') +
+          '<ul class="l2-cards c4">' +
           CHAT.modes
             .map(function (m) {
-              return modeCard(m, 'is-sm');
+              return li('', ico(m.i) + '<b>' + m.l + '</b><span>' + m.d + '</span>');
             })
             .join('') +
-          '</div>'
-      );
-    },
-    /* 3 · Modi-Tabs — Modus-Leiste über dem Mockup, Perks darunter */
-    function (s) {
-      return dark(
-        s,
-        tabs(
-          CHAT.modes.map(function (m) {
-            return ico(m.i) + m.l;
-          }),
-          CHAT.modes.map(function (m) {
-            return '<b>' + m.l + '</b><span>' + m.d + '</span>';
-          }),
-          'is-center'
-        ) +
-          media(s, 'l2-4__media is-solo') +
-          '<div class="l2-row r3 is-flat">' +
-          CHAT.perks
-            .map(function (p) {
-              return perkCard(p, 'is-flat');
-            })
-            .join('') +
-          '</div>'
-      );
-    },
-    /* 4 · Overlap — Modi als Chips unter dem Kopf, Perk-Karten überlappen das Mockup */
-    function (s) {
-      return dark(
-        s,
-        '<ul class="l2-chips">' +
-          CHAT.modes
-            .map(function (m) {
-              return li('', ico(m.i) + '<span><b>' + m.l + '</b>' + m.d + '</span>');
-            })
-            .join('') +
-          '</ul>' +
-          media(s, 'l2-4__media is-solo') +
-          '<div class="l2-row r3 is-overlap">' +
-          CHAT.perks
-            .map(function (p) {
-              return perkCard(p, 'is-glass');
-            })
-            .join('') +
-          '</div>'
-      );
-    },
-    /* 5 · Editorial — Mockup, darunter zwei Spalten: Perks nummeriert, Modi 2×2 */
-    function (s) {
-      return dark(
-        s,
-        media(s, 'l2-4__media is-solo') +
-          '<div class="l2-2col"><div>' +
-          colH('Was den Chat besonders macht') +
-          '<ol class="l2-nrow is-dark">' +
-          CHAT.perks
-            .map(function (p, i) {
-              return li('', '<span class="l2-num">' + pad(i) + '</span><div><b>' + p.title + '</b><span>' + p.text + '</span></div>');
-            })
-            .join('') +
-          '</ol></div><div>' +
-          colH('Die vier Chat-Modi') +
-          '<ul class="l2-grid2">' +
-          CHAT.modes
-            .map(function (m) {
-              return li('', ico(m.i) + '<div><b>' + m.l + '</b><span>' + m.d + '</span></div>');
-            })
-            .join('') +
-          '</ul></div></div>'
+          '</ul>'
       );
     }
   ];
 
-  /* ---------- Lernzettel (lz, hell) ---------- */
-  var LZ_CTA = 'Kostenlos starten';
-  var LZ_META =
-    '<div class="l2-meta">' + ico(M.KVL_ICON.doc) + '<div><b>' + KVL.lzTitle + '</b><span>' + KVL.lzMeta + '</span></div></div>';
-  var LZ_PT = '<div class="l2-dc">' + ico(M.KVL_ICON.doc) + '<b>' + LZ_POINT.t + '</b><span>' + LZ_POINT.s + '</span></div>';
-  function snip(n, cls) {
-    return '<div class="l2-snip ' + (cls || '') + '"><b>' + n.h + '</b><span>' + n.b + '</span></div>';
-  }
+  /* ---------- Lernzettel (lz, hell) — ohne CTA und ohne Beispiel-Lernzettel-Karte ---------- */
   var LZ_V = [
-    /* 1 · Liste — Punkt + drei Auszüge als Icon-Zeilen, Meta darunter */
+    /* 1 · Liste — Punkt + drei Auszüge als Icon-Zeilen */
     function (s) {
       return bleed(
         s,
@@ -468,24 +279,22 @@
           LZ_SNIPS.map(function (n) {
             return li('', ico(M.KVL_ICON.check) + '<div><b>' + n.h + '</b><span>' + n.b + '</span></div>');
           }).join('') +
-          '</ul>' +
-          LZ_META +
-          cta(LZ_CTA)
+          '</ul>'
       );
     },
-    /* 2 · Zettel-Karten — drei „Zettel" in voller Breite darunter */
+    /* 2 · Karten — die drei Auszüge als „Zettel" in voller Breite */
     function (s) {
       return bleed(
         s,
-        LZ_META + '<p class="l2-note is-left">' + LZ_POINT.s + '</p>' + cta(LZ_CTA),
+        '',
         '<div class="l2-row r3">' +
           LZ_SNIPS.map(function (n) {
-            return snip(n, 'is-paper');
+            return '<div class="l2-snip is-paper"><b>' + n.h + '</b><span>' + n.b + '</span></div>';
           }).join('') +
           '</div>'
       );
     },
-    /* 3 · Tabs — Auszüge umschaltbar */
+    /* 3 · Tabs — Bruchterm kürzen · Bruchgleichung lösen · Typischer Fehler umschaltbar */
     function (s) {
       return bleed(
         s,
@@ -496,193 +305,45 @@
           LZ_SNIPS.map(function (n) {
             return '<b>' + n.h + '</b><span>' + n.b + '</span>';
           })
-        ) +
-          LZ_META +
-          cta(LZ_CTA)
+        )
       );
     },
-    /* 4 · Overlay — Zettel-Karte liegt über dem Mockup */
+    /* 4 · Overlay — die drei Auszüge als Zettel-Karte über dem Mockup */
     function (s) {
       var card =
-        '<div class="l2-ov__card"><span class="l2-colh is-ink">' +
-        KVL.lzTitle +
-        '</span>' +
+        '<div class="l2-ov__card">' +
         LZ_SNIPS.map(function (n) {
           return '<p><b>' + n.h + '</b>' + n.b + '</p>';
         }).join('') +
         '</div>';
-      return bleed(s, LZ_PT + LZ_META + cta(LZ_CTA), '', card);
+      return bleed(s, '', '', card);
     },
-    /* 5 · Editorial — links Punkt + Meta, rechts nummerierte Auszüge */
+    /* 5 · Notizzettel — leicht schräge Klebezettel, „Typischer Fehler" als Warn-Zettel */
     function (s) {
       return bleed(
         s,
-        cta(LZ_CTA),
-        '<div class="l2-2col"><div>' +
-          colH('So entsteht der Lernzettel') +
-          LZ_PT +
-          LZ_META +
-          '</div><div>' +
-          colH('Aus dem Lernzettel') +
-          '<ol class="l2-nrow is-flush">' +
+        '',
+        '<div class="l2-notes">' +
           LZ_SNIPS.map(function (n, i) {
-            return li('', '<span class="l2-num">' + pad(i) + '</span><div><b>' + n.h + '</b><span>' + n.b + '</span></div>');
+            return '<div class="l2-note-c' + (i === LZ_SNIPS.length - 1 ? ' is-warn' : '') + '"><b>' + n.h + '</b><span>' + n.b + '</span></div>';
           }).join('') +
-          '</ol></div></div>'
+          '</div>'
       );
     }
   ];
 
-  /* ---------- Organisation (org, dunkel) — Mockup mittig, die 3 Punkte drumherum (je 1×, keine Dopplung) ---------- */
-  var ORG_CTA = 'Kostenlos starten';
-  var OP = ORG.points;
-  function pt(i, cls) {
-    var p = OP[i];
-    return (
-      '<div class="l2-dc ' + (cls || '') + '" data-l2pt="' + i + '">' + ico(M.ORG_IC[p.ic]) + '<b>' + p.t + '</b><span>' + p.s + '</span></div>'
-    );
-  }
-  function ann(i) {
-    var p = OP[i];
-    return (
-      '<div class="l2-ann" data-l2pt="' + i + '"><span class="l2-num">' + pad(i) + '</span><b>' + p.t + '</b><span>' + p.s + '</span></div>'
-    );
-  }
+  /* ---------- Organisation (org, dunkel) — wie Klausur: Text links, Mockup rechts, die drei Karten darunter; Navigation NUR über die Karten ---------- */
   var ORG_V = [
-    /* 1 · Satelliten — links · rechts · unten mittig, je eine Karte */
-    function (s) {
-      return dark(
-        s,
-        '<div class="l2-o1"><div class="l2-o1__l">' + pt(0) + '</div>' + media(s, 'l2-o1__m') + '<div class="l2-o1__r">' + pt(1) + '</div>' +
-          '<div class="l2-o1__b">' + pt(2, 'is-glass') + '</div></div>' + ctaRow(ORG_CTA)
-      );
-    },
-    /* 2 · Ecken — Glas-Karten liegen an drei Ecken über dem Mockup */
-    function (s) {
-      return dark(
-        s,
-        '<div class="l2-o2">' + media(s, 'l2-o2__m') + '<div class="l2-o2__c c0">' + pt(0, 'is-glass') + '</div><div class="l2-o2__c c1">' + pt(1, 'is-glass') +
-          '</div><div class="l2-o2__c c2">' + pt(2, 'is-glass') + '</div></div>' + ctaRow(ORG_CTA)
-      );
-    },
-    /* 3 · Leitlinien — nur Text mit Linie zum Bild, links oben · rechts Mitte · links unten */
-    function (s) {
-      return dark(
-        s,
-        '<div class="l2-o3"><div class="l2-o3__l">' + ann(0) + ann(2) + '</div>' + media(s, 'l2-o3__m') + '<div class="l2-o3__r">' + ann(1) + '</div></div>' + ctaRow(ORG_CTA)
-      );
-    },
-    /* 4 · Schiene — links Schritte zum Umschalten (Fach · Thema · Dateien), rechts der zur Folie passende Text */
-    function (s) {
-      return dark(
-        s,
-        '<div class="l2-o4"><div class="l2-o4__rail" role="tablist">' +
-          ORG.steps
-            .map(function (st, i) {
-              return (
-                '<button type="button" role="tab" class="l2-rail" data-l2pt="' + i + '">' + ico(M.ORG_IC[OP[i].ic]) + '<span><b>' + st.l + '</b>' + st.s + '</span></button>'
-              );
-            })
-            .join('') +
-          '</div>' + media(s, 'l2-o4__m') + '<div class="l2-o4__pp">' +
-          OP.map(function (p, i) {
-            return '<div class="l2-pp" data-l2pt="' + i + '"><span class="l2-num">' + pad(i) + '</span><b>' + p.t + '</b><span>' + p.s + '</span></div>';
-          }).join('') +
-          '</div></div>' + ctaRow(ORG_CTA)
-      );
-    },
-    /* 5 · Hotspots — nummerierte Punkte direkt auf dem Mockup, der Text steht darunter */
-    function (s) {
-      var pos = [
-        ['11%', '31%'],
-        ['31%', '25%'],
-        ['66%', '33%']
-      ];
-      var spots = pos
-        .map(function (xy, i) {
-          return '<button type="button" class="l2-hs" data-l2pt="' + i + '" style="left:' + xy[0] + ';top:' + xy[1] + '" aria-label="' + OP[i].t + '">' + (i + 1) + '</button>';
-        })
-        .join('');
-      return dark(
-        s,
-        media(s, 'l2-4__media is-solo', spots) +
-          '<div class="l2-o5">' +
-          OP.map(function (p, i) {
-            return '<div class="l2-pp is-wide" data-l2pt="' + i + '">' + ico(M.ORG_IC[p.ic]) + '<div><b>' + p.t + '</b><span>' + p.s + '</span></div></div>';
-          }).join('') +
-          '</div>' + ctaRow(ORG_CTA)
-      );
-    }
-    ,
-    /* 6 · Karten — Text links, drei nummerierte Erklär-Karten (wie auf der Startseite), Mockup rechts */
     function (s) {
       return bleed(
         s,
-        '<div class="l2-scards">' +
-          OP.map(function (p, i) {
-            return '<div class="l2-scard" data-l2pt="' + i + '">' + ico(M.ORG_IC[p.ic]) + '<div><b>' + p.t + '</b><span>' + p.s + '</span></div><i>' + (i + 1) + '</i></div>';
-          }).join('') +
-          '</div>' + cta(ORG_CTA)
-      );
-    },
-    /* 7 · Pfad — Fach → Thema → Dateien als Schiene mit dem jeweiligen Nutzen */
-    function (s) {
-      return bleed(
-        s,
-        '<ol class="l2-path">' +
-          OP.map(function (p, i) {
-            var st = ORG.steps[i];
-            return li('', '<span class="l2-path__n">' + (i + 1) + '</span><div><em>' + st.l + ' · ' + st.s + '</em><b>' + p.t + '</b><span>' + p.s + '</span></div>', ' data-l2pt="' + i + '"');
-          }).join('') +
-          '</ol>' + cta(ORG_CTA)
-      );
-    },
-    /* 8 · Tabs — die drei Punkte umschaltbar */
-    function (s) {
-      return bleed(
-        s,
-        tabs(
-          OP.map(function (p) {
-            return ico(M.ORG_IC[p.ic]) + p.t;
-          }),
-          OP.map(function (p) {
-            return '<b>' + p.t + '</b><span>' + p.s + '</span>';
-          })
-        ) + cta(ORG_CTA)
-      );
-    },
-    /* 9 · Ziffern — nummerierte Zeilen, darunter der Beispiel-Pfad als Pills */
-    function (s) {
-      return bleed(
-        s,
-        '<ol class="l2-nrow">' +
-          OP.map(function (p, i) {
-            return li('', '<span class="l2-num">' + pad(i) + '</span><div><b>' + p.t + '</b><span>' + p.s + '</span></div>', ' data-l2pt="' + i + '"');
-          }).join('') +
-          '</ol><div class="l2-facts is-pills">' +
-          ORG.steps
-            .map(function (st) {
-              return '<div><b>' + st.l + '</b><span>' + st.s + '</span></div>';
-            })
-            .join('') +
-          '</div>' + cta(ORG_CTA)
-      );
-    },
-    /* 10 · Karten unten — Pfad-Pills im Text, die drei Punkte als hohe Karten in voller Breite */
-    function (s) {
-      return bleed(
-        s,
-        '<div class="l2-facts is-pills">' +
-          ORG.steps
-            .map(function (st) {
-              return '<div><b>' + st.l + '</b><span>' + st.s + '</span></div>';
-            })
-            .join('') +
-          '</div>' + cta(ORG_CTA),
+        '',
         '<ul class="l2-cards c3 is-tall">' +
-          OP.map(function (p, i) {
-            return li('', ico(M.ORG_IC[p.ic]) + '<b>' + p.t + '</b><span>' + p.s + '</span>', ' data-l2pt="' + i + '"');
-          }).join('') +
+          ORG.points
+            .map(function (p, i) {
+              return li('', ico(M.ORG_IC[p.ic]) + '<b>' + p.t + '</b><span>' + p.s + '</span>', ' data-l2pt="' + i + '"');
+            })
+            .join('') +
           '</ul>'
       );
     }
@@ -738,61 +399,15 @@
       '</div><span class="l2h-arrows"><button type="button" data-hp aria-label="Vorherige Funktion">' + CHEV_L + '</button><button type="button" data-hn aria-label="Nächste Funktion">' + CHEV_R + '</button></span></div></div>'
     );
   }
-  /* Feature-Karten als direkte Navigation (Flanken / Tab-Leiste) */
-  function hItems(list, cls) {
-    return (
-      '<div class="l2h-items ' + (cls || '') + '">' +
-      list.map(function (f) {
-        var i = HERO.indexOf(f);
-        return (
-          '<button type="button" class="l2h-item' + (i === 0 ? ' is-active' : '') + '" data-hi="' + i + '" style="--a:' + f.accent + '"><span class="l2h-ci">' + f.icon + '</span><span class="l2h-ce">' + pad(i) + ' — ' + f.label + '</span><span class="l2h-it">' + f.title + '</span><span class="l2h-fill"></span></button>'
-        );
-      }).join('') +
-      '</div>'
-    );
-  }
   /* Wie die Startseite: Text links, Bühne + Karten rechts — aber im Container statt am rechten Rand fixiert.
      Die fünf Versionen unterscheiden sich in der Position von Slideshow-Karte / Navigation. */
   function split(n, left, right) {
     return '<div class="l2-inner"><div class="container hv9__grid l2h-s l2h-s' + n + '">' + left + '<div class="l2h-wrap">' + right + '</div></div></div>';
   }
-  var HERO_V = [
-    /* 1 · Karte überlappt — dunkle Karte unten links über der Bühne */
-    function () {
-      return split(1, hText(true), hStage() + hCard());
-    },
-    /* 2 · Karte darunter — Karte als flache Leiste unter der Bühne */
-    function () {
-      return split(2, hText(true), hStage() + hCard());
-    },
-    /* 3 · Tab-Leiste — alle vier Features als Tabs unter der Bühne */
-    function () {
-      return split(3, hText(true), hStage() + hItems(HERO, 'is-tabs'));
-    },
-    /* 4 · Karte im Text — die Karte wandert unter den Text, die Bühne steht frei */
-    function () {
-      return split(4, '<div class="l2h-col">' + hText(true) + hCard() + '</div>', hStage());
-    },
-    /* 5 · Karte oben rechts — kleine Karte überlappt die obere Ecke der Bühne */
-    function () {
-      return split(5, hText(true), hStage() + hCard());
-    },
-    /* 6 · Groß — Textspalte unverändert (Original-Raster), Bühne so groß wie möglich (bis 1 rem vor den Viewport-Rand),
-       Karte wie Version 2 als flache Leiste */
-    function () {
-      return split('6 l2h-s2', hText(), hStage() + hCard());
-    },
-    /* 6.1 – 6.3 · wie 6, aber Bühnenbreite 75 % / 50 % / 25 % des Wegs zwischen V2 (Spaltenbreite) und V6 (50vw) */
-    function () {
-      return split('6 l2h-s2 l2h-k1', hText(), hStage() + hCard());
-    },
-    function () {
-      return split('6 l2h-s2 l2h-k2', hText(), hStage() + hCard());
-    },
-    function () {
-      return split('6 l2h-s2 l2h-k3', hText(), hStage() + hCard());
-    }
-  ];
+  /* final: V6.2 — Textspalte unverändert (Original-Raster), Bühne ~620 px (Mitte zwischen Spaltenbreite und 50vw), Karte als flache Leiste */
+  function heroHtml() {
+    return split('6 l2h-s2 l2h-k2', hText(), hStage() + hCard());
+  }
 
   var heroCtl = null;
   document.addEventListener('visibilitychange', function () {
@@ -853,7 +468,7 @@
     start();
   }
 
-  var RENDER = { hero: HERO_V, kv: KV, chat: CHAT_V, lz: LZ_V, org: ORG_V };
+  var RENDER = { kv: KV, chat: CHAT_V, lz: LZ_V, org: ORG_V };
 
   /* ---------- Slideshow (Punkte + Auto-Lauf wie in der früheren Demo) ---------- */
   var timers = {};
@@ -865,7 +480,7 @@
     var fig = el.querySelector('[data-l2show]');
     if (!fig) return;
     var pics = [].slice.call(fig.querySelectorAll('.l2-slide'));
-    var dots = [].slice.call(fig.querySelectorAll('[data-l2dot]'));
+    var dots = [].slice.call(el.querySelectorAll('[data-l2dot]'));
     var pts = [].slice.call(el.querySelectorAll('[data-l2pt]'));
     var n = pics.length,
       idx = 0;
@@ -933,8 +548,7 @@
   }
 
   /* ---------- Build ---------- */
-  var MAXV = { org: 10, hero: 9 };
-  var BTN_LABEL = { hero: { 7: '6.1', 8: '6.2', 9: '6.3' } };
+  var MAXV = { chat: 2, lz: 5 };
   function stored(key) {
     try {
       var v = parseInt(localStorage.getItem('lesify:lan2:' + key + ':c'), 10);
@@ -981,8 +595,7 @@
       el.setAttribute('data-hero-bg', '9');
       el.setAttribute('data-hero-text', '1');
       el.setAttribute('data-hero-color', '1');
-      el.setAttribute('data-h', v);
-      el.innerHTML = HERO_V[v - 1]();
+      el.innerHTML = heroHtml();
       initHero(el);
       return;
     }
@@ -1010,7 +623,7 @@
   var state = {};
   function buildAll() {
     SECTIONS.forEach(function (s) {
-      if (!s.fixed) state[s.key] = stored(s.key);
+      state[s.key] = s.fixed || s.single ? 1 : stored(s.key);
       build(s, state[s.key]);
     });
   }
@@ -1030,7 +643,7 @@
 
   /* ---------- Dev-Switcher ---------- */
   var VARIABLE = SECTIONS.filter(function (s) {
-    return !s.fixed;
+    return !s.fixed && !s.single;
   });
   function row(label, key, active) {
     return (
@@ -1049,7 +662,7 @@
             (key !== 'all' ? ' title="' + n + ' · ' + NAMES[key][n - 1] + '"' : '') +
             (n === active ? ' class="is-on"' : '') +
             '>' +
-            ((BTN_LABEL[key] && BTN_LABEL[key][n]) || n) +
+            n +
             '</button>'
           );
         })
@@ -1063,7 +676,7 @@
     try {
       if (localStorage.getItem('lesify:lan2:min') === '1') panel.classList.add('is-min');
     } catch (e) {}
-    var html = '<button type="button" class="layout-dev-title" data-l2min>Lan2 · Inhalt</button>' + row('Alle', 'all', 0);
+    var html = '<button type="button" class="layout-dev-title" data-l2min>Lan2 · Inhalt</button>';
     VARIABLE.forEach(function (s) {
       html += row(s.label, s.key, state[s.key]);
     });

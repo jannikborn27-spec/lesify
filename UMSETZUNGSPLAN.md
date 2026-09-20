@@ -4419,4 +4419,8 @@ Kritisch, weil Zielgruppe minderjährig ist.
       (Textspalte = Original-Raster unverändert, Bühne wächst bis 1 rem vor den Viewport-Rand, Karte als flache Leiste wie V2).
 - [x] Organisation: Versionen 6–10 im Links/Rechts-Layout der hellen Sections (dunkel): Karten, Pfad, Tabs, Ziffern,
       Karten unten.
+- [x] Auswahl (2026-09-20): Hero = V6.2 (final, kein Switcher) · Klausur = Karten (ohne Kennzahlen-Pills/CTA, die 7
+      Lerntage-Punkte stehen im Textblock) · Organisation = Karten unten (ohne Pills/CTA/Punkte, Navigation über die drei
+      Karten) · Chat = Flanke + neue Links/Rechts-Variante · Lernzettel = Liste (ohne CTA/Beispiel-Karte) + 4 neue
+      Darstellungen der Auszüge (Karten, Tabs, Overlay, Notizzettel). Dev-Switcher nur noch für Chat und Lernzettel.
 - [ ] Offen: Darstellung je Section wählen → Dev-Switcher entfernen; danach entscheiden, ob `/lan2/` die Startseite ablöst.

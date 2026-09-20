@@ -420,16 +420,9 @@
 .l2h-arrows button { display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.25); background: transparent; color: #fff; cursor: pointer; }
 .l2h-arrows svg { width: 14px; height: 14px; }
 /* Feature-Karten als Navigation (Flanken / Tab-Leiste) */
-.l2h-item { position: relative; display: flex; flex-direction: column; align-items: flex-start; overflow: hidden; padding: 14px 16px 16px; text-align: left; cursor: pointer; font: inherit; color: var(--ink-950); background: #fff; border: 1px solid var(--line); border-radius: var(--radius-lg); transition: border-color 0.3s, box-shadow 0.3s; }
-.l2h-item .l2h-ci { background: color-mix(in srgb, var(--a) 16%, #fff); color: var(--a); }
-.l2h-item .l2h-ce { color: var(--a); }
 .l2h-it { margin-top: 6px; font: 600 0.98rem/1.3 var(--font-display); }
-.l2h-fill { position: absolute; left: 0; bottom: 0; width: 100%; height: 3px; background: var(--a); transform: scaleX(0); transform-origin: left; }
-.l2h-item.is-active { border-color: var(--a); box-shadow: var(--shadow-md); }
-.l2h-item.is-active .l2h-fill { animation: l2h-prog 5.2s linear forwards; }
 /* Split-Layouts: Text links wie auf der Startseite, Bühne + Karten rechts — im Container statt am Rand fixiert */
 /* 1 · Karte überlappt */
-.l2h-s1 .l2h-card { position: absolute; left: -4%; bottom: 2%; width: min(20rem, 78%); }
 /* 2 · Karte darunter (flache Leiste) */
 .l2h-s2 .l2h-card { display: flex; align-items: center; justify-content: space-between; gap: 1.2rem; margin-top: 1rem; padding: 14px 18px; }
 .l2h-s2 .l2h-cslides { flex: 1; min-width: 0; }
@@ -438,14 +431,8 @@
 .l2h-s2 .l2h-ct { margin-top: 2px; font-size: 1rem; }
 .l2h-s2 .l2h-nav { margin-top: 0; gap: 1rem; flex-shrink: 0; }
 /* 3 · Tab-Leiste */
-.l2h-items.is-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.6rem; margin-top: 1rem; }
-.l2h-s3 .l2h-item { padding: 12px 12px 14px; }
-.l2h-s3 .l2h-it { font-size: 0.84rem; }
-.l2h-s3 .l2h-ce { font-size: 0.62rem; }
 /* 4 · Karte im Text */
-.l2h-col .l2h-card { max-width: 23rem; margin-top: 1.8rem; }
 /* 5 · Karte oben rechts */
-.l2h-s5 .l2h-card { position: absolute; right: -3%; top: 2%; width: min(19rem, 72%); }
 
 @media (max-width: 1100px) {
   .l2-o1, .l2-o3, .l2-o4 { grid-template-columns: 1fr 1fr; }
@@ -454,7 +441,6 @@
   .l2-o1__b { grid-column: 1 / -1; margin-top: 0; }
   .l2-o3__l .l2-ann, .l2-o3__r .l2-ann { padding: 0; text-align: left; }
   .l2-ann::before, .l2-ann::after { display: none; }
-  .l2h-items.is-tabs { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 900px) {
   .l2h-s { grid-template-columns: 1fr; }
@@ -481,8 +467,24 @@
   .l2h-s6 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .l2h-s6 .l2h-wrap { width: 50vw; margin-left: -3rem; justify-self: start; }
   /* 6.1–6.3: Zwischenstufen zwischen V2 (Spaltenbreite = 100 %) und V6 (50vw) */
-  .l2h-k1 .l2h-wrap { width: calc(100% + 0.75 * (50vw - 100%)); margin-left: -2.25rem; }
   .l2h-k2 .l2h-wrap { width: calc(100% + 0.5 * (50vw - 100%)); margin-left: -1.5rem; }
-  .l2h-k3 .l2h-wrap { width: calc(100% + 0.25 * (50vw - 100%)); margin-left: -0.75rem; }
 }
 
+
+/* Slideshow-Punkte im Textblock (Klausur): linksbündig unter dem Text */
+.l2-2__text .l2-dots { justify-content: flex-start; margin-top: 1.8rem; }
+
+/* Lernzettel · Notizzettel */
+.l2-notes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.4rem; padding-top: 0.6rem; }
+.l2-note-c { --r: 0deg; position: relative; padding: 1.6rem 1.4rem 1.4rem; border-radius: 6px; background: color-mix(in srgb, var(--l2-a) 12%, #fff); box-shadow: 0 14px 28px -18px rgba(16, 18, 20, 0.35); transform: rotate(var(--r)); transition: transform 0.3s var(--ease-out); }
+.l2-note-c:nth-child(1) { --r: -1.2deg; }
+.l2-note-c:nth-child(2) { --r: 1deg; }
+.l2-note-c:nth-child(3) { --r: -0.6deg; }
+.l2-note-c:hover { transform: rotate(0deg) translateY(-4px); }
+.l2-note-c::before { content: ""; position: absolute; top: -10px; left: 50%; width: 4.5rem; height: 1.2rem; transform: translateX(-50%) rotate(-2deg); background: color-mix(in srgb, var(--l2-a) 35%, #fff); opacity: 0.85; }
+.l2-note-c b { display: block; font: 600 1.05rem/1.25 var(--font-display); color: var(--ink-950); }
+.l2-note-c span { display: block; margin-top: 0.5rem; font-size: 0.92rem; line-height: 1.55; color: var(--ink-700); }
+.l2-note-c.is-warn { background: var(--rot-bg); }
+.l2-note-c.is-warn::before { background: color-mix(in srgb, var(--rot) 35%, #fff); }
+.l2-note-c.is-warn b { color: var(--rot); }
+@media (max-width: 900px) { .l2-notes { grid-template-columns: 1fr; } }

@@ -695,21 +695,20 @@
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>';
   var CHEV_L = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>';
   var CHEV_R = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>';
-  function hText(withProof) {
-    var av = ['SB', 'MT', 'LK', 'JW', 'FK'],
-      tn = ['var(--fach-blue)', 'var(--fach-amber)', 'var(--fach-teal)', 'var(--fach-violet)', 'var(--fach-rose)'];
+  /* Linke Seite 1:1 wie die Startseite: gleiche Klassen/Struktur (.hv9__text …), damit das Original-CSS greift.
+     .lab-trust ist dort per CSS ausgeblendet; sichtbar ist nur die Avatar-Zeile (.hv9__trust). */
+  function hText() {
+    var inits = ['SB', 'MT', 'LK', 'JW', 'FK'],
+      tones = ['var(--fach-blue)', 'var(--fach-amber)', 'var(--fach-teal)', 'var(--fach-violet)', 'var(--fach-rose)'];
     return (
-      '<div class="l2h-text"><span class="l2-eb">Für Schüler:innen ab Klassenstufe 5 geeignet</span>' +
-      '<h1 class="l2h-h">Weniger Prüfungsstress und <em>bessere Noten</em> ohne teure Nachhilfe.</h1>' +
-      '<p class="l2h-lead">Kein Chauffieren, kein Stundensatz, kein Streit ums Lernen. Dein Kind arbeitet selbstständig zu Hause mit festem Lernplan und einer KI, die 24/7 für Fragen bereitsteht.</p>' +
-      '<div class="l2h-cta"><a class="btn btn-primary btn-lg" href="/preise/">Kostenlos starten</a><a class="btn btn-secondary btn-lg" href="/login/">Anmelden</a></div>' +
-      '<ul class="l2h-trust"><li>' + CHK + ' Keine Kreditkarte nötig</li><li>' + CHK + ' DSGVO-konform, Server in der EU</li><li>' + CHK + ' Monatlich kündbar</li></ul>' +
-      (withProof
-        ? '<div class="l2h-proof"><span class="l2h-av">' +
-          av.map(function (x, i) { return '<i style="--t:' + tn[i] + '">' + x + '</i>'; }).join('') +
-          '</span><span><b>10.000+</b> Familien lernen schon mit Lesify</span></div>'
-        : '') +
-      '</div>'
+      '<div class="hv9__text"><span class="eyebrow">Für Schüler:innen ab Klassenstufe 5 geeignet</span>' +
+      '<h1>Weniger Prüfungsstress und <em>bessere Noten</em> ohne teure Nachhilfe.</h1>' +
+      '<p class="lab-lead">Kein Chauffieren, kein Stundensatz, kein Streit ums Lernen. Dein Kind arbeitet selbstständig zu Hause mit festem Lernplan und einer KI, die 24/7 für Fragen bereitsteht.</p>' +
+      '<div class="lab-cta"><a class="btn btn-primary btn-lg" href="/preise/">Kostenlos starten</a><a class="btn btn-secondary btn-lg" href="/login/">Anmelden</a></div>' +
+      '<ul class="lab-trust"><li>' + CHK + ' Keine Kreditkarte nötig</li><li>' + CHK + ' DSGVO-konform, Server in der EU</li><li>' + CHK + ' Monatlich kündbar</li></ul>' +
+      '<div class="hv9__trust"><span class="hv9__trust-row">' +
+      inits.map(function (x, i) { return '<span class="hv9__trust-av" style="--t:' + tones[i] + '">' + x + '</span>'; }).join('') +
+      '</span><span class="hv9__trust-txt"><b>10.000+</b> Familien lernen schon mit Lesify</span></div></div>'
     );
   }
   function hStage() {
@@ -755,7 +754,7 @@
   /* Wie die Startseite: Text links, Bühne + Karten rechts — aber im Container statt am rechten Rand fixiert.
      Die fünf Versionen unterscheiden sich in der Position von Slideshow-Karte / Navigation. */
   function split(n, left, right) {
-    return '<div class="container l2h-s l2h-s' + n + '">' + left + '<div class="l2h-wrap">' + right + '</div></div>';
+    return '<div class="container hv9__grid l2h-s l2h-s' + n + '">' + left + '<div class="l2h-wrap">' + right + '</div></div>';
   }
   var HERO_V = [
     /* 1 · Karte überlappt — dunkle Karte unten links über der Bühne */
@@ -818,6 +817,7 @@
       dots.forEach(function (p, k) { p.classList.toggle('is-active', k === idx); });
       if (count) count.textContent = pad(idx);
       el.style.setProperty('--h-a', HERO[idx].accent);
+      el.style.setProperty('--hero-accent', HERO[idx].accent);
       arm();
     }
     function stop() {
@@ -961,7 +961,10 @@
     var el = document.getElementById(s.key);
     if (!el) return;
     if (s.hero) {
-      el.className = 'l2h';
+      el.className = 'lab-sec hv9 l2hero';
+      el.setAttribute('data-hero-bg', '9');
+      el.setAttribute('data-hero-text', '1');
+      el.setAttribute('data-hero-color', '1');
       el.setAttribute('data-h', v);
       el.innerHTML = HERO_V[v - 1]();
       initHero(el);

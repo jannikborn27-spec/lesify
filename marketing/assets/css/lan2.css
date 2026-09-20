@@ -394,30 +394,6 @@
 .l2-pp.is-wide > div > span { display: block; margin-top: 0.3rem; color: var(--mut); line-height: 1.5; }
 
 /* ---------- Hero (lan2): zentriert, ohne Dauer-Hintergrundbild ---------- */
-.l2h {
-  --h-a: var(--fach-blue); position: relative; isolation: isolate; overflow: visible; color: var(--ink-950); background: var(--bg-canvas);
-  padding: clamp(7rem, 4.5rem + 6vw, 10rem) 0 clamp(3.5rem, 2rem + 5vw, 6.5rem); border-radius: 0 0 var(--section-radius) var(--section-radius);
-}
-.l2h::before {
-  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
-  background:
-    radial-gradient(circle var(--section-radius) at 100% 0, transparent 0 var(--section-radius), var(--ink-950) var(--section-radius)) left bottom / var(--section-radius) var(--section-radius) no-repeat,
-    radial-gradient(circle var(--section-radius) at 0 0, transparent 0 var(--section-radius), var(--ink-950) var(--section-radius)) right bottom / var(--section-radius) var(--section-radius) no-repeat;
-}
-.l2h .container { max-width: 1240px; }
-.l2h .l2-eb { color: var(--h-a); }
-.l2h-h { margin: 0.9rem 0 0; font: 800 clamp(2.3rem, 1.4rem + 3.6vw, 4.4rem)/1.03 var(--font-display); letter-spacing: -0.03em; text-wrap: balance; color: var(--ink-950); }
-.l2h-h em { font-style: normal; background: linear-gradient(transparent 64%, color-mix(in srgb, var(--h-a) 28%, transparent) 64% 92%, transparent 92%); }
-.l2h-lead { margin: 1.2rem 0 0; max-width: 40rem; font-size: clamp(1rem, 0.95rem + 0.4vw, 1.2rem); line-height: 1.6; color: var(--ink-600); text-wrap: pretty; }
-.l2h-cta { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.8rem; }
-.l2h-trust { display: flex; flex-wrap: wrap; gap: 0.5rem 1.4rem; margin: 1.4rem 0 0; padding: 0; list-style: none; font-size: 0.88rem; color: var(--ink-600); }
-.l2h-trust li { display: inline-flex; align-items: center; gap: 0.4rem; }
-.l2h-trust svg { width: 0.9rem; height: 0.9rem; color: var(--gruen); }
-.l2h-proof { display: flex; align-items: center; gap: 0.7rem; margin-top: 1.1rem; font-size: 0.88rem; color: var(--ink-600); }
-.l2h-proof b { color: var(--ink-950); }
-.l2h-av { display: inline-flex; }
-.l2h-av i { display: grid; place-items: center; width: 1.9rem; height: 1.9rem; margin-left: -0.5rem; border-radius: 50%; border: 2px solid var(--bg-canvas); background: var(--t); color: #fff; font: 600 0.62rem/1 var(--font-body); font-style: normal; }
-.l2h-av i:first-child { margin-left: 0; }
 /* zentrierte Layouts (1, 3, 4, 5) */
 /* Bühne */
 .l2h-wrap { position: relative; }
@@ -452,8 +428,6 @@
 .l2h-item.is-active { border-color: var(--a); box-shadow: var(--shadow-md); }
 .l2h-item.is-active .l2h-fill { animation: l2h-prog 5.2s linear forwards; }
 /* Split-Layouts: Text links wie auf der Startseite, Bühne + Karten rechts — im Container statt am Rand fixiert */
-.l2h-s { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: clamp(1.5rem, 3vw, 3rem); align-items: center; }
-.l2h-s .l2h-h { font-size: clamp(2.1rem, 1.2rem + 2.5vw, 3.35rem); }
 /* 1 · Karte überlappt */
 .l2h-s1 .l2h-card { position: absolute; left: -4%; bottom: 2%; width: min(20rem, 78%); }
 /* 2 · Karte darunter (flache Leiste) */

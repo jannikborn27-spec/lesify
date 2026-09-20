@@ -4400,10 +4400,14 @@ Kritisch, weil Zielgruppe minderjährig ist.
       (Klausur, KI-Chat, Organisation, Lernzettel) durch die Mockup-Bilder der Hero-Slideshow ersetzt sind
       (`assets/img/lan2/mockup-*.webp`, zugeschnitten aus `hero-nw-fin/`). Rendering in `assets/js/lan2.js`, Styles in
       `assets/css/lan2.css`.
-- [x] Entscheidung: Layout fest im Schwarz/Weiß-Wechsel — Klausur = Bleed (hell), Chat = Callouts (dunkel),
-      Organisation = Bleed (hell, gespiegelt), Lernzettel = Callouts (dunkel). Helle Sections mit rundem Rand + schwarzen
-      Zwickeln wie auf der Startseite.
-- [x] Inhalt 1:1 wie die Startseite (`window.LesifyMkt` am Ende von `marketing.js`: Punkte, Kennzahlen, Perks, Modi,
-      Fächer-Karten). Dev-Switcher schaltet je Section zwischen 5 Inhalts-Darstellungen
-      (`localStorage['lesify:lan2:{section}:c']`, Zeile „Alle" schaltet alle vier).
+- [x] Entscheidung (überarbeitet): Reihenfolge + Layout fest im Schwarz/Weiß-Wechsel — Klausur (hell, Bleed) ·
+      Chat (dunkel, Callouts) · Lernzettel (hell, Bleed, gespiegelt) · Organisation (dunkel, Callouts) ·
+      Fächer (hell). Helle Sections mit rundem Rand + schwarzen Zwickeln wie auf der Startseite.
+- [x] Fächer ist eine eigene Section im Original-Design der Startseite (`renderOrgFaecher('2')` „Ghost", über
+      `window.LesifyMkt` aus `marketing.js`), kein Dev-Umschalter.
+- [x] Klausur + Organisation bleiben Slideshows: Punkte-Navigation + Auto-Lauf wie zuvor (7 Lerntage / 3 Seiten,
+      3,8 s / 5,2 s). Bilder je Folie in `SECTIONS[].imgs` (`lan2.js`) — aktuell überall dasselbe Mockup, später
+      austauschen.
+- [x] Inhalt 1:1 wie die Startseite (`window.LesifyMkt`: Punkte, Kennzahlen, Perks, Modi). Dev-Switcher schaltet je
+      Section zwischen 5 Inhalts-Darstellungen (`localStorage['lesify:lan2:{section}:c']`, „Alle" schaltet alle vier).
 - [ ] Offen: Darstellung je Section wählen → Dev-Switcher entfernen; danach entscheiden, ob `/lan2/` die Startseite ablöst.

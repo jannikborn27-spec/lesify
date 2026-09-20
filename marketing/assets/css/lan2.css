@@ -259,9 +259,8 @@
 .l2-snip.is-paper b { color: var(--ink-950); }
 .l2-snip.is-paper span { color: var(--ink-600); }
 .l2-note { max-width: 46rem; margin: 1.6rem auto 0; text-align: center; color: var(--mut); line-height: 1.6; }
-.l2-ov { position: relative; }
 .l2-ov__card {
-  position: absolute; right: 1%; bottom: 8%; width: min(31%, 22rem); padding: 1.1rem 1.2rem; border-radius: var(--radius-lg);
+  position: absolute; z-index: 3; right: 1%; bottom: 8%; width: min(31%, 22rem); padding: 1.1rem 1.2rem; border-radius: var(--radius-lg);
   background: #fff; color: var(--ink-900); box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.7);
 }
 .l2-ov__card p { margin: 0 0 0.7rem; font-size: 0.8rem; line-height: 1.45; color: var(--ink-600); }
@@ -300,3 +299,34 @@
   .l2-facts { flex-wrap: wrap; }
   .l2-fscroll .l2-fach { width: 11.5rem; }
 }
+
+/* ---------- Slideshow (Klausur, Organisation): Folien-Stapel + Punkte wie zuvor ---------- */
+.l2-slides { position: relative; display: grid; }
+.l2-slide { grid-area: 1 / 1; opacity: 0; z-index: 0; transition: opacity 0.6s var(--ease-out); }
+.l2-slide.is-prev { opacity: 1; z-index: 1; }
+.l2-slide.is-on { opacity: 1; z-index: 2; }
+.l2-dots { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: clamp(1rem, 0.6rem + 1.5vw, 1.6rem); }
+.l2-dots__d {
+  width: 34px; height: 34px; border-radius: 50%; cursor: pointer;
+  border: 1.5px solid var(--l2-dot-bd, var(--line-strong)); background: var(--l2-dot-bg, var(--bg-surface));
+  font: 700 0.82rem/1 var(--font-display); color: var(--l2-dot-fg, var(--ink-500));
+  transition: border-color 140ms var(--ease-out), color 140ms var(--ease-out), background 140ms var(--ease-out);
+}
+.l2-dots__d:hover { border-color: var(--l2-dot-hover, var(--ink-500)); color: var(--fg); }
+.l2-dots__d.is-active { background: var(--l2-a); border-color: var(--l2-a); color: #fff; }
+.l2.is-dark { --l2-dot-bd: rgba(255, 255, 255, 0.25); --l2-dot-bg: transparent; --l2-dot-fg: rgba(255, 255, 255, 0.7); --l2-dot-hover: rgba(255, 255, 255, 0.6); }
+.l2-media[data-l2show] .l2-dots { position: relative; z-index: 4; }
+
+/* aktiver Punkt folgt der Folie (Organisation) */
+.l2-dc[data-l2pt], .l2-chips li[data-l2pt], .l2-nrow li[data-l2pt] { transition: border-color 0.3s, background 0.3s; }
+.l2-dc.is-current, .l2-chips li.is-current { border-color: var(--l2-ac); background: rgba(255, 255, 255, 0.1); }
+.l2-nrow li.is-current { background: rgba(255, 255, 255, 0.06); }
+
+/* Fächer-Section: eigenständig, Original-Design der Startseite */
+.l2.is-plain { background: var(--bg-canvas); padding-block: clamp(3.5rem, 2rem + 5vw, 6.5rem); }
+.l2.is-plain .org-faecher { margin-top: 0; }
+
+.l2-ctarow { text-align: center; }
+.l2-note.is-left { margin: 1.4rem 0 0; text-align: left; }
+.l2-2__text .l2-meta { margin-inline: 0; }
+.l2-nrow.is-flush { margin-top: 0; }

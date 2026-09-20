@@ -4393,3 +4393,13 @@ Kritisch, weil Zielgruppe minderjährig ist.
       `20260919200000_lernzettel_ohne_gratis_nachrichten` (DROP COLUMN) — **vor Deploy `pnpm db:deploy` ausführen**.
 - [x] Lernzettel-Seite in Fachfarbe (Chat, Sende-Button, Rahmen, Vorschau-Hintergrund); Dev-Account: 4 Überarbeitungs-Chats
       am If-Sätze-Lernzettel.
+
+## Nachtrag 2026-09-20 — Landingpage-Variante `/lan2/` (Mockup-Sections)
+
+- [x] `marketing/lan2/index.html` (noindex, nicht in der Sitemap): Kopie der Startseite, bei der die Demo-Sections
+      (Klausur, KI-Chat, Organisation, Lernzettel) durch die Mockup-Bilder der Hero-Slideshow ersetzt sind
+      (`assets/img/lan2/mockup-*.webp`, zugeschnitten aus `hero-nw-fin/`). Rendering in `assets/js/lan2.js`, Styles in
+      `assets/css/lan2.css`.
+- [x] Je Section 5 Layouts (Stage, Bleed, Panel, Callouts, Sticky) mit Dev-Switcher unten rechts
+      (`localStorage['lesify:lan2:{section}:v']`, Zeile „Alle" schaltet alle vier gleichzeitig).
+- [ ] Offen: Layout je Section wählen → Dev-Switcher entfernen; danach entscheiden, ob `/lan2/` die Startseite ablöst.

@@ -97,7 +97,7 @@
   ];
 
   var NAMES = {
-    hero: ['Karte überlappt', 'Karte darunter', 'Tab-Leiste', 'Karte im Text', 'Karte oben', 'Demo-Größe'],
+    hero: ['Karte überlappt', 'Karte darunter', 'Tab-Leiste', 'Karte im Text', 'Karte oben', 'Groß'],
     kv: ['Liste', 'Karten', 'Ziffern', 'Tabs', 'Bento'],
     chat: ['Flanke', 'Unten', 'Modi-Tabs', 'Overlap', 'Editorial'],
     lz: ['Liste', 'Zettel-Karten', 'Tabs', 'Overlay', 'Editorial'],
@@ -777,9 +777,10 @@
     function () {
       return split(5, hText(true), hStage() + hCard());
     },
-    /* 6 · Demo-Größe — Spalten wie die hellen Demo-Sections (5fr/7fr, Bühne läuft leicht über den Rand), Karte überlappt */
+    /* 6 · Groß — Textspalte unverändert (Original-Raster), Bühne so groß wie möglich (bis 1 rem vor den Viewport-Rand),
+       Karte wie Version 2 als flache Leiste */
     function () {
-      return split(6, hText(), hStage() + hCard());
+      return split('6 l2h-s2', hText(), hStage() + hCard());
     }
   ];
 

@@ -475,14 +475,10 @@
 .l2-scard.is-current, .l2-cards li.is-current { border-color: var(--l2-ac); background: rgba(255, 255, 255, 0.1); }
 .l2-path li.is-current b { color: var(--l2-ac); }
 
-/* Hero 6 · Demo-Größe: dieselben Spalten und derselbe Überlauf wie .l2-2 der hellen Demo-Sections */
-.l2h-s6 { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(1.5rem, 3vw, 3rem); }
-.l2h-s6 .l2h-wrap { margin-right: -9vw; width: calc(100% + 9vw); }
-.l2h-s6 .l2h-card { position: absolute; left: 2%; bottom: 2%; width: min(20rem, 78%); }
-@media (max-width: 900px) {
-  .l2h-s6 { grid-template-columns: 1fr; }
-  .l2h-s6 .l2h-wrap { margin-right: 0; width: 100%; }
+/* Hero 6 · Groß: Textspalte bleibt das Original-Raster; die Bühne wächst nur in den freien Platz rechts (bis 1 rem vor den
+   Viewport-Rand) und leicht in die Spaltenlücke — Start = 50vw + 32px, Breite = 50vw ab 1200px Viewport. */
+@media (min-width: 1200px) {
+  .l2h-s6 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .l2h-s6 .l2h-wrap { width: 50vw; margin-left: -3rem; justify-self: start; }
 }
 
-/* Hero-Container gleich breit wie in den Demo-Sections */
-.l2hero .container { max-width: 1240px; }

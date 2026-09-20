@@ -480,5 +480,9 @@
 @media (min-width: 1200px) {
   .l2h-s6 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .l2h-s6 .l2h-wrap { width: 50vw; margin-left: -3rem; justify-self: start; }
+  /* 6.1–6.3: Zwischenstufen zwischen V2 (Spaltenbreite = 100 %) und V6 (50vw) */
+  .l2h-k1 .l2h-wrap { width: calc(100% + 0.75 * (50vw - 100%)); margin-left: -2.25rem; }
+  .l2h-k2 .l2h-wrap { width: calc(100% + 0.5 * (50vw - 100%)); margin-left: -1.5rem; }
+  .l2h-k3 .l2h-wrap { width: calc(100% + 0.25 * (50vw - 100%)); margin-left: -0.75rem; }
 }
 

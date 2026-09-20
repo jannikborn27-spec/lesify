@@ -97,7 +97,7 @@
   ];
 
   var NAMES = {
-    hero: ['Karte überlappt', 'Karte darunter', 'Tab-Leiste', 'Karte im Text', 'Karte oben', 'Groß'],
+    hero: ['Karte überlappt', 'Karte darunter', 'Tab-Leiste', 'Karte im Text', 'Karte oben', 'Groß', 'Groß 6.1 (75 %)', 'Groß 6.2 (50 %)', 'Groß 6.3 (25 %)'],
     kv: ['Liste', 'Karten', 'Ziffern', 'Tabs', 'Bento'],
     chat: ['Flanke', 'Unten', 'Modi-Tabs', 'Overlap', 'Editorial'],
     lz: ['Liste', 'Zettel-Karten', 'Tabs', 'Overlay', 'Editorial'],
@@ -781,6 +781,16 @@
        Karte wie Version 2 als flache Leiste */
     function () {
       return split('6 l2h-s2', hText(), hStage() + hCard());
+    },
+    /* 6.1 – 6.3 · wie 6, aber Bühnenbreite 75 % / 50 % / 25 % des Wegs zwischen V2 (Spaltenbreite) und V6 (50vw) */
+    function () {
+      return split('6 l2h-s2 l2h-k1', hText(), hStage() + hCard());
+    },
+    function () {
+      return split('6 l2h-s2 l2h-k2', hText(), hStage() + hCard());
+    },
+    function () {
+      return split('6 l2h-s2 l2h-k3', hText(), hStage() + hCard());
     }
   ];
 
@@ -923,7 +933,8 @@
   }
 
   /* ---------- Build ---------- */
-  var MAXV = { org: 10, hero: 6 };
+  var MAXV = { org: 10, hero: 9 };
+  var BTN_LABEL = { hero: { 7: '6.1', 8: '6.2', 9: '6.3' } };
   function stored(key) {
     try {
       var v = parseInt(localStorage.getItem('lesify:lan2:' + key + ':c'), 10);
@@ -1038,7 +1049,7 @@
             (key !== 'all' ? ' title="' + n + ' · ' + NAMES[key][n - 1] + '"' : '') +
             (n === active ? ' class="is-on"' : '') +
             '>' +
-            n +
+            ((BTN_LABEL[key] && BTN_LABEL[key][n]) || n) +
             '</button>'
           );
         })

@@ -4410,4 +4410,9 @@ Kritisch, weil Zielgruppe minderjährig ist.
       austauschen.
 - [x] Inhalt 1:1 wie die Startseite (`window.LesifyMkt`: Punkte, Kennzahlen, Perks, Modi). Dev-Switcher schaltet je
       Section zwischen 5 Inhalts-Darstellungen (`localStorage['lesify:lan2:{section}:c']`, „Alle" schaltet alle vier).
+- [x] Fächer-Section mit Eyebrow/Headline/Lead wie die großen Sections (Raster weiterhin Original-Design).
+- [x] Organisation (dunkel): Mockup mittig, die 3 Punkte je 1× drumherum (keine Dopplung) in 5 Varianten: Satelliten,
+      Ecken, Leitlinien, Schiene, Hotspots.
+- [x] Hero in `/lan2/` neu gerendert (`lan2.js`): kein Dauer-Hintergrundbild, nicht mehr rechts fixiert, zentriert im
+      Container; Slideshow-Karten mitgezogen. 5 Layouts im Dev-Switcher (Zentriert, Split, Flanken, Big Type, Tab-Leiste).
 - [ ] Offen: Darstellung je Section wählen → Dev-Switcher entfernen; danach entscheiden, ob `/lan2/` die Startseite ablöst.

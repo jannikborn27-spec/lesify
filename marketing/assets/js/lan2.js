@@ -34,6 +34,7 @@
   var LZ_LEAD = M.TLDR.points[5].s;
 
   var SECTIONS = [
+    { key: 'hero', label: 'Hero', tone: 'light', hero: true, accent: 'var(--fach-blue)' },
     {
       key: 'kv',
       label: 'Klausur',
@@ -96,10 +97,11 @@
   ];
 
   var NAMES = {
+    hero: ['Zentriert', 'Split', 'Flanken', 'Big Type', 'Tab-Leiste'],
     kv: ['Liste', 'Karten', 'Ziffern', 'Tabs', 'Bento'],
     chat: ['Flanke', 'Unten', 'Modi-Tabs', 'Overlap', 'Editorial'],
     lz: ['Liste', 'Zettel-Karten', 'Tabs', 'Overlay', 'Editorial'],
-    org: ['Flanke', 'Unten', 'Tabs', 'Overlap', 'Editorial']
+    org: ['Satelliten', 'Ecken', 'Leitlinien', 'Schiene', 'Hotspots']
   };
 
   /* ---------- Bausteine ---------- */
@@ -531,136 +533,237 @@
     }
   ];
 
-  /* ---------- Organisation (org, dunkel) ---------- */
+  /* ---------- Organisation (org, dunkel) — Mockup mittig, die 3 Punkte drumherum (je 1×, keine Dopplung) ---------- */
   var ORG_CTA = 'Kostenlos starten';
-  function ptCard(p, i, cls) {
+  var OP = ORG.points;
+  function pt(i, cls) {
+    var p = OP[i];
     return (
       '<div class="l2-dc ' + (cls || '') + '" data-l2pt="' + i + '">' + ico(M.ORG_IC[p.ic]) + '<b>' + p.t + '</b><span>' + p.s + '</span></div>'
     );
   }
-  function stepCard(st, i) {
+  function ann(i) {
+    var p = OP[i];
     return (
-      '<div class="l2-dc is-sm" data-l2pt="' +
-      i +
-      '">' +
-      ico(M.ORG_IC[ORG.points[i].ic]) +
-      '<b>' +
-      st.l +
-      '</b><span>' +
-      st.s +
-      '</span></div>'
+      '<div class="l2-ann" data-l2pt="' + i + '"><span class="l2-num">' + pad(i) + '</span><b>' + p.t + '</b><span>' + p.s + '</span></div>'
     );
   }
   var ORG_V = [
-    /* 1 · Flanke — die drei Punkte links, der Beispiel-Pfad rechts */
+    /* 1 · Satelliten — links · rechts · unten mittig, je eine Karte */
     function (s) {
       return dark(
         s,
-        '<div class="l2-4__grid"><div class="l2-4__side">' +
-          colH('So ist alles geordnet') +
-          ORG.points
-            .map(function (p, i) {
-              return ptCard(p, i);
-            })
-            .join('') +
-          '</div>' +
-          media(s, 'l2-4__media') +
-          '<div class="l2-4__side">' +
-          colH('Fach → Thema → Dateien') +
-          ORG.steps.map(stepCard).join('') +
-          '</div></div>' +
-          ctaRow(ORG_CTA)
+        '<div class="l2-o1"><div class="l2-o1__l">' + pt(0) + '</div>' + media(s, 'l2-o1__m') + '<div class="l2-o1__r">' + pt(1) + '</div>' +
+          '<div class="l2-o1__b">' + pt(2, 'is-glass') + '</div></div>' + ctaRow(ORG_CTA)
       );
     },
-    /* 2 · Unten — Mockup groß, darunter die drei Punkte */
+    /* 2 · Ecken — Glas-Karten liegen an drei Ecken über dem Mockup */
     function (s) {
       return dark(
         s,
-        media(s, 'l2-4__media is-solo') +
-          '<div class="l2-row r3">' +
-          ORG.points
-            .map(function (p, i) {
-              return ptCard(p, i);
-            })
-            .join('') +
-          '</div>' +
-          ctaRow(ORG_CTA)
+        '<div class="l2-o2">' + media(s, 'l2-o2__m') + '<div class="l2-o2__c c0">' + pt(0, 'is-glass') + '</div><div class="l2-o2__c c1">' + pt(1, 'is-glass') +
+          '</div><div class="l2-o2__c c2">' + pt(2, 'is-glass') + '</div></div>' + ctaRow(ORG_CTA)
       );
     },
-    /* 3 · Tabs — Punkte umschaltbar über dem Mockup, Pfad darunter */
+    /* 3 · Leitlinien — nur Text mit Linie zum Bild, links oben · rechts Mitte · links unten */
     function (s) {
       return dark(
         s,
-        tabs(
-          ORG.points.map(function (p) {
-            return ico(M.ORG_IC[p.ic]) + p.t;
-          }),
-          ORG.points.map(function (p) {
-            return '<b>' + p.t + '</b><span>' + p.s + '</span>';
-          }),
-          'is-center'
-        ) +
-          media(s, 'l2-4__media is-solo') +
-          '<ul class="l2-chips">' +
+        '<div class="l2-o3"><div class="l2-o3__l">' + ann(0) + ann(2) + '</div>' + media(s, 'l2-o3__m') + '<div class="l2-o3__r">' + ann(1) + '</div></div>' + ctaRow(ORG_CTA)
+      );
+    },
+    /* 4 · Schiene — links Schritte zum Umschalten (Fach · Thema · Dateien), rechts der zur Folie passende Text */
+    function (s) {
+      return dark(
+        s,
+        '<div class="l2-o4"><div class="l2-o4__rail" role="tablist">' +
           ORG.steps
             .map(function (st, i) {
-              return li('', ico(M.ORG_IC[ORG.points[i].ic]) + '<span><b>' + st.l + '</b>' + st.s + '</span>', ' data-l2pt="' + i + '"');
+              return (
+                '<button type="button" role="tab" class="l2-rail" data-l2pt="' + i + '">' + ico(M.ORG_IC[OP[i].ic]) + '<span><b>' + st.l + '</b>' + st.s + '</span></button>'
+              );
             })
             .join('') +
-          '</ul>' +
-          ctaRow(ORG_CTA)
+          '</div>' + media(s, 'l2-o4__m') + '<div class="l2-o4__pp">' +
+          OP.map(function (p, i) {
+            return '<div class="l2-pp" data-l2pt="' + i + '"><span class="l2-num">' + pad(i) + '</span><b>' + p.t + '</b><span>' + p.s + '</span></div>';
+          }).join('') +
+          '</div></div>' + ctaRow(ORG_CTA)
       );
     },
-    /* 4 · Overlap — Pfad als Chips unter dem Kopf, Punkt-Karten überlappen das Mockup */
+    /* 5 · Hotspots — nummerierte Punkte direkt auf dem Mockup, der Text steht darunter */
     function (s) {
+      var pos = [
+        ['11%', '31%'],
+        ['31%', '25%'],
+        ['66%', '33%']
+      ];
+      var spots = pos
+        .map(function (xy, i) {
+          return '<button type="button" class="l2-hs" data-l2pt="' + i + '" style="left:' + xy[0] + ';top:' + xy[1] + '" aria-label="' + OP[i].t + '">' + (i + 1) + '</button>';
+        })
+        .join('');
       return dark(
         s,
-        '<ul class="l2-chips">' +
-          ORG.steps
-            .map(function (st, i) {
-              return li('', ico(M.ORG_IC[ORG.points[i].ic]) + '<span><b>' + st.l + '</b>' + st.s + '</span>', ' data-l2pt="' + i + '"');
-            })
-            .join('') +
-          '</ul>' +
-          media(s, 'l2-4__media is-solo') +
-          '<div class="l2-row r3 is-overlap">' +
-          ORG.points
-            .map(function (p, i) {
-              return ptCard(p, i, 'is-glass');
-            })
-            .join('') +
-          '</div>' +
-          ctaRow(ORG_CTA)
-      );
-    },
-    /* 5 · Editorial — Mockup, darunter Punkte nummeriert und Beispiel-Pfad */
-    function (s) {
-      return dark(
-        s,
-        media(s, 'l2-4__media is-solo') +
-          '<div class="l2-2col"><div>' +
-          colH('So ist alles geordnet') +
-          '<ol class="l2-nrow is-dark">' +
-          ORG.points
-            .map(function (p, i) {
-              return li('', '<span class="l2-num">' + pad(i) + '</span><div><b>' + p.t + '</b><span>' + p.s + '</span></div>', ' data-l2pt="' + i + '"');
-            })
-            .join('') +
-          '</ol></div><div>' +
-          colH('Beispiel: Fach → Thema → Dateien') +
-          '<ol class="l2-nrow is-dark">' +
-          ORG.steps
-            .map(function (st, i) {
-              return li('', '<span class="l2-num">' + pad(i) + '</span><div><b>' + st.l + '</b><span>' + st.s + '</span></div>');
-            })
-            .join('') +
-          '</ol></div></div>' +
-          ctaRow(ORG_CTA)
+        media(s, 'l2-4__media is-solo', spots) +
+          '<div class="l2-o5">' +
+          OP.map(function (p, i) {
+            return '<div class="l2-pp is-wide" data-l2pt="' + i + '">' + ico(M.ORG_IC[p.ic]) + '<div><b>' + p.t + '</b><span>' + p.s + '</span></div></div>';
+          }).join('') +
+          '</div>' + ctaRow(ORG_CTA)
       );
     }
   ];
 
-  var RENDER = { kv: KV, chat: CHAT_V, lz: LZ_V, org: ORG_V };
+  /* ---------- Hero (fünf zentrierte Layouts, ohne Dauer-Hintergrundbild, nicht mehr rechts fixiert) ---------- */
+  var HERO = M.HERO;
+  var HERO_IMGS = ['mockup-klausur', 'mockup-chat', 'mockup-organisation', 'mockup-lernzettel'];
+  var CHK =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+  var CHEV_L = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>';
+  var CHEV_R = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>';
+  function hText(withProof) {
+    var av = ['SB', 'MT', 'LK', 'JW', 'FK'],
+      tn = ['var(--fach-blue)', 'var(--fach-amber)', 'var(--fach-teal)', 'var(--fach-violet)', 'var(--fach-rose)'];
+    return (
+      '<div class="l2h-text"><span class="l2-eb">Für Schüler:innen ab Klassenstufe 5 geeignet</span>' +
+      '<h1 class="l2h-h">Weniger Prüfungsstress und <em>bessere Noten</em> ohne teure Nachhilfe.</h1>' +
+      '<p class="l2h-lead">Kein Chauffieren, kein Stundensatz, kein Streit ums Lernen. Dein Kind arbeitet selbstständig zu Hause mit festem Lernplan und einer KI, die 24/7 für Fragen bereitsteht.</p>' +
+      '<div class="l2h-cta"><a class="btn btn-primary btn-lg" href="/preise/">Kostenlos starten</a><a class="btn btn-secondary btn-lg" href="/login/">Anmelden</a></div>' +
+      '<ul class="l2h-trust"><li>' + CHK + ' Keine Kreditkarte nötig</li><li>' + CHK + ' DSGVO-konform, Server in der EU</li><li>' + CHK + ' Monatlich kündbar</li></ul>' +
+      (withProof
+        ? '<div class="l2h-proof"><span class="l2h-av">' +
+          av.map(function (x, i) { return '<i style="--t:' + tn[i] + '">' + x + '</i>'; }).join('') +
+          '</span><span><b>10.000+</b> Familien lernen schon mit Lesify</span></div>'
+        : '') +
+      '</div>'
+    );
+  }
+  function hStage() {
+    return (
+      '<div class="l2h-stage"><div class="l2-slides">' +
+      HERO.map(function (f, i) {
+        return (
+          '<img class="l2-slide' + (i === 0 ? ' is-on' : '') + '" src="/assets/img/lan2/' + HERO_IMGS[i] + '.webp" alt="' + (i === 0 ? 'Lesify auf dem Tablet: ' + f.label : '') + '"' +
+          (i === 0 ? ' fetchpriority="high"' : ' aria-hidden="true" loading="lazy"') + ' width="1416" height="1117" decoding="async">'
+        );
+      }).join('') +
+      '</div></div>'
+    );
+  }
+  function hCard() {
+    return (
+      '<div class="l2h-card"><span class="l2h-prog"></span><div class="l2h-cslides">' +
+      HERO.map(function (f, i) {
+        return (
+          '<div class="l2h-cs' + (i === 0 ? ' is-active' : '') + '" style="--a:' + f.accent + '"><span class="l2h-ci">' + f.icon + '</span><span class="l2h-ce">' + pad(i) + ' — ' + f.label + '</span><div class="l2h-ct">' + f.title + '</div></div>'
+        );
+      }).join('') +
+      '</div><div class="l2h-nav"><span class="l2h-count"><b data-hc>01</b> / ' + pad(HERO.length - 1) + '</span><div class="l2h-dots">' +
+      HERO.map(function (f, i) {
+        return '<button type="button" data-hd="' + i + '" aria-label="' + f.label + ' anzeigen"' + (i === 0 ? ' class="is-active"' : '') + '></button>';
+      }).join('') +
+      '</div><span class="l2h-arrows"><button type="button" data-hp aria-label="Vorherige Funktion">' + CHEV_L + '</button><button type="button" data-hn aria-label="Nächste Funktion">' + CHEV_R + '</button></span></div></div>'
+    );
+  }
+  /* Feature-Karten als direkte Navigation (Flanken / Tab-Leiste) */
+  function hItems(list, cls) {
+    return (
+      '<div class="l2h-items ' + (cls || '') + '">' +
+      list.map(function (f) {
+        var i = HERO.indexOf(f);
+        return (
+          '<button type="button" class="l2h-item' + (i === 0 ? ' is-active' : '') + '" data-hi="' + i + '" style="--a:' + f.accent + '"><span class="l2h-ci">' + f.icon + '</span><span class="l2h-ce">' + pad(i) + ' — ' + f.label + '</span><span class="l2h-it">' + f.title + '</span><span class="l2h-fill"></span></button>'
+        );
+      }).join('') +
+      '</div>'
+    );
+  }
+  var HERO_V = [
+    /* 1 · Zentriert — Text mittig, große Bühne, Karte mittig über der Tastatur */
+    function () {
+      return '<div class="container l2h-1">' + hText(true) + '<div class="l2h-wrap">' + hStage() + hCard() + '</div></div>';
+    },
+    /* 2 · Split — im Container: Text links, Bühne rechts (nicht mehr randfüllend), Karte überlappt links unten */
+    function () {
+      return '<div class="container l2h-2">' + hText(true) + '<div class="l2h-wrap">' + hStage() + hCard() + '</div></div>';
+    },
+    /* 3 · Flanken — Text mittig, Bühne in der Mitte, die vier Feature-Karten links und rechts als Navigation */
+    function () {
+      return (
+        '<div class="container l2h-3">' + hText(false) + '<div class="l2h-3__grid">' + hItems([HERO[0], HERO[1]], 'is-l') + '<div class="l2h-wrap">' + hStage() + '</div>' + hItems([HERO[2], HERO[3]], 'is-r') + '</div>' +
+        '<div class="l2h-proof is-center"><span class="l2h-av">' + ['SB', 'MT', 'LK', 'JW', 'FK'].map(function (x, i) { return '<i style="--t:' + ['var(--fach-blue)', 'var(--fach-amber)', 'var(--fach-teal)', 'var(--fach-violet)', 'var(--fach-rose)'][i] + '">' + x + '</i>'; }).join('') + '</span><span><b>10.000+</b> Familien lernen schon mit Lesify</span></div></div>'
+      );
+    },
+    /* 4 · Big Type — sehr große Headline, Bühne unten angeschnitten, Karte darüber */
+    function () {
+      return '<div class="container l2h-4">' + hText(true) + '<div class="l2h-wrap">' + hStage() + hCard() + '</div></div>';
+    },
+    /* 5 · Tab-Leiste — Text mittig, Bühne, darunter alle vier Features als Tab-Leiste */
+    function () {
+      return '<div class="container l2h-5">' + hText(true) + '<div class="l2h-wrap">' + hStage() + '</div>' + hItems(HERO, 'is-tabs') + '</div>';
+    }
+  ];
+
+  var heroCtl = null;
+  document.addEventListener('visibilitychange', function () {
+    if (!heroCtl) return;
+    if (document.hidden) heroCtl.stop();
+    else heroCtl.start();
+  });
+  function initHero(el) {
+    if (heroCtl) heroCtl.stop();
+    var pics = [].slice.call(el.querySelectorAll('.l2h-stage .l2-slide'));
+    var slidesC = [].slice.call(el.querySelectorAll('.l2h-cs'));
+    var items = [].slice.call(el.querySelectorAll('[data-hi]'));
+    var dots = [].slice.call(el.querySelectorAll('[data-hd]'));
+    var count = el.querySelector('[data-hc]');
+    var prog = el.querySelector('.l2h-prog');
+    var n = pics.length,
+      idx = 0,
+      timer = null;
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function arm() {
+      if (!prog || reduce) return;
+      prog.style.animation = 'none';
+      void prog.offsetWidth;
+      prog.style.animation = '';
+    }
+    function show(i) {
+      var next = (i + n) % n;
+      if (next !== idx) {
+        var prev = pics[idx];
+        prev.classList.add('is-prev');
+        setTimeout(function () { prev.classList.remove('is-prev'); }, 700);
+      }
+      idx = next;
+      pics.forEach(function (p, k) { p.classList.toggle('is-on', k === idx); });
+      slidesC.forEach(function (p, k) { p.classList.toggle('is-active', k === idx); });
+      items.forEach(function (p) { p.classList.toggle('is-active', +p.getAttribute('data-hi') === idx); });
+      dots.forEach(function (p, k) { p.classList.toggle('is-active', k === idx); });
+      if (count) count.textContent = pad(idx);
+      el.style.setProperty('--h-a', HERO[idx].accent);
+      arm();
+    }
+    function stop() {
+      if (timer) { clearInterval(timer); timer = null; }
+    }
+    function start() {
+      if (reduce) return;
+      stop();
+      arm();
+      timer = setInterval(function () { show(idx + 1); }, 5200);
+    }
+    el.querySelectorAll('[data-hp]').forEach(function (b) { b.addEventListener('click', function () { show(idx - 1); start(); }); });
+    el.querySelectorAll('[data-hn]').forEach(function (b) { b.addEventListener('click', function () { show(idx + 1); start(); }); });
+    dots.forEach(function (d) { d.addEventListener('click', function () { show(+d.getAttribute('data-hd')); start(); }); });
+    items.forEach(function (d) { d.addEventListener('click', function () { show(+d.getAttribute('data-hi')); start(); }); });
+    heroCtl = { stop: stop, start: start };
+    show(0);
+    start();
+  }
+
+  var RENDER = { hero: HERO_V, kv: KV, chat: CHAT_V, lz: LZ_V, org: ORG_V };
 
   /* ---------- Slideshow (Punkte + Auto-Lauf wie in der früheren Demo) ---------- */
   var timers = {};
@@ -781,11 +884,26 @@
   function build(s, v) {
     var el = document.getElementById(s.key);
     if (!el) return;
+    if (s.hero) {
+      el.className = 'l2h';
+      el.setAttribute('data-h', v);
+      el.innerHTML = HERO_V[v - 1]();
+      initHero(el);
+      return;
+    }
     el.className = 'l2 is-' + s.tone + (s.flip ? ' is-flip' : '') + (s.fixed ? ' is-plain' : '');
     el.style.setProperty('--l2-a', s.accent);
     if (s.fixed) {
-      /* Fächer: Original-Markup + -Design der Startseite (renderOrgFaecher Variante 2 „Ghost") */
-      el.innerHTML = '<div class="container">' + M.renderOrgFaecher('2') + '</div>';
+      /* Fächer: eigene Section mit Eyebrow/Headline/Lead wie die großen Sections, darunter das Original-Raster
+         der Startseite (renderOrgFaecher „Ghost") — dessen eigener Kopf entfällt, damit nichts doppelt steht. */
+      el.innerHTML =
+        '<div class="container">' +
+        head({ eb: 'Fächer', h: M.faecher.h, lead: M.faecher.lead }, true) +
+        M.renderOrgFaecher('2') +
+        '</div>';
+      var oh = el.querySelector('.org-faecher__h');
+      if (oh) oh.remove();
+      reveal(el);
       return;
     }
     el.setAttribute('data-c', v);

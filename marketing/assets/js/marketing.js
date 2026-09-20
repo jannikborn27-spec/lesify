@@ -1107,13 +1107,13 @@
   var CHAT_PLUS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>';
   var CHAT_HISTORY = [
     { t: 'Konjunktiv II erklären lassen', th: 'Deutsch · Konjunktiv II', time: 'jetzt', tone: 'var(--fach-rose)', on: true,
-      i: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"></path><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20"></path></svg>' },
+      i: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2.5" width="14" height="19" rx="2"/><path d="M8 2.5v19"/><path d="M10.5 9h6M10.5 12h6M10.5 15h6"/></svg>' },
     { t: 'Zellatmung abfragen', th: 'Biologie · Zellatmung', time: '1 Std', tone: 'var(--fach-teal)',
-      i: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20c9 0 16-7 16-16C11 4 4 11 4 20z"></path><path d="M5 19C9 13 13 10 19 7"></path></svg>' },
+      i: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3c0 5 8 5 8 9s-8 4-8 9"/><path d="M16 3c0 5-8 5-8 9s8 4 8 9"/><path d="M9 5.5h6M9.5 18.5h5M8.5 12h7"/></svg>' },
     { t: 'pq-Formel Schritt für Schritt', th: 'Mathe · Quadr. Gleichungen', time: 'Gestern', tone: 'var(--fach-blue)',
-      i: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14M9 8v11M15 8v11"></path></svg>' },
+      i: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 7h15"/><path d="M8.5 7v11"/><path d="M15 7v9a2 2 0 0 0 3.5 1.3"/></svg>' },
     { t: 'Hebelgesetz üben', th: 'Physik · Kräfte & Bewegung', time: 'Mo', tone: 'var(--fach-pink)',
-      i: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="2"></circle><ellipse cx="12" cy="12" rx="9" ry="4"></ellipse><ellipse cx="12" cy="12" rx="9" ry="4" transform="rotate(60 12 12)"></ellipse></svg>' }
+      i: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><ellipse cx="12" cy="12" rx="9" ry="3.6"/><ellipse cx="12" cy="12" rx="9" ry="3.6" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="9" ry="3.6" transform="rotate(120 12 12)"/></svg>' }
   ];
 
   function chatDonut() {
@@ -2507,15 +2507,15 @@
      Geschichte=terracotta. Nicht geseedete Fächer bekommen die restlichen
      kuratierten Töne (violet, pink, graphit). */
   var SUBJ_LIST = [
-    { n: 'Mathe', t: 'var(--fach-blue)', i: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14M9 8v11M15 8v11"/></svg>' },
-    { n: 'Deutsch', t: 'var(--fach-rose)', i: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20"/></svg>' },
-    { n: 'Englisch', t: 'var(--fach-amber)', i: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>' },
-    { n: 'Französisch', t: 'var(--fach-violet)', i: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5C4 4.7 4.7 4 5.5 4h13c.8 0 1.5.7 1.5 1.5v9c0 .8-.7 1.5-1.5 1.5H9l-4 3.5V16H5.5C4.7 16 4 15.3 4 14.5z"/></svg>' },
-    { n: 'Physik', t: 'var(--fach-pink)', i: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="2"/><ellipse cx="12" cy="12" rx="9" ry="4"/><ellipse cx="12" cy="12" rx="9" ry="4" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="9" ry="4" transform="rotate(120 12 12)"/></svg>' },
-    { n: 'Chemie', t: 'var(--fach-graphit)', i: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4A2 2 0 0 0 19 18l-5-9V3"/><path d="M7 15h10"/></svg>' },
-    { n: 'Biologie', t: 'var(--fach-teal)', i: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20c9 0 16-7 16-16C11 4 4 11 4 20z"/><path d="M5 19C9 13 13 10 19 7"/></svg>' },
-    { n: 'Geschichte', t: 'var(--fach-terracotta)', i: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21h16M5 21V9M19 21V9M9 21V9M15 21V9M3 9h18l-3-5H6z"/></svg>' },
-    { n: 'Erdkunde', t: 'var(--fach-violet)', i: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/></svg>'}
+    { n: 'Mathe', t: 'var(--fach-blue)', i: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 7h15"/><path d="M8.5 7v11"/><path d="M15 7v9a2 2 0 0 0 3.5 1.3"/></svg>' },
+    { n: 'Deutsch', t: 'var(--fach-rose)', i: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2.5" width="14" height="19" rx="2"/><path d="M8 2.5v19"/><path d="M10.5 9h6M10.5 12h6M10.5 15h6"/></svg>' },
+    { n: 'Englisch', t: 'var(--fach-amber)', i: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="12" rx="1.5"/><path d="M3 6l18 12M21 6 3 18M12 6v12M3 12h18"/></svg>' },
+    { n: 'Französisch', t: 'var(--fach-violet)', i: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="12" rx="1.5"/><path d="M9 6v12M15 6v12"/></svg>' },
+    { n: 'Physik', t: 'var(--fach-pink)', i: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><ellipse cx="12" cy="12" rx="9" ry="3.6"/><ellipse cx="12" cy="12" rx="9" ry="3.6" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="9" ry="3.6" transform="rotate(120 12 12)"/></svg>' },
+    { n: 'Chemie', t: 'var(--fach-graphit)', i: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3h4"/><path d="M10.5 3v6.2L5.7 18a2 2 0 0 0 1.8 2.9h9a2 2 0 0 0 1.8-2.9L13.5 9.2V3"/><path d="M8 15.5h8"/></svg>' },
+    { n: 'Biologie', t: 'var(--fach-teal)', i: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3c0 5 8 5 8 9s-8 4-8 9"/><path d="M16 3c0 5-8 5-8 9s8 4 8 9"/><path d="M9 5.5h6M9.5 18.5h5M8.5 12h7"/></svg>' },
+    { n: 'Geschichte', t: 'var(--fach-terracotta)', i: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V5h4v3h2V5h4v3h2V5h4v16Z"/><path d="M10.5 21v-5a1.5 1.5 0 0 1 3 0v5"/></svg>' },
+    { n: 'Erdkunde', t: 'var(--fach-violet)', i: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2Z"/><path d="M9 4v14M15 6v14"/></svg>'}
   ];
   var SUBJ_PLUS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
   function subjCard(s, extra) {

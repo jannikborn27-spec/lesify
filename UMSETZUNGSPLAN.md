@@ -4415,7 +4415,8 @@ Kritisch, weil Zielgruppe minderjährig ist.
       Ecken, Leitlinien, Schiene, Hotspots.
 - [x] Hero in `/lan2/` (`lan2.js`): wie die Startseite — Text links, Bühne + Slideshow-Karten rechts —, aber ohne
       Dauer-Hintergrundbild und nicht mehr am rechten Rand fixiert (im Container, wie die hellen Demo-Sections).
-      5 Versionen im Dev-Switcher: Karte überlappt, Karte darunter, Tab-Leiste, Karte im Text, Karte oben.
+      6 Versionen im Dev-Switcher: Karte überlappt, Karte darunter, Tab-Leiste, Karte im Text, Karte oben, Demo-Größe
+      (Bühne exakt so groß wie das Mockup der hellen Demo-Sections, 5fr/7fr + Überlauf).
 - [x] Organisation: Versionen 6–10 im Links/Rechts-Layout der hellen Sections (dunkel): Karten, Pfad, Tabs, Ziffern,
       Karten unten.
 - [ ] Offen: Darstellung je Section wählen → Dev-Switcher entfernen; danach entscheiden, ob `/lan2/` die Startseite ablöst.

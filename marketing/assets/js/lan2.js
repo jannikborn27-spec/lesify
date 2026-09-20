@@ -97,7 +97,7 @@
   ];
 
   var NAMES = {
-    hero: ['Karte überlappt', 'Karte darunter', 'Tab-Leiste', 'Karte im Text', 'Karte oben'],
+    hero: ['Karte überlappt', 'Karte darunter', 'Tab-Leiste', 'Karte im Text', 'Karte oben', 'Demo-Größe'],
     kv: ['Liste', 'Karten', 'Ziffern', 'Tabs', 'Bento'],
     chat: ['Flanke', 'Unten', 'Modi-Tabs', 'Overlap', 'Editorial'],
     lz: ['Liste', 'Zettel-Karten', 'Tabs', 'Overlay', 'Editorial'],
@@ -754,7 +754,7 @@
   /* Wie die Startseite: Text links, Bühne + Karten rechts — aber im Container statt am rechten Rand fixiert.
      Die fünf Versionen unterscheiden sich in der Position von Slideshow-Karte / Navigation. */
   function split(n, left, right) {
-    return '<div class="container hv9__grid l2h-s l2h-s' + n + '">' + left + '<div class="l2h-wrap">' + right + '</div></div>';
+    return '<div class="l2-inner"><div class="container hv9__grid l2h-s l2h-s' + n + '">' + left + '<div class="l2h-wrap">' + right + '</div></div></div>';
   }
   var HERO_V = [
     /* 1 · Karte überlappt — dunkle Karte unten links über der Bühne */
@@ -776,6 +776,10 @@
     /* 5 · Karte oben rechts — kleine Karte überlappt die obere Ecke der Bühne */
     function () {
       return split(5, hText(true), hStage() + hCard());
+    },
+    /* 6 · Demo-Größe — Spalten wie die hellen Demo-Sections (5fr/7fr, Bühne läuft leicht über den Rand), Karte überlappt */
+    function () {
+      return split(6, hText(), hStage() + hCard());
     }
   ];
 
@@ -918,7 +922,7 @@
   }
 
   /* ---------- Build ---------- */
-  var MAXV = { org: 10 };
+  var MAXV = { org: 10, hero: 6 };
   function stored(key) {
     try {
       var v = parseInt(localStorage.getItem('lesify:lan2:' + key + ':c'), 10);

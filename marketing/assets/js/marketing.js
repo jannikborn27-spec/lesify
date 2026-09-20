@@ -3791,4 +3791,16 @@
        auf v2 (Ghost) und "cmp" auf v1 (Cards, mit neuem 9-Zeilen-Content)
        final gewählt (siehe LAB_SECTIONS `fixed`), kein Dev-Panel mehr. */
   });
+
+  /* Read-only Datenzugriff für /lan2/ (assets/js/lan2.js): dieselben Inhalte
+     (Texte, Icons, Fächer-Karten) wie die Startseiten-Sections, damit /lan2/
+     nicht auseinanderläuft. */
+  window.LesifyMkt = {
+    KVL: KVL, KVL_ICON: KVL_ICON, KVX: KVX, ORG: ORG, ORG_IC: ORG_IC, TLDR: TLDR,
+    CHAT: { eb: CHAT_EYEBROW, h: CHAT_H, lead: CHAT_LEAD, perks: CHAT_PERKS, modes: CHAT_MODES },
+    faecher: {
+      items: orgFaecherItems, more: ORG_FAECHER_MORE, h: ORG_FAECHER_H, lead: ORG_FAECHER_LEAD,
+      ellipsis: ORG_ELLIPSIS_IC, plus: function () { return SUBJ_PLUS; }
+    }
+  };
 })();

@@ -4400,6 +4400,10 @@ Kritisch, weil Zielgruppe minderjährig ist.
       (Klausur, KI-Chat, Organisation, Lernzettel) durch die Mockup-Bilder der Hero-Slideshow ersetzt sind
       (`assets/img/lan2/mockup-*.webp`, zugeschnitten aus `hero-nw-fin/`). Rendering in `assets/js/lan2.js`, Styles in
       `assets/css/lan2.css`.
-- [x] Je Section 5 Layouts (Stage, Bleed, Panel, Callouts, Sticky) mit Dev-Switcher unten rechts
-      (`localStorage['lesify:lan2:{section}:v']`, Zeile „Alle" schaltet alle vier gleichzeitig).
-- [ ] Offen: Layout je Section wählen → Dev-Switcher entfernen; danach entscheiden, ob `/lan2/` die Startseite ablöst.
+- [x] Entscheidung: Layout fest im Schwarz/Weiß-Wechsel — Klausur = Bleed (hell), Chat = Callouts (dunkel),
+      Organisation = Bleed (hell, gespiegelt), Lernzettel = Callouts (dunkel). Helle Sections mit rundem Rand + schwarzen
+      Zwickeln wie auf der Startseite.
+- [x] Inhalt 1:1 wie die Startseite (`window.LesifyMkt` am Ende von `marketing.js`: Punkte, Kennzahlen, Perks, Modi,
+      Fächer-Karten). Dev-Switcher schaltet je Section zwischen 5 Inhalts-Darstellungen
+      (`localStorage['lesify:lan2:{section}:c']`, Zeile „Alle" schaltet alle vier).
+- [ ] Offen: Darstellung je Section wählen → Dev-Switcher entfernen; danach entscheiden, ob `/lan2/` die Startseite ablöst.

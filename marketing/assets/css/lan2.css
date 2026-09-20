@@ -419,10 +419,6 @@
 .l2h-av i { display: grid; place-items: center; width: 1.9rem; height: 1.9rem; margin-left: -0.5rem; border-radius: 50%; border: 2px solid var(--bg-canvas); background: var(--t); color: #fff; font: 600 0.62rem/1 var(--font-body); font-style: normal; }
 .l2h-av i:first-child { margin-left: 0; }
 /* zentrierte Layouts (1, 3, 4, 5) */
-.l2h-1 .l2h-text, .l2h-3 .l2h-text, .l2h-4 .l2h-text, .l2h-5 .l2h-text { max-width: 54rem; margin-inline: auto; text-align: center; }
-.l2h-1 .l2h-lead, .l2h-3 .l2h-lead, .l2h-4 .l2h-lead, .l2h-5 .l2h-lead { margin-inline: auto; }
-.l2h-1 :is(.l2h-cta, .l2h-trust, .l2h-proof), .l2h-3 :is(.l2h-cta, .l2h-trust, .l2h-proof), .l2h-4 :is(.l2h-cta, .l2h-trust, .l2h-proof), .l2h-5 :is(.l2h-cta, .l2h-trust, .l2h-proof), .l2h-proof.is-center { justify-content: center; }
-.l2h-1 .l2-eb::after, .l2h-3 .l2-eb::after, .l2h-4 .l2-eb::after, .l2h-5 .l2-eb::after { content: ""; width: 1.6rem; height: 2px; border-radius: 2px; background: currentColor; }
 /* Bühne */
 .l2h-wrap { position: relative; }
 .l2h-stage { position: relative; isolation: isolate; }
@@ -455,29 +451,31 @@
 .l2h-fill { position: absolute; left: 0; bottom: 0; width: 100%; height: 3px; background: var(--a); transform: scaleX(0); transform-origin: left; }
 .l2h-item.is-active { border-color: var(--a); box-shadow: var(--shadow-md); }
 .l2h-item.is-active .l2h-fill { animation: l2h-prog 5.2s linear forwards; }
-/* 1 · Zentriert */
-.l2h-1 .l2h-wrap { width: min(1120px, 100%); margin: clamp(2rem, 4vw, 3.5rem) auto 0; }
-.l2h-1 .l2h-card { position: absolute; left: 50%; bottom: 4%; width: min(24rem, 92%); transform: translateX(-50%); }
-/* 2 · Split (im Container) */
-.l2h-2 { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(1.5rem, 3vw, 3rem); align-items: center; }
-.l2h-2 .l2h-card { position: absolute; left: -2%; bottom: 2%; width: min(20rem, 80%); }
-/* 3 · Flanken */
-.l2h-3__grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2.4fr) minmax(0, 1fr); gap: clamp(1rem, 2vw, 2rem); align-items: center; margin-top: clamp(2rem, 4vw, 3.5rem); }
-.l2h-items.is-l, .l2h-items.is-r { display: grid; gap: 1rem; }
-.l2h-3 .l2h-proof { margin-top: 2rem; }
-/* 4 · Big Type, Bühne angeschnitten */
-.l2h-4 .l2h-h { font-size: clamp(2.6rem, 1.2rem + 5.6vw, 6rem); max-width: 60rem; margin-inline: auto; }
-.l2h-4 .l2h-text { max-width: 62rem; }
-.l2h-4 .l2h-wrap { width: min(1080px, 100%); margin: clamp(2rem, 4vw, 3.5rem) auto 0; }
-.l2h-4 .l2h-stage { overflow: hidden; aspect-ratio: 1416 / 830; }
-.l2h-4 .l2h-card { position: absolute; left: 50%; bottom: 1.2rem; width: min(24rem, 92%); transform: translateX(-50%); }
-/* 5 · Tab-Leiste */
-.l2h-5 .l2h-wrap { width: min(1040px, 100%); margin: clamp(2rem, 4vw, 3rem) auto 0; }
-.l2h-items.is-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; margin-top: 1.4rem; }
+/* Split-Layouts: Text links wie auf der Startseite, Bühne + Karten rechts — im Container statt am Rand fixiert */
+.l2h-s { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: clamp(1.5rem, 3vw, 3rem); align-items: center; }
+.l2h-s .l2h-h { font-size: clamp(2.1rem, 1.2rem + 2.5vw, 3.35rem); }
+/* 1 · Karte überlappt */
+.l2h-s1 .l2h-card { position: absolute; left: -4%; bottom: 2%; width: min(20rem, 78%); }
+/* 2 · Karte darunter (flache Leiste) */
+.l2h-s2 .l2h-card { display: flex; align-items: center; justify-content: space-between; gap: 1.2rem; margin-top: 1rem; padding: 14px 18px; }
+.l2h-s2 .l2h-cslides { flex: 1; min-width: 0; }
+.l2h-s2 .l2h-cs.is-active { display: grid; grid-template-columns: auto 1fr; column-gap: 12px; align-items: center; }
+.l2h-s2 .l2h-ci { grid-row: span 2; margin: 0; }
+.l2h-s2 .l2h-ct { margin-top: 2px; font-size: 1rem; }
+.l2h-s2 .l2h-nav { margin-top: 0; gap: 1rem; flex-shrink: 0; }
+/* 3 · Tab-Leiste */
+.l2h-items.is-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.6rem; margin-top: 1rem; }
+.l2h-s3 .l2h-item { padding: 12px 12px 14px; }
+.l2h-s3 .l2h-it { font-size: 0.84rem; }
+.l2h-s3 .l2h-ce { font-size: 0.62rem; }
+/* 4 · Karte im Text */
+.l2h-col .l2h-card { max-width: 23rem; margin-top: 1.8rem; }
+/* 5 · Karte oben rechts */
+.l2h-s5 .l2h-card { position: absolute; right: -3%; top: 2%; width: min(19rem, 72%); }
 
 @media (max-width: 1100px) {
-  .l2-o1, .l2-o3, .l2-o4, .l2h-3__grid { grid-template-columns: 1fr 1fr; }
-  .l2-o1__m, .l2-o3__m, .l2-o4__m, .l2h-3__grid .l2h-wrap { grid-column: 1 / -1; grid-row: 1; width: min(780px, 100%); margin-inline: auto; }
+  .l2-o1, .l2-o3, .l2-o4 { grid-template-columns: 1fr 1fr; }
+  .l2-o1__m, .l2-o3__m, .l2-o4__m { grid-column: 1 / -1; grid-row: 1; width: min(780px, 100%); margin-inline: auto; }
   .l2-o1__l, .l2-o1__r, .l2-o1__b { grid-column: auto; grid-row: auto; }
   .l2-o1__b { grid-column: 1 / -1; margin-top: 0; }
   .l2-o3__l .l2-ann, .l2-o3__r .l2-ann { padding: 0; text-align: left; }
@@ -485,16 +483,20 @@
   .l2h-items.is-tabs { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 900px) {
-  .l2h-2 { grid-template-columns: 1fr; }
-  .l2h-2 .l2h-text { text-align: center; }
-  .l2h-2 :is(.l2h-cta, .l2h-trust, .l2h-proof) { justify-content: center; }
-  .l2h-2 .l2h-lead { margin-inline: auto; }
+  .l2h-s { grid-template-columns: 1fr; }
   .l2h-card { position: relative !important; left: auto !important; bottom: auto !important; transform: none !important; width: auto !important; margin-top: 1rem; }
-  .l2h-4 .l2h-stage { aspect-ratio: auto; overflow: visible; }
   .l2-o2__c { position: static; width: auto; margin-top: 1rem; }
   .l2-o2__c.c0, .l2-o2__c.c1, .l2-o2__c.c2 { inset: auto; }
 }
 @media (max-width: 600px) {
-  .l2-o1, .l2-o3, .l2-o4, .l2h-3__grid, .l2h-items.is-tabs { grid-template-columns: 1fr; }
-  .l2h-items.is-l, .l2h-items.is-r { grid-template-columns: 1fr; }
+  .l2-o1, .l2-o3, .l2-o4, .l2h-items.is-tabs { grid-template-columns: 1fr; }
 }
+
+/* Organisation 6–10 (dunkel, Text links / Mockup rechts) */
+.l2.is-dark .l2-path li:not(:last-child)::before { background: rgba(255, 255, 255, 0.15); }
+.l2.is-dark .l2-path em { color: var(--l2-ac); }
+.l2.is-dark .l2-facts.is-pills div { background: rgba(255, 255, 255, 0.08); }
+.l2.is-dark .l2-facts.is-pills b { color: var(--l2-ac); }
+.l2-scard[data-l2pt], .l2-cards li[data-l2pt], .l2-path li[data-l2pt], .l2-nrow li[data-l2pt] { transition: border-color 0.3s, background 0.3s; }
+.l2-scard.is-current, .l2-cards li.is-current { border-color: var(--l2-ac); background: rgba(255, 255, 255, 0.1); }
+.l2-path li.is-current b { color: var(--l2-ac); }

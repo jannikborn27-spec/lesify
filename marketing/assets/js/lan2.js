@@ -97,11 +97,11 @@
   ];
 
   var NAMES = {
-    hero: ['Zentriert', 'Split', 'Flanken', 'Big Type', 'Tab-Leiste'],
+    hero: ['Karte überlappt', 'Karte darunter', 'Tab-Leiste', 'Karte im Text', 'Karte oben'],
     kv: ['Liste', 'Karten', 'Ziffern', 'Tabs', 'Bento'],
     chat: ['Flanke', 'Unten', 'Modi-Tabs', 'Overlap', 'Editorial'],
     lz: ['Liste', 'Zettel-Karten', 'Tabs', 'Overlay', 'Editorial'],
-    org: ['Satelliten', 'Ecken', 'Leitlinien', 'Schiene', 'Hotspots']
+    org: ['Satelliten', 'Ecken', 'Leitlinien', 'Schiene', 'Hotspots', 'Karten', 'Pfad', 'Tabs', 'Ziffern', 'Karten unten']
   };
 
   /* ---------- Bausteine ---------- */
@@ -613,6 +613,79 @@
           '</div>' + ctaRow(ORG_CTA)
       );
     }
+    ,
+    /* 6 · Karten — Text links, drei nummerierte Erklär-Karten (wie auf der Startseite), Mockup rechts */
+    function (s) {
+      return bleed(
+        s,
+        '<div class="l2-scards">' +
+          OP.map(function (p, i) {
+            return '<div class="l2-scard" data-l2pt="' + i + '">' + ico(M.ORG_IC[p.ic]) + '<div><b>' + p.t + '</b><span>' + p.s + '</span></div><i>' + (i + 1) + '</i></div>';
+          }).join('') +
+          '</div>' + cta(ORG_CTA)
+      );
+    },
+    /* 7 · Pfad — Fach → Thema → Dateien als Schiene mit dem jeweiligen Nutzen */
+    function (s) {
+      return bleed(
+        s,
+        '<ol class="l2-path">' +
+          OP.map(function (p, i) {
+            var st = ORG.steps[i];
+            return li('', '<span class="l2-path__n">' + (i + 1) + '</span><div><em>' + st.l + ' · ' + st.s + '</em><b>' + p.t + '</b><span>' + p.s + '</span></div>', ' data-l2pt="' + i + '"');
+          }).join('') +
+          '</ol>' + cta(ORG_CTA)
+      );
+    },
+    /* 8 · Tabs — die drei Punkte umschaltbar */
+    function (s) {
+      return bleed(
+        s,
+        tabs(
+          OP.map(function (p) {
+            return ico(M.ORG_IC[p.ic]) + p.t;
+          }),
+          OP.map(function (p) {
+            return '<b>' + p.t + '</b><span>' + p.s + '</span>';
+          })
+        ) + cta(ORG_CTA)
+      );
+    },
+    /* 9 · Ziffern — nummerierte Zeilen, darunter der Beispiel-Pfad als Pills */
+    function (s) {
+      return bleed(
+        s,
+        '<ol class="l2-nrow">' +
+          OP.map(function (p, i) {
+            return li('', '<span class="l2-num">' + pad(i) + '</span><div><b>' + p.t + '</b><span>' + p.s + '</span></div>', ' data-l2pt="' + i + '"');
+          }).join('') +
+          '</ol><div class="l2-facts is-pills">' +
+          ORG.steps
+            .map(function (st) {
+              return '<div><b>' + st.l + '</b><span>' + st.s + '</span></div>';
+            })
+            .join('') +
+          '</div>' + cta(ORG_CTA)
+      );
+    },
+    /* 10 · Karten unten — Pfad-Pills im Text, die drei Punkte als hohe Karten in voller Breite */
+    function (s) {
+      return bleed(
+        s,
+        '<div class="l2-facts is-pills">' +
+          ORG.steps
+            .map(function (st) {
+              return '<div><b>' + st.l + '</b><span>' + st.s + '</span></div>';
+            })
+            .join('') +
+          '</div>' + cta(ORG_CTA),
+        '<ul class="l2-cards c3 is-tall">' +
+          OP.map(function (p, i) {
+            return li('', ico(M.ORG_IC[p.ic]) + '<b>' + p.t + '</b><span>' + p.s + '</span>', ' data-l2pt="' + i + '"');
+          }).join('') +
+          '</ul>'
+      );
+    }
   ];
 
   /* ---------- Hero (fünf zentrierte Layouts, ohne Dauer-Hintergrundbild, nicht mehr rechts fixiert) ---------- */
@@ -679,29 +752,31 @@
       '</div>'
     );
   }
+  /* Wie die Startseite: Text links, Bühne + Karten rechts — aber im Container statt am rechten Rand fixiert.
+     Die fünf Versionen unterscheiden sich in der Position von Slideshow-Karte / Navigation. */
+  function split(n, left, right) {
+    return '<div class="container l2h-s l2h-s' + n + '">' + left + '<div class="l2h-wrap">' + right + '</div></div>';
+  }
   var HERO_V = [
-    /* 1 · Zentriert — Text mittig, große Bühne, Karte mittig über der Tastatur */
+    /* 1 · Karte überlappt — dunkle Karte unten links über der Bühne */
     function () {
-      return '<div class="container l2h-1">' + hText(true) + '<div class="l2h-wrap">' + hStage() + hCard() + '</div></div>';
+      return split(1, hText(true), hStage() + hCard());
     },
-    /* 2 · Split — im Container: Text links, Bühne rechts (nicht mehr randfüllend), Karte überlappt links unten */
+    /* 2 · Karte darunter — Karte als flache Leiste unter der Bühne */
     function () {
-      return '<div class="container l2h-2">' + hText(true) + '<div class="l2h-wrap">' + hStage() + hCard() + '</div></div>';
+      return split(2, hText(true), hStage() + hCard());
     },
-    /* 3 · Flanken — Text mittig, Bühne in der Mitte, die vier Feature-Karten links und rechts als Navigation */
+    /* 3 · Tab-Leiste — alle vier Features als Tabs unter der Bühne */
     function () {
-      return (
-        '<div class="container l2h-3">' + hText(false) + '<div class="l2h-3__grid">' + hItems([HERO[0], HERO[1]], 'is-l') + '<div class="l2h-wrap">' + hStage() + '</div>' + hItems([HERO[2], HERO[3]], 'is-r') + '</div>' +
-        '<div class="l2h-proof is-center"><span class="l2h-av">' + ['SB', 'MT', 'LK', 'JW', 'FK'].map(function (x, i) { return '<i style="--t:' + ['var(--fach-blue)', 'var(--fach-amber)', 'var(--fach-teal)', 'var(--fach-violet)', 'var(--fach-rose)'][i] + '">' + x + '</i>'; }).join('') + '</span><span><b>10.000+</b> Familien lernen schon mit Lesify</span></div></div>'
-      );
+      return split(3, hText(true), hStage() + hItems(HERO, 'is-tabs'));
     },
-    /* 4 · Big Type — sehr große Headline, Bühne unten angeschnitten, Karte darüber */
+    /* 4 · Karte im Text — die Karte wandert unter den Text, die Bühne steht frei */
     function () {
-      return '<div class="container l2h-4">' + hText(true) + '<div class="l2h-wrap">' + hStage() + hCard() + '</div></div>';
+      return split(4, '<div class="l2h-col">' + hText(true) + hCard() + '</div>', hStage());
     },
-    /* 5 · Tab-Leiste — Text mittig, Bühne, darunter alle vier Features als Tab-Leiste */
+    /* 5 · Karte oben rechts — kleine Karte überlappt die obere Ecke der Bühne */
     function () {
-      return '<div class="container l2h-5">' + hText(true) + '<div class="l2h-wrap">' + hStage() + '</div>' + hItems(HERO, 'is-tabs') + '</div>';
+      return split(5, hText(true), hStage() + hCard());
     }
   ];
 
@@ -843,10 +918,11 @@
   }
 
   /* ---------- Build ---------- */
+  var MAXV = { org: 10 };
   function stored(key) {
     try {
       var v = parseInt(localStorage.getItem('lesify:lan2:' + key + ':c'), 10);
-      if (v >= 1 && v <= 5) return v;
+      if (v >= 1 && v <= (MAXV[key] || 5)) return v;
     } catch (e) {}
     return 1;
   }
@@ -942,8 +1018,9 @@
       '<div class="layout-dev-row"><span>' +
       label +
       '</span><div class="layout-dev-seg">' +
-      [1, 2, 3, 4, 5]
-        .map(function (n) {
+      Array.apply(null, Array(key === 'all' ? 5 : MAXV[key] || 5))
+        .map(function (_, k) {
+          var n = k + 1;
           return (
             '<button type="button" data-l2k="' +
             key +
@@ -1000,11 +1077,12 @@
         var sec = VARIABLE.filter(function (s) {
           return s.key === k;
         })[0];
-        state[k] = v;
-        store(k, v);
-        build(sec, v);
+        var vv = Math.min(v, MAXV[k] || 5);
+        state[k] = vv;
+        store(k, vv);
+        build(sec, vv);
         panel.querySelectorAll('[data-l2k="' + k + '"]').forEach(function (x) {
-          x.classList.toggle('is-on', +x.getAttribute('data-l2v') === v);
+          x.classList.toggle('is-on', +x.getAttribute('data-l2v') === vv);
         });
       });
       if (key === 'all')

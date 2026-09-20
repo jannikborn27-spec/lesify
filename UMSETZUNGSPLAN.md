@@ -4413,6 +4413,9 @@ Kritisch, weil Zielgruppe minderjährig ist.
 - [x] Fächer-Section mit Eyebrow/Headline/Lead wie die großen Sections (Raster weiterhin Original-Design).
 - [x] Organisation (dunkel): Mockup mittig, die 3 Punkte je 1× drumherum (keine Dopplung) in 5 Varianten: Satelliten,
       Ecken, Leitlinien, Schiene, Hotspots.
-- [x] Hero in `/lan2/` neu gerendert (`lan2.js`): kein Dauer-Hintergrundbild, nicht mehr rechts fixiert, zentriert im
-      Container; Slideshow-Karten mitgezogen. 5 Layouts im Dev-Switcher (Zentriert, Split, Flanken, Big Type, Tab-Leiste).
+- [x] Hero in `/lan2/` (`lan2.js`): wie die Startseite — Text links, Bühne + Slideshow-Karten rechts —, aber ohne
+      Dauer-Hintergrundbild und nicht mehr am rechten Rand fixiert (im Container, wie die hellen Demo-Sections).
+      5 Versionen im Dev-Switcher: Karte überlappt, Karte darunter, Tab-Leiste, Karte im Text, Karte oben.
+- [x] Organisation: Versionen 6–10 im Links/Rechts-Layout der hellen Sections (dunkel): Karten, Pfad, Tabs, Ziffern,
+      Karten unten.
 - [ ] Offen: Darstellung je Section wählen → Dev-Switcher entfernen; danach entscheiden, ob `/lan2/` die Startseite ablöst.

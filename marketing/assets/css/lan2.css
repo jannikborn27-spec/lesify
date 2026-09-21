@@ -514,3 +514,6 @@
 .l2-pm { --l2-a: var(--fach-violet); isolation: isolate; width: 100%; }
 .l2-pm::before { content: ""; position: absolute; z-index: -1; inset: -4% -8%; background: radial-gradient(closest-side, color-mix(in srgb, var(--l2-a) 62%, transparent), transparent 100%); opacity: 0.5; }
 .l2-pm img { filter: drop-shadow(0 30px 40px rgba(0, 0, 0, 0.5)); }
+
+/* Tablet-only-Mockups (Klausur, Lernzettel, Orga) haben den Schatten schon im Bild */
+.l2-media.is-flat img { filter: none; }

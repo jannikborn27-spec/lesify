@@ -4441,4 +4441,8 @@ Kritisch, weil Zielgruppe minderjährig ist.
 - [x] `/lan2/`: Mockup wechselt die Seite — Hero/Klausur rechts, Chat links, Lernzettel rechts, Organisation links; Eltern-
       Zugang bleibt an seiner Stelle und zeigt statt der Mini-Demo ein Mockup (Platzhalter, rechts) — Bild später tauschen
       (`mountParentMockup` in `lan2.js`).
+- [x] `/lan2/`: finale Bilder aus `marketing/assets/img/images-fin/` (Dateinamen = Einsatzort) als zugeschnittene WebPs in
+      `assets/img/lan2/`: Hero `hero-1…4`, Klausur `section-kv-1…7` (7 Folien), Chat, Lernzettel, Orga `fach/thema/dateien`
+      (3 Folien), Eltern-Zugang. Tablet-only-Bilder haben den Schatten im Bild (`.is-flat`). Die PNG-Originale in
+      `images-fin/` sind nicht im Repo (nur Quellordner).
 - [ ] Offen: entscheiden, ob `/lan2/` die Startseite ablöst.

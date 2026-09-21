@@ -1,7 +1,7 @@
 /* =========================================================
    Lesify — Landingpage-Variante /lan2/
    Demo-Sections mit den Mockup-Bildern der Hero-Slideshow
-   (assets/img/lan2/mockup-*.webp). Reihenfolge + Layout fest im
+   (assets/img/lan2/*.webp, aus images-fin/ zugeschnitten). Reihenfolge + Layout fest im
    Schwarz/Weiß-Wechsel:
      Klausur (hell, Bleed) · Chat (dunkel, Callouts) ·
      Lernzettel (hell, Bleed) · Organisation (dunkel, Callouts) ·
@@ -48,7 +48,9 @@
         return 'Tag ' + (i + 1) + ': ' + d.t;
       }),
       slideMs: 3800,
-      imgs: ['mockup-klausur'],
+      imgs: ['section-kv-1', 'section-kv-2', 'section-kv-3', 'section-kv-4', 'section-kv-5', 'section-kv-6', 'section-kv-7'],
+      dims: [1303, 1031],
+      flat: true,
       alt: 'Lesify auf dem Tablet: Lernplan zur Mathe-Klausur, Tag 4 „Schwachstellen festigen“ mit Checkliste'
     },
     {
@@ -61,7 +63,8 @@
       eb: CHAT.eb,
       h: CHAT.h,
       lead: CHAT.lead,
-      imgs: ['mockup-chat'],
+      imgs: ['section-chat'],
+      dims: [1415, 1116],
       alt: 'Lesify KI-Chat auf dem Tablet: Biologie „Ökosystem Wald“ mit Auswertung der Übungsaufgaben und Zusammenfassung'
     },
     {
@@ -73,7 +76,9 @@
       eb: 'Lernzettel',
       h: 'Der ganze Klausurstoff, automatisch kompakt zusammengefasst.',
       lead: 'Aus der gesamten Klausurvorbereitung entsteht ein einziger Lernzettel, der Formeln, Definitionen und alles Wichtige übersichtlich und kompakt vereint.',
-      imgs: ['mockup-lernzettel'],
+      imgs: ['section-lernzettel'],
+      dims: [1218, 1091],
+      flat: true,
       alt: 'Lesify Lernzettel „If-Sätze Type 1 und Type 2“ neben dem Chat zum gemeinsamen Überarbeiten'
     },
     {
@@ -93,7 +98,9 @@
         return st.l;
       }),
       slideMs: 5200,
-      imgs: ['mockup-organisation'],
+      imgs: ['section-orga-fach', 'section-orga-thema', 'section-orga-dateien'],
+      dims: [1303, 1032],
+      flat: true,
       alt: 'Lesify Themenseite „Gedichtanalyse“ im Fach Deutsch mit Chats, Lernzetteln, Dateien und Klausuren'
     },
     /* Fächer: eigene Section im Original-Design der Startseite (Ghost), kein Dev-Umschalter */
@@ -119,11 +126,11 @@
     for (var i = 0; i < n; i++) {
       pics +=
         '<img class="l2-slide' + (i === 0 ? ' is-on' : '') + '" src="/assets/img/lan2/' + s.imgs[i % s.imgs.length] + '.webp" alt="' + (i === 0 ? s.alt : '') + '"' +
-        (i === 0 ? '' : ' aria-hidden="true"') + ' width="1416" height="1117" loading="lazy" decoding="async">';
+        (i === 0 ? '' : ' aria-hidden="true"') + ' width="' + s.dims[0] + '" height="' + s.dims[1] + '" loading="lazy" decoding="async">';
     }
     /* Punkte: unter dem Bild (Standard), im Textblock (dotsIn 'text') oder gar nicht (dotsIn 'none') */
     var dots = n > 1 && !s.dotsIn ? slideDots(s) : '';
-    return '<figure class="l2-media ' + cls + '"' + (n > 1 ? ' data-l2show' : '') + '><div class="l2-slides">' + pics + (after || '') + '</div>' + dots + '</figure>';
+    return '<figure class="l2-media ' + (s.flat ? 'is-flat ' : '') + cls + '"' + (n > 1 ? ' data-l2show' : '') + '><div class="l2-slides">' + pics + (after || '') + '</div>' + dots + '</figure>';
   }
   function head(s, center) {
     return (
@@ -257,7 +264,7 @@
 
   /* ---------- Hero (fünf zentrierte Layouts, ohne Dauer-Hintergrundbild, nicht mehr rechts fixiert) ---------- */
   var HERO = M.HERO;
-  var HERO_IMGS = ['mockup-klausur', 'mockup-chat', 'mockup-organisation', 'mockup-lernzettel'];
+  var HERO_IMGS = ['hero-1-kv', 'hero-2-chat', 'hero-3-orga', 'hero-4-lernzettel'];
   var CHK =
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>';
   var CHEV_L = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>';
@@ -631,14 +638,14 @@
     document.body.appendChild(panel);
   }
 
-  /* Eltern-Zugang: bleibt an seiner Stelle (von marketing.js gerendert); statt der Mini-Demo rechts steht ein Mockup (Platzhalter) */
+  /* Eltern-Zugang: bleibt an seiner Stelle (von marketing.js gerendert); statt der Mini-Demo rechts steht ein Mockup */
   function mountParentMockup() {
     var sec = document.getElementById('parent');
     var demo = sec && sec.querySelector('.pt-2col__demo');
     if (!demo) return;
     sec.classList.add('l2-parent');
     demo.innerHTML =
-      '<figure class="l2-media l2-pm"><div class="l2-slides"><img class="l2-slide is-on" src="/assets/img/lan2/mockup-organisation.webp" alt="Platzhalter: Lesify Eltern-Zugang auf dem Tablet" width="1416" height="1117" loading="lazy" decoding="async"></div></figure>';
+      '<figure class="l2-media l2-pm"><div class="l2-slides"><img class="l2-slide is-on" src="/assets/img/lan2/section-eltern-zugang.webp" alt="Lesify Eltern-Zugang auf dem Tablet" width="1416" height="1116" loading="lazy" decoding="async"></div></figure>';
   }
 
   document.addEventListener('DOMContentLoaded', function () {

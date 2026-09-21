@@ -3011,7 +3011,7 @@ Grundlage: `backend-planning.md` §1. Reihenfolge so, dass FKs immer schon exist
       Nachrichten, darunter ein langer Bio-Chat „Ökosystem Wald" mit 20
       Nachrichten und Gedichtanalyse als materialreichstes Thema mit 7 Chats /
       4 Dateien / 2 Lernzetteln), 7 Lernzettel, 13 Dateien (`seed://`, ohne
-      Storage-Inhalt), 6 Klausuren (1 geschrieben), 4 Testklausuren, 3
+      Storage-Inhalt), 6 Klausuren (1 geschrieben), 5 Testklausuren (u. a. Deutsch-Erörterung mit Note 2,3), 4
       Lernpläne in verschiedenen Zuständen. Der englische Lernzettel
       „Conditional Sentences" ist echt KI-generiert (echter Prompt aus
       `calls.ts` Call 08, Dev-Adapter, Rohdaten in

@@ -1476,6 +1476,28 @@ const TESTKLAUSUREN: TkSeed[] = [
       },
     ],
   },
+  {
+    slug: 'kd2-t1',
+    klausur: 'kd2',
+    fach: 'deutsch',
+    themen: ['eroerterung'],
+    titel: 'Testklausur 1 — Deutsch Klausur — Erörterung',
+    vorTagen: 2,
+    aufgaben: [
+      [
+        'eroerterung',
+        'Erörtere die Frage „Sollten Smartphones im Unterricht erlaubt sein?" Formuliere eine Einleitung mit Leitfrage, entwickle mindestens zwei Pro- und zwei Contra-Argumente mit Beispielen und schließe mit einem begründeten Fazit.',
+      ],
+    ],
+    ergebnis: [
+      {
+        thema: 'eroerterung',
+        prozent: 74,
+        erklaerung:
+          'Aufbau und Leitfrage sind klar, die Argumente sind mit Beispielen belegt und sinnvoll geordnet. Kleine Abzüge: Ein Contra-Argument bleibt oberflächlich, und das Fazit greift die Argumente nicht alle wieder auf.',
+      },
+    ],
+  },
 ];
 
 // ------------------------------------------------------------------ Lernpläne
@@ -1545,6 +1567,15 @@ const LERNPLAENE: LpSeed[] = [
     checks: {
       '2': [`fehler:${T('present-perfect')}`, `beispiel:${T('present-perfect')}`],
     },
+    lernzettel: null,
+  },
+  {
+    slug: 'kd2',
+    klausur: 'kd2',
+    tk1: 'kd2-t1',
+    tk2: null,
+    vorTagen: 3,
+    checks: {},
     lernzettel: null,
   },
 ];
@@ -1621,7 +1652,7 @@ async function main() {
           dateienLimit: L.dateien,
           lernzettelUsed: LERNZETTEL.length,
           lernzettelLimit: L.lernzettel,
-          testklausurenUsed: 3,
+          testklausurenUsed: 4,
           testklausurenLimit: L.testklausuren,
         },
       });

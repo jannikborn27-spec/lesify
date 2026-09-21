@@ -3016,7 +3016,11 @@ Grundlage: `backend-planning.md` §1. Reihenfolge so, dass FKs immer schon exist
       „Conditional Sentences" ist echt KI-generiert (echter Prompt aus
       `calls.ts` Call 08, Dev-Adapter, Rohdaten in
       `api/prisma/seed-data/lernzettel-conditionals.json`, 2 Beispielzeilen
-      manuell korrigiert). Aufruf:
+      manuell korrigiert). Zusätzlich eine
+      komplett durchlaufene Mathe-Klausurvorbereitung (Pythagoras, Terme &
+      Zinsrechnung, 7/7 Tage erledigt, Testklausur 1 + 2 analysiert, 11
+      verknüpfte Lernplan-Chats, Lernzettel) für Website-Screenshots je Tag.
+      Aufruf:
       `pnpm --filter ./api exec tsx prisma/seed-dev-account.ts`. Datums-
       Offsets relativ zu „heute" → bei Bedarf neu laufen lassen.
       Nebenbei: Chat/Lernzettel rendern KI-Text jetzt als Markdown

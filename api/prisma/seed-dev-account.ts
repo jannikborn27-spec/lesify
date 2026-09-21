@@ -145,6 +145,24 @@ const THEMEN: [string, string, string, string][] = [
     'Imperialismus',
     'Kolonialismus, Wettlauf um Afrika und die Folgen für die Welt.',
   ],
+  [
+    'pythagoras',
+    'mathematik',
+    'Satz des Pythagoras',
+    'Seitenlängen im rechtwinkligen Dreieck berechnen und im Alltag anwenden.',
+  ],
+  [
+    'terme-binome',
+    'mathematik',
+    'Terme & Binomische Formeln',
+    'Terme vereinfachen, ausmultiplizieren und die drei binomischen Formeln anwenden.',
+  ],
+  [
+    'zinsrechnung',
+    'mathematik',
+    'Zinsrechnung',
+    'Jahres- und Monatszinsen sowie Zinseszins und Kapitalentwicklung berechnen.',
+  ],
 ];
 
 // ----------------------------------------------------------------- Chats
@@ -642,6 +660,420 @@ Noch eine Runde, diesmal schwerer? Dann gebe ich dir Verse, in denen zwei Stilmi
 **3.** „Wie ein Vogel im Käfig, so sitzt die Zeit in meinem Zimmer."
 
 *(Tipp zu 1: Achte auf Bewegung **und** Klang.)*`,
+      ],
+    ],
+  },
+  // ---- Lernplan Mathe (Pythagoras, Terme & Zinsen): Chats je Lerntag ----
+  {
+    slug: 'lp-t2-terme-erkl',
+    thema: 'terme-binome',
+    titel: 'Fehler klären: Binomische Formeln',
+    modus: 'erklaeren',
+    vorStunden: 168,
+    messages: [
+      [
+        'user',
+        'Ich habe bei Testklausur 1 diese Aufgabe zu Terme & Binomische Formeln nicht richtig gelöst: „Multipliziere aus: (x + 3)²". Ich hatte x² + 9. Erklär mir die binomischen Formeln nochmal von Grund auf.',
+      ],
+      [
+        'ai',
+        `Dein Fehler ist einer der häufigsten überhaupt — und er lässt sich leicht beheben. 👍
+
+**Warum x² + 9 nicht stimmt:** (x + 3)² bedeutet (x + 3) · (x + 3). Wenn du jeden Summanden mit jedem multiplizierst, entstehen **vier** Produkte:
+
+(x + 3)(x + 3) = x·x + x·3 + 3·x + 3·3 = x² + **6x** + 9
+
+Du hast den **Mittelteil 6x** vergessen. Genau dafür gibt es die binomischen Formeln:
+
+| Formel | Ergebnis |
+|---|---|
+| 1. (a + b)² | a² + **2ab** + b² |
+| 2. (a − b)² | a² − **2ab** + b² |
+| 3. (a + b)(a − b) | a² − b² |
+
+**Merkregel:** Bei der 1. und 2. Formel gibt es immer einen **doppelten Mittelteil** (2ab). Nur bei der 3. Formel fällt er weg.`,
+      ],
+      ['user', 'Also ist bei (x + 3)² der Mittelteil 2 · x · 3 = 6x?'],
+      [
+        'ai',
+        `Genau! ✅ Mit a = x und b = 3 wird aus 2ab: 2 · x · 3 = **6x**. Das Ergebnis lautet also **x² + 6x + 9**.
+
+Probe mit x = 1: (1 + 3)² = 16 und 1 + 6 + 9 = 16 ✓
+
+Versuch es jetzt mit der 2. Formel: **(x − 5)²**.`,
+      ],
+      ['user', 'x² − 10x + 25'],
+      [
+        'ai',
+        'Perfekt: a² = x², 2ab = 2·x·5 = 10x (mit Minus), b² = 25. Auf die Vorzeichen zu achten ist hier der Schlüssel — der Mittelteil bekommt das Vorzeichen aus der Klammer, das letzte Glied ist **immer plus**, weil b² nie negativ ist.',
+      ],
+      [
+        'user',
+        'Gib mir bitte ein Alltagsbeispiel oder eine Analogie dazu, damit ich es mir merken kann.',
+      ],
+      [
+        'ai',
+        `Stell dir einen **quadratischen Garten** mit der Seitenlänge x + 3 vor (in Metern). Seine Fläche ist (x + 3)².
+
+Teile ihn in vier Stücke:
+• ein großes Quadrat: x · x = **x²**
+• zwei Rechtecke: je x · 3 = **3x** (zusammen **6x**)
+• ein kleines Eckquadrat: 3 · 3 = **9**
+
+Zusammen: x² + 6x + 9. Die „6x" sind also keine Rechenlaune, sondern die **beiden Rechtecke** an den Seiten. Wer sie vergisst, „verliert" Fläche. 🌱`,
+      ],
+    ],
+  },
+  {
+    slug: 'lp-t2-terme-check',
+    thema: 'terme-binome',
+    titel: 'Verständnis-Check: Binomische Formeln',
+    modus: 'ueben',
+    vorStunden: 167,
+    messages: [
+      [
+        'user',
+        'Stell mir 3 kurze Verständnisfragen zu Terme & Binomische Formeln, um zu prüfen, ob die Erklärung angekommen ist.',
+      ],
+      [
+        'ai',
+        `Hier deine drei Fragen:
+
+**1.** Multipliziere aus: (a + 4)²
+**2.** Multipliziere aus: (2x − 1)²
+**3.** Faktorisiere: x² − 49`,
+      ],
+      ['user', '1) a² + 8a + 16\n2) 4x² − 4x + 1\n3) (x + 7)(x − 7)'],
+      [
+        'ai',
+        `Alle drei richtig! 🎉
+
+**1.** a² + 8a + 16 ✅ (2 · a · 4 = 8a)
+**2.** 4x² − 4x + 1 ✅ — sehr gut, dass du (2x)² = 4x² beachtet hast.
+**3.** (x + 7)(x − 7) ✅ — 49 = 7², also 3. binomische Formel rückwärts.
+
+Die Erklärung ist angekommen. Morgen üben wir das mit gemischten Aufgaben.`,
+      ],
+    ],
+  },
+  {
+    slug: 'lp-t2-zins-erkl',
+    thema: 'zinsrechnung',
+    titel: 'Fehler klären: Zinsrechnung',
+    modus: 'erklaeren',
+    vorStunden: 166,
+    messages: [
+      [
+        'user',
+        'Ich habe bei Testklausur 1 diese Aufgabe zu Zinsrechnung nicht richtig gelöst: „Berechne die Zinsen für 2.400 € bei 2,5 % Jahreszins nach 8 Monaten." Ich hatte 60 €. Erklär mir Zinsrechnung nochmal von Grund auf.',
+      ],
+      [
+        'ai',
+        `Du hast die **Jahreszinsen** ausgerechnet (2.400 € · 2,5 % = 60 €) — das wären die Zinsen für ein *ganzes* Jahr. Die Aufgabe fragt aber nach **8 Monaten**.
+
+**Die Grundformel:**
+
+Z = K · p/100 · t
+
+• **K** = Kapital (2.400 €)
+• **p** = Zinssatz in Prozent pro Jahr (2,5)
+• **t** = Zeit **in Jahren**
+
+Für Monate rechnest du: **t = Monate / 12**
+
+Z = 2.400 · 0,025 · 8/12 = 60 · 8/12 = **40 €**
+
+**Merksatz:** Der Zinssatz gilt immer *pro Jahr* — für kürzere Zeiträume nimmst du nur den passenden Bruchteil davon.`,
+      ],
+      ['user', 'Ah, ich hab die 8 Monate komplett ignoriert. Und bei 45 Tagen?'],
+      [
+        'ai',
+        `Dann sind es 45/360 Jahre — in der Bankrechnung zählt man üblicherweise **30 Tage pro Monat**, also **360 Tage pro Jahr**.
+
+Z = 2.400 · 0,025 · 45/360 = 60 · 0,125 = **7,50 €**
+
+Die Formel bleibt gleich, nur der Zeitfaktor ändert sich.`,
+      ],
+      ['user', 'Gib mir bitte ein Alltagsbeispiel dazu.'],
+      [
+        'ai',
+        `Du hast durch einen Ferienjob **800 €** auf dein Sparkonto gelegt, der Zinssatz beträgt **1,5 %** pro Jahr.
+
+• Nach **1 Jahr:** 800 · 0,015 = **12 €**
+• Nach **6 Monaten:** die Hälfte, also **6 €**
+• Nach **3 Monaten:** ein Viertel, also **3 €**
+
+So siehst du: Je kürzer das Geld angelegt ist, desto weniger Zinsen bekommst du — proportional zur Zeit. 🐷`,
+      ],
+    ],
+  },
+  {
+    slug: 'lp-t2-zins-check',
+    thema: 'zinsrechnung',
+    titel: 'Verständnis-Check: Zinsrechnung',
+    modus: 'ueben',
+    vorStunden: 165,
+    messages: [
+      [
+        'user',
+        'Stell mir 3 kurze Verständnisfragen zu Zinsrechnung, um zu prüfen, ob die Erklärung angekommen ist.',
+      ],
+      [
+        'ai',
+        `Los geht's:
+
+**1.** Wie viel Zinsen bringen 1.500 € bei 2 % in einem Jahr?
+**2.** Auf 2.000 € gibt es in einem Jahr 60 € Zinsen. Wie hoch ist der Zinssatz?
+**3.** Bei 1,5 % Zinssatz erhältst du 45 € Zinsen in einem Jahr. Welches Kapital ist angelegt?`,
+      ],
+      ['user', '1) 30 €\n2) 3 %\n3) 300 €'],
+      [
+        'ai',
+        `Zwei von drei richtig — gut gemacht! 👏
+
+**1.** ✅ 1.500 · 0,02 = 30 €
+**2.** ✅ 60 / 2.000 = 0,03 = 3 %
+**3.** ❌ Hier musst du die Formel nach K umstellen:
+K = Z / (p/100) = 45 / 0,015 = **3.000 €**
+
+Probe: 3.000 · 0,015 = 45 ✓. Du hattest wohl 45 / 0,15 gerechnet — bei Prozenten immer durch **100 teilen**: 1,5 % = 0,015.`,
+      ],
+    ],
+  },
+  {
+    slug: 'lp-t3-terme',
+    thema: 'terme-binome',
+    titel: 'Abfragen: Terme & Binomische Formeln',
+    modus: 'ueben',
+    vorStunden: 144,
+    messages: [
+      ['user', 'Gib mir 3 Übungsaufgaben zu Terme & Binomische Formeln, erst ohne Lösung.'],
+      [
+        'ai',
+        `Hier deine Aufgaben:
+
+**1.** (3y + 2)² = ?
+**2.** (m − 6)(m + 6) = ?
+**3.** Vereinfache: (x + 2)² − (x − 2)²
+
+Schreib mir deine Lösungswege — ich sage dir nach jeder Antwort, ob sie stimmt.`,
+      ],
+      ['user', '1) 9y² + 12y + 4\n2) m² − 36\n3) (x² + 4x + 4) − (x² − 4x + 4) = 8x'],
+      [
+        'ai',
+        `Volltreffer, alle drei richtig! ✅
+
+**1.** 9y² + 12y + 4 — (3y)² = 9y², 2·3y·2 = 12y ✓
+**2.** m² − 36 ✓
+**3.** 8x ✓ — und den Trick hast du toll gelöst: erst beide Klammern ausmultiplizieren, dann fallen x² und 4 weg.
+
+Jetzt **gemischt**: Ich frage abwechselnd zu Binomen und Zinsen.`,
+      ],
+      [
+        'user',
+        'Frag mich abwechselnd, gemischt, Fragen zu Terme & Binomische Formeln und Zinsrechnung.',
+      ],
+      [
+        'ai',
+        `**A.** Multipliziere aus: (5 − 2a)²
+**B.** Wie hoch sind die Zinsen für 900 € bei 4 % in 3 Monaten?
+**C.** Faktorisiere: 25x² − 9
+**D.** Auf einem Konto liegen 1.200 €. Nach einem Jahr sind es 1.236 €. Wie hoch war der Zinssatz?`,
+      ],
+      [
+        'user',
+        'A) 25 − 20a + 4a²\nB) 900 · 0,04 · 3/12 = 9 €\nC) (5x + 3)(5x − 3)\nD) 36 / 1200 = 3 %',
+      ],
+      [
+        'ai',
+        `Alle vier richtig — sehr sauber! 🎉 Ich habe kurz nachgerechnet:
+
+**A.** 25 − 20a + 4a² ✅ (2·5·2a = 20a)
+**B.** 9 € ✅ (36 · 3/12)
+**C.** (5x + 3)(5x − 3) ✅ — 25x² = (5x)², 9 = 3²
+**D.** 3 % ✅
+
+Die Lösungen für deine Aufgaben von vorhin waren bereits alle korrekt — dieser Tag ist damit im Kasten.`,
+      ],
+    ],
+  },
+  {
+    slug: 'lp-t3-zins',
+    thema: 'zinsrechnung',
+    titel: 'Abfragen: Zinsrechnung',
+    modus: 'ueben',
+    vorStunden: 143,
+    messages: [
+      ['user', 'Gib mir 3 Übungsaufgaben zu Zinsrechnung, erst ohne Lösung.'],
+      [
+        'ai',
+        `**1.** Wie viel Zinsen bringen 3.200 € bei 1,25 % in einem Jahr?
+**2.** Wie viel Zinsen bringen 2.000 € bei 3 % in 4 Monaten?
+**3.** 1.000 € werden 2 Jahre lang mit 3 % Zinseszins angelegt. Wie hoch ist das Endkapital?`,
+      ],
+      [
+        'user',
+        '1) 3200 · 0,0125 = 40 €\n2) 2000 · 0,03 · 4/12 = 20 €\n3) 1000 · 1,03 · 1,03 = 1060,90 €',
+      ],
+      [
+        'ai',
+        `Alle drei stimmen! ✅
+
+**1.** 40 € ✓
+**2.** 20 € ✓ — sehr gut, dass du die Monate als Bruchteil eines Jahres gerechnet hast.
+**3.** 1.060,90 € ✓ — beim Zinseszins wird jedes Jahr auf das **neue** Kapital verzinst: 1.000 → 1.030 → 1.060,90.
+
+Kurzschreibweise: K₂ = 1.000 · 1,03² = 1.060,90 €.`,
+      ],
+    ],
+  },
+  {
+    slug: 'lp-t4-terme-feynman',
+    thema: 'terme-binome',
+    titel: 'Feynman: Binomische Formeln erklärt',
+    modus: 'erklaeren',
+    vorStunden: 120,
+    messages: [
+      [
+        'user',
+        'Erklär mir jetzt Terme & Binomische Formeln in eigenen Worten, so einfach wie möglich — oder besser: ich erkläre es dir, und du sagst mir, ob es stimmt.',
+      ],
+      [
+        'ai',
+        'Sehr gern! Stell dir vor, du erklärst es einem jüngeren Geschwisterkind. Wie würdest du die binomischen Formeln erklären?',
+      ],
+      [
+        'user',
+        'Wenn man eine Summe oder Differenz hoch 2 rechnet, muss man nicht alles einzeln ausmultiplizieren. Man rechnet das erste zum Quadrat, das zweite zum Quadrat und in der Mitte das Doppelte vom Produkt. Bei plus und minus zusammen fällt die Mitte weg.',
+      ],
+      [
+        'ai',
+        `Das ist eine **sehr gute** Erklärung — inhaltlich vollständig! ✅
+
+Zwei kleine Ergänzungen, dann ist sie perfekt:
+• Bei der **2. Formel** (a − b)² steht in der Mitte ein **Minus** (−2ab), das letzte Glied bleibt +b².
+• Bei der **3. Formel** (a + b)(a − b) sind die Klammern **unterschiedlich** (einmal plus, einmal minus) — nur dann fällt die Mitte weg.
+
+Ein tolles Beispiel für dein Geschwisterkind: „(10 + 1)² ist 121. Und 10² + 2·10·1 + 1² = 100 + 20 + 1 = 121."`,
+      ],
+    ],
+  },
+  {
+    slug: 'lp-t4-zins-feynman',
+    thema: 'zinsrechnung',
+    titel: 'Feynman: Zinsrechnung erklärt',
+    modus: 'erklaeren',
+    vorStunden: 119,
+    messages: [
+      [
+        'user',
+        'Erklär mir jetzt Zinsrechnung in eigenen Worten — ich versuche es zuerst selbst, sag mir, ob es stimmt.',
+      ],
+      ['ai', 'Klar! Wie würdest du erklären, wie man Zinsen berechnet?'],
+      [
+        'user',
+        'Zinsen sind das Geld, das man von der Bank für sein angelegtes Kapital bekommt. Man rechnet Kapital mal Zinssatz durch 100 mal die Zeit in Jahren. Bei Monaten teilt man durch 12.',
+      ],
+      [
+        'ai',
+        `Sehr gut, das stimmt komplett! ✅ Noch ein Hinweis für die Klausur: Schreibe die Formel immer **hin** (Z = K · p/100 · t), setze dann die Werte ein und beschrifte die Einheiten. So bekommst du auch bei kleinen Rechenfehlern Teilpunkte.
+
+Was du bisher noch nicht erwähnt hast: den **Zinseszins**. Möchtest du den auch kurz erklären?`,
+      ],
+    ],
+  },
+  {
+    slug: 'lp-t4-terme-wdh',
+    thema: 'terme-binome',
+    titel: 'Wiederholung Tag 2: Binome & Zinsen',
+    modus: 'ueben',
+    vorStunden: 118,
+    messages: [
+      [
+        'user',
+        'Frag mich kurz 3 Fragen zu dem, was wir an Tag 2 zu Terme & Binomische Formeln und Zinsrechnung geklärt haben, um zu checken, ob es noch sitzt.',
+      ],
+      [
+        'ai',
+        `**1.** Was ist der häufigste Fehler bei (x + 3)²?
+**2.** Wie rechnest du 5 Monate in einen Zeitfaktor für die Zinsformel um?
+**3.** Multipliziere aus: (x − 4)²`,
+      ],
+      ['user', '1) Man vergisst den Mittelteil 2·x·3.\n2) 5/12 Jahre.\n3) x² − 8x + 16'],
+      [
+        'ai',
+        'Alles richtig — 3 von 3! ✅ Es sitzt sichtbar. Der Fehler vom Anfang ist verschwunden, und beim Zinsfaktor denkst du jetzt automatisch an den Bruch. Morgen steht Testklausur 2 an — du bist gut vorbereitet. 💪',
+      ],
+    ],
+  },
+  {
+    slug: 'lp-t6-zins-luecke',
+    thema: 'zinsrechnung',
+    titel: 'Lücke schließen: Zinseszins',
+    modus: 'erklaeren',
+    vorStunden: 72,
+    messages: [
+      [
+        'user',
+        'Das sitzt bei Zinsrechnung immer noch nicht ganz — in Testklausur 2 habe ich bei der Zinseszins-Aufgabe (1.500 € · 3 Jahre · 2 %) den falschen Wert. Lass uns die Lücke gezielt angehen.',
+      ],
+      ['ai', `Klar. Erzähl mir kurz, wie du gerechnet hast — dann sehe ich, wo es hakt.`],
+      ['user', '1500 · 0,02 · 3 = 90, also 1590 €.'],
+      [
+        'ai',
+        `Du hast **einfache Zinsen** über drei Jahre gerechnet: 3 · 30 € = 90 €. Das ist eine gute Näherung, aber beim **Zinseszins** wird jedes Jahr auf das *neue* Kapital verzinst — die Zinsen bringen selbst wieder Zinsen.
+
+**Jahr für Jahr:**
+
+| Jahr | Kapital am Anfang | Zinsen (2 %) | Kapital am Ende |
+|---|---|---|---|
+| 1 | 1.500,00 € | 30,00 € | 1.530,00 € |
+| 2 | 1.530,00 € | 30,60 € | 1.560,60 € |
+| 3 | 1.560,60 € | 31,21 € | 1.591,81 € |
+
+Also **1.591,81 €** — du warst mit 1.590 € sehr nah dran, aber die Klausur verlangt den genauen Wert.`,
+      ],
+      ['user', 'Gibt es eine Abkürzung, damit ich nicht jedes Jahr einzeln rechnen muss?'],
+      [
+        'ai',
+        `Ja! Jedes Jahr wird das Kapital mit dem **Zinsfaktor q = 1 + p/100** multipliziert — hier q = 1,02.
+
+**Formel:** Kₙ = K₀ · qⁿ
+
+K₃ = 1.500 · 1,02³ = 1.500 · 1,061208 = **1.591,81 €** ✅
+
+**Merksatz:** *Zinseszins = Anfangskapital · Zinsfaktor hoch Jahre.* Auf dem Taschenrechner: 1,02 → Potenztaste → 3.`,
+      ],
+      ['user', 'Verstanden! Also bei 4 Jahren wäre es 1500 · 1,02⁴?'],
+      [
+        'ai',
+        'Genau: 1.500 · 1,02⁴ = 1.500 · 1,08243… ≈ **1.623,65 €**. Du hast die Lücke damit geschlossen — der entscheidende Schritt war, den Zinsfaktor als Multiplikator zu sehen. 🎉',
+      ],
+    ],
+  },
+  {
+    slug: 'lp-t6-terme-frisch',
+    thema: 'terme-binome',
+    titel: 'Auffrischen: Binomische Formeln',
+    modus: 'ueben',
+    vorStunden: 71,
+    messages: [
+      [
+        'user',
+        'Frag mich kurz ein paar Fragen zu Terme & Binomische Formeln zum Auffrischen — das saß schon mal, soll aber nicht wieder abrutschen.',
+      ],
+      [
+        'ai',
+        `Klar, drei Blitzfragen:
+
+**1.** (x + 9)² = ?
+**2.** (2a − 3b)² = ?
+**3.** Faktorisiere: 16 − y²`,
+      ],
+      ['user', '1) x² + 18x + 81\n2) 4a² − 12ab + 9b²\n3) (4 + y)(4 − y)'],
+      [
+        'ai',
+        'Alle richtig — das sitzt! ✅ Besonders die zweite Aufgabe mit zwei Variablen war nicht einfach. Deine Testklausur-2-Note in diesem Thema zeigt: Das Fundament ist jetzt fest. Für Tag 7 musst du nur noch alles einmal gemischt durchgehen.',
       ],
     ],
   },
@@ -1285,6 +1717,24 @@ const DATEIEN: [string, string, string, keyof typeof DateiTyp, number, number, s
     'Einseitige Checkliste für die Klausur: Einleitung, Form, Sprache und Deutung Punkt für Punkt, mit Formulierungshilfen für Einleitung und Fazit.',
   ],
   [
+    'd14',
+    'terme-binome',
+    'Formelsammlung_Binomische_Formeln.pdf',
+    'pdf',
+    260_000,
+    9,
+    'Formelsammlung mit den drei binomischen Formeln, Rechenbeispielen, geometrischer Herleitung am Quadrat und Faktorisieren als Umkehrung.',
+  ],
+  [
+    'd15',
+    'zinsrechnung',
+    'Zinsrechnung_Uebungsblatt.pdf',
+    'pdf',
+    380_000,
+    8,
+    'Übungsblatt zu Jahres-, Monats- und Tageszinsen sowie Zinseszins, 14 Aufgaben mit Lösungen und Musterrechnung.',
+  ],
+  [
     'd12',
     'conditional-sentences',
     'Conditionals_Uebungsblatt.pdf',
@@ -1327,6 +1777,13 @@ const KLAUSUREN: [string, string, string[], string, number][] = [
     ['industrialisierung', 'kaiserreich'],
     'Geschichte Klausur — Industrialisierung & Kaiserreich',
     32,
+  ],
+  [
+    'km2',
+    'mathematik',
+    ['pythagoras', 'terme-binome', 'zinsrechnung'],
+    'Mathe Klausur — Pythagoras, Terme & Zinsrechnung',
+    21,
   ],
 ];
 
@@ -1498,6 +1955,80 @@ const TESTKLAUSUREN: TkSeed[] = [
       },
     ],
   },
+  {
+    slug: 'km2-t1',
+    klausur: 'km2',
+    fach: 'mathematik',
+    themen: ['pythagoras', 'terme-binome', 'zinsrechnung'],
+    titel: 'Testklausur 1 — Mathe Klausur — Pythagoras, Terme & Zinsrechnung',
+    vorTagen: 8,
+    aufgaben: [
+      [
+        'pythagoras',
+        'Eine 5 m lange Leiter lehnt an einer Hauswand. Ihr Fußpunkt ist 3 m von der Wand entfernt. In welcher Höhe berührt die Leiter die Wand? Zeichne eine Skizze und begründe deinen Ansatz.',
+      ],
+      [
+        'terme-binome',
+        'Multipliziere aus: (x + 3)². Faktorisiere anschließend x² − 16 und erkläre, welche binomische Formel du verwendest.',
+      ],
+      [
+        'zinsrechnung',
+        'Berechne die Zinsen für ein Kapital von 2.400 € bei einem Zinssatz von 2,5 % nach 8 Monaten. Schreibe die verwendete Formel auf.',
+      ],
+    ],
+    ergebnis: [
+      {
+        thema: 'pythagoras',
+        prozent: 82,
+        erklaerung:
+          'Der Satz des Pythagoras wurde korrekt angesetzt und die Höhe (4 m) richtig berechnet. Die Skizze war vorhanden; es fehlte nur die Einheit im Antwortsatz.',
+      },
+      {
+        thema: 'terme-binome',
+        prozent: 34,
+        erklaerung:
+          'Bei (x + 3)² wurde der Mittelteil vergessen (x² + 9 statt x² + 6x + 9). Die dritte binomische Formel beim Faktorisieren wurde erkannt, aber nicht sauber angewendet.',
+      },
+      {
+        thema: 'zinsrechnung',
+        prozent: 56,
+        erklaerung:
+          'Die Formel Z = K · p/100 · t ist bekannt, aber die 8 Monate wurden nicht als Bruchteil eines Jahres (8/12) eingesetzt — es wurden die Jahreszinsen berechnet.',
+      },
+    ],
+  },
+  {
+    slug: 'km2-t2',
+    klausur: 'km2',
+    fach: 'mathematik',
+    themen: ['terme-binome', 'zinsrechnung'],
+    titel: 'Testklausur 2 — Mathe Klausur — Pythagoras, Terme & Zinsrechnung',
+    vorTagen: 4,
+    aufgaben: [
+      [
+        'terme-binome',
+        'Multipliziere aus: (2a − 5)². Vereinfache außerdem (y + 4)(y − 4) und begründe kurz, welche Formel du verwendest.',
+      ],
+      [
+        'zinsrechnung',
+        'Ein Guthaben von 1.500 € wird 3 Jahre lang mit 2 % Zinseszins verzinst. Berechne das Endkapital und erkläre deinen Rechenweg.',
+      ],
+    ],
+    ergebnis: [
+      {
+        thema: 'terme-binome',
+        prozent: 79,
+        erklaerung:
+          'Deutlich verbessert: Mittelteil und Vorzeichen sind jetzt korrekt, auch bei (2a − 5)². Ein kleiner Rechenfehler beim Quadrieren von 2a (statt 4a² stand 2a²).',
+      },
+      {
+        thema: 'zinsrechnung',
+        prozent: 63,
+        erklaerung:
+          'Der Zinsfaktor 1,02 wurde erkannt, aber es wurde mit einfachen Zinsen (3 · 30 €) gerechnet statt mit 1,02³. Das Ergebnis liegt nah dran, ist aber nicht exakt (1.591,81 €).',
+      },
+    ],
+  },
 ];
 
 // ------------------------------------------------------------------ Lernpläne
@@ -1509,6 +2040,8 @@ interface LpSeed {
   vorTagen: number;
   /** checklist-Keys je Tag (Themen-IDs werden per `T()` eingesetzt) */
   checks: Record<string, string[]>;
+  /** chatMap: "<tag>|<modus>|<themaSlug>" → Chat-Slug (Chat muss in CHATS existieren) */
+  chatMap?: Record<string, string>;
   lernzettel: { content: string; vorTagen: number } | null;
 }
 
@@ -1577,6 +2110,60 @@ const LERNPLAENE: LpSeed[] = [
     vorTagen: 3,
     checks: {},
     lernzettel: null,
+  },
+  {
+    slug: 'km2',
+    klausur: 'km2',
+    tk1: 'km2-t1',
+    tk2: 'km2-t2',
+    vorTagen: 8,
+    checks: {
+      '2': ['terme-binome', 'zinsrechnung'].flatMap((t) => [
+        `fehler:${T(t)}`,
+        `beispiel:${T(t)}`,
+        `check:${T(t)}`,
+      ]),
+      '3': [
+        `abfragen:${T('terme-binome')}`,
+        `abfragen:${T('zinsrechnung')}`,
+        'gemischt',
+        'loesungen',
+      ],
+      '4': [`feynman:${T('terme-binome')}`, `feynman:${T('zinsrechnung')}`, 'wiederholung'],
+      '6': [`luecke:${T('zinsrechnung')}`, `frisch:${T('terme-binome')}`],
+      '7': ['selbsttest'],
+    },
+    chatMap: {
+      '2|erklaeren|terme-binome': 'lp-t2-terme-erkl',
+      '2|ueben|terme-binome': 'lp-t2-terme-check',
+      '2|erklaeren|zinsrechnung': 'lp-t2-zins-erkl',
+      '2|ueben|zinsrechnung': 'lp-t2-zins-check',
+      '3|ueben|terme-binome': 'lp-t3-terme',
+      '3|ueben|zinsrechnung': 'lp-t3-zins',
+      '4|erklaeren|terme-binome': 'lp-t4-terme-feynman',
+      '4|erklaeren|zinsrechnung': 'lp-t4-zins-feynman',
+      '4|ueben|terme-binome': 'lp-t4-terme-wdh',
+      '6|erklaeren|zinsrechnung': 'lp-t6-zins-luecke',
+      '6|ueben|terme-binome': 'lp-t6-terme-frisch',
+    },
+    lernzettel: {
+      vorTagen: 3,
+      content: `# Lernzettel
+
+### Terme & Binomische Formeln
+Die drei binomischen Formeln: **(a + b)² = a² + 2ab + b²**, **(a − b)² = a² − 2ab + b²**, **(a + b)(a − b) = a² − b²**. Bei den ersten beiden gibt es immer einen **doppelten Mittelteil** (2ab) — bei der dritten fällt er weg.
+
+**Typischer Fehler:** (x + 3)² = x² + 9 — der Mittelteil 6x fehlt.
+
+**Merksatz:** Quadrat vorn, Quadrat hinten, in der Mitte das Doppelte vom Produkt.
+
+### Zinsrechnung
+**Z = K · p/100 · t** — t immer in Jahren: Monate durch 12, Tage durch 360 teilen. Beim **Zinseszins** wird jedes Jahr auf das neue Kapital verzinst: **Kₙ = K₀ · qⁿ** mit q = 1 + p/100.
+
+**Typischer Fehler:** Jahreszinsen statt anteiliger Zinsen, und einfache Zinsen statt Zinseszins.
+
+**Merksatz:** Der Zinssatz gilt pro Jahr — kürzere Zeit bedeutet weniger Zinsen; Zinseszins heißt mal Zinsfaktor hoch Jahre.`,
+    },
   },
 ];
 
@@ -1655,7 +2242,7 @@ async function main() {
         data: {
           userId: U,
           monat: new Date(now).toISOString().slice(0, 7),
-          nachrichtenUsed: 139,
+          nachrichtenUsed: 181,
           nachrichtenLimit: L.nachrichten,
           dateienUsed: DATEIEN.length,
           dateienLimit: L.dateien,
@@ -1832,6 +2419,12 @@ async function main() {
             testklausur1Id: uid(`tk:${lp.tk1}`),
             testklausur2Id: lp.tk2 ? uid(`tk:${lp.tk2}`) : null,
             checklist,
+            chatMap: Object.fromEntries(
+              Object.entries(lp.chatMap ?? {}).map(([key, chatSlug]) => {
+                const [tag, modus, themaSlug] = key.split('|');
+                return [`${tag}|${modus}|${T(themaSlug!)}`, uid(`chat:${chatSlug}`)];
+              }),
+            ),
             tageErledigt: [],
             erstelltAm: daysAgo(lp.vorTagen),
             lernzettel: lp.lernzettel

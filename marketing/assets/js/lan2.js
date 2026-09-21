@@ -55,6 +55,7 @@
       key: 'chat',
       label: 'Chat',
       single: true,
+      flip: true,
       tone: 'dark',
       accent: 'var(--fach-teal)',
       eb: CHAT.eb,
@@ -68,7 +69,6 @@
       label: 'Zettel',
       single: true,
       tone: 'light',
-      flip: true,
       accent: 'var(--fach-amber)',
       eb: 'Lernzettel',
       h: 'Der ganze Klausurstoff, automatisch kompakt zusammengefasst.',
@@ -80,6 +80,7 @@
       key: 'org',
       label: 'Orga',
       single: true,
+      flip: true,
       dotsIn: 'none',
       tone: 'dark',
       accent: 'var(--fach-rose)',
@@ -630,7 +631,18 @@
     document.body.appendChild(panel);
   }
 
+  /* Eltern-Zugang: bleibt an seiner Stelle (von marketing.js gerendert); statt der Mini-Demo rechts steht ein Mockup (Platzhalter) */
+  function mountParentMockup() {
+    var sec = document.getElementById('parent');
+    var demo = sec && sec.querySelector('.pt-2col__demo');
+    if (!demo) return;
+    sec.classList.add('l2-parent');
+    demo.innerHTML =
+      '<figure class="l2-media l2-pm"><div class="l2-slides"><img class="l2-slide is-on" src="/assets/img/lan2/mockup-organisation.webp" alt="Platzhalter: Lesify Eltern-Zugang auf dem Tablet" width="1416" height="1117" loading="lazy" decoding="async"></div></figure>';
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
+    mountParentMockup();
     buildAll();
     if (VARIABLE.length) mountDev();
   });

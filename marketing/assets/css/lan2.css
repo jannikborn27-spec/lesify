@@ -507,3 +507,10 @@
   .l2h-s2 .l2h-nav { justify-content: space-between; }
   .l2h-ce { line-height: 1.35; }
 }
+
+/* Eltern-Zugang: Mockup statt Mini-Demo (Platzhalter), Section bleibt an ihrer Position */
+.l2-parent .pt-2col { align-items: center; }
+.l2-parent .pt-2col__demo { display: block; }
+.l2-pm { --l2-a: var(--fach-violet); isolation: isolate; width: 100%; }
+.l2-pm::before { content: ""; position: absolute; z-index: -1; inset: -4% -8%; background: radial-gradient(closest-side, color-mix(in srgb, var(--l2-a) 62%, transparent), transparent 100%); opacity: 0.5; }
+.l2-pm img { filter: drop-shadow(0 30px 40px rgba(0, 0, 0, 0.5)); }

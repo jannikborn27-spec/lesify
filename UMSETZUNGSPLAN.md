@@ -4426,4 +4426,7 @@ Kritisch, weil Zielgruppe minderjährig ist.
 - [x] Auswahl (2026-09-21): Chat = Links/Rechts, Lernzettel = Liste mit neuem Text (Headline „Der ganze Klausurstoff,
       automatisch kompakt zusammengefasst.", 3 Punkte mit neuen Icons). Damit sind alle `/lan2/`-Sections final,
       der Dev-Switcher ist entfernt (Code bleibt, `VARIABLE` leer).
+- [x] `/lan2/`: Mockup wechselt die Seite — Hero/Klausur rechts, Chat links, Lernzettel rechts, Organisation links; Eltern-
+      Zugang bleibt an seiner Stelle und zeigt statt der Mini-Demo ein Mockup (Platzhalter, rechts) — Bild später tauschen
+      (`mountParentMockup` in `lan2.js`).
 - [ ] Offen: entscheiden, ob `/lan2/` die Startseite ablöst.

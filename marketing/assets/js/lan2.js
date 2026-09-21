@@ -29,9 +29,6 @@
   var KVL = M.KVL,
     ORG = M.ORG,
     CHAT = M.CHAT;
-  var LZ_SNIPS = M.KVX.lernzettel;
-  var LZ_POINT = KVL.points[3];
-  var LZ_LEAD = M.TLDR.points[5].s;
 
   var SECTIONS = [
     { key: 'hero', label: 'Hero', tone: 'light', hero: true, single: true, accent: 'var(--fach-blue)' },
@@ -57,6 +54,7 @@
     {
       key: 'chat',
       label: 'Chat',
+      single: true,
       tone: 'dark',
       accent: 'var(--fach-teal)',
       eb: CHAT.eb,
@@ -68,12 +66,13 @@
     {
       key: 'lz',
       label: 'Zettel',
+      single: true,
       tone: 'light',
       flip: true,
       accent: 'var(--fach-amber)',
       eb: 'Lernzettel',
-      h: 'Ein Lernzettel, der die wichtigsten Infos automatisch notiert.',
-      lead: LZ_LEAD,
+      h: 'Der ganze Klausurstoff, automatisch kompakt zusammengefasst.',
+      lead: 'Aus der gesamten Klausurvorbereitung entsteht ein einziger Lernzettel, der Formeln, Definitionen und alles Wichtige übersichtlich und kompakt vereint.',
       imgs: ['mockup-lernzettel'],
       alt: 'Lesify Lernzettel „If-Sätze Type 1 und Type 2“ neben dem Chat zum gemeinsamen Überarbeiten'
     },
@@ -100,10 +99,7 @@
     { key: 'faecher', tone: 'light', fixed: true, accent: 'var(--fach-rose)' }
   ];
 
-  var NAMES = {
-    chat: ['Flanke', 'Links/Rechts'],
-    lz: ['Liste', 'Karten', 'Tabs', 'Overlay', 'Notizzettel']
-  };
+  var NAMES = {}; /* Dev-Switcher-Beschriftungen — aktuell keine offenen Varianten */
 
   /* ---------- Bausteine ---------- */
   /* Mockup als Slideshow-Stapel; Punkte nur, wenn s.slides > 1 (Klausur, Orga).
@@ -145,9 +141,6 @@
   function cta(label) {
     return '<a class="l2-cta" href="/preise/">' + label + ' ' + ARROW + '</a>';
   }
-  function ctaRow(label) {
-    return '<div class="l2-ctarow">' + cta(label) + '</div>';
-  }
   function ico(svg) {
     return '<span class="l2-ico">' + svg + '</span>';
   }
@@ -159,25 +152,6 @@
   }
 
   /* Interaktive Tabs: Buttons [data-l2t] + Panels [data-l2p] */
-  function tabs(btns, panels, cls) {
-    return (
-      '<div class="l2-tabs ' +
-      (cls || '') +
-      '" data-l2tabs><div class="l2-tabs__bar" role="tablist">' +
-      btns
-        .map(function (b, i) {
-          return '<button type="button" role="tab" data-l2t="' + i + '"' + (i === 0 ? ' class="is-on"' : '') + '>' + b + '</button>';
-        })
-        .join('') +
-      '</div><div class="l2-tabs__panels">' +
-      panels
-        .map(function (p, i) {
-          return '<div class="l2-tabs__p' + (i === 0 ? ' is-on' : '') + '" data-l2p="' + i + '" role="tabpanel">' + p + '</div>';
-        })
-        .join('') +
-      '</div></div>'
-    );
-  }
 
   /* Helle Sections: Text links + Mockup rechts (Bleed), optional Zusatzblock in voller Breite */
   function bleed(s, text, extra, after) {
@@ -193,9 +167,6 @@
     );
   }
   /* Dunkle Sections: Kopf mittig, Mockup, Inhalt drumherum (je Variante) */
-  function dark(s, body) {
-    return '<div class="l2-inner"><div class="container l2-4">' + head(s, true) + body + '</div></div>';
-  }
 
   /* ---------- Klausur (kv, hell) — final: Karten; Kennzahlen-Pills + CTA entfallen, die 7 Lerntage-Punkte stehen im Textblock ---------- */
   var KV = [
@@ -214,38 +185,9 @@
     }
   ];
 
-  /* ---------- KI-Chat (chat, dunkel) ---------- */
-  function perkCard(p, cls) {
-    return '<div class="l2-dc ' + (cls || '') + '">' + ico(p.icon) + '<b>' + p.title + '</b><span>' + p.text + '</span></div>';
-  }
-  function modeCard(m, cls) {
-    return '<div class="l2-dc is-mode ' + (cls || '') + '">' + ico(m.i) + '<b>' + m.l + '</b><span>' + m.d + '</span></div>';
-  }
+  /* ---------- KI-Chat (chat, dunkel) — final: Links/Rechts ---------- */
   var CHAT_V = [
-    /* 1 · Flanke — Perks links, Modi rechts vom Mockup */
-    function (s) {
-      return dark(
-        s,
-        '<div class="l2-4__grid"><div class="l2-4__side">' +
-          colH('Was den Chat besonders macht') +
-          CHAT.perks
-            .map(function (p) {
-              return perkCard(p);
-            })
-            .join('') +
-          '</div>' +
-          media(s, 'l2-4__media') +
-          '<div class="l2-4__side">' +
-          colH('Die vier Chat-Modi') +
-          CHAT.modes
-            .map(function (m) {
-              return modeCard(m, 'is-sm');
-            })
-            .join('') +
-          '</div></div>'
-      );
-    },
-    /* 2 · Links/Rechts — Text + Perks links, Mockup rechts (wie die hellen Sections), die vier Modi als Karten darunter */
+    /* Links/Rechts — Text + Perks links, Mockup rechts (wie die hellen Sections), die vier Modi als Karten darunter */
     function (s) {
       return bleed(
         s,
@@ -268,66 +210,29 @@
     }
   ];
 
-  /* ---------- Lernzettel (lz, hell) — ohne CTA und ohne Beispiel-Lernzettel-Karte ---------- */
+  /* ---------- Lernzettel (lz, hell) — final: Liste mit 3 Punkten (Icons für Materialien · automatisch · anpassbar) ---------- */
+  var LZ_ICO = {
+    material:
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Z"></path><path d="M14 3v5h5"></path><path d="M12 17v-6"></path><path d="m9.5 13.5 2.5-2.5 2.5 2.5"></path></svg>',
+    auto:
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8L12 3Z"></path><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15Z"></path></svg>',
+    edit:
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5C4 4.67 4.67 4 5.5 4h13c.83 0 1.5.67 1.5 1.5v9c0 .83-.67 1.5-1.5 1.5H10l-4 3.5V16h-.5C4.67 16 4 15.33 4 14.5v-9Z"></path><path d="M9 10.5h6"></path><path d="M9 7.5h3"></path></svg>'
+  };
+  var LZ_POINTS = [
+    { ic: 'material', t: 'Aus den eigenen Materialien', s: 'Der komplette Klausurstoff wird eigenständig strukturiert und kompakt zusammengefasst' },
+    { ic: 'auto', t: 'Automatisch erstellt', s: 'Der komplette Klausurstoff wird eigenständig strukturiert und kompakt zusammengefasst' },
+    { ic: 'edit', t: 'Jederzeit anpassbar', s: 'Über den Chat kann Ihr Kind den Lernzettel jederzeit an die eigenen Bedürfnisse anpassen' }
+  ];
   var LZ_V = [
-    /* 1 · Liste — Punkt + drei Auszüge als Icon-Zeilen */
     function (s) {
       return bleed(
         s,
         '<ul class="l2-prow">' +
-          li('', ico(M.KVL_ICON.doc) + '<div><b>' + LZ_POINT.t + '</b><span>' + LZ_POINT.s + '</span></div>') +
-          LZ_SNIPS.map(function (n) {
-            return li('', ico(M.KVL_ICON.check) + '<div><b>' + n.h + '</b><span>' + n.b + '</span></div>');
+          LZ_POINTS.map(function (p) {
+            return li('', ico(LZ_ICO[p.ic]) + '<div><b>' + p.t + '</b><span>' + p.s + '</span></div>');
           }).join('') +
           '</ul>'
-      );
-    },
-    /* 2 · Karten — die drei Auszüge als „Zettel" in voller Breite */
-    function (s) {
-      return bleed(
-        s,
-        '',
-        '<div class="l2-row r3">' +
-          LZ_SNIPS.map(function (n) {
-            return '<div class="l2-snip is-paper"><b>' + n.h + '</b><span>' + n.b + '</span></div>';
-          }).join('') +
-          '</div>'
-      );
-    },
-    /* 3 · Tabs — Bruchterm kürzen · Bruchgleichung lösen · Typischer Fehler umschaltbar */
-    function (s) {
-      return bleed(
-        s,
-        tabs(
-          LZ_SNIPS.map(function (n) {
-            return n.h;
-          }),
-          LZ_SNIPS.map(function (n) {
-            return '<b>' + n.h + '</b><span>' + n.b + '</span>';
-          })
-        )
-      );
-    },
-    /* 4 · Overlay — die drei Auszüge als Zettel-Karte über dem Mockup */
-    function (s) {
-      var card =
-        '<div class="l2-ov__card">' +
-        LZ_SNIPS.map(function (n) {
-          return '<p><b>' + n.h + '</b>' + n.b + '</p>';
-        }).join('') +
-        '</div>';
-      return bleed(s, '', '', card);
-    },
-    /* 5 · Notizzettel — leicht schräge Klebezettel, „Typischer Fehler" als Warn-Zettel */
-    function (s) {
-      return bleed(
-        s,
-        '',
-        '<div class="l2-notes">' +
-          LZ_SNIPS.map(function (n, i) {
-            return '<div class="l2-note-c' + (i === LZ_SNIPS.length - 1 ? ' is-warn' : '') + '"><b>' + n.h + '</b><span>' + n.b + '</span></div>';
-          }).join('') +
-          '</div>'
       );
     }
   ];
@@ -548,7 +453,7 @@
   }
 
   /* ---------- Build ---------- */
-  var MAXV = { chat: 2, lz: 5 };
+  var MAXV = {};
   function stored(key) {
     try {
       var v = parseInt(localStorage.getItem('lesify:lan2:' + key + ':c'), 10);
@@ -727,6 +632,6 @@
 
   document.addEventListener('DOMContentLoaded', function () {
     buildAll();
-    mountDev();
+    if (VARIABLE.length) mountDev();
   });
 })();

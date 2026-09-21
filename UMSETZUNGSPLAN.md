@@ -4423,4 +4423,7 @@ Kritisch, weil Zielgruppe minderjährig ist.
       Lerntage-Punkte stehen im Textblock) · Organisation = Karten unten (ohne Pills/CTA/Punkte, Navigation über die drei
       Karten) · Chat = Flanke + neue Links/Rechts-Variante · Lernzettel = Liste (ohne CTA/Beispiel-Karte) + 4 neue
       Darstellungen der Auszüge (Karten, Tabs, Overlay, Notizzettel). Dev-Switcher nur noch für Chat und Lernzettel.
-- [ ] Offen: Darstellung je Section wählen → Dev-Switcher entfernen; danach entscheiden, ob `/lan2/` die Startseite ablöst.
+- [x] Auswahl (2026-09-21): Chat = Links/Rechts, Lernzettel = Liste mit neuem Text (Headline „Der ganze Klausurstoff,
+      automatisch kompakt zusammengefasst.", 3 Punkte mit neuen Icons). Damit sind alle `/lan2/`-Sections final,
+      der Dev-Switcher ist entfernt (Code bleibt, `VARIABLE` leer).
+- [ ] Offen: entscheiden, ob `/lan2/` die Startseite ablöst.

@@ -130,7 +130,7 @@
     }
     /* Punkte: unter dem Bild (Standard), im Textblock (dotsIn 'text') oder gar nicht (dotsIn 'none') */
     var dots = n > 1 && !s.dotsIn ? slideDots(s) : '';
-    return '<figure class="l2-media ' + (s.flat ? 'is-flat ' : '') + cls + '"' + (n > 1 ? ' data-l2show' : '') + '><div class="l2-slides">' + pics + (after || '') + '</div>' + dots + '</figure>';
+    return '<figure class="l2-media ' + (s.flat ? 'is-flat ' : '') + cls + '" style="--iw:' + s.dims[0] + '"' + (n > 1 ? ' data-l2show' : '') + '><div class="l2-slides">' + pics + (after || '') + '</div>' + dots + '</figure>';
   }
   function head(s, center) {
     return (
@@ -644,6 +644,7 @@
     var demo = sec && sec.querySelector('.pt-2col__demo');
     if (!demo) return;
     sec.classList.add('l2-parent');
+    demo.style.transform = 'none'; /* die Original-Demo ist per CSS auf 0.9 skaliert — das Mockup soll exakt --mk haben */
     demo.innerHTML =
       '<figure class="l2-media l2-pm"><div class="l2-slides"><img class="l2-slide is-on" src="/assets/img/lan2/section-eltern-zugang.webp" alt="Lesify Eltern-Zugang auf dem Tablet" width="1416" height="1116" loading="lazy" decoding="async"></div></figure>';
   }

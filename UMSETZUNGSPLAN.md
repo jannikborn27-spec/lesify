@@ -4445,4 +4445,7 @@ Kritisch, weil Zielgruppe minderjährig ist.
       `assets/img/lan2/`: Hero `hero-1…4`, Klausur `section-kv-1…7` (7 Folien), Chat, Lernzettel, Orga `fach/thema/dateien`
       (3 Folien), Eltern-Zugang. Tablet-only-Bilder haben den Schatten im Bild (`.is-flat`). Die PNG-Originale in
       `images-fin/` sind nicht im Repo (nur Quellordner).
+- [x] `/lan2/`: EIN Größenpunkt für alle Mockups — CSS-Variable `--mk` (0.386 px pro Quellbild-Pixel = die Größe des
+      Eltern-Zugang-Mockups) in `lan2.css`; Hero, Klausur, Chat, Lernzettel, Orga und Eltern-Zugang messen bei 1440 px
+      Viewport alle exakt 0.386. Zum Justieren nur `--mk` ändern.
 - [ ] Offen: entscheiden, ob `/lan2/` die Startseite ablöst.

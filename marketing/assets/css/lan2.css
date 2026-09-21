@@ -464,13 +464,9 @@
 .l2-scard.is-current, .l2-cards li.is-current { border-color: var(--l2-ac); background: rgba(255, 255, 255, 0.1); }
 .l2-path li.is-current b { color: var(--l2-ac); }
 
-/* Hero 6 · Groß: Textspalte bleibt das Original-Raster; die Bühne wächst nur in den freien Platz rechts (bis 1 rem vor den
-   Viewport-Rand) und leicht in die Spaltenlücke — Start = 50vw + 32px, Breite = 50vw ab 1200px Viewport. */
+/* Hero: Textspalte = Original-Raster; Bühnengröße kommt vom sitewiden --mk (siehe unten) */
 @media (min-width: 1200px) {
   .l2h-s6 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-  .l2h-s6 .l2h-wrap { width: 50vw; margin-left: -3rem; justify-self: start; }
-  /* 6.1–6.3: Zwischenstufen zwischen V2 (Spaltenbreite = 100 %) und V6 (50vw) */
-  .l2h-k2 .l2h-wrap { width: calc(100% + 0.5 * (50vw - 100%)); margin-left: -1.5rem; }
 }
 
 
@@ -510,10 +506,24 @@
 
 /* Eltern-Zugang: Mockup statt Mini-Demo (Platzhalter), Section bleibt an ihrer Position */
 .l2-parent .pt-2col { align-items: center; }
-.l2-parent .pt-2col__demo { display: block; }
+.l2-parent .pt-2col__demo { display: block; transform: none; }
 .l2-pm { --l2-a: var(--fach-violet); isolation: isolate; width: 100%; }
 .l2-pm::before { content: ""; position: absolute; z-index: -1; inset: -4% -8%; background: radial-gradient(closest-side, color-mix(in srgb, var(--l2-a) 62%, transparent), transparent 100%); opacity: 0.5; }
 .l2-pm img { filter: drop-shadow(0 30px 40px rgba(0, 0, 0, 0.5)); }
 
 /* Tablet-only-Mockups (Klausur, Lernzettel, Orga) haben den Schatten schon im Bild */
 .l2-media.is-flat img { filter: none; }
+
+/* ============================================================
+   EIN Größenpunkt für alle Mockups (sitewide): --mk = Darstellungsgröße in px pro Bildpunkt des Quellbilds
+   (alle Quellbilder haben denselben Maßstab in ihrer 2000-px-Fläche, die Zuschnitte sind nur unterschiedlich groß).
+   0.386 = die Größe des Eltern-Zugang-Mockups bei 1440 px Viewport. Zum Justieren NUR diesen Wert ändern.
+   ============================================================ */
+:root { --mk: 0.386; }
+@media (min-width: 901px) {
+  .l2-2__media, .is-flip .l2-2__media { width: min(100%, calc(var(--iw) * 1px * var(--mk))); margin: 0; justify-self: center; }
+}
+.l2-pm { --iw: 1416; width: min(100%, calc(var(--iw) * 1px * var(--mk))); margin-inline: auto; }
+@media (min-width: 1200px) {
+  .l2h-s6 .l2h-wrap, .l2h-k2 .l2h-wrap { width: min(calc(1415px * var(--mk)), calc(50vw - 1rem)); margin-left: -1.5rem; justify-self: start; }
+}

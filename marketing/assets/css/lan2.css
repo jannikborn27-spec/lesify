@@ -12,6 +12,9 @@
 }
 .l2 .container { max-width: 1240px; }
 .l2-inner { overflow-x: clip; }
+/* Überstand der Medien über das Raster: höchstens so weit wie der Seitenrand (Gutter
+   + Leerraum neben dem Container) — sonst schneidet overflow-x: clip das Bild am Viewport ab. */
+.l2-inner { --l2-bleed: min(9vw, calc(var(--gutter) + max(0px, (100vw - 1240px) / 2))); }
 
 /* ---------- Tonwerte ---------- */
 .l2.is-light {
@@ -81,10 +84,10 @@
 
 /* ---------- Hell: Bleed-Layout ---------- */
 .l2-2 { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(1.5rem, 3vw, 3rem); align-items: center; }
-.l2-2__media { margin-right: -9vw; width: calc(100% + 9vw); }
+.l2-2__media { margin-right: calc(-1 * var(--l2-bleed)); width: calc(100% + var(--l2-bleed)); }
 .is-flip .l2-2 { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
 .is-flip .l2-2__text { order: 2; }
-.is-flip .l2-2__media { order: 1; margin-right: 0; margin-left: -9vw; }
+.is-flip .l2-2__media { order: 1; margin-right: 0; margin-left: calc(-1 * var(--l2-bleed)); }
 .l2-extra { margin-top: clamp(3rem, 6vw, 5.5rem); }
 
 /* Text-Spalte: Listen */
@@ -284,7 +287,7 @@
 @media (max-width: 900px) {
   .l2-2, .is-flip .l2-2, .l2-2col { grid-template-columns: 1fr; }
   .l2.is-light, .l2.is-light.is-flip { background: linear-gradient(180deg, var(--bg-canvas) 0 38%, var(--l2-tint) 38% 100%); }
-  .l2-2__media, .is-flip .l2-2__media { order: 2; margin: 0 -6vw; width: calc(100% + 12vw); }
+  .l2-2__media, .is-flip .l2-2__media { order: 2; margin: 0 calc(-1 * min(6vw, var(--gutter))); width: calc(100% + 2 * min(6vw, var(--gutter))); }
   .is-flip .l2-2__text { order: 1; }
   .l2-cards.c3, .l2-row.r3 { grid-template-columns: 1fr; }
   .l2-bento { grid-template-columns: 1fr 1fr; }
@@ -443,7 +446,7 @@
   .l2-ann::before, .l2-ann::after { display: none; }
 }
 @media (max-width: 900px) {
-  .l2h-s { grid-template-columns: 1fr; }
+  .l2h-s { grid-template-columns: minmax(0, 1fr); }
   .l2h-card { position: relative !important; left: auto !important; bottom: auto !important; transform: none !important; width: auto !important; margin-top: 1rem; }
   .l2-o2__c { position: static; width: auto; margin-top: 1rem; }
   .l2-o2__c.c0, .l2-o2__c.c1, .l2-o2__c.c2 { inset: auto; }
@@ -488,3 +491,19 @@
 .l2-note-c.is-warn::before { background: color-mix(in srgb, var(--rot) 35%, #fff); }
 .l2-note-c.is-warn b { color: var(--rot); }
 @media (max-width: 900px) { .l2-notes { grid-template-columns: 1fr; } }
+
+/* Touch-Ziele (≥ 44px): unsichtbare Trefferfläche für kleine Regler. */
+@media (max-width: 1024px) {
+  .l2-dots__d, .l2h-dots button, .l2h-arrows button { position: relative; }
+  .l2-dots__d::after { content: ""; position: absolute; inset: -5px; }
+  .l2h-dots button::after { content: ""; position: absolute; inset: -19px -3px; }
+  .l2h-arrows button::after { content: ""; position: absolute; inset: -8px; border-radius: 50%; }
+}
+
+/* Hero-Karte (Variante 2) auf schmalen Phones: Text + Steuerung stapeln statt nebeneinander,
+   sonst überlappen Zähler/Punkte den Titel. */
+@media (max-width: 600px) {
+  .l2h-s2 .l2h-card { flex-direction: column; align-items: stretch; gap: 0.8rem; }
+  .l2h-s2 .l2h-nav { justify-content: space-between; }
+  .l2h-ce { line-height: 1.35; }
+}

@@ -2099,4 +2099,22 @@ body[data-page="preise"] { background: var(--ink-950); }
   .auth-card__back,
   .mkt-nav--minimal .mkt-nav__back { min-height: 44px; }
   .field .hint { display: inline-flex; align-items: center; min-height: 44px; }
+
+  /* Header wird beim Scrollen auf scale(0.98) verkleinert (.is-scrolled) —
+     44px * 0.98 = 43,1px. Mindestmaß daher 45px, damit es gerendert ≥ 44px bleibt. */
+  .brand,
+  .nav-toggle,
+  .mkt-nav__links a,
+  .mkt-nav__actions .mkt-nav__link,
+  .mkt-nav__actions .btn { min-height: 45px; }
+  .nav-toggle { min-width: 45px; }
+
+  /* Alleinstehende Links (Auth-Fuß, Kontaktdaten) und Checkbox-Zeilen:
+     Trefferfläche ≥ 44px über Padding, per negativem Margin layout-neutral. */
+  .auth-alt a,
+  .contact-info a { display: inline-block; padding-block: 13px; margin-block: -13px; }
+  .check-row { padding-block: 14px; margin-block: -14px; margin-bottom: calc(var(--sp-5) - 14px); }
+
+  /* Kleinstes Label (Preis-Karte) auf lesbare Mindestgröße. */
+  .price-card__tag, .price-toggle button i { font-size: 0.72rem; }
 }

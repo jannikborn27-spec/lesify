@@ -250,7 +250,7 @@ h1 em::after { content: ""; position: absolute; left: -2px; right: -2px; bottom:
 }
 .hv9__panel { position: absolute; inset: 0 0 0 50%; background: var(--ink-50); border-left: 1px solid var(--line); z-index: -1; }
 @media (min-width: 900px) { .hv9__panel { clip-path: polygon(12% 0, 100% 0, 100% 100%, 0% 100%); } }
-.hv9__grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(2rem, 1rem + 4vw, 4rem); align-items: center; }
+.hv9__grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(2rem, 1rem + 4vw, 4rem); align-items: center; }
 .hv9 h1 { font-size: clamp(2rem, 1.2rem + 3.4vw, 3.8rem); margin: 1.1rem 0 0; letter-spacing: -0.035em; }
 .hv9 .lab-lead { margin-top: 1.2rem; }
 
@@ -1997,12 +1997,13 @@ body[data-page="ueber-uns"] .site-footer::before {
   .org-cv__scard, .org-cv__scard[data-active], .org-cv__scard-ic { transition: none; transform: none; }
 }
 @media (max-width: 720px) {
-  .orgx__split { grid-template-columns: 1fr; }
-  .orgx--rail .orgx__split { grid-template-columns: 1fr; }
+  .orgx__split { grid-template-columns: minmax(0, 1fr); }
+  .orgx--rail .orgx__split { grid-template-columns: minmax(0, 1fr); }
   .orgx__nav { border-right: 0; border-bottom: 1px solid var(--line); }
   .orgx__rail { flex-direction: row; border-right: 0; border-bottom: 1px solid var(--line); padding: 8px 12px; gap: 6px; }
   .orgx__rail-brand { margin-bottom: 0; }
-  .orgx__rail-nav { flex-direction: row; width: auto; }
+  .orgx__rail-nav { flex-direction: row; width: auto; min-width: 0; }
+  .orgx__rail-i { flex: 0 1 32px; min-width: 24px; }
   .orgx__rail-div { width: 1px; height: 18px; margin: 0 4px; }
   .orgx__rail-av { margin: 0 0 0 auto; }
   .orgx__steps { flex-direction: row; gap: 6px; }
@@ -3304,6 +3305,7 @@ body[data-page="preise"][data-price-color="7"] #price-section .price-voices__avr
   .hv6__headline, .hv6__prod, .hv6__trust { grid-column: span 2; }
 }
 @media (max-width: 900px) {
+  .hv9__grid { grid-template-columns: minmax(0, 1fr); }
   .hv2__grid, .hv5__grid, .hv9__grid, .av1__grid, .av4__grid, .av5, .sv2__grid, .xv3__grid, .rv5, .fv2__row { grid-template-columns: 1fr; }
   .hv9__panel { position: static; display: none; }
   .hv5__rail { border-left: 0; border-top: 1px solid var(--line-strong); flex-direction: row; flex-wrap: wrap; }
@@ -4080,9 +4082,10 @@ body[data-page="preise"][data-price-color="7"] #price-section .price-voices__avr
   .hs-arrow::after { content: ""; position: absolute; inset: -8px; border-radius: 50%; }
   .kvl-dots__d::after { content: ""; position: absolute; inset: -7px; border-radius: 50%; }
   .price-toggle button::after { content: ""; position: absolute; inset: -8px -2px; }
-  .sv--price4 .price-seats__segrow button::after { content: ""; position: absolute; inset: -8px -3px; }
+  .sv--price4 .price-seats__segrow button::after { content: ""; position: absolute; inset: -8px -5px; }
   .layout-dev-seg button::after { content: none; }
 
   /* Sehr kleine Fließtext-Labels (Eyebrows) auf lesbare Mindestgröße. */
   .hv9v2__eyebrow, .orgx-eyebrow, .orgx-sec-h, .kvl__badge { font-size: 0.72rem; }
+  .chat-app__hint { font-size: 0.72rem; }
 }

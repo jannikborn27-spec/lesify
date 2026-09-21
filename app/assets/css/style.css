@@ -1181,6 +1181,16 @@ textarea.input { height: auto; padding: 12px 14px; min-height: 90px; resize: ver
 .pdf-slot.is-boxed { border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 18px; }
 .pdf-loading { width: 100%; padding: 48px 20px; text-align: center; color: var(--ink-500); font-size: 0.85rem; background: var(--ink-50); }
 
+/* Lernplan Tag 7 — Lernzettel als kleine PDF-Vorschau mit Download */
+.lp-lz-card { max-width: 520px; margin: 14px 0; border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden; background: var(--bg-surface); }
+.lp-lz-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.lp-lz-title { font-weight: 600; font-size: 0.9rem; color: var(--ink-900); }
+.lp-lz-foot { padding: 10px 14px; border-top: 1px solid var(--line); }
+.lp-pdf-mini .pdf-pages { height: 300px; min-height: 0; padding: 12px; }
+.lp-pdf-mini .pdf-frame { height: 300px; min-height: 0; }
+.lp-pdf-mini .pdf-loading { padding: 40px 16px; }
+@media (max-width: 560px) { .lp-lz-head { flex-wrap: wrap; } }
+
 /* =========================================================
    Download / Upload panel — Testklausur
    ========================================================= */

@@ -1358,9 +1358,16 @@
   function lpTag7Body(s, lernplanId) {
     if (!s.tag1.erledigt) return '<p class="ap-nt-none">Der leichte Abschlusstag — kommt, wenn der Rest des Plans steht.</p>';
     var lp = s.lernplan;
+    var pdfPfad = '/lernplaene/' + lernplanId + '/lernzettel/dokument';
     var spickBlock = lp.lernzettel
-      ? '<div class="split-doc lp-lernzettel-preview">' + lpMdBlocks(lp.lernzettel.content, 3) + '</div>' +
-        '<div style="margin-top:8px"><a class="section-link" href="lernplan-lernzettel.html?lernplan=' + lernplanId + '">Ganzen Lernzettel öffnen ' + Icons.arrowRight + '</a></div>'
+      ? '<div class="lp-lz-card">' +
+          '<div class="lp-lz-head">' +
+            '<span class="lp-lz-title">Dein Lernzettel</span>' +
+            '<button type="button" class="btn btn-secondary btn-sm" data-lp-lz-download="' + pdfPfad + '" data-lp-lz-name="lernzettel-' + Lesify.slugify((s.klausur && s.klausur.titel) || 'lernplan') + '">' + Icons.download + ' Als PDF herunterladen</button>' +
+          '</div>' +
+          '<div class="pdf-slot lp-pdf-mini" data-lp-pdf="' + pdfPfad + '"></div>' +
+          '<div class="lp-lz-foot"><a class="section-link" href="lernplan-lernzettel.html?lernplan=' + lernplanId + '">Ganzen Lernzettel öffnen ' + Icons.arrowRight + '</a></div>' +
+        '</div>'
       : '<p class="ap-nt-none">Noch kein Lernzettel — der Selbsttest geht trotzdem, dann eben frei.</p>';
     var summary = s.tag7.erledigt
       ? '<p class="ap-topic-verdict" style="margin-top:14px">Lernplan abgeschlossen. Du bist vorbereitet.</p>'
@@ -1556,6 +1563,17 @@
       await Lesify.getLernplan(lernplanId);
       if (onChange) onChange();
     }
+
+    // Tag 7: kleine PDF-Vorschau des Lernzettels + Download-Button.
+    qsa('[data-lp-pdf]', root).forEach(function (slot) {
+      pdfVorschau(slot, slot.getAttribute('data-lp-pdf')).catch(function () {});
+    });
+    qsa('[data-lp-lz-download]', root).forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        pdfDownload(btn.getAttribute('data-lp-lz-download'), btn.getAttribute('data-lp-lz-name'))
+          .catch(function (err) { toast(Lesify.fehlerText(err)); });
+      });
+    });
 
     // Manuell „Tag abschließen" = alle Checklisten-Punkte des Tages setzen.
     qsa('[data-lp-done]', root).forEach(function (btn) {

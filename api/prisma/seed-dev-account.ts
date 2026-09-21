@@ -1627,20 +1627,29 @@ async function main() {
           kiTonfall: KiTonfall.freundlich,
         },
       });
-      await tx.abo.create({
-        data: {
-          id: aboId,
-          ownerUserId: U,
-          paket: AboPaket.premium,
-          art: AboArt.einzel,
-          sitze: 1,
-          intervall: AboIntervall.monatlich,
-          status: AboStatus.aktiv,
-          aktuellerZeitraumEnde: periodenEnde,
-          erstelltAm: daysAgo(45),
-        },
-      });
-      await tx.user.update({ where: { id: U }, data: { aboId } });
+      // Ist der Account einem Elternkonto zugeordnet (seed-eltern-account.ts),
+      // gehört er zu dessen Familien-Abo — dann kein eigenes Abo anlegen.
+      const elternAbo = dev.parentUserId
+        ? await tx.abo.findFirst({ where: { ownerUserId: dev.parentUserId } })
+        : null;
+      if (elternAbo) {
+        await tx.user.update({ where: { id: U }, data: { aboId: elternAbo.id } });
+      } else {
+        await tx.abo.create({
+          data: {
+            id: aboId,
+            ownerUserId: U,
+            paket: AboPaket.premium,
+            art: AboArt.einzel,
+            sitze: 1,
+            intervall: AboIntervall.monatlich,
+            status: AboStatus.aktiv,
+            aktuellerZeitraumEnde: periodenEnde,
+            erstelltAm: daysAgo(45),
+          },
+        });
+        await tx.user.update({ where: { id: U }, data: { aboId } });
+      }
       const L = PLAN_LIMITS.premium;
       await tx.usage.create({
         data: {

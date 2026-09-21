@@ -3021,6 +3021,14 @@ Grundlage: `backend-planning.md` §1. Reihenfolge so, dass FKs immer schon exist
       Offsets relativ zu „heute" → bei Bedarf neu laufen lassen.
       Nebenbei: Chat/Lernzettel rendern KI-Text jetzt als Markdown
       (`LesifyUI.mdToHtml`, escaped) + Fallback gegen gecachtes altes app.js._
+- [x] **Beispiel-Elternaccount für Screenshots** — _2026-09-21:
+      `api/prisma/seed-eltern-account.ts` (nach `seed-dev-account.ts`
+      ausführen): `eltern@lesify.de` (Sabine Müller) mit Familien-Abo Premium
+      (2 Sitze) und zwei Kindern — Lena M. (= Dev-Account, wird verknüpft und
+      teilt sich das Familien-Abo) und Jonas Müller (6. Klasse, Kind-Profil
+      ohne Login, mit 2 Fächern / 2 Chats / Klausur + Testklausur 1 +
+      Lernplan). `seed-dev-account.ts` behält die Verknüpfung bei erneutem
+      Lauf. Aufruf: `pnpm --filter ./api exec tsx prisma/seed-eltern-account.ts`._
 - [x] **backend-planning.md aktualisieren** — _2026-09-04: §1 um „Umsetzung:
       Prisma-Schema" ergänzt (userId-Denormalisierung, `email` nullable+unique,
       1:1-`unique` auf Lernplan-Testklausur-FKs, Enum-Namen, Löschverhalten,

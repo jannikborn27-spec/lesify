@@ -4448,4 +4448,12 @@ Kritisch, weil Zielgruppe minderjährig ist.
 - [x] `/lan2/`: EIN Größenpunkt für alle Mockups — CSS-Variable `--mk` (0.386 px pro Quellbild-Pixel = die Größe des
       Eltern-Zugang-Mockups) in `lan2.css`; Hero, Klausur, Chat, Lernzettel, Orga und Eltern-Zugang messen bei 1440 px
       Viewport alle exakt 0.386. Zum Justieren nur `--mk` ändern.
+- [x] Mockup-Größe korrigiert: `--mk` (Hero) und `--mk2` (Klausur/Chat/Lernzettel/Orga/Eltern-Zugang) sind jetzt fluid
+      (wachsen mit der Viewport-Breite über 1440px, z. B. auf 1920×1080 sichtbar größer) statt an der 1240px-
+      Container-Deckelung hängenzubleiben — die Bilder bluten dafür über ihre Grid-Spalte in den Seitenrand
+      (`.l2-inner`/`.l2-parent` schneiden sauber an der Viewport-Kante ab, kein horizontales Scrollen). `--mk2` liegt
+      etwas über `--mk` (leicht größer, wie gewünscht).
+- [x] Hero-Karte (V6.2): Titelzeile + Navigation standen nebeneinander in einer Zeile und der längste Folientitel
+      („Verständlich, sicher, für Schüler entwickelt") brach um. Jetzt zwei Zeilen (Icon+Titel, darunter Zähler/
+      Punkte/Pfeile) — alle vier Folientitel passen einzeilig.
 - [ ] Offen: entscheiden, ob `/lan2/` die Startseite ablöst.

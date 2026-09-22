@@ -427,12 +427,14 @@
 /* Split-Layouts: Text links wie auf der Startseite, Bühne + Karten rechts — im Container statt am Rand fixiert */
 /* 1 · Karte überlappt */
 /* 2 · Karte darunter (flache Leiste) */
-.l2h-s2 .l2h-card { display: flex; align-items: center; justify-content: space-between; gap: 1.2rem; margin-top: 1rem; padding: 14px 18px; }
-.l2h-s2 .l2h-cslides { flex: 1; min-width: 0; }
+/* Icon+Text als eigene Zeile, Navigation (Zähler/Punkte/Pfeile) darunter als zweite Zeile — sonst konkurrieren
+   Titeltext und Navigation um dieselbe Zeile und der längste Folientitel bricht um (siehe l2h-ct). */
+.l2h-s2 .l2h-card { display: flex; flex-direction: column; align-items: stretch; gap: 0.8rem; margin-top: 1rem; padding: 14px 18px; }
+.l2h-s2 .l2h-cslides { min-width: 0; }
 .l2h-s2 .l2h-cs.is-active { display: grid; grid-template-columns: auto 1fr; column-gap: 12px; align-items: center; }
 .l2h-s2 .l2h-ci { grid-row: span 2; margin: 0; }
-.l2h-s2 .l2h-ct { margin-top: 2px; font-size: 1rem; }
-.l2h-s2 .l2h-nav { margin-top: 0; gap: 1rem; flex-shrink: 0; }
+.l2h-s2 .l2h-ct { margin-top: 2px; font-size: 1rem; white-space: nowrap; }
+.l2h-s2 .l2h-nav { margin-top: 0; gap: 1rem; justify-content: space-between; }
 /* 3 · Tab-Leiste */
 /* 4 · Karte im Text */
 /* 5 · Karte oben rechts */
@@ -505,6 +507,7 @@
 }
 
 /* Eltern-Zugang: Mockup statt Mini-Demo (Platzhalter), Section bleibt an ihrer Position */
+.l2-parent { overflow-x: clip; } /* Sicherheitsrand für das überstehende Mockup unten, wie .l2-inner bei den anderen Sections */
 .l2-parent .pt-2col { align-items: center; }
 .l2-parent .pt-2col__demo { display: block; transform: none; }
 .l2-pm { --l2-a: var(--fach-violet); isolation: isolate; width: 100%; }
@@ -515,15 +518,25 @@
 .l2-media.is-flat img { filter: none; }
 
 /* ============================================================
-   EIN Größenpunkt für alle Mockups (sitewide): --mk = Darstellungsgröße in px pro Bildpunkt des Quellbilds
-   (alle Quellbilder haben denselben Maßstab in ihrer 2000-px-Fläche, die Zuschnitte sind nur unterschiedlich groß).
-   0.386 = die Größe des Eltern-Zugang-Mockups bei 1440 px Viewport. Zum Justieren NUR diesen Wert ändern.
+   Größenpunkte für alle Mockups: --mk (Hero) und --mk2 (Klausur/Chat/Lernzettel/Orga/Eltern-Zugang) = Darstellungs-
+   größe in px pro Bildpunkt des Quellbilds. Beide sind fluid (wachsen mit der Viewport-Breite über 1440px hinaus,
+   z. B. auf einem 1920×1080-Bildschirm), damit die Mockups auf großen Monitoren nicht zu klein wirken — unterhalb
+   von 1440px bleiben sie auf ihrem Basiswert stehen. Zum Justieren NUR die Basiswerte (erste clamp-Zahl) ändern.
    ============================================================ */
-:root { --mk: 0.386; }
-@media (min-width: 901px) {
-  .l2-2__media, .is-flip .l2-2__media { width: min(100%, calc(var(--iw) * 1px * var(--mk))); margin: 0; justify-self: center; }
+:root {
+  --mk: clamp(0.386, calc(0.386 * (100vw / 1440px)), 0.56);
+  --mk2: clamp(0.44, calc(0.44 * (100vw / 1440px)), 0.64);
 }
-.l2-pm { --iw: 1416; width: min(100%, calc(var(--iw) * 1px * var(--mk))); margin-inline: auto; }
+/* Kein min(100%, …)-Deckel mehr: der Container ist bei 1240px gedeckelt (.l2 .container), das Bild darf über die
+   Spalte hinaus in den Rand bluten (wie --l2-bleed) — dadurch wächst es auf breiten Monitoren (1920px+) wirklich
+   mit, statt an der Spaltenbreite hängenzubleiben. justify-self hält die textzugewandte Kante an der Spaltengrenze,
+   der Überstand geht nach außen (kein Überlappen des Texts); .l2-inner/.l2-parent schneiden ihn an der Viewport-
+   Kante sauber ab. */
+@media (min-width: 901px) {
+  .l2-2__media { width: calc(var(--iw) * 1px * var(--mk2)); margin: 0; justify-self: start; }
+  .is-flip .l2-2__media { width: calc(var(--iw) * 1px * var(--mk2)); margin: 0; justify-self: end; }
+}
+.l2-pm { --iw: 1416; width: calc(var(--iw) * 1px * var(--mk2)); margin-inline: 0; }
 @media (min-width: 1200px) {
   .l2h-s6 .l2h-wrap, .l2h-k2 .l2h-wrap { width: min(calc(1415px * var(--mk)), calc(50vw - 1rem)); margin-left: -1.5rem; justify-self: start; }
 }

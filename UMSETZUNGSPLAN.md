@@ -129,9 +129,15 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
 
 ### 3. Recht & Texte (Phase 13) — keine Code-Aufgabe, blockiert aber den Launch
 
-- [ ] **Impressum / Datenschutzerklärung / AGB** mit echten Angaben füllen
+- [~] **Impressum / Datenschutzerklärung / AGB** mit echten Angaben füllen
       (`marketing/impressum.html`, `datenschutz.html`, `agb.html`) und
-      juristisch prüfen lassen.
+      juristisch prüfen lassen. _2026-09-22: echte Angaben eingetragen
+      (Jannik Born, Bergstraße 81, 35418 Buseck, Wirtschafts-ID DE444591259 —
+      übernommen aus dem Impressum von aborn-media.de, selbe Person/Kleinunternehmer-Status).
+      Datenschutz um Hosting-/Auftragsverarbeiter-Abschnitt (GitHub Pages,
+      Railway, Supabase, Resend, Stripe) + Google-Fonts-Hinweis ergänzt. AGB um
+      das bislang fehlende Widerrufsrecht + Muster-Widerrufsformular ergänzt.
+      **Weiterhin offen:** juristische Prüfung durch eine:n Anwalt:in._
 - [ ] **Auftragsverarbeitungsverträge** mit Anthropic + Sub-Prozessoren
       (Supabase, Stripe, Hoster) abschließen, fürs Verarbeitungsverzeichnis.
 - [x] **KI-Nutzungshinweis-Text ergänzt** (2026-09-14): `chat.html`s
@@ -4215,9 +4221,12 @@ Kritisch, weil Zielgruppe minderjährig ist.
 > müssen (Texte schreiben, Verträge abschließen, juristische Prüfung), bleibt
 > offen und ist in der Schlussliste gesammelt._
 
-- [ ] **Impressum / Datenschutzerklärung / AGB** mit echten Angaben füllen
+- [~] **Impressum / Datenschutzerklärung / AGB** mit echten Angaben füllen
       (`marketing/impressum.html`, `datenschutz.html`, `agb.html`) — rechtlich
-      prüfen lassen. _Textarbeit + Anwalt, kein Code._
+      prüfen lassen. _Textarbeit + Anwalt, kein Code. 2026-09-22: echte
+      Angaben (Jannik Born / Aborn Media-Adresse & Wirtschafts-ID),
+      Hosting-/Auftragsverarbeiter-Abschnitt und Widerrufsrecht ergänzt —
+      siehe §3 „Recht & Texte" oben. Anwaltliche Prüfung weiterhin offen._
 - [ ] **Auftragsverarbeitung mit Anthropic** + Sub-Prozessoren (Supabase, Stripe,
       Hoster) abschließen und ins Verarbeitungsverzeichnis. _Vertragsarbeit._
 - [x] **Eltern-/Minderjährigen-Einwilligung im Registrierungsflow** —

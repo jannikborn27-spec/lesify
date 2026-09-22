@@ -14,7 +14,7 @@
 <main class="legal">
   <div class="container legal__body">
     <h1>Datenschutzerklärung</h1>
-    <p class="legal__updated">Muster für den Prototyp, keine anwaltliche Prüfung.</p>
+    <p class="legal__updated">Stand: September 2026</p>
 
     <h2>1. Überblick</h2>
     <p>
@@ -25,8 +25,13 @@
 
     <h2>2. Verantwortliche Stelle</h2>
     <p>
-      Die im <a href="/impressum/">Impressum</a> genannte Stelle. Kontakt in Datenschutzfragen:
-      <a href="mailto:datenschutz@lesify.de">datenschutz@lesify.de</a>.
+      Verantwortlich für die Datenverarbeitung ist:<br>
+      Jannik Born, Lesify<br>
+      Bergstraße 81, 35418 Buseck<br>
+      E-Mail: <a href="mailto:datenschutz@lesify.de">datenschutz@lesify.de</a>
+    </p>
+    <p>
+      Weitere Angaben im <a href="/impressum/">Impressum</a>.
     </p>
 
     <h2>3. Welche Daten verarbeitet werden</h2>
@@ -46,45 +51,74 @@
       maßgeblich.
     </p>
 
-    <h2>5. KI-Verarbeitung</h2>
+    <h2>5. Hosting und eingesetzte Dienstleister</h2>
     <p>
-      Für Erklärungen, Lernzettel, Datei-Zusammenfassungen und die Auswertung von Testklausuren
-      werden Inhalte an einen KI-Dienst übermittelt. Vorgesehen ist ein Anbieter mit Verarbeitung
-      innerhalb der EU und vertraglicher Zusicherung, dass Eingaben nicht zum Training verwendet
-      werden. Im Prototyp findet keine solche Übermittlung statt, die Antworten sind Platzhaltertext.
+      Für den Betrieb von Lesify setzen wir folgende Anbieter als Auftragsverarbeiter
+      (Art. 28 DSGVO) ein. Mit jedem Anbieter besteht bzw. wird vor dem produktiven Einsatz ein
+      Auftragsverarbeitungsvertrag geschlossen:
+    </p>
+    <ul>
+      <li><strong>GitHub Pages</strong> (GitHub, Inc., 88 Colin P. Kelly Jr. St, San Francisco, CA, USA): Hosting der statischen Marketing- und App-Seiten. Beim Aufruf werden technische Zugriffsdaten (u. a. IP-Adresse) durch GitHub verarbeitet.</li>
+      <li><strong>Railway</strong> (Railway Corporation, USA): Hosting der Backend-API.</li>
+      <li><strong>Supabase</strong> (Supabase Inc., EU-Region/Frankfurt): Datenbank und Dateispeicher. Lern- und Kontodaten werden auf Servern innerhalb der EU gespeichert.</li>
+      <li><strong>Resend</strong>: Versand von Bestätigungs- und Passwort-Zurücksetzen-E-Mails.</li>
+      <li><strong>Stripe</strong> (Stripe Payments Europe, Ltd., Irland, bzw. Stripe, Inc., USA): Zahlungsabwicklung für Abos. Beim Bezahlvorgang werden Zahlungsdaten (z. B. Kartendaten) direkt im Browser an Stripe übertragen und dort verarbeitet — sie laufen nicht über unsere eigenen Server. Näheres in der Datenschutzerklärung von Stripe: <a href="https://stripe.com/de/privacy" target="_blank" rel="noopener">stripe.com/de/privacy</a>.</li>
+    </ul>
+    <p>
+      Soweit dabei Daten in Länder außerhalb der EU/des EWR (insbesondere USA) übermittelt werden,
+      stützen wir uns auf die EU-Standardvertragsklauseln oder eine vergleichbare Garantie der
+      Anbieter.
     </p>
 
-    <h2>6. Dateispeicherung</h2>
+    <h2>6. KI-Verarbeitung</h2>
+    <p>
+      Für Erklärungen, Lernzettel, Datei-Zusammenfassungen und die Auswertung von Testklausuren ist
+      vorgesehen, Inhalte an den KI-Anbieter Anthropic (Claude API) zu übermitteln, auf vertraglicher
+      Grundlage und ohne Nutzung der Eingaben zu Trainingszwecken. Der Auftragsverarbeitungsvertrag
+      mit Anthropic wird vor dem produktiven Einsatz abgeschlossen. Aktuell findet im Live-Betrieb
+      von Lesify noch keine echte Übermittlung statt — angezeigte KI-Antworten sind simulierter
+      Platzhaltertext.
+    </p>
+
+    <h2>7. Dateispeicherung</h2>
     <p>
       Hochgeladene Dateien werden in einem Objektspeicher abgelegt und sind ausschließlich über
       zeitlich begrenzte, signierte Links erreichbar. Es gibt keine öffentlichen Dateilinks. Die
       Größe ist auf 5 MB pro Datei begrenzt.
     </p>
 
-    <h2>7. Speicherdauer</h2>
+    <h2>8. Speicherdauer</h2>
     <p>
       Lerninhalte werden gespeichert, solange das Konto besteht. Nach einer Löschung des Kontos
       werden die zugehörigen Daten innerhalb von 30 Tagen entfernt, sofern keine gesetzlichen
       Aufbewahrungspflichten entgegenstehen.
     </p>
 
-    <h2>8. Weitergabe an Dritte</h2>
+    <h2>9. Weitergabe an Dritte</h2>
     <p>
-      Eine Weitergabe erfolgt nur an Auftragsverarbeiter (Hosting, KI-Dienst, Zahlungsdienstleister) auf Grundlage von Verträgen nach Art. 28 DSGVO. Kein Verkauf von Daten,
-      keine Nutzung für Werbung Dritter.
+      Eine Weitergabe erfolgt nur an die in Abschnitt 5 genannten Auftragsverarbeiter (Hosting,
+      KI-Dienst, Zahlungsdienstleister) auf Grundlage von Verträgen nach Art. 28 DSGVO. Kein
+      Verkauf von Daten, keine Nutzung für Werbung Dritter.
     </p>
 
-    <h2>9. Deine Rechte</h2>
+    <h2>10. Deine Rechte</h2>
     <p>
       Du hast das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung,
       Datenübertragbarkeit und Widerspruch sowie das Recht, eine erteilte Einwilligung zu
       widerrufen. Zudem besteht ein Beschwerderecht bei einer Datenschutzaufsichtsbehörde.
     </p>
 
-    <h2>10. Cookies und Tracking</h2>
+    <h2>11. Cookies, Schriftarten und Tracking</h2>
     <p>
       Lesify setzt nur technisch notwendige Speicherung im Browser ein (zum Beispiel um die
       Anmeldung zu halten). Es findet kein Tracking und keine Reichweitenmessung durch Dritte statt.
+    </p>
+    <p>
+      Zur einheitlichen Darstellung von Schriftarten bindet diese Website Google Fonts ein, die
+      beim Seitenaufruf von Servern von Google (Google Ireland Limited) geladen werden. Dabei wird
+      die IP-Adresse des aufrufenden Geräts an Google übertragen. Dies erfolgt auf Grundlage
+      unseres berechtigten Interesses an einer technisch zuverlässigen und einheitlichen
+      Darstellung der Website (Art. 6 Abs. 1 lit. f DSGVO).
     </p>
   </div>
 </main>

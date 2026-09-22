@@ -1372,14 +1372,18 @@ main { display: block; }
 }
 
 /* Dunkle Variante — /preise/ und Rechtstexte (Impressum/Datenschutz/AGB):
-   1:1 derselbe Footer (Layout, Grid, Abstände) wie auf Home/Über uns, nur
-   mit invertiertem Farbschema (schwarzer Hintergrund, heller Text statt
-   umgekehrt). Keine eigene Kartenform/Radius — bleibt die volle Breite wie
-   die helle Variante. */
+   derselbe Footer (Layout, Grid, Abstände) wie auf Home/Über uns, nur
+   invertiert und volle Breite wie die helle Variante, oben abgerundet
+   (--section-radius, wie andere ganze dunkle Sektionen). --ink-900 statt
+   --ink-950: auf /preise/ ist die Seite selbst schon --ink-950 (siehe
+   .pricepage) — ohne den Tonwert-Unterschied wäre der Radius dort
+   unsichtbar (gleiche Farbe wie der Seitenhintergrund). */
 .site-footer--dark {
-  background: var(--ink-950);
+  background: var(--ink-900);
   color: var(--paper);
-  border-top-color: rgba(255, 255, 255, 0.12);
+  border-top: 0;
+  border-top-left-radius: var(--section-radius);
+  border-top-right-radius: var(--section-radius);
 }
 .site-footer--dark .site-footer__brand p { color: rgba(248, 250, 251, 0.62); }
 .site-footer--dark h4 { color: rgba(248, 250, 251, 0.5); }
@@ -1389,6 +1393,10 @@ main { display: block; }
   border-top-color: rgba(255, 255, 255, 0.14);
   color: rgba(248, 250, 251, 0.55);
 }
+/* Logo-Badge invertiert sich auf dunklem Grund — gleiches Muster wie
+   .mkt-nav[data-hd].is-scrolled/.auth__aside/.checkout__summary. */
+.site-footer--dark .brand__mark { background: var(--paper); color: var(--ink-950); }
+.site-footer--dark .brand__word { color: var(--paper); }
 
 /* =========================================================
    Auth-Seiten
@@ -1985,11 +1993,13 @@ select.input {
 /* =========================================================
    Preise-Seite (/preise/, seit 2026-09-16) — eigene Route statt
    Homepage-Anker, alle CTAs führen jetzt hierher. Dunkler Hintergrund
-   wie die Kasse, ab Desktop-Breite auf Viewport-Höhe fixiert (kein
-   Scroll) — darunter (schmale Screens) braucht die 3er-Kartenreihe Platz
-   zum Scrollen, deshalb dort kein Viewport-Lock. Nutzt dieselbe Preis-
-   Sektion wie die Startseite (LAB_SECTIONS `price`, fixed v4, siehe
-   marketing.js) — Einfärbung fürs dunkle Umfeld in landing-lab.css.
+   wie die Kasse. Füllt mindestens die Viewport-Höhe und zentriert den
+   Preis-Block vertikal, solange er (normale Laptop-Höhe) hineinpasst —
+   ist er länger, oder kommt seit 2026-09-22 der Footer darunter dazu,
+   scrollt die Seite ganz normal (kein eigener Viewport-Lock mehr, siehe
+   unten). Nutzt dieselbe Preis-Sektion wie die Startseite (LAB_SECTIONS
+   `price`, fixed v4, siehe marketing.js) — Einfärbung fürs dunkle Umfeld
+   in landing-lab.css.
    ========================================================= */
 body[data-page="preise"] { background: var(--ink-950); }
 .pricepage {
@@ -2013,14 +2023,14 @@ body[data-page="preise"] { background: var(--ink-950); }
   width: 100%;
   padding: clamp(5.5rem, 4.5rem + 3vw, 7rem) var(--gutter) clamp(2rem, 1.5rem + 2vw, 3rem);
 }
-@media (min-width: 780px) {
-  /* overflow-y statt hidden: die Preise-Sektion (v4) ist so bemessen,
-     dass sie auf normalen Laptop-Höhen ohne Scroll hineinpasst — bei
-     ungewöhnlich kurzen Fenstern (Browser-Zoom, sehr flache Viewports)
-     darf der Rest lieber intern scrollen, statt wie zuvor unten
-     abgeschnitten zu werden. */
-  .pricepage { height: 100dvh; overflow-y: auto; overflow-x: hidden; }
-}
+/* Kein eigener Viewport-Lock (height:100dvh + overflow-y:auto) mehr auf
+   Desktop-Breite (entfernt 2026-09-22): seit der Footer unter .pricepage
+   im normalen Dokumentfluss steht, erzeugte das einen verschachtelten
+   Scroll-Container (Seite UND .pricepage scrollen unabhängig voneinander).
+   .pricepage bleibt bei min-height:100dvh (oben) — passt der Inhalt auf
+   eine normale Laptop-Höhe, gibt es ohnehin keinen sichtbaren Scroll; ist
+   er länger (kurzes Fenster/Zoom, oder eben der Footer darunter), scrollt
+   einfach die Seite normal wie überall sonst. */
 
 /* =========================================================
    Header — Mega-Menü "Funktionen" (Desktop) + Sheet-Akkordeon (Mobile)

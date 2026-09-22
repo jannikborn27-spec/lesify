@@ -917,12 +917,23 @@ Blockiert alles Weitere. Erst die offenen Produktfragen klären, dann bauen.
       unverändert (siehe `backend-planning.md` §4/§11), nur ungenutzt. Footer auf
       `/preise/` ergänzt (fehlte bisher komplett) und auf `/preise/`,
       `/impressum/`, `/datenschutz/`, `/agb/` mit invertiertem Farbschema
-      versehen (schwarzer Hintergrund, heller Text) — **exakt dasselbe
-      Markup/Layout** wie der helle Footer auf Home/Über uns, volle Breite,
-      keine eigene Kartenform (`buildFooter()` in `marketing.js`, Klasse
-      `site-footer--dark` in `marketing.css`; erster Versuch mit
-      abgerundeter Karte à la `.cta-band` war falsch und wurde noch am
-      selben Tag zurückgebaut).
+      versehen — dasselbe Markup/Layout/Grid wie der helle Footer auf
+      Home/Über uns, volle Breite (kein Karten-/Panel-Wrapper, kein Inset;
+      zwei falsche Zwischenstände — Karte à la `.cta-band`, dann komplett
+      ohne Radius — noch am selben Tag korrigiert), nur: `--ink-900`-
+      Hintergrund + heller Text, oben abgerundet (`--section-radius`, wie
+      andere ganze dunkle Sektionen — auf `--ink-950`-Seiten wie `/preise/`
+      bewusst `--ink-900` statt `--ink-950`, sonst wäre der Radius dort
+      unsichtbar), und Logo-Badge invertiert (`.brand__mark`/`.brand__word`,
+      gleiches Muster wie `.mkt-nav.is-scrolled`/`.auth__aside`). Klasse
+      `site-footer--dark` in `marketing.css`, `buildFooter()` in
+      `marketing.js`. Dabei auch einen Verschachtelte-Scroll-Bug auf
+      `/preise/` behoben: `.pricepage` war ab 780px auf `height:100dvh` +
+      `overflow-y:auto` fixiert (eigener innerer Scroll-Container) — seit
+      der Footer darunter im normalen Fluss steht, kollidierte das mit dem
+      Seiten-Scroll. Viewport-Lock entfernt, `.pricepage` bleibt bei
+      `min-height:100dvh`, Seite scrollt jetzt normal in einem Stück wie
+      überall sonst.
 - [x] **Getroffene Entscheidungen (Stand 2026-09-03)** — in `backend-planning.md`
       §8 abgehakt und in die betroffenen Abschnitte eingearbeitet:
   - [x] **Limit-Werte je Tarif:** bestätigt, Werte in `stripe-config.js` sind korrekt.

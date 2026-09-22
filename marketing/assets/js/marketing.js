@@ -270,12 +270,11 @@
   }
 
   /* ---------- Footer ----------
-     Zwei Varianten: Standard (heller Seitenhintergrund, Trennlinie oben) auf
-     Home/Über uns, und "dark" (schwarze, abgerundete Karte wie .cta-band —
-     gleicher --radius-2xl) auf /preise/ (Seite selbst schon dunkel, siehe
-     .pricepage) und den Rechtstexten (Impressum/Datenschutz/AGB, sonst
-     ohne eigenes visuelles Gewicht auf der Seite). Inhalt/Navigation
-     identisch, nur eingefärbt. */
+     Identischer Footer überall (gleiches Markup, gleiche Navigation) — auf
+     /preise/ und den Rechtstexten (Impressum/Datenschutz/AGB) nur mit
+     invertiertem Farbschema (schwarzer Hintergrund/heller Text statt
+     hellem Hintergrund/dunklem Text), sonst 1:1 dasselbe Layout wie auf
+     Home/Über uns. */
   var FOOTER_DARK_PAGES = ['preise', 'impressum', 'datenschutz', 'agb'];
   function buildFooter() {
     var host = document.getElementById('mkt-footer');
@@ -288,25 +287,23 @@
         '</div>';
     }).join('');
 
-    var body =
-      '<div class="site-footer__grid">' +
-        '<div class="site-footer__brand">' +
-          '<a class="brand" href="/">' +
-            '<span class="brand__mark">' + ICON.mark + '</span>' +
-            '<span class="brand__word">Lesify</span>' +
-          '</a>' +
-          '<p>Der KI-Lernbegleiter ab der 5. Klasse. Jedes Fach erklärt, Lernzettel automatisch, Testklausuren mit echter Notenprognose.</p>' +
+    host.innerHTML =
+      '<div class="container">' +
+        '<div class="site-footer__grid">' +
+          '<div class="site-footer__brand">' +
+            '<a class="brand" href="/">' +
+              '<span class="brand__mark">' + ICON.mark + '</span>' +
+              '<span class="brand__word">Lesify</span>' +
+            '</a>' +
+            '<p>Der KI-Lernbegleiter ab der 5. Klasse. Jedes Fach erklärt, Lernzettel automatisch, Testklausuren mit echter Notenprognose.</p>' +
+          '</div>' +
+          cols +
         '</div>' +
-        cols +
-      '</div>' +
-      '<div class="site-footer__bottom">' +
-        '<span>&copy; ' + new Date().getFullYear() + ' Lesify. Prototyp — Demo-Inhalte, kein echtes Produkt.</span>' +
-        '<span>Kein Ersatz für Förderunterricht bei anhaltenden Lernschwierigkeiten.</span>' +
+        '<div class="site-footer__bottom">' +
+          '<span>&copy; ' + new Date().getFullYear() + ' Lesify. Prototyp — Demo-Inhalte, kein echtes Produkt.</span>' +
+          '<span>Kein Ersatz für Förderunterricht bei anhaltenden Lernschwierigkeiten.</span>' +
+        '</div>' +
       '</div>';
-
-    host.innerHTML = dark
-      ? '<div class="container"><div class="site-footer__panel">' + body + '</div></div>'
-      : '<div class="container">' + body + '</div>';
   }
 
   /* ---------- Reveal on scroll ----------

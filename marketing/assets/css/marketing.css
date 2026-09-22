@@ -1371,30 +1371,15 @@ main { display: block; }
   color: var(--ink-500);
 }
 
-/* Dunkle Variante — /preise/ (Seite selbst schon dunkel, siehe .pricepage)
-   und Rechtstexte (Impressum/Datenschutz/AGB): abgerundete schwarze Karte,
-   gleicher Radius wie .cta-band (--radius-2xl), statt der hellen
-   Trennlinien-Variante oben. */
+/* Dunkle Variante — /preise/ und Rechtstexte (Impressum/Datenschutz/AGB):
+   1:1 derselbe Footer (Layout, Grid, Abstände) wie auf Home/Über uns, nur
+   mit invertiertem Farbschema (schwarzer Hintergrund, heller Text statt
+   umgekehrt). Keine eigene Kartenform/Radius — bleibt die volle Breite wie
+   die helle Variante. */
 .site-footer--dark {
-  border-top: 0;
-  padding-block: clamp(2.5rem, 1.5rem + 3vw, 4rem) var(--section-y);
-}
-.site-footer__panel {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  background: var(--ink-900);
+  background: var(--ink-950);
   color: var(--paper);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--radius-2xl);
-  padding: clamp(2.2rem, 1.6rem + 3vw, 3.6rem) clamp(1.4rem, 1rem + 3vw, 3rem);
-}
-.site-footer__panel::before {
-  content: "";
-  position: absolute; inset: 0; z-index: -1;
-  background:
-    radial-gradient(circle at 18% 0%, rgba(255, 255, 255, 0.1), transparent 45%),
-    radial-gradient(circle at 92% 105%, rgba(255, 255, 255, 0.07), transparent 45%);
+  border-top-color: rgba(255, 255, 255, 0.12);
 }
 .site-footer--dark .site-footer__brand p { color: rgba(248, 250, 251, 0.62); }
 .site-footer--dark h4 { color: rgba(248, 250, 251, 0.5); }

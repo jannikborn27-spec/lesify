@@ -916,11 +916,13 @@ Blockiert alles Weitere. Erst die offenen Produktfragen klären, dann bauen.
       Sitemap-Eintrag entfernt. Backend-Endpunkt `POST /kontakt` bleibt bewusst
       unverändert (siehe `backend-planning.md` §4/§11), nur ungenutzt. Footer auf
       `/preise/` ergänzt (fehlte bisher komplett) und auf `/preise/`,
-      `/impressum/`, `/datenschutz/`, `/agb/` auf eine neue dunkle Variante
-      umgestellt: abgerundete schwarze Karte (`--radius-2xl`, wie `.cta-band`)
-      statt der hellen Trennlinien-Variante, gleiche Spalten/Navigation wie auf
-      Home/Über uns (`buildFooter()` in `marketing.js`, Klasse
-      `site-footer--dark` + `.site-footer__panel` in `marketing.css`).
+      `/impressum/`, `/datenschutz/`, `/agb/` mit invertiertem Farbschema
+      versehen (schwarzer Hintergrund, heller Text) — **exakt dasselbe
+      Markup/Layout** wie der helle Footer auf Home/Über uns, volle Breite,
+      keine eigene Kartenform (`buildFooter()` in `marketing.js`, Klasse
+      `site-footer--dark` in `marketing.css`; erster Versuch mit
+      abgerundeter Karte à la `.cta-band` war falsch und wurde noch am
+      selben Tag zurückgebaut).
 - [x] **Getroffene Entscheidungen (Stand 2026-09-03)** — in `backend-planning.md`
       §8 abgehakt und in die betroffenen Abschnitte eingearbeitet:
   - [x] **Limit-Werte je Tarif:** bestätigt, Werte in `stripe-config.js` sind korrekt.

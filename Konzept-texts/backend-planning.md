@@ -9,7 +9,9 @@
 > Vier Nav-Einträge (Stand 2026-09-12): **Home** (`index.html`), **Preise**
 > (Anker `index.html#price`), **Über uns** (`ueber-uns.html`), **FAQ** (Anker
 > `index.html#faq`); dazu Utility-Seiten ohne Nav-Eintrag: Login, Registrierung,
-> Passwort vergessen, Checkout, Kontakt, Impressum, Datenschutz, AGB. Eigene
+> Passwort vergessen, Checkout, Impressum, Datenschutz, AGB (die Marketing-Seite
+> `kontakt/` wurde am 2026-09-22 entfernt — Kontakt-CTAs verweisen seither auf
+> `mailto:hallo@lesify.de`, siehe §11). Eigene
 > Seiten `preise.html` und `faq.html` gibt es **nicht mehr** — beide Inhalte
 > sind Abschnitte auf der Startseite (wie zuvor schon Funktions-Unterseiten
 > und `vergleich.html`: Vergleich unter `index.html#cmp`). Preis-Karten +
@@ -1138,10 +1140,10 @@ Stripe-Calls auslösen.
   mit fehlgeschlagenen Zahlungen (Retry, Mahnlogik, Zugriff bei
   `zahlung_offen`), Stripe-Konto/-Produkte.
 
-### Kontakt (neu — beliefert `marketing/kontakt.html`)
+### Kontakt
 | Methode | Pfad | Zweck |
 |---|---|---|
-| POST | `/kontakt` | `{name, email, thema, nachricht}` → Ticket/Weiterleitung an Support-Postfach, Spam-Schutz serverseitig, kein Login nötig |
+| POST | `/kontakt` | `{name, email, thema, nachricht}` → Ticket/Weiterleitung an Support-Postfach, Spam-Schutz serverseitig, kein Login nötig. **Ungenutzt seit 2026-09-22:** die Marketing-Seite `marketing/kontakt/`, die dieses Formular bediente, wurde entfernt (alle „Kontakt"-CTAs verweisen jetzt auf `mailto:hallo@lesify.de`) — Endpunkt, Rate-Limit (§7) und Mail-Template (`mailTemplates.ts`) bleiben im Code, sind aber nicht mehr verlinkt. |
 
 ---
 
@@ -2006,7 +2008,7 @@ Hanken Grotesk, Ampel-Farben, „Fog Blue"-Tonleiter). Kein Build, Vanilla JS.
   eigene Seiten — `marketing/index.html` (Home/Landing) und `ueber-uns.html`
   (persönliche Gründer-Seite). „Preise" und „FAQ" verlinken auf Abschnitte der
   Startseite (`index.html#price`, `index.html#faq`) statt auf eigene Seiten.
-  Ohne Nav-Eintrag, aber vorhanden: `kontakt.html`, `checkout.html`,
+  Ohne Nav-Eintrag, aber vorhanden: `checkout.html`,
   `login.html`, `registrieren.html`, `passwort-vergessen.html`,
   `passwort-zuruecksetzen.html` (**neu, 2026-09-12** — nimmt `?token=` aus dem
   Link entgegen, den `passwort-vergessen.html` im Dev-Modus direkt anzeigt, und
@@ -2031,9 +2033,9 @@ Hanken Grotesk, Ampel-Farben, „Fog Blue"-Tonleiter). Kein Build, Vanilla JS.
   Unternehmen; Leitsatz „KI als Helfer, nicht als Löser". Foto unter
   `assets/img/ueber-uns/jannik.jpg`, mit Initialen-Fallback im Markup, falls die
   Datei fehlt.
-- **Formulare echt verdrahtet (2026-09-12):** `login.html`, `registrieren.html`,
-  `passwort-vergessen.html` (+ neu `passwort-zuruecksetzen.html`) und
-  `kontakt.html` rufen jetzt wirklich die API (`marketing/assets/js/
+- **Formulare echt verdrahtet (2026-09-12):** `login.html`, `registrieren.html`
+  und `passwort-vergessen.html` (+ neu `passwort-zuruecksetzen.html`) rufen
+  jetzt wirklich die API (`marketing/assets/js/
   auth-forms.js`, gleicher eigenständiger Ansatz wie `checkout.js` — kein
   Laden von `app/assets/js/api.js`, gleicher `localStorage['lesify:token']`-
   Schlüssel). `registrieren.html` legt den `User` an und loggt danach direkt
@@ -2042,11 +2044,15 @@ Hanken Grotesk, Ampel-Farben, „Fog Blue"-Tonleiter). Kein Build, Vanilla JS.
   Query-Parameter durchgereicht). `login.html` spiegelt die Rollen-/Familien-
   Weiche aus `app/assets/js/auth-gate.js` (`GET /abo/kinder` → Eltern mit
   Kind-Profilen nach `/app/eltern.html`, sonst `/app/dashboard.html`; `?weiter=`
-  wird respektiert, wenn vorhanden). `kontakt.html` hat jetzt ein Honeypot-Feld
-  (`name="website"`, `.visually-hidden`) für den Server-Filter. Preise/Limits
+  wird respektiert, wenn vorhanden). Preise/Limits
   bleiben Design-Platzhalter. Die daraus abgeleiteten echten Anforderungen
   stehen in §1 (User, Abo, KindProfil, Usage-Limits pro Paket), §4 (Auth-,
-  Abo-, Kontakt-Endpunkte), §5 (Auth) und §7 (Limits).
+  Abo-, Kontakt-Endpunkte), §5 (Auth) und §7 (Limits). **2026-09-22:** die
+  Marketing-Seite `kontakt/` (samt Formular + Honeypot-Feld) wurde entfernt —
+  alle „Kontakt"-CTAs (Footer, 404, Über uns, FAQ) verweisen jetzt auf
+  `mailto:hallo@lesify.de`; `initKontakt()` ist aus `auth-forms.js` entfernt,
+  der `POST /kontakt`-Endpunkt bleibt unverändert im Backend, ist aber
+  aktuell von keiner Seite mehr verlinkt.
 - **E-Mail-Versand + `email-bestaetigen.html` (2026-09-17, neu):**
   `/registrieren` und `/passwort-vergessen` verschicken jetzt echte Mails über
   Resend (siehe §0, §5, §8). Die neue Seite `email-bestaetigen.html` ist das

@@ -909,6 +909,18 @@ Blockiert alles Weitere. Erst die offenen Produktfragen klären, dann bauen.
       Hero-Fotos sind CSS-Backgrounds (ohne Alt; erstes Foto ist vorgeladen),
       `jborn-ptrt-nw.png` (1,7 MB) → WebP, Search-Console-Einreichung der Sitemap, echte Bewertungen statt Demo-Zitate
       (dann erst `Review`-Schema).
+- [x] **Kontakt-Seite entfernt, Footer-Redesign Preise/Rechtstexte (2026-09-22):**
+      `marketing/kontakt/` (inkl. Formular, Honeypot, `ContactPage`-JSON-LD) gelöscht —
+      alle „Kontakt"-CTAs (Footer, 404, Über uns, FAQ) verweisen jetzt auf
+      `mailto:hallo@lesify.de`; `initKontakt()` aus `auth-forms.js` entfernt,
+      Sitemap-Eintrag entfernt. Backend-Endpunkt `POST /kontakt` bleibt bewusst
+      unverändert (siehe `backend-planning.md` §4/§11), nur ungenutzt. Footer auf
+      `/preise/` ergänzt (fehlte bisher komplett) und auf `/preise/`,
+      `/impressum/`, `/datenschutz/`, `/agb/` auf eine neue dunkle Variante
+      umgestellt: abgerundete schwarze Karte (`--radius-2xl`, wie `.cta-band`)
+      statt der hellen Trennlinien-Variante, gleiche Spalten/Navigation wie auf
+      Home/Über uns (`buildFooter()` in `marketing.js`, Klasse
+      `site-footer--dark` + `.site-footer__panel` in `marketing.css`).
 - [x] **Getroffene Entscheidungen (Stand 2026-09-03)** — in `backend-planning.md`
       §8 abgehakt und in die betroffenen Abschnitte eingearbeitet:
   - [x] **Limit-Werte je Tarif:** bestätigt, Werte in `stripe-config.js` sind korrekt.

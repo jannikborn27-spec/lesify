@@ -45,7 +45,7 @@
     ]},
     { title: 'Unternehmen', links: [
       { href: '/ueber-uns/', label: 'Über uns' },
-      { href: '/kontakt/', label: 'Kontakt' },
+      { href: 'mailto:hallo@lesify.de', label: 'Kontakt' },
       { href: '/login/', label: 'Anmelden' }
     ]},
     { title: 'Rechtliches', links: [
@@ -269,34 +269,44 @@
     });
   }
 
-  /* ---------- Footer ---------- */
+  /* ---------- Footer ----------
+     Zwei Varianten: Standard (heller Seitenhintergrund, Trennlinie oben) auf
+     Home/Über uns, und "dark" (schwarze, abgerundete Karte wie .cta-band —
+     gleicher --radius-2xl) auf /preise/ (Seite selbst schon dunkel, siehe
+     .pricepage) und den Rechtstexten (Impressum/Datenschutz/AGB, sonst
+     ohne eigenes visuelles Gewicht auf der Seite). Inhalt/Navigation
+     identisch, nur eingefärbt. */
+  var FOOTER_DARK_PAGES = ['preise', 'impressum', 'datenschutz', 'agb'];
   function buildFooter() {
     var host = document.getElementById('mkt-footer');
     if (!host) return;
-    host.className = 'site-footer';
+    var dark = FOOTER_DARK_PAGES.indexOf(current) !== -1;
+    host.className = 'site-footer' + (dark ? ' site-footer--dark' : '');
     var cols = FOOTER.map(function (c) {
       return '<div class="site-footer__col"><h4>' + c.title + '</h4>' +
         c.links.map(function (l) { return '<a href="' + l.href + '">' + l.label + '</a>'; }).join('') +
         '</div>';
     }).join('');
 
-    host.innerHTML =
-      '<div class="container">' +
-        '<div class="site-footer__grid">' +
-          '<div class="site-footer__brand">' +
-            '<a class="brand" href="/">' +
-              '<span class="brand__mark">' + ICON.mark + '</span>' +
-              '<span class="brand__word">Lesify</span>' +
-            '</a>' +
-            '<p>Der KI-Lernbegleiter ab der 5. Klasse. Jedes Fach erklärt, Lernzettel automatisch, Testklausuren mit echter Notenprognose.</p>' +
-          '</div>' +
-          cols +
+    var body =
+      '<div class="site-footer__grid">' +
+        '<div class="site-footer__brand">' +
+          '<a class="brand" href="/">' +
+            '<span class="brand__mark">' + ICON.mark + '</span>' +
+            '<span class="brand__word">Lesify</span>' +
+          '</a>' +
+          '<p>Der KI-Lernbegleiter ab der 5. Klasse. Jedes Fach erklärt, Lernzettel automatisch, Testklausuren mit echter Notenprognose.</p>' +
         '</div>' +
-        '<div class="site-footer__bottom">' +
-          '<span>&copy; ' + new Date().getFullYear() + ' Lesify. Prototyp — Demo-Inhalte, kein echtes Produkt.</span>' +
-          '<span>Kein Ersatz für Förderunterricht bei anhaltenden Lernschwierigkeiten.</span>' +
-        '</div>' +
+        cols +
+      '</div>' +
+      '<div class="site-footer__bottom">' +
+        '<span>&copy; ' + new Date().getFullYear() + ' Lesify. Prototyp — Demo-Inhalte, kein echtes Produkt.</span>' +
+        '<span>Kein Ersatz für Förderunterricht bei anhaltenden Lernschwierigkeiten.</span>' +
       '</div>';
+
+    host.innerHTML = dark
+      ? '<div class="container"><div class="site-footer__panel">' + body + '</div></div>'
+      : '<div class="container">' + body + '</div>';
   }
 
   /* ---------- Reveal on scroll ----------
@@ -2985,7 +2995,7 @@
     if (v === '9') return lw('faq', v, '<div class="container container--narrow faq-centered">' + headC +
       FAQ.items.map(function (it, i) { return faqDetails('faq-item', i, it); }).join('') + '</div>');
     if (v === '10') return lw('faq', v, '<div class="container faq-ask">' +
-      '<div>' + head + '<p class="faq-ask__cta">Noch offen? <a href="/kontakt/">Schreib uns</a>.</p></div>' +
+      '<div>' + head + '<p class="faq-ask__cta">Noch offen? <a href="mailto:hallo@lesify.de">Schreib uns</a>.</p></div>' +
       '<div class="faq-ask__list">' + FAQ.items.map(function (it, i) { return faqDetails('faq-item', i, it); }).join('') + '</div></div>');
     /* v1 · Bold — kräftige nummerierte Karten, Kreis-Toggle, Kontakt-Fuß */
     return lw('faq', v, '<div class="container container--narrow faq-bold">' +
@@ -2997,7 +3007,7 @@
           '<span class="faq-bcard__tog" aria-hidden="true"></span></summary>' +
           '<div class="faq-bcard__a">' + it.a + '</div></details>';
       }).join('') + '</div>' +
-      '<div class="faq-bold__foot"><b>Noch eine Frage offen?</b><a class="btn btn-secondary" href="/kontakt/">Schreib uns</a></div></div>');
+      '<div class="faq-bold__foot"><b>Noch eine Frage offen?</b><a class="btn btn-secondary" href="mailto:hallo@lesify.de">Schreib uns</a></div></div>');
   }
 
   /* ---------- Abschluss-CTA (cta) ---------- */

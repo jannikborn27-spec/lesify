@@ -1,9 +1,9 @@
 /* =========================================================
-   Lesify — Auth-/Kontakt-Formulare (Phase 11 Cut-over)
+   Lesify — Auth-Formulare (Phase 11 Cut-over)
    ---------------------------------------------------------
    Verdrahtet die Marketing-Formulare/-Seiten an die echte API:
    login/, registrieren/, passwort-vergessen/, passwort-zuruecksetzen/,
-   email-bestaetigen/, kontakt/ (siehe UMSETZUNGSPLAN.md Phase 11
+   email-bestaetigen/ (siehe UMSETZUNGSPLAN.md Phase 11
    "Marketing-Formulare verdrahten" + Phase 10 "E-Mail-Versand").
    Eigenständig statt `assets/js/api.js` zu laden
    (gleicher Ansatz wie `checkout.js`) — die Marketing-Seite bleibt
@@ -280,43 +280,12 @@
       });
   }
 
-  /* ---------- kontakt/ ---------- */
-  function initKontakt() {
-    var form = document.querySelector('.contact-form');
-    if (!form) return;
-    form.removeAttribute('data-demo');
-    var msg = ensureMsgEl(form);
-    var btn = form.querySelector('button[type="submit"]');
-    form.addEventListener('submit', function (e) {
-      e.preventDefault();
-      showMsg(msg, '', '');
-      setBusy(btn, true, 'Wird gesendet …');
-      post('/kontakt', {
-        name: form.name.value.trim(),
-        email: form.email.value.trim(),
-        thema: form.topic.value,
-        nachricht: form.message.value.trim(),
-        website: form.website ? form.website.value : '',
-      })
-        .then(function () {
-          setBusy(btn, false);
-          showMsg(msg, 'Danke, deine Nachricht ist angekommen. Wir melden uns in der Regel innerhalb eines Werktags.', 'success');
-          form.reset();
-        })
-        .catch(function (err) {
-          setBusy(btn, false);
-          showMsg(msg, fehlerText(err.code), 'error');
-        });
-    });
-  }
-
   var PAGE_INIT = {
     login: initLogin,
     registrieren: initRegistrieren,
     'passwort-vergessen': initPasswortVergessen,
     'passwort-zuruecksetzen': initPasswortZuruecksetzen,
     'email-bestaetigen': initEmailBestaetigen,
-    kontakt: initKontakt,
   };
 
   document.addEventListener('DOMContentLoaded', function () {

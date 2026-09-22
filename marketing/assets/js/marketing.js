@@ -37,18 +37,17 @@
   ];
 
   var FOOTER = [
-    { title: 'Produkt', links: [
-      { href: '/', label: 'Überblick' },
-      { href: '/#kv', label: 'So funktioniert’s' },
-      { href: '/preise/', label: 'Preise' },
-      { href: '/#faq', label: 'Häufige Fragen' }
-    ]},
-    { title: 'Unternehmen', links: [
+    { title: 'Navigation', links: [
+      { href: '/', label: 'Home' },
       { href: '/ueber-uns/', label: 'Über uns' },
-      { href: 'mailto:hallo@lesify.de', label: 'Kontakt' },
-      { href: '/login/', label: 'Anmelden' }
+      { href: '/#faq', label: 'FAQ' }
     ]},
-    { title: 'Rechtliches', links: [
+    { title: 'Service', links: [
+      { href: '/login/', label: 'Anmelden' },
+      { href: '/preise/', label: 'Preise' },
+      { href: '/preise/', label: 'Kostenlos starten' }
+    ]},
+    { title: 'Rechtstexte', links: [
       { href: '/impressum/', label: 'Impressum' },
       { href: '/datenschutz/', label: 'Datenschutz' },
       { href: '/agb/', label: 'AGB' }
@@ -295,13 +294,12 @@
               '<span class="brand__mark">' + ICON.mark + '</span>' +
               '<span class="brand__word">Lesify</span>' +
             '</a>' +
-            '<p>Der KI-Lernbegleiter ab der 5. Klasse. Jedes Fach erklärt, Lernzettel automatisch, Testklausuren mit echter Notenprognose.</p>' +
+            '<p>Die Lern-App, die Schüler durch die gesamte Klausurvorbereitung begleitet: Lernplan, Lernzettel, Testklausuren und eine eigens für Schüler entwickelte KI.</p>' +
           '</div>' +
           cols +
         '</div>' +
         '<div class="site-footer__bottom">' +
-          '<span>&copy; ' + new Date().getFullYear() + ' Lesify. Prototyp — Demo-Inhalte, kein echtes Produkt.</span>' +
-          '<span>Kein Ersatz für Förderunterricht bei anhaltenden Lernschwierigkeiten.</span>' +
+          '<span>&copy; ' + new Date().getFullYear() + ' Lesify.</span>' +
         '</div>' +
       '</div>';
   }

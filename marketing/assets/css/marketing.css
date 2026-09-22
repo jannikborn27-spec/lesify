@@ -296,6 +296,14 @@ main { display: block; }
 .mkt-nav__inner {
   width: 100%;
   max-width: var(--container);
+  /* .mkt-nav__sheet ist ein Geschwister-Element (siehe marketing.js), keine
+     eigene Ebene im Dokument — ohne eigenen Stacking-Context malt der Browser
+     das positionierte .mkt-nav__sheet IMMER über dieses statische Element,
+     unabhängig vom z-index-Wert. Deshalb hier position + z-index höher als
+     beim Sheet, sonst liegt die Kopfzeile (und der Schließen-Button) unter
+     dem geöffneten Menü und ist weder sichtbar noch klickbar. */
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: center;
   gap: 20px;
@@ -374,7 +382,7 @@ main { display: block; }
 .mkt-nav__sheet {
   position: fixed;
   inset: 0;
-  z-index: 99;
+  z-index: 1;
   background: var(--bg-canvas);
   padding: 96px var(--gutter) 40px;
   display: flex;
@@ -385,7 +393,11 @@ main { display: block; }
   overflow-y: auto;
 }
 .mkt-nav__sheet.is-open { transform: translateY(0); }
-.mkt-nav__sheet a {
+/* Nur die direkten Link-Kinder (Home/Preise/…) — sonst überschreibt diese
+   Regel per Nachfahren-Selektor auch die .btn-Links in .sheet-actions
+   (falsche Textfarbe fast gleich der eigenen Hintergrundfarbe, zusätzlicher
+   Trennstrich, falsches Padding). */
+.mkt-nav__sheet > a {
   padding: 16px 6px;
   font-family: var(--font-display);
   font-size: 1.5rem;

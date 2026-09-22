@@ -159,6 +159,7 @@
     function setSheet(open) {
       sheet.classList.toggle('is-open', open);
       toggle.setAttribute('aria-expanded', String(open));
+      toggle.setAttribute('aria-label', open ? 'Menü schließen' : 'Menü öffnen');
       toggle.innerHTML = open ? ICON.close : ICON.menu;
       document.body.style.overflow = open ? 'hidden' : '';
     }

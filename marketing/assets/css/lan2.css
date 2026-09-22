@@ -449,6 +449,10 @@
 }
 @media (max-width: 900px) {
   .l2h-s { grid-template-columns: minmax(0, 1fr); }
+  /* Mobil zuerst das Mockup zeigen (Aufmerksamkeit fürs Produkt), Text darunter —
+     nur Anzeigereihenfolge, DOM/Lesereihenfolge bleibt Text-vor-Bild. */
+  .l2h-s .hv9__text { order: 2; }
+  .l2h-s .l2h-wrap { order: 1; }
   .l2h-card { position: relative !important; left: auto !important; bottom: auto !important; transform: none !important; width: auto !important; margin-top: 1rem; }
   .l2-o2__c { position: static; width: auto; margin-top: 1rem; }
   .l2-o2__c.c0, .l2-o2__c.c1, .l2-o2__c.c2 { inset: auto; }
@@ -536,7 +540,14 @@
   .l2-2__media { width: calc(var(--iw) * 1px * var(--mk2)); margin: 0; justify-self: start; }
   .is-flip .l2-2__media { width: calc(var(--iw) * 1px * var(--mk2)); margin: 0; justify-self: end; }
 }
-.l2-pm { --iw: 1416; width: calc(var(--iw) * 1px * var(--mk2)); margin-inline: 0; }
+.l2-pm { --iw: 1416; margin-inline: 0; }
+/* Die feste Pixelbreite (--iw * --mk2) gilt nur ab 901px wie bei .l2-2__media —
+   darunter bleibt .l2-pm bei width: 100% (Basisregel oben), sonst rendert das
+   Mockup mit --mk2-Minimum (0,44) bei 1416px Quellbreite ~623px breit und
+   ragt weit über jeden Mobil-Viewport hinaus. */
+@media (min-width: 901px) {
+  .l2-pm { width: calc(var(--iw) * 1px * var(--mk2)); }
+}
 @media (min-width: 1200px) {
   .l2h-s6 .l2h-wrap, .l2h-k2 .l2h-wrap { width: min(calc(1415px * var(--mk)), calc(50vw - 1rem)); margin-left: -1.5rem; justify-self: start; }
 }

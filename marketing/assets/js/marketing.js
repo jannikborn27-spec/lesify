@@ -3656,64 +3656,20 @@
     document.body.appendChild(panel);
   }
 
-  /* Preise-Seite (/preise/) — Farb-Dev-Switch für die Preiskarten +
-     Umschalter. Layout bleibt fest v4 (Dark-Feat, wie die Startseite);
-     nur die FARBGEBUNG unterscheidet sich hier, weil die Karten bislang
-     praktisch dieselben (hellen) Farben wie auf der weißen Startseite
-     trugen — auf dem schwarzen Seiten-Hintergrund von /preise/ wirkt das
-     unpassend (siehe body[data-page="preise"] #price-section … in
-     landing-lab.css, das war bisher die einzige Einfärbung = "v1"
-     unten). v2–v6 sind eigene Paletten zur Auswahl, jeweils nur CSS
-     (`[data-price-color]` auf <body>) — kein Re-Render nötig, Umschalten
-     verliert also nicht den Monatlich/Jährlich- oder Kinderzahl-Stand. */
-  var PRICE_COLOR_LIST = [
-    ['1', 'Weiß'], ['2', 'Kontur'], ['3', 'Dunkel'], ['4', 'Fach-Akzent'], ['5', 'Glas'], ['6', 'Gold'], ['7', 'Hell (Startseite)']
-  ];
-  function pricePageColor() {
-    try { var v = localStorage.getItem('lesify:pricepage:color'); if (/^[1-7]$/.test(v)) return v; } catch (e) {}
-    return '1';
+  /* Preise-Seite (/preise/) — Farbgebung der Preiskarten + Umschalter.
+     War ein Dev-Switch mit 7 Paletten (v1–v7); final gewählt: v7 "Hell
+     (Startseite)" (2026-09-22, kein Dev-Panel mehr, siehe
+     body[data-page="preise"][data-price-color="7"] … in landing-lab.css). */
+  function applyPricePageColor() {
+    document.body.setAttribute('data-price-color', '7');
   }
-  /* true nur für "7" (Hell/Startseite) auf /preise/ — steuert in buildNav/
-     onScroll, ob der Header dauerhaft die dunkle "gescrollte" Pille zeigt
-     (siehe applyHeaderVariant-Aufruf dort). Auch von hier lesbar, bevor
-     `current` im Modul-Top gesetzt wurde, da `current` zur Aufrufzeit
+  /* true auf /preise/ (immer, seit v7 fest gewählt) — steuert in buildNav,
+     ob der Header dauerhaft die dunkle "gescrollte" Pille zeigt (siehe
+     applyHeaderVariant-Aufruf dort). Auch von hier lesbar, bevor `current`
+     im Modul-Top gesetzt wurde, da `current` zur Aufrufzeit
      (DOMContentLoaded) längst zugewiesen ist. */
   function priceNavIsLight() {
-    return current === 'preise' && pricePageColor() === '7';
-  }
-  function applyPricePageColor(v) {
-    document.body.setAttribute('data-price-color', v);
-    /* Header live nachziehen, falls der Dev-Switch ohne Reload zwischen
-       "7" und den dunklen Paletten wechselt (siehe buildNav/onScroll,
-       die beim initialen Laden dieselbe Logik anwenden). */
-    var nav = document.getElementById('mkt-nav');
-    if (nav && document.body.getAttribute('data-page') === 'preise') {
-      var isLight = v === '7';
-      applyHeaderVariant(isLight ? '4a' : '5');
-    }
-  }
-  function mountPriceColorDev() {
-    if (document.body.getAttribute('data-page') !== 'preise') return;
-    applyPricePageColor(pricePageColor());
-    if (document.querySelector('.layout-dev.is-pricecolor')) return;
-    var panel = document.createElement('div');
-    panel.className = 'layout-dev is-pricecolor';
-    try { if (localStorage.getItem('lesify:lab:min') === '1') panel.classList.add('is-min'); } catch (e) {}
-    panel.innerHTML = '<button type="button" class="layout-dev-title" data-dev-min>Preise-Farben</button>' +
-      devRow('Farbe', 'pricecolor', PRICE_COLOR_LIST, pricePageColor());
-    panel.addEventListener('click', function (e) {
-      if (e.target.closest('[data-dev-min]')) {
-        panel.classList.toggle('is-min');
-        try { localStorage.setItem('lesify:lab:min', panel.classList.contains('is-min') ? '1' : '0'); } catch (err) {}
-        return;
-      }
-      var b = e.target.closest('[data-pricecolor]'); if (!b) return;
-      var v = b.getAttribute('data-pricecolor');
-      try { localStorage.setItem('lesify:pricepage:color', v); } catch (err) {}
-      panel.querySelectorAll('[data-pricecolor]').forEach(function (x) { x.classList.toggle('is-on', x === b); });
-      applyPricePageColor(v);
-    });
-    document.body.appendChild(panel);
+    return current === 'preise';
   }
 
   /* Hero-Stage: fest v2.5 (dunkle Icon-Spotlight-Karte auf freigestelltem
@@ -3794,7 +3750,7 @@
     initHeroSlides();
     buildChatSection();
     buildLabSections();
-    mountPriceColorDev();
+    if (document.body.getAttribute('data-page') === 'preise') applyPricePageColor();
     /* Dev-Tool (2026-09-16 aktiviert, 2026-09-16 final entfernt) — "orgfaecher"
        auf v2 (Ghost) und "cmp" auf v1 (Cards, mit neuem 9-Zeilen-Content)
        final gewählt (siehe LAB_SECTIONS `fixed`), kein Dev-Panel mehr. */

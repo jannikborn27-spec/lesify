@@ -934,6 +934,29 @@ Blockiert alles Weitere. Erst die offenen Produktfragen klären, dann bauen.
       Seiten-Scroll. Viewport-Lock entfernt, `.pricepage` bleibt bei
       `min-height:100dvh`, Seite scrollt jetzt normal in einem Stück wie
       überall sonst.
+  - [x] **Nachbesserung (noch 2026-09-22):** drei Feedback-Punkte behoben.
+        (1) `/preise/` Farb-Dev-Switch (v1–v7) entfernt, **v7 „Hell
+        (Startseite)"** fest gewählt (`data-price-color="7"` statisch im
+        Markup + `applyPricePageColor()` in `marketing.js`, kein Dev-Panel
+        mehr — `pricePageColor()`/`PRICE_COLOR_LIST`/`mountPriceColorDev()`
+        entfernt). Als Nebeneffekt jetzt ohnehin ein heller Seiten-
+        hintergrund auf `/preise/`, keine `--ink-900`/`--ink-950`-
+        Sonderbehandlung mehr nötig. (2) `.site-footer--dark`-Hintergrund
+        von `--ink-900` auf **`--ink-950`** geändert — exakt derselbe
+        Schwarzton wie die dunkle Nav-Pille (`.mkt-nav.is-scrolled`), dazu
+        ein heller 1px-Rand (14 % Weiß) an den drei sichtbaren Kanten
+        (top/links/rechts, wie die Nav-Pille ihn auch hat), damit der
+        Radius trotz gleicher Grundfarbe wie der Header lesbar bleibt.
+        (3) `margin-top: var(--section-y)` auf `.site-footer` (Basisregel,
+        beide Varianten) entfernt — kollidierte mit dem Bottom-Padding der
+        vorangehenden Section und erzeugte eine doppelt so große, falsch
+        aussehende Lücke vor dem Footer. Ersetzt durch etwas mehr eigenes
+        Top-Padding (`padding-block: clamp(4rem,3rem+5vw,7rem) 2.5rem`).
+        Home/Über uns nutzen für den Übergang CTA→Footer ohnehin ihre
+        eigene, ältere Rundungs-Lösung in `landing-lab.css`
+        (`body[data-page="index"/"ueber-uns"] .site-footer`, Radial-
+        Gradient-„Zwickel" statt Border-Radius) — unverändert, unabhängig
+        von `site-footer--dark`.
 - [x] **Getroffene Entscheidungen (Stand 2026-09-03)** — in `backend-planning.md`
       §8 abgehakt und in die betroffenen Abschnitte eingearbeitet:
   - [x] **Limit-Werte je Tarif:** bestätigt, Werte in `stripe-config.js` sind korrekt.

@@ -1327,8 +1327,11 @@ main { display: block; }
    ========================================================= */
 .site-footer {
   border-top: 1px solid var(--line);
-  padding-block: clamp(3rem, 2rem + 4vw, 5rem) 2.5rem;
-  margin-top: var(--section-y);
+  /* Kein margin-top mehr (2026-09-22) — die vorangehende Section trägt
+     bereits eigenes Padding (siehe .section), macht den Abstand hier
+     zusätzlich zu groß. Der Abstand vor dem Footer kommt jetzt allein aus
+     dessen eigenem oberen Padding. */
+  padding-block: clamp(4rem, 3rem + 5vw, 7rem) 2.5rem;
 }
 .site-footer__grid {
   display: grid;
@@ -1374,14 +1377,17 @@ main { display: block; }
 /* Dunkle Variante — /preise/ und Rechtstexte (Impressum/Datenschutz/AGB):
    derselbe Footer (Layout, Grid, Abstände) wie auf Home/Über uns, nur
    invertiert und volle Breite wie die helle Variante, oben abgerundet
-   (--section-radius, wie andere ganze dunkle Sektionen). --ink-900 statt
-   --ink-950: auf /preise/ ist die Seite selbst schon --ink-950 (siehe
-   .pricepage) — ohne den Tonwert-Unterschied wäre der Radius dort
-   unsichtbar (gleiche Farbe wie der Seitenhintergrund). */
+   (--section-radius, wie andere ganze dunkle Sektionen). Gleicher
+   Schwarzton wie die dunkle Nav-Pille (--ink-950, siehe
+   .mkt-nav.is-scrolled) statt eines eigenen Tons — dafür wie dort auch
+   ein heller 1px-Rand (14% weiß) an den drei sichtbaren Kanten, sonst
+   wäre der Radius auf /preise/ unsichtbar (Seite selbst ist schon
+   --ink-950). */
 .site-footer--dark {
-  background: var(--ink-900);
+  background: var(--ink-950);
   color: var(--paper);
-  border-top: 0;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-bottom: 0;
   border-top-left-radius: var(--section-radius);
   border-top-right-radius: var(--section-radius);
 }

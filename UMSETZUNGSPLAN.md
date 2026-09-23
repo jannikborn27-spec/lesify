@@ -4615,4 +4615,9 @@ Kritisch, weil Zielgruppe minderjährig ist.
 - [x] Hero-Karte (V6.2): Titelzeile + Navigation standen nebeneinander in einer Zeile und der längste Folientitel
       („Verständlich, sicher, für Schüler entwickelt") brach um. Jetzt zwei Zeilen (Icon+Titel, darunter Zähler/
       Punkte/Pfeile) — alle vier Folientitel passen einzeilig.
-- [ ] Offen: entscheiden, ob `/lan2/` die Startseite ablöst.
+- [x] Entscheidung (2026-09-23): `/lan2/` **ist jetzt die Startseite** (`marketing/index.html`, indexierbar, Canonical `/`,
+      statischer Hero-/Section-Text als Fallback ohne JS). Alte Startseite archiviert unter
+      `/landing-old-dev-23092026/` (noindex, nicht verlinkt, `<base href="/">` für die relativen Bildpfade). `/lan2/`
+      leitet per Meta-Refresh auf `/` um. **Achtung:** die alte Startseite nutzt `hero-3-new.jpg`/`hero-4-new.jpg` und
+      `hero-nw-fin/hero-nw-slidemgs-*.png` — lokal gelöscht, aber nicht committet; wer die Löschung committet, bricht das
+      Archiv (dann Bilder mit ins Archiv-Verzeichnis kopieren).

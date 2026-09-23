@@ -77,7 +77,7 @@
       h: 'Der ganze Klausurstoff, automatisch kompakt zusammengefasst.',
       lead: 'Aus der gesamten Klausurvorbereitung entsteht ein einziger Lernzettel, der Formeln, Definitionen und alles Wichtige übersichtlich und kompakt vereint.',
       imgs: ['section-lernzettel'],
-      dims: [1218, 1091],
+      dims: [1303, 1031],
       flat: true,
       alt: 'Lesify Lernzettel „If-Sätze Type 1 und Type 2“ neben dem Chat zum gemeinsamen Überarbeiten'
     },

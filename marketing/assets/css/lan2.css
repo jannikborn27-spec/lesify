@@ -93,6 +93,7 @@
 /* Text-Spalte: Listen */
 .l2-prow { display: grid; gap: 1.1rem; margin-top: 1.8rem; }
 .l2-prow li { display: flex; gap: 0.9rem; align-items: flex-start; }
+.l2-prow.c3 { grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 0; }
 .l2-prow b, .l2-nrow b, .l2-scard b, .l2-path b { display: block; font: 600 1rem/1.3 var(--font-display); }
 .l2-prow span:not(.l2-ico), .l2-nrow li span:not(.l2-num), .l2-scard span, .l2-path span { display: block; margin-top: 0.2rem; color: var(--mut); font-size: 0.9rem; line-height: 1.5; }
 
@@ -289,7 +290,7 @@
   .l2.is-light, .l2.is-light.is-flip { background: linear-gradient(180deg, var(--bg-canvas) 0 38%, var(--l2-tint) 38% 100%); }
   .l2-2__media, .is-flip .l2-2__media { order: 2; margin: 0 calc(-1 * min(6vw, var(--gutter))); width: calc(100% + 2 * min(6vw, var(--gutter))); }
   .is-flip .l2-2__text { order: 1; }
-  .l2-cards.c3, .l2-row.r3 { grid-template-columns: 1fr; }
+  .l2-cards.c3, .l2-prow.c3, .l2-row.r3 { grid-template-columns: 1fr; }
   .l2-bento { grid-template-columns: 1fr 1fr; }
   .l2-bc.is-big { grid-row: auto; }
   .l2-row.is-overlap { margin-top: 1rem; padding-inline: 0; }

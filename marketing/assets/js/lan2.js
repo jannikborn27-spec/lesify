@@ -218,7 +218,7 @@
     }
   ];
 
-  /* ---------- Lernzettel (lz, hell) — final: Liste mit 3 Punkten (Icons für Materialien · automatisch · anpassbar) ---------- */
+  /* ---------- Lernzettel (lz, hell) — final: Text links, Mockup rechts, die 3 Punkte als Zeile darunter (Layout wie Organisation) ---------- */
   var LZ_ICO = {
     material:
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Z"></path><path d="M14 3v5h5"></path><path d="M12 17v-6"></path><path d="m9.5 13.5 2.5-2.5 2.5 2.5"></path></svg>',
@@ -236,7 +236,8 @@
     function (s) {
       return bleed(
         s,
-        '<ul class="l2-prow">' +
+        '',
+        '<ul class="l2-prow c3">' +
           LZ_POINTS.map(function (p) {
             return li('', ico(LZ_ICO[p.ic]) + '<div><b>' + p.t + '</b><span>' + p.s + '</span></div>');
           }).join('') +

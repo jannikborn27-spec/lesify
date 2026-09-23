@@ -105,10 +105,14 @@ export function schreibeInline(
     const name = schriftFuer(l, !!o.basisFett);
     v.schrift(name, groesse);
     doc.fillColor(l.code ? v.farbe.ink : (o.farbe ?? INK[800]));
-    const t = v.bereinige(l.text, name);
     const letzter = i === teile.length - 1;
-    if (i === 0) doc.text(t, x, start, { width: breite, lineGap: ZEILE, continued: !letzter });
-    else doc.text(t, { continued: !letzter });
+    if (i === 0)
+      v.textMitFallback(l.text, name, x, start, {
+        width: breite,
+        lineGap: ZEILE,
+        continued: !letzter,
+      });
+    else v.textMitFallback(l.text, name, undefined, undefined, { continued: !letzter });
   });
 }
 
@@ -200,11 +204,11 @@ function rendereBloecke(v: LesifyVorlage, tokens: Token[], sp: Spalte): void {
         const c = t as Tokens.Code;
         const text = v.bereinige(c.text, 'mono');
         v.schrift('mono', 9);
-        const h = doc.heightOfString(text, { width: sp.breite - 20, lineGap: 2 }) + 18;
+        const h = doc.heightOfString(text, { width: sp.breite - 20, lineGap: 0 }) + 18;
         v.platz(Math.min(h, 120));
         const y = doc.y;
         doc.roundedRect(sp.x, y, sp.breite, h, 6).fill(INK[50]);
-        doc.fillColor(INK[800]).text(text, sp.x + 10, y + 9, { width: sp.breite - 20, lineGap: 2 });
+        doc.fillColor(INK[800]).text(text, sp.x + 10, y + 9, { width: sp.breite - 20, lineGap: 0 });
         doc.y = y + h + 8;
         break;
       }

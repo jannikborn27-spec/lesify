@@ -3366,10 +3366,16 @@ Preise/Modellwahl-Prinzipien: `00-overview.md` §7.
 - [ ] **Chat-Antworten streamen** — _live gemessen 10–15 s Wartezeit mit nur
       Tipp-Punkten; war schon als Nachholbedarf bei Calls 03–06 notiert, ist
       mit echtem Modell jetzt spürbar._
-- [ ] **PDF-Font: Box-Drawing-Zeichen** — _Claude nutzt in Lernzetteln gern
-      `──`/`│` für Bruch-Skizzen; im Lernzettel-PDF erscheinen die als
-      `?????` (Glyphe fehlt im eingebetteten Font). Font mit den Zeichen
-      einbetten oder beim PDF-Rendern ersetzen._
+- [x] **PDF-Font: Mathe- und Box-Zeichen** (2026-09-23) — _Codeblöcke
+      liefen in `Courier` (nur Latin-1 → `─`/`│` wurden `?????`), die
+      Hausschriften sind Latin-Subsets: `→ ≈ ≤` wurden zu ASCII, **`√ π Δ ∞`
+      wurden still gelöscht** („Berechne √49" → „Berechne 49"). Jetzt
+      DejaVu Sans / Sans Mono (`api/assets/fonts/`, freie Lizenz) als `mono`
+      und als Glyphen-Fallback: `textMitFallback()`/`laeufeMitFallback()` in
+      `pdf/basis.ts` setzen fehlende Zeichen lauf-weise in DejaVu (Fließtext,
+      Titel, Überschriften, Testklausur-Fragen/-Hinweise). Labels (Chips,
+      Laufkopf) bleiben einschriftig (`bereinige(…, true)`). Test:
+      `pdf/basis.test.ts`._
 - [x] **KI-Fehler sauber behandeln** (2026-09-23) — _alle Anthropic-Fehler
       (nicht erreichbar, Timeout, Guthaben leer, abgeschnittene Antwort) →
       `503 ki_nicht_verfuegbar` statt `500`, App zeigt „Die KI ist gerade nicht

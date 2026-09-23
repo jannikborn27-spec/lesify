@@ -122,9 +122,8 @@ export async function testklausurPdf(d: TestklausurPdfDaten): Promise<Buffer> {
   for (const t of hinweise) {
     doc.circle(v.links + 23, hy + 5.5, 1.7).fill(v.farbe.base);
     v.schrift('body', 9.5);
-    doc
-      .fillColor(INK[800])
-      .text(v.bereinige(t, 'body'), v.links + 32, hy, { width: breiteInnen - 12, lineGap: 2.5 });
+    doc.fillColor(INK[800]);
+    v.textMitFallback(t, 'body', v.links + 32, hy, { width: breiteInnen - 12, lineGap: 2.5 });
     hy = doc.y + 5;
   }
   doc.y = bY + boxH + 22;
@@ -147,16 +146,18 @@ export async function testklausurPdf(d: TestklausurPdfDaten): Promise<Buffer> {
     doc.fillColor(INK[950]).text(`Aufgabe ${i + 1}`, v.links + 34, y + 5, { lineBreak: false });
     const wt = doc.widthOfString(`Aufgabe ${i + 1}`);
     v.schrift('bodyFett', 8);
-    const thema = v.bereinige(a.themaName, 'bodyFett');
+    const thema = v.bereinige(a.themaName, 'bodyFett', true);
     const cw = doc.widthOfString(thema) + 16;
     const cx = v.links + 34 + wt + 10;
     doc.roundedRect(cx, y + 5, cw, 15, 7.5).fill(v.farbe.bg);
     doc.fillColor(v.farbe.ink).text(thema, cx + 8, y + 9.2, { lineBreak: false });
 
     v.schrift('body', 10.5);
-    doc
-      .fillColor(INK[800])
-      .text(frageTeil, v.links + 34, y + 32, { width: v.inhaltBreite - 34, lineGap: 3.2 });
+    doc.fillColor(INK[800]);
+    v.textMitFallback(a.frage, 'body', v.links + 34, y + 32, {
+      width: v.inhaltBreite - 34,
+      lineGap: 3.2,
+    });
     doc.y += 10;
 
     // Antwortlinien — restliche Seite nutzen, aber höchstens ANTWORT_ZEILEN

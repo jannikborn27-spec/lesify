@@ -73,6 +73,19 @@ export const SCHRIFTEN = {
   bodyMittel: font('hanken-grotesk', 'hanken-grotesk-latin-600-normal'),
   display: font('outfit', 'outfit-latin-600-normal'),
   displayFett: font('outfit', 'outfit-latin-700-normal'),
+  // DejaVu (freie Lizenz, `assets/fonts/DejaVu-LICENSE.txt`): Hanken Grotesk/
+  // Outfit sind Latin-Subsets ohne Mathe-/Pfeil-/Box-Zeichen (→ ≈ ≤ √ π Δ ─ │ ✓).
+  // `mono` für Codeblöcke (Bruch-Skizzen mit ─/│), `symbol*` als Glyphen-
+  // Fallback im Fließtext (siehe `LesifyVorlage.textMitFallback`).
+  mono: join(ASSET_DIR, 'fonts', 'DejaVuSansMono.ttf'),
+  symbol: join(ASSET_DIR, 'fonts', 'DejaVuSans.ttf'),
+  symbolFett: join(ASSET_DIR, 'fonts', 'DejaVuSans-Bold.ttf'),
 } as const;
 
-export type SchriftName = keyof typeof SCHRIFTEN | 'mono';
+export type SchriftName = keyof typeof SCHRIFTEN;
+
+/** Fallback-Schrift für Zeichen, die `name` nicht enthält. */
+export function fallbackSchrift(name: SchriftName): SchriftName {
+  if (name === 'mono' || name === 'symbol' || name === 'symbolFett') return name;
+  return /Fett|Mittel|display/.test(name) ? 'symbolFett' : 'symbol';
+}

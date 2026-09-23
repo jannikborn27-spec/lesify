@@ -1,6 +1,7 @@
 import PDFDocument from 'pdfkit';
 import {
   INK,
+  fallbackSchrift,
   LOGO_PFAD,
   SCHRIFTEN,
   SEITE,
@@ -36,7 +37,7 @@ export class LesifyVorlage {
   private readonly fertig: Promise<Buffer>;
   private readonly laufkopf: string;
   /** Glyphen-Cache je Schrift: verhindert „fehlende Zeichen"-Kästchen (Emoji, exotische Symbole). */
-  private readonly glyphen = new Map<string, Set<number>>();
+  private readonly glyphen = new Map<string, Map<number, boolean>>();
 
   constructor(private readonly kopf: VorlagenKopf) {
     this.farbe = fachFarbe(kopf.fachFarbeKey);
@@ -87,51 +88,91 @@ export class LesifyVorlage {
 
   schrift(name: SchriftName, groesse: number): this {
     this.aktSchrift = [name, groesse];
-    this.doc.font(name === 'mono' ? 'Courier' : name).fontSize(groesse);
+    this.doc.font(name).fontSize(groesse);
     return this;
   }
 
-  /** Entfernt Zeichen, die die aktuelle Schrift nicht hat (Emoji …), und normalisiert Typografie. */
-  bereinige(text: string, name: SchriftName): string {
-    const ersatz: Record<string, string> = {
-      '\u00a0': ' ',
-      '\u2011': '-',
-      '\u2713': '\u2714',
-      '\u2717': '\u2718',
-    };
-    if (name === 'mono')
-      return text.replace(/[^\x20-\xff\n\u2013\u2014\u2018-\u201e\u2022\u2026]/g, '?');
-    let set = this.glyphen.get(name);
-    if (!set) {
-      set = new Set();
-      this.glyphen.set(name, set);
-    }
+  /**
+   * Normalisiert Typografie und entfernt Zeichen, die weder `name` noch die
+   * Fallback-Schrift (DejaVu) hat — praktisch nur Emoji. Mathe-/Pfeil-/Box-
+   * Zeichen bleiben erhalten und werden von `textMitFallback` in DejaVu gesetzt
+   * (früher wurden √ π Δ ∞ still gelöscht und Codeblöcke zu „?????").
+   */
+  bereinige(text: string, name: SchriftName, nurPrimaer = false): string {
+    const ersatz: Record<string, string> = { '\u00a0': ' ', '\u2011': '-' };
+    // `nurPrimaer`: für einzeilige Labels, die mit `widthOfString` in einer
+    // Schrift gemessen werden (Chips, Laufkopf) — dort kein Fallback-Lauf.
+    const fallback = nurPrimaer ? name : fallbackSchrift(name);
     let aus = '';
     for (const zeichen of text) {
       const cp = zeichen.codePointAt(0)!;
       if (cp < 0x20 && zeichen !== '\n') continue;
+      if (cp >= 0xfe00 && cp <= 0xfe0f) continue; // Variation Selectors (Emoji-Stil)
       const z = ersatz[zeichen] ?? zeichen;
-      if (cp <= 0x7e || this.hatGlyphe(name, z.codePointAt(0)!, set)) aus += z;
-      else {
-        const f: Record<number, string> = {
-          0x2192: '->',
-          0x2260: '!=',
-          0x2248: '~',
-          0x2264: '<=',
-          0x2265: '>=',
-        };
-        if (f[cp]) aus += f[cp];
-      }
+      const zcp = z.codePointAt(0)!;
+      if (zeichen === '\n' || this.hatGlyphe(name, zcp) || this.hatGlyphe(fallback, zcp)) aus += z;
     }
     return aus;
   }
 
-  private hatGlyphe(name: string, cp: number, cache: Set<number>): boolean {
-    if (cache.has(cp)) return true;
+  /** Zerlegt Text in Läufe: Zeichen ohne Glyphe in `name` gehen an die Fallback-Schrift. */
+  laeufeMitFallback(text: string, name: SchriftName): { text: string; schrift: SchriftName }[] {
+    const fallback = fallbackSchrift(name);
+    const laeufe: { text: string; schrift: SchriftName }[] = [];
+    for (const zeichen of this.bereinige(text, name)) {
+      const cp = zeichen.codePointAt(0)!;
+      const schrift = zeichen === '\n' || this.hatGlyphe(name, cp) ? name : fallback;
+      const letzter = laeufe[laeufe.length - 1];
+      if (letzter && letzter.schrift === schrift) letzter.text += zeichen;
+      else laeufe.push({ text: zeichen, schrift });
+    }
+    return laeufe;
+  }
+
+  /**
+   * Wie `doc.text`, setzt aber fehlende Glyphen in der Fallback-Schrift
+   * (gleiche Größe) über `continued`-Läufe. `x`/`y`/Optionen gelten für den
+   * ersten Lauf; `opts.continued` steuert, ob nach dem letzten Lauf
+   * weitergeschrieben wird (für gemischte Markdown-Inline-Läufe).
+   */
+  textMitFallback(
+    text: string,
+    name: SchriftName,
+    x: number | undefined,
+    y: number | undefined,
+    opts: PDFKit.Mixins.TextOptions = {},
+  ): void {
+    const laeufe = this.laeufeMitFallback(text, name);
+    const weiter = !!opts.continued;
+    if (!laeufe.length) laeufe.push({ text: '', schrift: name });
+    laeufe.forEach((l, i) => {
+      this.doc.font(l.schrift);
+      const continued = i < laeufe.length - 1 || weiter;
+      if (i === 0 && x !== undefined) this.doc.text(l.text, x, y, { ...opts, continued });
+      else if (i === 0) this.doc.text(l.text, { ...opts, continued });
+      else this.doc.text(l.text, { continued });
+    });
     this.doc.font(name);
+  }
+
+  private hatGlyphe(name: SchriftName, cp: number): boolean {
+    let cache = this.glyphen.get(name);
+    if (!cache) {
+      cache = new Map();
+      this.glyphen.set(name, cache);
+    }
+    const bekannt = cache.get(cp);
+    if (bekannt !== undefined) return bekannt;
+    // Glyphen-Prüfung über die fontkit-Instanz der Schrift; die aktuell aktive
+    // Schrift wird danach wiederhergestellt (sonst schriebe der nächste
+    // `doc.text` in der Prüf-Schrift weiter).
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const ok = !!(this.doc as any)._font?.font?.hasGlyphForCodePoint?.(cp);
-    if (ok) cache.add(cp);
+    const doc = this.doc as any;
+    const vorher = doc._font;
+    this.doc.font(name);
+    const ok = !!doc._font?.font?.hasGlyphForCodePoint?.(cp);
+    doc._font = vorher;
+    cache.set(cp, ok);
     return ok;
   }
 
@@ -147,12 +188,17 @@ export class LesifyVorlage {
     if (!erste) {
       doc.fillColor(INK[400]);
       this.schrift('bodyMittel', 7.5);
-      doc.text(this.bereinige(this.laufkopf.toUpperCase(), 'bodyMittel'), SEITE.rand.links, 30, {
-        width: this.inhaltBreite,
-        characterSpacing: 0.8,
-        lineBreak: false,
-        ellipsis: true,
-      });
+      doc.text(
+        this.bereinige(this.laufkopf.toUpperCase(), 'bodyMittel', true),
+        SEITE.rand.links,
+        30,
+        {
+          width: this.inhaltBreite,
+          characterSpacing: 0.8,
+          lineBreak: false,
+          ellipsis: true,
+        },
+      );
       doc
         .moveTo(SEITE.rand.links, 48)
         .lineTo(SEITE.breite - SEITE.rand.rechts, 48)
@@ -197,6 +243,7 @@ export class LesifyVorlage {
     const chipText = this.bereinige(
       kopf.klasse ? `${kopf.fachName} · ${kopf.klasse}` : kopf.fachName,
       'bodyFett',
+      true,
     );
     this.schrift('bodyFett', 8.5);
     const chipB = doc.widthOfString(chipText) + 22;
@@ -208,14 +255,13 @@ export class LesifyVorlage {
     y += 32;
     doc.fillColor(INK[950]);
     this.schrift('displayFett', 25);
-    const titel = this.bereinige(kopf.titel, 'displayFett');
-    doc.text(titel, x, y, { width: w, lineGap: 1 });
+    this.textMitFallback(kopf.titel, 'displayFett', x, y, { width: w, lineGap: 1 });
     y = doc.y + 6;
 
     if (kopf.meta) {
       doc.fillColor(INK[500]);
       this.schrift('body', 9.5);
-      doc.text(this.bereinige(kopf.meta, 'body'), x, y, { width: w });
+      this.textMitFallback(kopf.meta, 'body', x, y, { width: w });
       y = doc.y + 4;
     }
     return y + 14;
@@ -236,7 +282,7 @@ export class LesifyVorlage {
     const y0 = doc.y;
     if (ebene !== 3) doc.rect(this.links, y0 + 2, 3, h - 4).fill(this.farbe.base);
     doc.fillColor(ebene === 3 ? INK[900] : this.farbe.ink);
-    doc.text(t, this.links + (ebene === 3 ? 0 : 12), y0, {
+    this.textMitFallback(text, name, this.links + (ebene === 3 ? 0 : 12), y0, {
       width: this.inhaltBreite - (ebene === 3 ? 0 : 12),
     });
     doc.y += ebene === 3 ? 3 : 6;

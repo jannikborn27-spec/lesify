@@ -9,7 +9,8 @@ import { env, istProd } from './env.js';
 import { hashToken } from './lib/tokens.js';
 import { HttpError } from './lib/http.js';
 import { getZahlungsGateway, type ZahlungsGateway } from './lib/zahlung.js';
-import { getKiClient, type KiClient } from './lib/ki/client.js';
+import Anthropic from '@anthropic-ai/sdk';
+import { getKiClient, KiAbgeschnittenError, type KiClient } from './lib/ki/client.js';
 import { getStorageGateway, type StorageGateway } from './lib/storage.js';
 import { getMailGateway, type MailGateway } from './lib/mailer.js';
 import { RateLimiter } from './lib/ratelimit.js';
@@ -168,6 +169,14 @@ export function buildApp(opts: BuildOpts = {}): FastifyInstance {
         .send({ fehler: err.code, ...(err.details ? { details: err.details } : {}) });
     }
     if (err.validation) return reply.code(400).send({ fehler: 'validierung' });
+    // Anthropic nicht erreichbar / Timeout / Guthaben leer / abgeschnittene
+    // Antwort → eigener Code, damit die App „KI gerade nicht erreichbar" statt
+    // eines generischen Fehlers zeigt (RUNBOOK „KI-Anbieter"). Usage wird in
+    // diesem Fall nie gezählt (Zähler laufen erst nach erfolgreichem Call).
+    if (err instanceof Anthropic.APIError || err instanceof KiAbgeschnittenError) {
+      request.log.error({ err, kiFehler: true }, 'KI-Call fehlgeschlagen');
+      return reply.code(503).send({ fehler: 'ki_nicht_verfuegbar' });
+    }
     request.log.error(err);
     return reply.code(500).send({ fehler: 'serverfehler' });
   });

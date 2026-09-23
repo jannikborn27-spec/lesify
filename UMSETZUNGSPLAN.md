@@ -3370,10 +3370,15 @@ Preise/Modellwahl-Prinzipien: `00-overview.md` §7.
       `──`/`│` für Bruch-Skizzen; im Lernzettel-PDF erscheinen die als
       `?????` (Glyphe fehlt im eingebetteten Font). Font mit den Zeichen
       einbetten oder beim PDF-Rendern ersetzen._
-- [ ] **Vereinzelter `400 Invalid request data` bei Call 09 beobachten** —
-      _1 von 5 Smoke-Läufen, isoliert nicht reproduzierbar (Request-ID
-      `req_011CfL73ekp3NqRWtKL7y7ys`); bei Wiederauftreten Request loggen,
-      ggf. einmaligen Retry einbauen._
+- [x] **KI-Fehler sauber behandeln** (2026-09-23) — _alle Anthropic-Fehler
+      (nicht erreichbar, Timeout, Guthaben leer, abgeschnittene Antwort) →
+      `503 ki_nicht_verfuegbar` statt `500`, App zeigt „Die KI ist gerade nicht
+      erreichbar … nichts vom Kontingent abgezogen" (`api.js` `FEHLER_TEXT`).
+      Einmaliger Retry bei `400` (`mitEinemRetry()` in `client.ts`, geloggt als
+      `kiRetry`) für den vereinzelten „Invalid request data" bei Call 09
+      (Request-ID `req_011CfL73ekp3NqRWtKL7y7ys`). Test in `ki.test.ts`
+      („KI-Anbieter fällt aus": 503, kein Usage-Verbrauch, keine halbe
+      Nachricht)._
 - [ ] **Prompt Caching greift mit Haiku 4.5 noch nicht** — _Mindestpräfix
       4.096 Token, Chat-System-Prompts ~1.300 → kein Cache. Kein Fehler;
       erst relevant, wenn Themen Memory wächst oder das Modell wechselt._

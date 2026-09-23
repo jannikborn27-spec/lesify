@@ -1,5 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest';
+import Anthropic from '@anthropic-ai/sdk';
 import { buildApp } from '../app.js';
+import type { KiClient } from '../lib/ki/client.js';
 import { getPrisma } from '../db.js';
 
 const hatDb = !!process.env.DATABASE_URL;
@@ -128,6 +130,40 @@ describe.runIf(hatDb)('Phase 6 — KI-Endpunkte gegen den FakeKiClient (Supabase
         codes.push(res.statusCode);
       }
       expect(codes).toContain(400);
+    });
+  });
+
+  describe('KI-Anbieter fällt aus', () => {
+    const kaputt: KiClient = {
+      toolAufruf: () => Promise.reject(new Anthropic.APIConnectionError({ message: 'offline' })),
+      freitextAufruf: () =>
+        Promise.reject(new Anthropic.APIConnectionError({ message: 'offline' })),
+    };
+    const kaputteApp = buildApp({ logger: false, ki: kaputt });
+
+    it('→ 503 ki_nicht_verfuegbar, kein Usage-Verbrauch, keine halbe Nachricht', async () => {
+      await kaputteApp.ready();
+      const chatId = (
+        await kaputteApp.inject({
+          method: 'POST',
+          url: '/chats',
+          headers: auth(),
+          payload: { fachId, themaId: themaAId, modus: 'erklaeren' },
+        })
+      ).json().id;
+      const vorher = (await app.inject({ method: 'GET', url: '/usage', headers: auth() })).json();
+      const res = await kaputteApp.inject({
+        method: 'POST',
+        url: `/chats/${chatId}/nachrichten`,
+        headers: auth(),
+        payload: { text: 'Was ist ein Bruch?' },
+      });
+      expect(res.statusCode).toBe(503);
+      expect(res.json().fehler).toBe('ki_nicht_verfuegbar');
+      const nachher = (await app.inject({ method: 'GET', url: '/usage', headers: auth() })).json();
+      expect(nachher.nachrichten.used).toBe(vorher.nachrichten.used);
+      const chat = await app.inject({ method: 'GET', url: `/chats/${chatId}`, headers: auth() });
+      expect(chat.json().nachrichten ?? []).toHaveLength(0);
     });
   });
 

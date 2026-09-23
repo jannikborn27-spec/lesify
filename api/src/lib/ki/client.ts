@@ -179,6 +179,25 @@ export class AnthropicKiClient implements KiClient {
     });
   }
 
+  /**
+   * Ein zusätzlicher Versuch bei `400 invalid_request_error`. Das SDK selbst
+   * wiederholt nur 408/409/429/5xx (`maxRetries`); live trat bei Call 09
+   * einmal ein nicht reproduzierbarer 400 „Invalid request data" auf
+   * (2026-09-23). Ein abgelehnter Request wird nicht berechnet — der Retry ist
+   * kostenlos, ein echter Fehler (z. B. Guthaben leer) schlägt einfach erneut fehl.
+   */
+  private async mitEinemRetry<R>(callTyp: string, fn: () => Promise<R>): Promise<R> {
+    try {
+      return await fn();
+    } catch (e) {
+      if (!(e instanceof Anthropic.BadRequestError)) throw e;
+      console.warn(
+        JSON.stringify({ kiRetry: true, callTyp, status: e.status, requestId: e.requestID }),
+      );
+      return fn();
+    }
+  }
+
   private usageAus(u: Anthropic.Messages.Usage): KiUsage {
     return {
       inputTokens: u.input_tokens,
@@ -189,22 +208,24 @@ export class AnthropicKiClient implements KiClient {
   }
 
   async toolAufruf<T>(opts: KiToolAufruf<T>): Promise<{ ausgabe: T; usage: KiUsage }> {
-    const res = await this.client.messages.create({
-      model: opts.model,
-      max_tokens: opts.maxTokens,
-      ...modellParameter(opts.model, opts.temperature),
-      system: this.system(opts),
-      messages: this.messagesAus(opts),
-      tools: [
-        {
-          name: opts.tool.name,
-          description: opts.tool.beschreibung,
-          input_schema: strictSchema(opts.tool.schema) as Anthropic.Messages.Tool.InputSchema,
-          strict: true,
-        },
-      ],
-      tool_choice: { type: 'tool', name: opts.tool.name },
-    });
+    const res = await this.mitEinemRetry(opts.callTyp, () =>
+      this.client.messages.create({
+        model: opts.model,
+        max_tokens: opts.maxTokens,
+        ...modellParameter(opts.model, opts.temperature),
+        system: this.system(opts),
+        messages: this.messagesAus(opts),
+        tools: [
+          {
+            name: opts.tool.name,
+            description: opts.tool.beschreibung,
+            input_schema: strictSchema(opts.tool.schema) as Anthropic.Messages.Tool.InputSchema,
+            strict: true,
+          },
+        ],
+        tool_choice: { type: 'tool', name: opts.tool.name },
+      }),
+    );
     const usage = this.usageAus(res.usage);
     this.onUsage({ callTyp: opts.callTyp, model: opts.model, usage, stopReason: res.stop_reason });
     if (res.stop_reason === 'max_tokens')
@@ -216,13 +237,15 @@ export class AnthropicKiClient implements KiClient {
   }
 
   async freitextAufruf(opts: KiFreitextAufruf): Promise<{ text: string; usage: KiUsage }> {
-    const res = await this.client.messages.create({
-      model: opts.model,
-      max_tokens: opts.maxTokens,
-      ...modellParameter(opts.model, opts.temperature),
-      system: this.system(opts),
-      messages: this.messagesAus(opts),
-    });
+    const res = await this.mitEinemRetry(opts.callTyp, () =>
+      this.client.messages.create({
+        model: opts.model,
+        max_tokens: opts.maxTokens,
+        ...modellParameter(opts.model, opts.temperature),
+        system: this.system(opts),
+        messages: this.messagesAus(opts),
+      }),
+    );
     const usage = this.usageAus(res.usage);
     this.onUsage({ callTyp: opts.callTyp, model: opts.model, usage, stopReason: res.stop_reason });
     // Freitext (Chat) bei max_tokens trotzdem zurückgeben — ein etwas kurzer

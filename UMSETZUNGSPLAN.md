@@ -4407,7 +4407,15 @@ Kritisch, weil Zielgruppe minderjährig ist.
       Mini-Schriften auf der Landing (bewusst belassen)._
 - [ ] **End-to-End-Test der Kern-Flows gegen `staging`** — _Checkliste in
       `docs/QS-CHECKLISTE.md` §2; braucht laufendes `staging` (Phase 16)._
-- [ ] **KI-Calls mit aufgezeichneten Fixtures** — _Phase 6._
+- [x] **KI-Calls mit aufgezeichneten Fixtures** (2026-09-23) — _`KI_FIXTURES_AUFNEHMEN=1
+      pnpm --filter @lesify/api ki:smoke` schneidet echte Antworten mit
+      (`api/src/lib/ki/fixtures/ki-antworten.json`, `AufnahmeKiClient`);
+      `FixtureKiClient` spielt sie in `routes/ki-fixtures.test.ts` ab (Chat,
+      Lernzettel + PDF + echte Revisions-Patches, Klausur → Testklausur-PDF →
+      Analyse → Lernplan-Lernzettel) — kostenlos in jedem `pnpm test`. Dazu
+      **`pnpm --filter @lesify/api ki:eval`**: 4 feste Bewertungsfälle für die
+      Testklausur-Analyse mit Soll-Bereichen (~4 ct/Lauf, Stand 4/4 ✓) — nach
+      jeder Prompt-/Modelländerung an Call 11 laufen lassen._
 - [ ] **Lasttest** der teuren Pfade — _Ziele in `docs/QS-CHECKLISTE.md` §4;
       braucht `staging` + echte KI._
 - [x] **Sicherheitsreview (Stand-Tabelle)** — _`docs/QS-CHECKLISTE.md` §3: Auth,

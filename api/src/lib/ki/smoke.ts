@@ -10,6 +10,8 @@ import { buildApp } from '../../app.js';
 import { getPrisma } from '../../db.js';
 import { env } from '../../env.js';
 import { FakeStorageGateway } from '../storage.js';
+import { getKiClient } from './client.js';
+import { AufnahmeKiClient } from './fixtures.js';
 import { buildMultipart, pdfMitText } from '../../test-utils/multipart.js';
 
 if (!env.ANTHROPIC_API_KEY) {
@@ -77,7 +79,16 @@ function erwarte(bedingung: unknown, meldung: string): asserts bedingung {
   if (!bedingung) throw new Error(meldung);
 }
 
-const app = buildApp({ logger: true, storage: new FakeStorageGateway() });
+// `KI_FIXTURES_AUFNEHMEN=1`: echte Antworten als Test-Fixtures mitschneiden
+// (`fixtures/ki-antworten.json`, genutzt von `ki-fixtures.test.ts`).
+const aufnahme = process.env.KI_FIXTURES_AUFNEHMEN
+  ? new AufnahmeKiClient(getKiClient())
+  : undefined;
+const app = buildApp({
+  logger: true,
+  storage: new FakeStorageGateway(),
+  ...(aufnahme ? { ki: aufnahme } : {}),
+});
 const prisma = getPrisma();
 const email = `smoke+${crypto.randomUUID()}@smoke.lesify.test`;
 const passwort = 'smoke-test-pass-1234';
@@ -299,6 +310,10 @@ main()
     origLog('Abbruch:', e);
   })
   .finally(async () => {
+    if (aufnahme && !fehler) {
+      aufnahme.speichern();
+      origLog(`Fixtures gespeichert (${Object.keys(aufnahme.aufnahme).length} Einträge).`);
+    }
     await prisma.user.delete({ where: { email } }).catch(() => undefined);
     await app.close();
     process.exit(fehler ? 1 : 0);

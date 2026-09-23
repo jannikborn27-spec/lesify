@@ -1,0 +1,72 @@
+{
+  "tool:datei_zusammenfassung": {
+    "vorgeschlagenerTitel": "Brüche kürzen und erweitern",
+    "zusammenfassung": "**Brüche kürzen:** Zähler und Nenner durch denselben Teiler teilen, um den Bruch zu vereinfachen. Beispiel: 8/12 = 2/3 (beide durch 4 geteilt).\n\n**Brüche erweitern:** Zähler und Nenner mit derselben Zahl multiplizieren, um einen gleichwertigen Bruch mit größeren Zahlen zu erhalten."
+  },
+  "text:chat_erklaeren": "# Warum darfst du kürzen?\n\nDas ist eine super Frage! Lass mich dir das mit einem Bild zeigen:\n\nStell dir vor, du hast eine Pizza in **12 Stücke** geteilt und isst **8 Stücke** davon. Das ist der Bruch `8/12`.\n\nJetzt teilst du dieselbe Pizza aber anders auf: in nur **3 Stücke** geteilt und isst **2 Stücke**. Das ist der Bruch `2/3`.\n\n**Du hast in beiden Fällen gleich viel Pizza gegessen!** Der Bruch beschreibt denselben Anteil, nur mit anderen Zahlen.\n\nMathematisch funktioniert das, weil du Zähler und Nenner durch **dieselbe Zahl** teilst – und das ändert den Wert des Bruchs nicht.\n\n---\n\n# So kürzt du 8/12\n\n**Schritt 1:** Finde einen gemeinsamen Teiler von 8 und 12.\n- 8 und 12 sind beide durch **4** teilbar\n\n**Schritt 2:** Teile beide durch 4:\n```\n8/12 = (8÷4)/(12÷4) = 2/3\n```\n\nFertig! `2/3` ist die gekürzte Form.\n\n---\n\n**Warum funktioniert das?** Weil du oben und unten durch dieselbe Zahl teilst – das ist wie wenn du eine Multiplikation rückgängig machst. Der Bruch bleibt gleich groß, wird aber einfacher.\n\n**Möchtest du ein weiteres Beispiel üben**, oder sollen wir schauen, wie du den **größten gemeinsamen Teiler** systematisch findest?",
+  "tool:chat_titel": {
+    "titel": "Bruch 8/12 kürzen und Begründung"
+  },
+  "tool:lernzettel_erstellen": {
+    "titel": "Bruchrechnung: Kürzen und Erweitern",
+    "content": "# Bruchrechnung: Kürzen und Erweitern\n\nHallo! 👋 Hier ist dein Lernzettel zum Thema **Brüche kürzen und erweitern**. Das sind zwei super wichtige Techniken, die dir später bei vielen Aufgaben helfen werden. Lass uns gemeinsam durchgehen, wie das funktioniert!\n\n---\n\n## 1. Grundbegriffe: Was ist ein Bruch?\n\nEin Bruch besteht aus zwei Teilen:\n\n```\n   Zähler (oben)\n   ────────────\n   Nenner (unten)\n```\n\n**Beispiel:** `8/12`\n- **Zähler:** 8 (wie viele Teile du hast)\n- **Nenner:** 12 (in wie viele Teile das Ganze aufgeteilt ist)\n\nDer Bruch beschreibt also einen **Anteil** von einem Ganzen.\n\n---\n\n## 2. Brüche kürzen\n\n### Was bedeutet kürzen?\n\nKürzen heißt, einen Bruch **zu vereinfachen**, ohne seinen Wert zu ändern. Du machst die Zahlen kleiner, aber der Bruch bleibt gleich groß!\n\n### Die Regel\n\nDu darfst Zähler und Nenner durch **dieselbe Zahl** teilen. Das ändert den Wert des Bruchs nicht.\n\n```\nZähler ÷ Teiler\n──────────────\nNenner ÷ Teiler\n```\n\n### Warum funktioniert das?\n\nStell dir eine Pizza vor:\n- Wenn du sie in **12 Stücke** teilst und **8 Stücke** isst → `8/12`\n- Wenn du sie in **3 Stücke** teilst und **2 Stücke** isst → `2/3`\n\n**Du hast in beiden Fällen gleich viel Pizza gegessen!** Der Anteil ist derselbe, nur die Einteilung ist anders.\n\n### Schritt-für-Schritt-Anleitung\n\n**Schritt 1:** Finde einen gemeinsamen Teiler von Zähler und Nenner\n**Schritt 2:** Teile beide durch diese Zahl\n**Schritt 3:** Wiederhole, bis du nicht mehr kürzen kannst\n\n### Beispiele\n\n#### Beispiel 1: `8/12` kürzen\n\n```\n8 und 12 sind beide durch 4 teilbar\n\n8/12 = (8÷4)/(12÷4) = 2/3\n```\n\n✓ `2/3` ist die gekürzte Form\n\n#### Beispiel 2: `15/25` kürzen\n\n```\n15 und 25 sind beide durch 5 teilbar\n\n15/25 = (15÷5)/(25÷5) = 3/5\n```\n\n✓ `3/5` ist die gekürzte Form\n\n### Praktischer Tipp\n\nSchau auf die **Endziffern**! \n- Enden beide Zahlen auf 5 oder 0? → Durch 5 teilbar\n- Sind beide Zahlen gerade? → Durch 2 teilbar\n\nDas hilft dir, schnell einen Teiler zu finden. 😊\n\n---\n\n## 3. Brüche erweitern\n\n### Was bedeutet erweitern?\n\nErweitern ist das **Gegenteil von Kürzen**. Du machst die Zahlen größer, aber der Bruch bleibt gleich groß!\n\n### Die Regel\n\nDu darfst Zähler und Nenner mit **derselben Zahl** multiplizieren. Der Wert des Bruchs ändert sich nicht.\n\n```\nZähler × Faktor\n───────────────\nNenner × Faktor\n```\n\n### Wann brauchst du das?\n\nErweitern brauchst du vor allem, wenn du **Brüche vergleichen** oder **addieren/subtrahieren** möchtest. Dann musst du oft einen gemeinsamen Nenner finden.\n\n### Beispiel\n\n```\n2/3 erweitern mit 4:\n\n2/3 = (2×4)/(3×4) = 8/12\n```\n\nDer Bruch `2/3` und `8/12` sind gleich groß – nur die Darstellung ist anders!\n\n---\n\n## 4. Zusammenhang: Kürzen und Erweitern\n\nDiese beiden Techniken sind **Gegensätze**:\n\n| Kürzen | Erweitern |\n|--------|-----------|\n| Teilen | Multiplizieren |\n| Zahlen werden kleiner | Zahlen werden größer |\n| Vereinfachen | Umformen |\n| `8/12 = 2/3` | `2/3 = 8/12` |\n\n**Wichtig:** Der Wert des Bruchs bleibt in beiden Fällen gleich!\n\n---\n\n## 5. Häufige Fehler (und wie du sie vermeidest)\n\n❌ **Fehler:** Nur den Zähler oder nur den Nenner teilen/multiplizieren\n```\nFalsch: 8/12 = 8÷4 / 12 = 2/12  ✗\nRichtig: 8/12 = 8÷4 / 12÷4 = 2/3  ✓\n```\n\n❌ **Fehler:** Zähler und Nenner durch unterschiedliche Zahlen teilen\n```\nFalsch: 8/12 = 8÷2 / 12÷4 = 4/3  ✗\nRichtig: 8/12 = 8÷4 / 12÷4 = 2/3  ✓\n```\n\n✓ **Merksatz:** Immer die **gleiche Zahl** oben und unten verwenden!\n\n---\n\n## 6. Zum Üben\n\nVersuche selbst, diese Brüche zu kürzen:\n\n- `12/18` → Tipp: Durch welche Zahl sind beide teilbar?\n- `10/15` → Tipp: Schau auf die Endziffern!\n- `6/9` → Tipp: Beide sind durch 3 teilbar\n\nWenn du unsicher bist, schau dir die Beispiele oben nochmal an – du schaffst das! 💪\n\n---\n\n**Viel Erfolg beim Lernen!** Falls noch Fragen auftauchen, frag einfach nach. 😊"
+  },
+  "tool:lernzettel_revision": {
+    "antwortText": "Gerne! Ich habe ein neues Beispiel mit gemischten Zahlen hinzugefügt. Das zeigt dir, wie Kürzen und Erweitern auch bei gemischten Zahlen funktioniert – sehr praktisch! 😊",
+    "art": "patch",
+    "patches": [
+      {
+        "suchen": "#### Beispiel 2: `15/25` kürzen\n\n```\n15 und 25 sind beide durch 5 teilbar\n\n15/25 = (15÷5)/(25÷5) = 3/5\n```\n\n✓ `3/5` ist die gekürzte Form",
+        "ersetzen": "#### Beispiel 2: `15/25` kürzen\n\n```\n15 und 25 sind beide durch 5 teilbar\n\n15/25 = (15÷5)/(25÷5) = 3/5\n```\n\n✓ `3/5` ist die gekürzte Form\n\n#### Beispiel 3: Gemischte Zahl kürzen – `2 4/8`\n\nBei gemischten Zahlen kürzst du nur den Bruchanteil (den Teil nach der ganzen Zahl):\n\n```\n2 4/8 = 2 (4÷4)/(8÷4) = 2 1/2\n```\n\n✓ `2 1/2` ist die gekürzte Form\n\n**Wichtig:** Die ganze Zahl (hier: 2) bleibt unverändert – du kürzst nur den Bruch dahinter!"
+      },
+      {
+        "suchen": "### Praktischer Tipp\n\nSchau auf die **Endziffern**! \n- Enden beide Zahlen auf 5 oder 0? → Durch 5 teilbar\n- Sind beide Zahlen gerade? → Durch 2 teilbar\n\nDas hilft dir, schnell einen Teiler zu finden. 😊",
+        "ersetzen": "### Praktischer Tipp\n\nSchau auf die **Endziffern**! \n- Enden beide Zahlen auf 5 oder 0? → Durch 5 teilbar\n- Sind beide Zahlen gerade? → Durch 2 teilbar\n\nDas hilft dir, schnell einen Teiler zu finden. 😊\n\n**Tipp für gemischte Zahlen:** Lass die ganze Zahl in Ruhe und kümmere dich nur um den Bruch!"
+      },
+      {
+        "suchen": "### Beispiel\n\n```\n2/3 erweitern mit 4:\n\n2/3 = (2×4)/(3×4) = 8/12\n```\n\nDer Bruch `2/3` und `8/12` sind gleich groß – nur die Darstellung ist anders!",
+        "ersetzen": "### Beispiele\n\n#### Beispiel 1: Einfacher Bruch erweitern\n\n```\n2/3 erweitern mit 4:\n\n2/3 = (2×4)/(3×4) = 8/12\n```\n\nDer Bruch `2/3` und `8/12` sind gleich groß – nur die Darstellung ist anders!\n\n#### Beispiel 2: Gemischte Zahl erweitern – `1 1/2`\n\nAuch hier erweiterst du nur den Bruchanteil:\n\n```\n1 1/2 erweitern mit 3:\n\n1 1/2 = 1 (1×3)/(2×3) = 1 3/6\n```\n\n✓ `1 3/6` ist die erweiterte Form (und könnte wieder gekürzt werden zu `1 1/2`)"
+      },
+      {
+        "suchen": "Versuche selbst, diese Brüche zu kürzen:\n\n- `12/18` → Tipp: Durch welche Zahl sind beide teilbar?\n- `10/15` → Tipp: Schau auf die Endziffern!\n- `6/9` → Tipp: Beide sind durch 3 teilbar\n\nWenn du unsicher bist, schau dir die Beispiele oben nochmal an – du schaffst das! 💪",
+        "ersetzen": "Versuche selbst, diese Brüche zu kürzen:\n\n- `12/18` → Tipp: Durch welche Zahl sind beide teilbar?\n- `10/15` → Tipp: Schau auf die Endziffern!\n- `6/9` → Tipp: Beide sind durch 3 teilbar\n- `3 6/12` → Tipp: Lass die 3 stehen und kümmere dich um den Bruch!\n\nWenn du unsicher bist, schau dir die Beispiele oben nochmal an – du schaffst das! 💪"
+      }
+    ]
+  },
+  "tool:testklausur_aufgaben": {
+    "aufgaben": [
+      {
+        "themaId": "2daee2d8-2d61-4d7c-b4a3-6aaaa60ee6e0",
+        "frage": "Kürze den Bruch 24/36 vollständig. Erkläre dabei, durch welche Zahl du Zähler und Nenner teilst und warum der Wert des Bruchs gleich bleibt."
+      },
+      {
+        "themaId": "b3dced84-e353-4d1a-b944-303b7d8f06d7",
+        "frage": "Leider kann für dieses Thema keine Aufgabe erstellt werden, da kein Lernmaterial zur Prozentrechnung bereitgestellt wurde."
+      }
+    ]
+  },
+  "tool:testklausur_analyse": {
+    "ergebnisse": [
+      {
+        "themaId": "2daee2d8-2d61-4d7c-b4a3-6aaaa60ee6e0",
+        "pruefung": "Eigene Lösung: 24/36. GGT von 24 und 36 ist 12. 24÷12=2, 36÷12=3, also vollständig gekürzt 2/3. Schülerlösung: 8/12... moment, Schüler hat 24/36 = 4/6 gerechnet? Er schreibt '8/12 = 4/6' - das passt nicht zur gestellten Aufgabe (24/36), sondern ist eher das Beispiel aus dem Lernmaterial. Vergleich mit tatsächlicher Aufgabe 24/36: Schülerantwort bezieht sich nicht auf die richtige Zahl bzw. selbst wenn man annimmt er meint 24/36=4/6 (Teilen durch 6), wäre das nur ein Zwischenschritt, da 4/6 noch weiter durch 2 auf 2/3 kürzbar ist - also nicht vollständig gekürzt. Zudem fehlt die geforderte Erklärung, durch welche Zahl geteilt wurde und warum der Wert gleich bleibt. Ergebnis ist unvollständig und nicht die vollständig gekürzte Form.",
+        "prozent": 20,
+        "erklaerung": "Deine Rechnung ist unvollständig: 24/36 lässt sich durch 12 kürzen zu 2/3 – das ist die vollständig gekürzte Form. Du bist nur bis 4/6 gekommen (Teilung durch 6), aber 4/6 kann noch weiter durch 2 gekürzt werden, also war der Bruch noch nicht fertig gekürzt. Außerdem fehlt die geforderte Erklärung, warum der Wert des Bruchs beim Kürzen gleich bleibt (weil man Zähler und Nenner durch dieselbe Zahl teilt, was das Verhältnis nicht verändert). Schau dir dazu nochmal das Beispiel mit dem GGT im Lernzettel an."
+      },
+      {
+        "themaId": "b3dced84-e353-4d1a-b944-303b7d8f06d7",
+        "pruefung": "Für dieses Thema wurde laut Aufgabenstellung keine Aufgabe erstellt, da kein Lernmaterial vorhanden war. Der Schüler hat dennoch eine Lösung zu einer Prozentaufgabe (320 × 0,15 = 48, neuer Preis 272) eingereicht, die aber keiner gestellten Aufgabe entspricht, da hierzu offiziell keine Aufgabe existiert.",
+        "prozent": 0,
+        "erklaerung": "Zu diesem Thema wurde gar keine Aufgabe gestellt, da kein Lernmaterial zur Prozentrechnung vorlag. Die von dir eingereichte Rechnung kann daher nicht bewertet werden, da keine passende Aufgabenstellung existiert. Bitte prüfe, ob du versehentlich eine Lösung zur falschen Aufgabe hochgeladen hast."
+      }
+    ]
+  },
+  "tool:lernzettel_abschnitte": {
+    "eintraege": [
+      {
+        "themaId": "2daee2d8-2d61-4d7c-b4a3-6aaaa60ee6e0",
+        "abschnitt": "### Bruchrechnung\n\n**Kürzen:** Zähler und Nenner durch denselben Teiler teilen → Bruch vereinfachen. Beispiel: 8/12 = 2/3 (beide durch 4).\n\n**Typischer Fehler:** Nur bis zur Hälfte kürzen (z.B. 24/36 = 4/6), aber nicht bis zur vollständig gekürzten Form (2/3). Immer prüfen, ob noch weiter kürzbar ist!\n\n**Merksatz:** Zähler UND Nenner durch die GLEICHE Zahl teilen – sonst ändert sich der Wert des Bruchs."
+      }
+    ]
+  }
+}

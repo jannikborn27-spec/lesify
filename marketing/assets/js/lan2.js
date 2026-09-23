@@ -51,7 +51,7 @@
       imgs: ['section-kv-1', 'section-kv-2', 'section-kv-3', 'section-kv-4', 'section-kv-5', 'section-kv-6', 'section-kv-7'],
       dims: [1303, 1031],
       flat: true,
-      alt: 'Lesify auf dem Tablet: Lernplan zur Mathe-Klausur, Tag 4 „Schwachstellen festigen“ mit Checkliste'
+      alt: 'Lesify auf dem Tablet: Lernplan zur Mathe-Klausur, Tag 1 „Testklausur 1“ mit Auswertung der Themen in stark, wackelig und schwach'
     },
     {
       key: 'chat',

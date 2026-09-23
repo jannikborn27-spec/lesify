@@ -72,6 +72,7 @@
     abo_nicht_reaktivierbar: 'Das Abo ist bereits aktiv.',
     sitze_ausgeschoepft: 'Alle Plätze sind belegt.',
     kein_familienabo: 'Dafür ist ein Familien-Abo nötig.',
+    fair_use_erreicht: 'Du hast diesen Monat außergewöhnlich viele Nachrichten geschickt. Ab dem 1. des nächsten Monats geht es weiter — bei Fragen schreib uns an hallo@lesify.de.',
     abo_gesperrt: 'Dein Zugang ist gerade pausiert — sprich mit deinen Eltern.',
     zahlung_offen: 'Gerade kannst du nichts Neues anlegen: Beim Abo ist eine Zahlung offen. Sag deinen Eltern Bescheid.',
   };

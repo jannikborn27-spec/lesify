@@ -131,4 +131,36 @@ describe.runIf(hatDb)('Usage-Limits — harte Durchsetzung (Supabase)', () => {
     });
     expect(klausur.statusCode).toBe(201);
   }, 15000);
+
+  it('Infinite: „unbegrenzt" nach außen, ab 6.000 Nachrichten 403 fair_use_erreicht', async () => {
+    const abo = await prisma.abo.create({
+      data: {
+        ownerUserId: userId,
+        paket: 'infinite',
+        art: 'einzel',
+        sitze: 1,
+        intervall: 'monatlich',
+        status: 'aktiv',
+        aktuellerZeitraumEnde: new Date(Date.now() + 20 * 86_400_000),
+      },
+    });
+    await prisma.user.update({ where: { id: userId }, data: { aboId: abo.id } });
+    await prisma.usage.update({
+      where: { userId_monat: { userId, monat: monatsSchluessel() } },
+      data: { nachrichtenUsed: 6000 },
+    });
+
+    const usage = await app.inject({ method: 'GET', url: '/usage', headers: auth() });
+    expect(usage.json().nachrichten.limit).toBeNull();
+
+    const blockiert = await app.inject({
+      method: 'POST',
+      url: `/chats/${chatId}/nachrichten`,
+      headers: auth(),
+      payload: { text: 'noch eine Frage' },
+    });
+    expect(blockiert.statusCode).toBe(403);
+    expect(blockiert.json().fehler).toBe('fair_use_erreicht');
+    expect(blockiert.json().details).not.toHaveProperty('limit');
+  });
 });

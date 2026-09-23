@@ -1221,7 +1221,7 @@
   function chatParentNote() {
     return '<div class="chat-parentnote"><span class="chat-parentnote__ico">' +
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17 20a5 5 0 0 0-10 0"></path><circle cx="12" cy="9" r="4"></circle></svg></span>' +
-      '<p><b>Für Eltern nachvollziehbar.</b> Das Elternkonto bekommt eine wöchentliche Zusammenfassung zu Fortschritt und offenen Themen — den Chat-Wortlaut selbst sieht nur das Kind.</p></div>';
+      '<p><b>Für Eltern nachvollziehbar.</b> Im Elternbereich gibt es eine Wochenübersicht zu Fortschritt und anstehenden Klausuren — den Chat-Wortlaut selbst sieht nur das Kind.</p></div>';
   }
 
   /* Zusatz-Inhalte für die inhaltsreichen Redesigns: echte Beispiel-Fragen,
@@ -1240,7 +1240,7 @@
     { k: 'Richtiges Niveau', a: 'auf die Klassenstufe eingestellt', b: 'oft zu abstrakt oder zu knapp' },
     { k: 'Kennt den Stoff', a: 'liest Lernzettel & Dateien des Themas', b: 'kennt nur das Eingetippte' },
     { k: 'Sagt nicht vor', a: 'erklärt den Weg, fragt zurück', b: 'liefert oft die fertige Lösung' },
-    { k: 'Eltern-Einblick', a: 'wöchentliche Zusammenfassung', b: 'keiner' },
+    { k: 'Eltern-Einblick', a: 'Wochenübersicht im Elternbereich', b: 'keiner' },
     { k: 'Datenschutz', a: 'Server in der EU, DSGVO-konform', b: 'unklar' }
   ];
   var CHAT_GUARD = [

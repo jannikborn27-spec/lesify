@@ -54,15 +54,15 @@ setze ich sie um.
       Obergrenze). Nach der Testphase Auto-Reload an + Monatslimit in der
       Konsole, Limit an Kundenzahl koppeln (Faustregel siehe
       `docs/RUNBOOK.md` „KI-Kosten"). AVV mit Anthropic: später.
-- [ ] **Offen (in Diskussion, 2026-09-23): Fair-Use-Grenze für Infinite** —
-      deine Position: **keine Grenze**, Infinite verkauft „nie über Limits
-      nachdenken müssen", eine sichtbare oder versteckte Zahl zerstört das.
-      Alternativen ohne Kunden-Limit (Monitoring/Alarm je Nutzer, Drosselung
-      nur bei Missbrauchsmustern) werden noch besprochen. `nachrichten: null`
-      (unbegrenzt) ist das einzige ungedeckelte Kostenrisiko. Gemessen
-      ~0,48 ct/Nachricht; Break-even des Netto-Preises bei ~5.800
-      Nachrichten/Monat. Vorschlag: sichtbar „unbegrenzt", intern
-      Fair-Use z. B. 2.000/Monat (≈ 11 € KI-Kosten bei 100 % Auslastung).
+- [x] **Fair-Use-Grenze für Infinite (Entscheidung 2026-09-23):** nach außen
+      weiter „unbegrenzt", intern 6.000 Nachrichten/Monat
+      (`FAIR_USE_NACHRICHTEN`, knapp über Break-even ~5.800) → `403
+      fair_use_erreicht` bis Monatsende, mit eigenem freundlichem Text. AGB §5
+      um „normale persönliche Nutzung" ergänzt. Dokumente/Lernzettel/
+      Testklausuren brauchen keine Extra-Grenze (bei Infinite ohnehin 100/50/15).
+      Zusätzlich AGB §4 ergänzt: Testphase einmal je Konto/Zahlungsmittel,
+      Pause, Zahlungsverzug + Löschung nach 30 Tagen. **Mit der Anwaltsprüfung
+      abnehmen lassen.**
 
 ### 1. Damit die App überhaupt live erreichbar ist (Hosting)
 

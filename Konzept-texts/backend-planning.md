@@ -561,12 +561,22 @@ Frontend-Spiegel: `Lesify.PLAN_LIMITS` in `app/assets/js/data.js`,
 
 **Monatskontingente je Sitz (maßgeblich: `marketing/assets/js/stripe-config.js` → `limits`; Design-Platzhalter):**
 
-| Tarif | Fächer | Content-Aufnahmen/Monat | KI-Nachrichten/Monat | Lernzettel | Testklausuren/Monat | Erinnerung vor Klausuren | Eltern-Zusammenfassung |
-|---|---|---|---|---|---|---|---|
-| Starter | alle | 20 | 100 | 5 | 1 | – | – |
-| Premium (Bestseller) | alle | 50 | 250 | 15 | 5 | ja | – |
-| Infinite | alle | 100 | unbegrenzt | 50 | 15 | ja | ja |
-| Familie · <Tarif> · N Kinder | alle | Tarifwert **je Kind** | Tarifwert **je Kind** | Tarifwert **je Kind** | Tarifwert **je Kind** | wie Tarif | ja (wöchentlich) |
+| Tarif | Fächer | Content-Aufnahmen/Monat | KI-Nachrichten/Monat | Lernzettel | Testklausuren/Monat |
+|---|---|---|---|---|---|
+| Starter | alle | 20 | 100 | 5 | 1 |
+| Premium (Bestseller) | alle | 50 | 250 | 15 | 5 |
+| Infinite | alle | 100 | unbegrenzt¹ | 50 | 15 |
+| Familie · <Tarif> · N Kinder | alle | Tarifwert **je Kind** | Tarifwert **je Kind** | Tarifwert **je Kind** | Tarifwert **je Kind** |
+
+¹ **Unsichtbare Fair-Use-Grenze (Entscheidung 2026-09-23):** 6.000 Nachrichten
+je Sitz/Monat (`FAIR_USE_NACHRICHTEN`, `shared/src/index.ts`). Die UI zeigt
+weiter „unbegrenzt" (`limit: null`); erst bei Erreichen antwortet die API mit
+`403 fair_use_erreicht` (eigener Code, keine Zahl in `details`) bis zum
+Monatsersten. Vertraglich gedeckt durch AGB §5 „normale persönliche Nutzung".
+Die übrigen Infinite-Kontingente sind ohnehin endlich — keine weitere Grenze
+nötig. (Die früheren Spalten „Erinnerung vor Klausuren"/„Eltern-Zusammenfassung"
+entfallen: Erinnerungen wurden 2026-09-23 entfernt, die Wochenübersicht im
+Elternbereich gibt es für alle Tarife.)
 
 Interne Planungswerte (nicht in der Schüler-UI): API-Kosten/Monat und LTV je
 Sitz — Starter 1,57 € / 110 €, Premium 4,13 € / 130 €, Infinite 11,28 € / 180 €

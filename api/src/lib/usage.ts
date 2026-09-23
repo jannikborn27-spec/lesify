@@ -1,5 +1,6 @@
 import type { PrismaClient } from '@prisma/client';
 import {
+  FAIR_USE_NACHRICHTEN,
   PLAN_LIMITS,
   PLAN_NAMES,
   TRIAL_PAKET,
@@ -127,6 +128,11 @@ export async function pruefeUsageLimit(
       limit: q.limit,
       resetDatum: q.resetDatum,
     });
+  }
+  // „Unbegrenzt" (Infinite-Nachrichten) hat eine unsichtbare Fair-Use-Grenze —
+  // eigener Fehlercode, damit die App keine Kontingent-Zahl anzeigt.
+  if (q.limit == null && art === 'nachrichten' && q.used >= FAIR_USE_NACHRICHTEN) {
+    throw new HttpError(403, 'fair_use_erreicht', { zaehler: art, resetDatum: q.resetDatum });
   }
 }
 

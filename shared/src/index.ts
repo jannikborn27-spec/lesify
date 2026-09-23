@@ -68,6 +68,16 @@ export const PLAN_NAMES: Record<Paket, string> = {
   infinite: 'Infinite',
 };
 
+/**
+ * Unsichtbare Fair-Use-Grenze für `null`-Limits (Infinite-Nachrichten),
+ * Entscheidung 2026-09-23: nach außen bleibt es „unbegrenzt" (UI zeigt keine
+ * Zahl), serverseitig greift ab 6.000 Nachrichten/Monat eine Sperre bis zum
+ * Monatsende. Liegt knapp über dem Break-even (~5.800 Nachrichten ≈ Netto-
+ * Preis) — soll im normalen Gebrauch nie erreicht werden. Deckung: AGB §
+ * „Faire Nutzung".
+ */
+export const FAIR_USE_NACHRICHTEN = 6000;
+
 /** Während der 14-Tage-Testphase gelten die Premium-Kontingente (Phase 0 / §7). */
 export const TRIAL_PAKET: Paket = 'premium';
 

@@ -135,7 +135,7 @@ window.LESIFY_PAYMENTS = {
     family: [
       'Ein eigenes Profil je Kind, getrennte Fächer & Fortschritte',
       'Volles Monatskontingent des Tarifs pro Kind — nichts wird geteilt',
-      'Wöchentliche Zusammenfassung für Eltern',
+      'Wochenübersicht im Elternbereich',
       'Eine Rechnung für alle Sitzplätze'
     ]
   }

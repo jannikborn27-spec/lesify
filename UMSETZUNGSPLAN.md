@@ -3328,6 +3328,15 @@ Preise/Modellwahl-Prinzipien: `00-overview.md` §7.
       `User.klassenstufe`) fließt in jeden generierenden Call._
 - [ ] **Kosten-Log auswerten** — _erst sinnvoll mit echtem `ANTHROPIC_API_KEY`
       und realer Nutzung._
+- [ ] **Echter Key lokal eingetragen + alle Calls live getestet** (2026-09-23:
+      Vorbereitung erledigt, Key-Eintrag + Lauf stehen aus) — _neues Skript
+      `pnpm --filter @lesify/api ki:smoke` (`api/src/lib/ki/smoke.ts`): fährt
+      alle zwölf Calls einmal end-to-end gegen den echten Client (Wegwerf-User,
+      Fake-Storage), gibt je Schritt Auszug + geschätzte Kosten aus den
+      `kiUsage`-Logzeilen aus und löscht den User danach. `vitest.setup.ts`
+      entfernt `ANTHROPIC_API_KEY`/`KI_DEV_ADAPTER` jetzt vor den Tests, damit
+      `pnpm test` auch mit Key in `api/.env` nie echte (kostenpflichtige)
+      Calls macht._
 - [x] **backend-planning.md §1/§3/§4** auf den umgesetzten Stand gebracht.
 
 **Bridge bis Phase 5:** `Testklausur.loesungsText` (Migration) hält den

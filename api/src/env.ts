@@ -31,6 +31,9 @@ const schema = z.object({
   // Modellwahl je Call-Klasse (Config, nicht fest verdrahtet — §3).
   KI_MODELL_GUENSTIG: z.string().default('claude-haiku-4-5-20251001'),
   KI_MODELL_STANDARD: z.string().default('claude-haiku-4-5-20251001'),
+  // Testklausur-Analyse (Call 11) — Bewertung/Noten, darum stärkeres Modell
+  // (Entscheidung 2026-09-23).
+  KI_MODELL_ANALYSE: z.string().default('claude-sonnet-5'),
   // Vorab-Filter (§3/§7): harte Zeichen-Obergrenze für eine einzelne
   // Nutzer-Eingabe (Chat-Nachricht, Revisionsanweisung).
   KI_ANFRAGE_MAX_ZEICHEN: z.coerce.number().int().positive().default(6000),

@@ -43,6 +43,23 @@ drankommt. Häk die Zeile ab, sobald sie geklärt ist; bei „ich brauche X von
 dir" trag die Antwort direkt in die Zeile ein oder sag mir Bescheid, dann
 setze ich sie um.
 
+### 0. KI — Entscheidungen (2026-09-23)
+
+- [x] **Modelle:** Haiku 4.5 für alle Calls, **Sonnet 5 nur für die
+      Testklausur-Analyse** (Call 11, `KI_MODELL_ANALYSE`). Umgesetzt.
+- [x] **Datenverarbeitung in den USA ist ok** (Haiku 4.5 bietet keine
+      EU-Region; Latenz gemessen 5–15 s je Call, kein Problem durch den
+      Standort). In der Datenschutzerklärung benannt.
+- [x] **Anthropic-Guthaben:** aktuell Prepaid ohne Auto-Reload (= natürliche
+      Obergrenze). Nach der Testphase Auto-Reload an + Monatslimit in der
+      Konsole, Limit an Kundenzahl koppeln (Faustregel siehe
+      `docs/RUNBOOK.md` „KI-Kosten"). AVV mit Anthropic: später.
+- [ ] **Offen: Fair-Use-Grenze für Infinite** — `nachrichten: null`
+      (unbegrenzt) ist das einzige ungedeckelte Kostenrisiko. Gemessen
+      ~0,48 ct/Nachricht; Break-even des Netto-Preises bei ~5.800
+      Nachrichten/Monat. Vorschlag: sichtbar „unbegrenzt", intern
+      Fair-Use z. B. 2.000/Monat (≈ 11 € KI-Kosten bei 100 % Auslastung).
+
 ### 1. Damit die App überhaupt live erreichbar ist (Hosting)
 
 - [x] **Wo soll `api/` laufen?** **Railway** (Entscheidung 2026-09-13,

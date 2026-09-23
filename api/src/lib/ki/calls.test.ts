@@ -3,6 +3,8 @@ import { FakeKiClient } from './client.js';
 import {
   chatAntwortErzeugen,
   chatTitelErzeugen,
+  VERLAUF_MAX,
+  verlaufFenster,
   lernplanLernzettelErzeugen,
   lernzettelErstellen,
   lernzettelRevisionErzeugen,
@@ -130,5 +132,38 @@ describe('Call-Funktionen gegen FakeKiClient (deterministisch, kein Netzwerk)', 
     });
     expect(eintraege).toHaveLength(1);
     expect(eintraege[0]?.themaId).toBe('t1');
+  });
+});
+
+describe('verlaufFenster', () => {
+  const verlauf = (n: number) =>
+    Array.from({ length: n }, (_, i) => ({
+      rolle: (i % 2 === 0 ? 'user' : 'assistant') as 'user' | 'assistant',
+      text: `m${i}`,
+    }));
+
+  it('bis VERLAUF_MAX alles, ungekürzt', () => {
+    expect(verlaufFenster(verlauf(30))).toEqual({ nachrichten: verlauf(30), gekuerzt: false });
+  });
+
+  it('springt blockweise: 31–50 Nachrichten → ab Index 20, Präfix bleibt stabil', () => {
+    const a = verlaufFenster(verlauf(31)).nachrichten;
+    const b = verlaufFenster(verlauf(50)).nachrichten;
+    expect(a[0]!.text).toBe('m20');
+    expect(b[0]!.text).toBe('m20');
+    expect(b.length).toBe(VERLAUF_MAX);
+    expect(verlaufFenster(verlauf(51)).nachrichten[0]!.text).toBe('m40');
+  });
+
+  it('beginnt immer mit einer Nutzer-Nachricht', () => {
+    const v = verlauf(40);
+    v[20]!.rolle = 'assistant';
+    expect(verlaufFenster(v).nachrichten[0]!.text).toBe('m22');
+  });
+
+  it('schickt nie mehr als VERLAUF_MAX Nachrichten, egal wie lang der Chat ist', () => {
+    for (const n of [31, 77, 200, 1000]) {
+      expect(verlaufFenster(verlauf(n)).nachrichten.length).toBeLessThanOrEqual(VERLAUF_MAX);
+    }
   });
 });

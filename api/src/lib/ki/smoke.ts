@@ -55,7 +55,13 @@ async function schritt<T>(name: string, fn: () => Promise<T>): Promise<T | undef
   try {
     const ergebnis = await fn();
     const kosten = schrittUsage.reduce((s, z) => s + z.kostenEurMikro, 0);
-    const calls = schrittUsage.map((z) => `${z.callTyp}/${z.stopReason}`).join(', ') || '—';
+    const calls =
+      schrittUsage
+        .map(
+          (z) =>
+            `${z.callTyp}/${z.model.replace('claude-', '')}/${z.stopReason} ${z.usage.inputTokens}→${z.usage.outputTokens} Tok`,
+        )
+        .join(', ') || '—';
     origLog(
       `✓ ${name}  (${((Date.now() - t0) / 1000).toFixed(1)} s, ${eur(kosten)}; Calls: ${calls})`,
     );

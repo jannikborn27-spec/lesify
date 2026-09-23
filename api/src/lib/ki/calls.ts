@@ -16,6 +16,7 @@ import type { KiBild, KiClient, KiNachricht } from './client.js';
  */
 const MODELL_GUENSTIG = env.KI_MODELL_GUENSTIG;
 const MODELL_STANDARD = env.KI_MODELL_STANDARD;
+const MODELL_ANALYSE = env.KI_MODELL_ANALYSE;
 
 export type ChatModus = 'erklaeren' | 'hausaufgaben' | 'ueben' | 'zusammenfassen' | null;
 
@@ -187,16 +188,44 @@ Codeblock, keine tief verschachtelten Listen.
 ${SCHULRELEVANZ_RIEGEL}`;
 }
 
+/** Chat-Verlauf, den das Modell höchstens sieht (Nachrichten, nicht Turns). */
+export const VERLAUF_MAX = 30;
+/** Ältere Nachrichten fallen blockweise weg, damit der Cache-Präfix stabil bleibt. */
+export const VERLAUF_BLOCK = 20;
+
+/**
+ * Begrenzt den mitgeschickten Chat-Verlauf. Ohne Fenster wächst der Input pro
+ * Nachricht linear mit der Chat-Länge (Kosten quadratisch: Nachricht 200 eines
+ * Chats schickt 199 alte mit). Statt bei jeder Nachricht die älteste
+ * wegzuschieben (würde den Prompt-Cache jedes Mal brechen), springt der Start
+ * in 20er-Blöcken: bis 30 Nachrichten alles, bei 31–50 ab Nachricht 21 usw.
+ * Der Ausschnitt beginnt immer mit einer Nutzer-Nachricht (API-Pflicht).
+ */
+export function verlaufFenster(verlauf: KiNachricht[]): {
+  nachrichten: KiNachricht[];
+  gekuerzt: boolean;
+} {
+  if (verlauf.length <= VERLAUF_MAX) return { nachrichten: verlauf, gekuerzt: false };
+  let start = Math.ceil((verlauf.length - VERLAUF_MAX) / VERLAUF_BLOCK) * VERLAUF_BLOCK;
+  while (start < verlauf.length && verlauf[start]!.rolle !== 'user') start += 1;
+  return { nachrichten: verlauf.slice(start), gekuerzt: true };
+}
+
 export async function chatAntwortErzeugen(
   ki: KiClient,
   ctx: ChatAntwortKontext,
 ): Promise<{ text: string; usage: import('./client.js').KiUsage }> {
-  const system = chatSystemPrompt(ctx);
+  const fenster = verlaufFenster(ctx.verlauf);
+  const system =
+    chatSystemPrompt(ctx) +
+    (fenster.gekuerzt
+      ? '\n\nHinweis: Dieser Chat ist lang; ältere Nachrichten sind ausgeblendet. Beziehe dich nur auf den sichtbaren Verlauf.'
+      : '');
   const anhangZeile = ctx.anhang
     ? `\n\n[Anhang: ${ctx.anhang.name}] ${ctx.anhang.zusammenfassung}`
     : '';
   const messages: KiNachricht[] = [
-    ...ctx.verlauf,
+    ...fenster.nachrichten,
     { rolle: 'user', text: ctx.neueNachricht + anhangZeile },
   ];
   return ki.freitextAufruf({
@@ -557,7 +586,7 @@ Antworte ausschließlich über das bereitgestellte Tool.`;
         required: ['ergebnisse'],
       },
     },
-    model: MODELL_STANDARD,
+    model: MODELL_ANALYSE,
     maxTokens: ctx.aufgaben.length * 400 + 400,
     temperature: 0.25,
     fakeKontext: { themaIds: ctx.aufgaben.map((a) => a.themaId) },

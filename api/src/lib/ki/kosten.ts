@@ -32,8 +32,9 @@ const CACHE_LESE_FAKTOR = 0.1;
  */
 const MODELL_PREISE: Record<string, ModellPreisUsd> = {
   'claude-haiku-4-5-20251001': { inputProMTok: 1, outputProMTok: 5 },
-  'claude-sonnet-5': { inputProMTok: 3, outputProMTok: 15 },
-  'claude-opus-5': { inputProMTok: 15, outputProMTok: 75 },
+  'claude-haiku-4-5': { inputProMTok: 1, outputProMTok: 5 },
+  'claude-sonnet-5': { inputProMTok: 2, outputProMTok: 10 },
+  'claude-opus-5': { inputProMTok: 5, outputProMTok: 25 },
 };
 const STANDARD_PREIS = MODELL_PREISE['claude-haiku-4-5-20251001']!;
 

@@ -27,6 +27,28 @@ Alert-Kanäle und der Secret-Store kommen mit dem Hosting in Phase 16 dazu.
 4. Nach Erholung: Fehlerrate im Log beobachten, Retry-Parameter des
    Anthropic-Clients (Phase 6) prüfen.
 
+### KI-Kosten: Anthropic-Guthaben & Monatslimit
+
+Anthropic rechnet Prepaid ab (Guthaben in der Konsole). Zwei Schutzebenen:
+
+- **In der App (die eigentliche Bremse):** Kontingente je Sitz/Monat
+  (`PLAN_LIMITS`), Chat-Verlauf-Fenster (max. 30 Nachrichten je Call) und
+  Vorab-Filter — kein Nutzer kann mehr verbrauchen als sein Tarif hergibt.
+  Einzige offene Lücke: Infinite hat `nachrichten: null` (Fair-Use offen).
+- **Bei Anthropic (Sicherheitsnetz):** Auto-Reload + Monatslimit in der
+  Konsole. **Faustregel Limit:** aktive Sitze je Tarif × KI-Kosten bei
+  100 % Auslastung × 2 (Puffer). Gemessen 2026-09-23: Starter ~0,63 €,
+  Premium ~1,67 €, Infinite ~6 € (bei 1.000 Nachrichten) je Sitz/Monat.
+  Beispiel 50 Premium-Sitze → 50 × 1,67 € × 2 ≈ 170 €/Monat. Monatlich
+  nachziehen, wenn die Sitzzahl wächst (`ki-kosten-alarm` hilft beim
+  Kalibrieren).
+
+**Wenn Guthaben/Limit erreicht ist:** Anthropic lehnt jeden Call ab →
+KI-Endpunkte antworten `503 ki_nicht_verfuegbar`, die App zeigt „KI gerade
+nicht erreichbar", **kein Usage-Verbrauch**; alles ohne KI (Noten, Lernplan,
+Dateien ansehen, Abo) läuft weiter. Sofortmaßnahme: Guthaben aufladen bzw.
+Limit anheben — wirkt ohne Neustart.
+
 ### Zahlungsanbieter (Stripe) nicht erreichbar
 
 1. `POST /abo*` schlägt fehl → Nutzer:in bekommt Fehlermeldung, **kein**

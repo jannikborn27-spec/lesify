@@ -107,6 +107,20 @@ export function strictSchema(schema: unknown): unknown {
   return aus;
 }
 
+/**
+ * Modellabhängige Request-Parameter. Haiku 4.5 nimmt `temperature` und denkt
+ * ohne Angabe nicht. Neuere Modelle (Sonnet 5, Opus 5 …) lehnen `temperature`
+ * mit 400 ab und denken ohne Angabe adaptiv — erzwungener `tool_choice`
+ * verträgt sich nicht mit Thinking, darum dort explizit `disabled`.
+ */
+export function modellParameter(
+  model: string,
+  temperature: number | undefined,
+): { temperature?: number; thinking?: { type: 'disabled' } } {
+  if (model.startsWith('claude-haiku-4-5')) return temperature == null ? {} : { temperature };
+  return { thinking: { type: 'disabled' } };
+}
+
 /** Abgeschnittene Antwort (`stop_reason: max_tokens`) — nie halbe Daten weiterreichen. */
 export class KiAbgeschnittenError extends Error {
   constructor(callTyp: string, maxTokens: number) {
@@ -143,15 +157,23 @@ export class AnthropicKiClient implements KiClient {
   private messagesAus(opts: KiAufrufBasis): Anthropic.MessageParam[] {
     return opts.messages.map((m, i): Anthropic.MessageParam => {
       const istLetzte = i === opts.messages.length - 1;
-      if (!istLetzte || !opts.bilder?.length) return { role: m.rolle, content: m.text };
+      if (!istLetzte || (!opts.bilder?.length && !opts.cache)) {
+        return { role: m.rolle, content: m.text };
+      }
       return {
         role: m.rolle,
         content: [
-          ...opts.bilder.map((b): Anthropic.ImageBlockParam => ({
+          ...(opts.bilder ?? []).map((b): Anthropic.ImageBlockParam => ({
             type: 'image',
             source: { type: 'base64', media_type: b.mediaType, data: b.base64 },
           })),
-          { type: 'text', text: m.text },
+          // Zweiter Cache-Breakpoint hinter der neuesten Nachricht: der ganze
+          // bisherige Verlauf wird beim nächsten Turn aus dem Cache gelesen
+          // (0,1× Input-Preis) — greift ab der Modell-Mindestlänge
+          // (Haiku 4.5: 4.096 Token), darunter kostenneutral ignoriert.
+          opts.cache
+            ? { type: 'text', text: m.text, cache_control: { type: 'ephemeral' } }
+            : { type: 'text', text: m.text },
         ],
       };
     });
@@ -170,7 +192,7 @@ export class AnthropicKiClient implements KiClient {
     const res = await this.client.messages.create({
       model: opts.model,
       max_tokens: opts.maxTokens,
-      temperature: opts.temperature,
+      ...modellParameter(opts.model, opts.temperature),
       system: this.system(opts),
       messages: this.messagesAus(opts),
       tools: [
@@ -197,7 +219,7 @@ export class AnthropicKiClient implements KiClient {
     const res = await this.client.messages.create({
       model: opts.model,
       max_tokens: opts.maxTokens,
-      temperature: opts.temperature,
+      ...modellParameter(opts.model, opts.temperature),
       system: this.system(opts),
       messages: this.messagesAus(opts),
     });

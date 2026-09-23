@@ -780,7 +780,28 @@ läuft nirgends ein echter Call, mit Key nutzt `AnthropicKiClient` das
 - **Modellwahl als Config:** `env.KI_MODELL_GUENSTIG` / `KI_MODELL_STANDARD`,
   beide Default `claude-haiku-4-5-20251001` (Kostenschätzung `00-overview.md`
   §7 rechnet durchgängig mit Haiku 4.5) — pro Call-Klasse in `calls.ts`
-  zugeordnet, ohne Call-Sites anzufassen.
+  zugeordnet, ohne Call-Sites anzufassen. **Seit 2026-09-23 dritte Klasse
+  `env.KI_MODELL_ANALYSE` (Default `claude-sonnet-5`) nur für Call 11
+  (Testklausur-Analyse)** — Bewertung/Noten, darum stärkeres Modell (~1,4 ct
+  statt ~0,5 ct je Analyse). `modellParameter()` in `client.ts` kapselt die
+  Modell-Unterschiede: Haiku 4.5 bekommt `temperature`, neuere Modelle
+  (Sonnet 5 …) lehnen `temperature` ab und denken ohne Angabe adaptiv —
+  dort wird `thinking: {type: 'disabled'}` gesetzt (verträgt sich sonst
+  nicht mit erzwungenem `tool_choice`).
+- **Chat-Verlauf-Fenster + Verlaufs-Caching (2026-09-23):** Ohne Begrenzung
+  schickte jede Chat-Nachricht den kompletten bisherigen Verlauf mit → Kosten
+  je Nachricht wachsen linear, je Chat quadratisch (Nachricht 200 hätte ~10 ct
+  gekostet). `verlaufFenster()` (`calls.ts`) schickt höchstens
+  `VERLAUF_MAX = 30` Nachrichten; ältere fallen in `VERLAUF_BLOCK = 20`er-
+  Blöcken weg (stabiler Präfix → Cache bleibt gültig), der Ausschnitt beginnt
+  immer mit einer Nutzer-Nachricht, bei Kürzung ein Hinweis im System-Prompt.
+  Zusätzlich zweiter `cache_control`-Breakpoint hinter der neuesten Nachricht
+  (`messagesAus()` in `client.ts`) → der ganze Verlauf wird beim nächsten
+  Turn zu 0,1× gelesen, sobald er die Haiku-Mindestlänge (4.096 Token,
+  ~8–9 Nachrichten) überschreitet. Live gemessen (24-Nachrichten-Chat):
+  ab Nachricht 9 wieder ~0,3 ct/Nachricht wie im frischen Chat, beim
+  Fenstersprung zweimal ~0,6 ct. Heißt: 200 Nachrichten in einem Chat kosten
+  ≈ 200 Nachrichten in 200 Chats.
 - **Kein DB-`$transaction` über einen KI-Call hinweg:** `POST /klausuren`
   legt die `Klausur` an, ruft `testklausurErstellen()` (inkl. KI-Call)
   außerhalb einer Transaktion auf und räumt die `Klausur` bei einem
@@ -793,7 +814,9 @@ läuft nirgends ein echter Call, mit Key nutzt `AnthropicKiClient` das
   Präfix; die Chat-System-Prompts liegen aktuell bei ~1.300 Token →
   `cacheCreationTokens`/`cacheReadTokens` bleiben 0, das Caching greift
   (noch) nicht. Kein Fehler, spart nur nichts, bis Themen Memory wächst oder
-  auf ein Modell mit niedrigerer Schwelle gewechselt wird.
+  auf ein Modell mit niedrigerer Schwelle gewechselt wird. **Update
+  2026-09-23:** durch den zusätzlichen Verlaufs-Breakpoint (s. u.) greift das
+  Caching jetzt in längeren Chats (ab ~8–9 Nachrichten).
 - **Strict Tool Use + Abbruch-Erkennung (seit 2026-09-23, erster Live-Test):**
   Jeder `toolAufruf` schickt das Schema mit `strict: true`
   (`strictSchema()` in `client.ts`: `additionalProperties: false` auf jedem

@@ -11,11 +11,14 @@ import { klassenstufeFuer, themenMemoryBlock } from '../lib/ki/kontext.js';
 import { tonfallBaustein, type KiTonfall } from '../lib/ki/tonfall.js';
 import { chatAntwortErzeugen, chatTitelErzeugen } from '../lib/ki/calls.js';
 import type { KiNachricht } from '../lib/ki/client.js';
+import { streameSse, willStream } from '../lib/sse.js';
 
 const erstellen = z.object({
   fachId: z.string().uuid(),
   themaId: z.string().uuid(),
-  modus: z.enum(['erklaeren', 'hausaufgaben', 'ueben', 'zusammenfassen']).optional(),
+  // `null` = freie Frage ohne Modus — chat.html schickt `modus: null`, wenn
+  // keiner gewählt ist (vorher 400 → Senden-Button tat still nichts).
+  modus: z.enum(['erklaeren', 'hausaufgaben', 'ueben', 'zusammenfassen']).nullish(),
 });
 
 const nachricht = z.object({
@@ -105,8 +108,9 @@ export async function chatsRoutes(app: FastifyInstance): Promise<void> {
     };
   });
 
-  // POST /chats/:id/nachrichten
-  app.post<{ Params: { id: string } }>('/chats/:id/nachrichten', async (req) => {
+  // POST /chats/:id/nachrichten — mit `Accept: text/event-stream` gestreamt
+  // (SSE, siehe `lib/sse.ts`), sonst klassisch als JSON.
+  app.post<{ Params: { id: string } }>('/chats/:id/nachrichten', async (req, reply) => {
     const body = parse(nachricht, req.body);
     const chat = oder404(
       await prisma.chat.findFirst({
@@ -148,7 +152,7 @@ export async function chatsRoutes(app: FastifyInstance): Promise<void> {
       themenMemoryBlock(prisma, chat.themaId),
     ]);
 
-    const { text: antwortText } = await chatAntwortErzeugen(ki, {
+    const kiKontext = {
       modus: chat.modus,
       klassenstufe,
       fachName: chat.fach.name,
@@ -158,65 +162,80 @@ export async function chatsRoutes(app: FastifyInstance): Promise<void> {
       verlauf,
       neueNachricht: body.text,
       anhang,
-    });
-
-    const userNachricht = await prisma.nachricht.create({
-      data: {
-        userId: req.userId,
-        chatId: chat.id,
-        rolle: 'user',
-        text: body.text,
-        anhangDateiId: body.anhangDateiId ?? null,
-        zaehltGegenLimit: true,
-      },
-    });
-
-    const aiNachricht = await prisma.nachricht.create({
-      data: {
-        userId: req.userId,
-        chatId: chat.id,
-        rolle: 'ai',
-        text: antwortText,
-        zaehltGegenLimit: false,
-      },
-    });
-
-    // Titel per KI beim ersten Mal (Call 07, günstigste Modellklasse); schlägt
-    // der Call fehl, Fallback auf eine einfache Kürzung statt den Chat zu
-    // blockieren. Bei Folgenachrichten nur „zuletzt aktiv" anstoßen.
-    let titel = chat.titel;
-    if (erste) {
-      titel = await chatTitelErzeugen(ki, {
-        fachName: chat.fach.name,
-        themaName: chat.thema.name,
-        ersteNachricht: body.text,
-      }).catch(() => fallbackTitel(body.text));
-    }
-    await prisma.chat.update({ where: { id: chat.id }, data: { titel } });
-
-    await inkrementiereUsage(prisma, req.userId, 'nachrichten');
-
-    let chatMap: Record<string, string> | undefined;
-    if (body.lernplanKontext) {
-      const key = chatMapKey(body.lernplanKontext.tag, chat.modus, chat.themaId);
-      chatMap = await setChatMapEintrag(
-        prisma,
-        req.userId,
-        body.lernplanKontext.lernplanId,
-        key,
-        chat.id,
-      );
-    }
-
-    return {
-      chatId: chat.id,
-      nachrichten: [userNachricht, aiNachricht].map((n) => ({
-        id: n.id,
-        rolle: n.rolle,
-        text: n.text,
-        erstelltAm: n.erstelltAm,
-      })),
-      ...(chatMap ? { chatMap } : {}),
     };
+
+    if (willStream(req)) {
+      await streameSse(req, reply, async (onDelta) => {
+        const { text } = await chatAntwortErzeugen(ki, kiKontext, onDelta);
+        return abschliessen(text);
+      });
+      return reply;
+    }
+    const { text: antwortText } = await chatAntwortErzeugen(ki, kiKontext);
+    return abschliessen(antwortText);
+
+    // Nachrichten speichern, Titel, Usage, Lernplan-Chat-Map — erst nach
+    // erfolgreichem KI-Call (bei Fehler kein Usage-Verbrauch, keine halbe
+    // Nachricht).
+    async function abschliessen(antwortText: string) {
+      const userNachricht = await prisma.nachricht.create({
+        data: {
+          userId: req.userId,
+          chatId: chat.id,
+          rolle: 'user',
+          text: body.text,
+          anhangDateiId: body.anhangDateiId ?? null,
+          zaehltGegenLimit: true,
+        },
+      });
+
+      const aiNachricht = await prisma.nachricht.create({
+        data: {
+          userId: req.userId,
+          chatId: chat.id,
+          rolle: 'ai',
+          text: antwortText,
+          zaehltGegenLimit: false,
+        },
+      });
+
+      // Titel per KI beim ersten Mal (Call 07, günstigste Modellklasse); schlägt
+      // der Call fehl, Fallback auf eine einfache Kürzung statt den Chat zu
+      // blockieren. Bei Folgenachrichten nur „zuletzt aktiv" anstoßen.
+      let titel = chat.titel;
+      if (erste) {
+        titel = await chatTitelErzeugen(ki, {
+          fachName: chat.fach.name,
+          themaName: chat.thema.name,
+          ersteNachricht: body.text,
+        }).catch(() => fallbackTitel(body.text));
+      }
+      await prisma.chat.update({ where: { id: chat.id }, data: { titel } });
+
+      await inkrementiereUsage(prisma, req.userId, 'nachrichten');
+
+      let chatMap: Record<string, string> | undefined;
+      if (body.lernplanKontext) {
+        const key = chatMapKey(body.lernplanKontext.tag, chat.modus, chat.themaId);
+        chatMap = await setChatMapEintrag(
+          prisma,
+          req.userId,
+          body.lernplanKontext.lernplanId,
+          key,
+          chat.id,
+        );
+      }
+
+      return {
+        chatId: chat.id,
+        nachrichten: [userNachricht, aiNachricht].map((n) => ({
+          id: n.id,
+          rolle: n.rolle,
+          text: n.text,
+          erstelltAm: n.erstelltAm,
+        })),
+        ...(chatMap ? { chatMap } : {}),
+      };
+    }
   });
 }

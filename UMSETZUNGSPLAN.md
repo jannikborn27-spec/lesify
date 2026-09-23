@@ -3318,8 +3318,8 @@ Preise/Modellwahl-Prinzipien: `00-overview.md` §7.
       Verdichtung (kommt erst bei echtem Bedarf, Phase 17)._
 - [x] **Calls 03–06 + frei — Chat-Antworten** — _`chatAntwortErzeugen()` in
       `POST /chats/:id/nachrichten`, modusabhängiger System-Prompt inkl.
-      neutralem „freie Frage"-Fall. **Streaming steht noch aus** — Antwort
-      kommt komplett zurück, nicht token-weise (Nachholbedarf, kein Blocker)._
+      neutralem „freie Frage"-Fall. Streaming seit 2026-09-23 (SSE, siehe
+      Phase-6-Nachtrag „Chat-Antworten streamen")._
 - [x] **Call 07 — Chat-Titel** — _`chatTitelErzeugen()`, an den ersten
       `POST /chats/:id/nachrichten` angehängt; schlägt der Call fehl, Fallback
       auf eine einfache Kürzung statt den Chat zu blockieren._
@@ -3363,9 +3363,20 @@ Preise/Modellwahl-Prinzipien: `00-overview.md` §7.
       entfernt `ANTHROPIC_API_KEY`/`KI_DEV_ADAPTER` jetzt vor den Tests, damit
       `pnpm test` auch mit Key in `api/.env` nie echte (kostenpflichtige)
       Calls macht._
-- [ ] **Chat-Antworten streamen** — _live gemessen 10–15 s Wartezeit mit nur
-      Tipp-Punkten; war schon als Nachholbedarf bei Calls 03–06 notiert, ist
-      mit echtem Modell jetzt spürbar._
+- [x] **Chat-Antworten streamen** (2026-09-23) — _`POST /chats/:id/nachrichten`
+      mit `Accept: text/event-stream` antwortet als Server-Sent Events
+      (`lib/sse.ts`: `delta`-Events, am Ende `fertig` mit derselben JSON wie
+      bisher bzw. `fehler`); Guards/Limits laufen vorher und kommen weiter als
+      JSON-Fehler. `KiClient.freitextStream` (Anthropic: `messages.stream`,
+      Fake: wortweise). Frontend: `appendChatMessages(…, {onDelta})` in
+      `api.js`, `chat.html` ersetzt beim ersten Stück die Tipp-Punkte durch
+      eine live wachsende Blase (1× pro Frame gerendert). Live: erster Text
+      nach ~2 s statt 10–15 s Warten. `api.js` jetzt mit `?v=`-Cache-Buster
+      auf allen 20 App-Seiten (war ohne → alte Version blieb im Cache).
+      **Nebenbei gefunden + behoben:** Chat ohne gewählten Modus starten
+      schlug fehl (`chat.html` schickt `modus: null`, API erlaubte nur
+      „fehlt" → 400, Senden-Button tat still nichts); `modus` ist jetzt
+      `.nullish()`._
 - [x] **PDF-Font: Mathe- und Box-Zeichen** (2026-09-23) — _Codeblöcke
       liefen in `Courier` (nur Latin-1 → `─`/`│` wurden `?????`), die
       Hausschriften sind Latin-Subsets: `→ ≈ ≤` wurden zu ASCII, **`√ π Δ ∞`

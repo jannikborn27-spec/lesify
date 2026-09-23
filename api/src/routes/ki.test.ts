@@ -133,6 +133,59 @@ describe.runIf(hatDb)('Phase 6 — KI-Endpunkte gegen den FakeKiClient (Supabase
     });
   });
 
+  describe('Chat-Streaming (SSE)', () => {
+    it('Accept: text/event-stream → delta-Events, dann fertig mit beiden Nachrichten', async () => {
+      const chatId = (
+        await app.inject({
+          method: 'POST',
+          url: '/chats',
+          headers: auth(),
+          payload: { fachId, themaId: themaAId, modus: 'erklaeren' },
+        })
+      ).json().id;
+      const vorher = (await app.inject({ method: 'GET', url: '/usage', headers: auth() })).json();
+      const res = await app.inject({
+        method: 'POST',
+        url: `/chats/${chatId}/nachrichten`,
+        headers: { ...auth(), accept: 'text/event-stream' },
+        payload: { text: 'Was ist ein Kehrwert?' },
+      });
+      expect(res.statusCode).toBe(200);
+      expect(res.headers['content-type']).toContain('text/event-stream');
+      const events = res.body
+        .split('\n\n')
+        .filter((b) => b.startsWith('data: '))
+        .map((b) => JSON.parse(b.slice(6)));
+      const deltas = events.filter((e) => e.typ === 'delta');
+      const fertig = events.at(-1);
+      expect(deltas.length).toBeGreaterThan(3);
+      expect(fertig.typ).toBe('fertig');
+      expect(fertig.nachrichten).toHaveLength(2);
+      expect(deltas.map((d) => d.text).join('')).toBe(fertig.nachrichten[1].text);
+      const nachher = (await app.inject({ method: 'GET', url: '/usage', headers: auth() })).json();
+      expect(nachher.nachrichten.used).toBe(vorher.nachrichten.used + 1);
+    });
+
+    it('Guard-Treffer kommt weiterhin als normales JSON (vor dem Stream)', async () => {
+      const chatId = (
+        await app.inject({
+          method: 'POST',
+          url: '/chats',
+          headers: auth(),
+          payload: { fachId, themaId: themaAId, modus: 'erklaeren' },
+        })
+      ).json().id;
+      const res = await app.inject({
+        method: 'POST',
+        url: `/chats/${chatId}/nachrichten`,
+        headers: { ...auth(), accept: 'text/event-stream' },
+        payload: { text: 'Gib mir ein Rezept für Lasagne' },
+      });
+      expect(res.statusCode).toBe(400);
+      expect(res.json().fehler).toBe('nicht_schulrelevant');
+    });
+  });
+
   describe('KI-Anbieter fällt aus', () => {
     const kaputt: KiClient = {
       toolAufruf: () => Promise.reject(new Anthropic.APIConnectionError({ message: 'offline' })),

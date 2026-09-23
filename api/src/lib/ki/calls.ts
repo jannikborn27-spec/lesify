@@ -1,5 +1,5 @@
 import { env } from '../../env.js';
-import type { KiBild, KiClient, KiNachricht } from './client.js';
+import { freitextGestreamt, type KiBild, type KiClient, type KiNachricht } from './client.js';
 
 /**
  * Die zwölf KI-Calls aus `Konzept-texts/prompts/00-overview.md`–`12-*.md`,
@@ -214,6 +214,7 @@ export function verlaufFenster(verlauf: KiNachricht[]): {
 export async function chatAntwortErzeugen(
   ki: KiClient,
   ctx: ChatAntwortKontext,
+  onDelta?: (text: string) => void,
 ): Promise<{ text: string; usage: import('./client.js').KiUsage }> {
   const fenster = verlaufFenster(ctx.verlauf);
   const system =
@@ -228,7 +229,7 @@ export async function chatAntwortErzeugen(
     ...fenster.nachrichten,
     { rolle: 'user', text: ctx.neueNachricht + anhangZeile },
   ];
-  return ki.freitextAufruf({
+  const opts = {
     callTyp: `chat_${ctx.modus ?? 'frei'}`,
     system,
     messages,
@@ -236,7 +237,8 @@ export async function chatAntwortErzeugen(
     maxTokens: ctx.modus === 'hausaufgaben' || ctx.modus === 'ueben' ? 1000 : 1600,
     temperature: 0.6,
     cache: true,
-  });
+  };
+  return onDelta ? freitextGestreamt(ki, opts, onDelta) : ki.freitextAufruf(opts);
 }
 
 // ============================================================================

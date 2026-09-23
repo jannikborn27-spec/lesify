@@ -111,6 +111,58 @@
     });
   }
 
+  /**
+   * POST mit Server-Sent-Events-Antwort (Chat-Streaming): ruft `onDelta(text)`
+   * für jedes Textstück und löst mit dem `fertig`-Ereignis auf — dasselbe
+   * Objekt wie die normale JSON-Antwort. Fehler vor dem Stream (Guards,
+   * Limits) kommen als JSON und werden wie bei `request` zu `ApiError`.
+   */
+  function streamRequest(pfad, body, onDelta) {
+    var headers = { Accept: 'text/event-stream', 'Content-Type': 'application/json' };
+    var tok = getToken();
+    if (tok) headers.Authorization = 'Bearer ' + tok;
+    return fetch(BASE + pfad, { method: 'POST', headers: headers, body: JSON.stringify(body) }).then(function (res) {
+      var typ = res.headers.get('content-type') || '';
+      if (!res.ok || typ.indexOf('text/event-stream') === -1 || !res.body) {
+        return res.text().then(function (txt) {
+          var data = null;
+          try { data = txt ? JSON.parse(txt) : null; } catch (e) { data = null; }
+          if (!res.ok) {
+            var code = (data && data.fehler) || 'serverfehler';
+            if (res.status === 401) setToken('');
+            if (res.status === 429 && code === 'serverfehler') code = 'rate_limit';
+            throw new ApiError(res.status, code, data && data.details);
+          }
+          return data;
+        });
+      }
+      var reader = res.body.getReader();
+      var decoder = new TextDecoder();
+      var puffer = '';
+      var ergebnis = null;
+      function verarbeite(block) {
+        if (block.indexOf('data: ') !== 0) return;
+        var ev = JSON.parse(block.slice(6));
+        if (ev.typ === 'delta') onDelta(ev.text);
+        else if (ev.typ === 'fertig') { delete ev.typ; ergebnis = ev; }
+        else if (ev.typ === 'fehler') throw new ApiError(ev.fehler === 'ki_nicht_verfuegbar' ? 503 : 500, ev.fehler);
+      }
+      function lesen() {
+        return reader.read().then(function (r) {
+          if (r.value) puffer += decoder.decode(r.value, { stream: true });
+          var teile = puffer.split('\n\n');
+          puffer = teile.pop();
+          teile.forEach(verarbeite);
+          if (!r.done) return lesen();
+          if (puffer) verarbeite(puffer);
+          if (!ergebnis) throw new ApiError(0, 'serverfehler');
+          return ergebnis;
+        });
+      }
+      return lesen();
+    });
+  }
+
   var GET = function (p, opts) {
     return request('GET', p, null, opts);
   };
@@ -481,6 +533,11 @@
       var body = { text: text };
       if (extra && extra.anhangDateiId) body.anhangDateiId = extra.anhangDateiId;
       if (extra && extra.lernplanKontext) body.lernplanKontext = extra.lernplanKontext;
+      // Mit `extra.onDelta` wird die Antwort gestreamt (Text erscheint live),
+      // Ergebnis-Objekt identisch zur JSON-Variante.
+      if (extra && extra.onDelta && typeof ReadableStream !== 'undefined' && typeof TextDecoder !== 'undefined') {
+        return streamRequest('/chats/' + chatId + '/nachrichten', body, extra.onDelta);
+      }
       return POST('/chats/' + chatId + '/nachrichten', body);
     },
 

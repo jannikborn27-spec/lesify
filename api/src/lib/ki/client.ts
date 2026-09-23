@@ -66,6 +66,27 @@ export type KiFreitextAufruf = KiAufrufBasis;
 export interface KiClient {
   toolAufruf<T>(opts: KiToolAufruf<T>): Promise<{ ausgabe: T; usage: KiUsage }>;
   freitextAufruf(opts: KiFreitextAufruf): Promise<{ text: string; usage: KiUsage }>;
+  /**
+   * Wie `freitextAufruf`, meldet den Text aber stückweise über `onDelta`
+   * (Chat-Streaming). Optional — Clients ohne Streaming fallen über
+   * `freitextGestreamt()` auf einen einzigen Delta mit dem Volltext zurück.
+   */
+  freitextStream?(
+    opts: KiFreitextAufruf,
+    onDelta: (text: string) => void,
+  ): Promise<{ text: string; usage: KiUsage }>;
+}
+
+/** Streamt, wenn der Client es kann, sonst ein Delta mit dem ganzen Text. */
+export async function freitextGestreamt(
+  ki: KiClient,
+  opts: KiFreitextAufruf,
+  onDelta: (text: string) => void,
+): Promise<{ text: string; usage: KiUsage }> {
+  if (ki.freitextStream) return ki.freitextStream(opts, onDelta);
+  const erg = await ki.freitextAufruf(opts);
+  onDelta(erg.text);
+  return erg;
 }
 
 function leereUsage(): KiUsage {
@@ -254,6 +275,43 @@ export class AnthropicKiClient implements KiClient {
     const block = res.content.find((b): b is Anthropic.TextBlock => b.type === 'text');
     return { text: block?.text ?? '', usage };
   }
+
+  async freitextStream(
+    opts: KiFreitextAufruf,
+    onDelta: (text: string) => void,
+  ): Promise<{ text: string; usage: KiUsage }> {
+    let gesendet = false;
+    const einmal = async () => {
+      const stream = this.client.messages.stream({
+        model: opts.model,
+        max_tokens: opts.maxTokens,
+        ...modellParameter(opts.model, opts.temperature),
+        system: this.system(opts),
+        messages: this.messagesAus(opts),
+      });
+      stream.on('text', (delta) => {
+        gesendet = true;
+        onDelta(delta);
+      });
+      return stream.finalMessage();
+    };
+    let res: Anthropic.Message;
+    try {
+      res = await einmal();
+    } catch (e) {
+      // Retry nur, solange noch nichts beim Client angekommen ist.
+      if (gesendet || !(e instanceof Anthropic.BadRequestError)) throw e;
+      console.warn(JSON.stringify({ kiRetry: true, callTyp: opts.callTyp, status: e.status }));
+      res = await einmal();
+    }
+    const usage = this.usageAus(res.usage);
+    this.onUsage({ callTyp: opts.callTyp, model: opts.model, usage, stopReason: res.stop_reason });
+    const text = res.content
+      .filter((b): b is Anthropic.TextBlock => b.type === 'text')
+      .map((b) => b.text)
+      .join('');
+    return { text, usage };
+  }
 }
 
 /**
@@ -275,6 +333,16 @@ export class FakeKiClient implements KiClient {
       text: `_(Platzhalter-KI-Antwort auf „${kuerzen(letzte, 60)}" — echte Anthropic-Integration läuft nur mit ANTHROPIC_API_KEY.)_`,
       usage: leereUsage(),
     };
+  }
+
+  /** Streamt den Platzhalter wortweise — damit Tests den SSE-Pfad echt durchlaufen. */
+  async freitextStream(
+    opts: KiFreitextAufruf,
+    onDelta: (text: string) => void,
+  ): Promise<{ text: string; usage: KiUsage }> {
+    const erg = await this.freitextAufruf(opts);
+    for (const stueck of erg.text.match(/\S+\s*/g) ?? []) onDelta(stueck);
+    return erg;
   }
 }
 

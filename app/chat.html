@@ -469,7 +469,7 @@
   </div>
 </div>
 
-<script src="assets/js/api.js"></script>
+<script src="assets/js/api.js?v=20260923stream"></script>
 <script src="assets/js/auth-gate.js"></script>
 <script src="assets/js/app.js?v=20260919pdf"></script>
 <script>
@@ -1107,17 +1107,44 @@ document.addEventListener('DOMContentLoaded', async function () {
       extra.lernplanKontext = { lernplanId: state.lpLernplanId, tag: Number(state.lpTag) };
     }
 
+    // Streaming: beim ersten Textstück ersetzt eine echte Blase die
+    // Tipp-Punkte, danach wird nur diese Blase aktualisiert (max. 1× pro Frame).
+    var live = null;
+    var geplant = false;
+    extra.onDelta = function (stueck) {
+      if (!live) {
+        hideTyping();
+        live = { role: 'ai', text: '' };
+        state.messages.push(live);
+        renderThread();
+      }
+      live.text += stueck;
+      if (geplant) return;
+      geplant = true;
+      requestAnimationFrame(function () {
+        geplant = false;
+        var blasen = document.querySelectorAll('#thread .msg.from-ai .msg-bubble');
+        var blase = blasen[blasen.length - 1];
+        if (blase) blase.innerHTML = mdSafe(live.text);
+        var thread = document.getElementById('thread');
+        if (thread) thread.scrollTop = thread.scrollHeight;
+      });
+    };
+
     try {
       var res = await Lesify.appendChatMessages(state.chatId, displayText, extra);
       hideTyping();
       var aiEntry = res.nachrichten.filter(function (n) { return n.rolle === 'ai'; })[0];
-      if (aiEntry) state.messages.push({ role: 'ai', text: aiEntry.text });
+      if (live) live.text = aiEntry ? aiEntry.text : live.text;
+      else if (aiEntry) state.messages.push({ role: 'ai', text: aiEntry.text });
       await refreshChatsCache();
       refreshUsage();
       renderSidebar();
       renderThread(); renderSuggestions();
     } catch (err) {
       hideTyping();
+      // Abgebrochener Stream: die halbe Antwort wurde nicht gespeichert → weg.
+      if (live) state.messages.splice(state.messages.indexOf(live), 1);
       LesifyUI.toast(Lesify.fehlerText(err));
       renderThread(); renderSuggestions();
     }

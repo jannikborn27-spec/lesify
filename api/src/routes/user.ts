@@ -15,8 +15,6 @@ const profilPatch = z
 
 const einstellungenPatch = z
   .object({
-    erinnerungVorKlausuren: z.boolean().optional(),
-    woechentlicheZusammenfassung: z.boolean().optional(),
     kiTonfall: z.enum(['freundlich', 'direkt', 'motivierend']).optional(),
   })
   .refine((o) => Object.keys(o).length > 0, 'nichts zu ändern');

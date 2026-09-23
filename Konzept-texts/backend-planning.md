@@ -70,7 +70,7 @@ späteren API-Clients.
 | Auth | **selbst gebaut** (nicht Supabase Auth) | §3/§5 brauchen eigenen Double-Opt-in-Token-Flow, Rollen (`schueler`/`elternteil`) und `parentUserId`-Scoping — passt nicht zu einem fertigen BaaS-Auth. Supabase Auth wird bewusst **nicht** verwendet. |
 | Objektspeicher-Zugriff | **Supabase Storage**, nur über **zeitlich begrenzte signierte URLs** | Keine öffentlichen Datei-Links (§6). |
 | Zahlungen | **Stripe** (Test- + Live-Modus) | Phase-0-Entscheidung: Trial → Subscription, Proration, Familien-Sitze. |
-| E-Mail | **Resend** (Entscheidung 2026-09-17) | Zahlungs-/Abo-/Beleg-Mails weiterhin über Stripe. Double-Opt-in-/Passwort-Reset-Mails laufen über Resend (`api/src/lib/mailer.ts`); ohne `RESEND_API_KEY` läuft ein Fake-Gateway (nur Logging). Klausur-Erinnerung/Wochenreport bleiben zurückgestellt (§8). |
+| E-Mail | **Resend** (Entscheidung 2026-09-17) | Zahlungs-/Abo-/Beleg-Mails weiterhin über Stripe. Double-Opt-in-/Passwort-Reset-Mails laufen über Resend (`api/src/lib/mailer.ts`); ohne `RESEND_API_KEY` läuft ein Fake-Gateway (nur Logging). Klausur-Erinnerung/Wochenreport sind seit 2026-09-23 **komplett entfernt** (§8). |
 
 ### Umsetzungs-Ebene
 
@@ -197,7 +197,7 @@ Phase 9"). Preise/Regeln als Code in `shared/src/abo.ts`.
 `Abo.sitze` Stück pro Familien-Abo (2–4). Reine Verknüpfungssicht auf `User`-Datensätze mit
 gesetztem `parentUserId`; getrennte Fächer/Themen/Fortschritte je Kind, das
 Elternkonto sieht pro Kind nur die aggregierte Wochen-Zusammenfassung
-(`Einstellungen.woechentlicheZusammenfassung`), nicht den Chat-Wortlaut.
+(`GET /abo/kinder/:id/zusammenfassung`), nicht den Chat-Wortlaut.
 Phase 9: angelegt/gelistet/gelöscht über `GET/POST/DELETE /abo/kinder`
 (`rolle = schueler`, `parentUserId` + `aboId` = Elternkonto,
 `passwordHash = "kind:kein-login"` bis zur echten Einladung in Phase 12).
@@ -211,8 +211,6 @@ KI-Tonfall und das App-Erscheinungsbild — Kandidat für spätere Erweiterung
 | Feld | Typ | Hinweis |
 |---|---|---|
 | userId | uuid (FK) | |
-| erinnerungVorKlausuren | bool | Hinweis ein paar Tage vor einem eingetragenen Klausurtermin — Versandmechanismus (E-Mail/Push) offen, siehe §8 |
-| woechentlicheZusammenfassung | bool | wöchentlicher Report zu Fortschritt/offenen Lerntagen — Versandmechanismus offen, siehe §8 |
 | kiTonfall | enum | `freundlich` \| `direkt` \| `motivierend` — fließt in den System-Prompt für Chat/Lernzettel/Erklärungen ein |
 | _(kein DB-Feld)_ darkMode | — | dunkles Design, **nur eingeloggter Bereich** (`app/`). **Entscheidung Phase 11 (2026-09-12):** bewusst KEIN Backend-Feld — reine Geräte-Einstellung in `localStorage['lesify:darkmode']` (`'1'`/`'0'`), unabhängig vom Account/Gerät. Setzt beim Seitenaufbau `data-theme="dark"` an `<html>` (Anti-Flash-Snippet im `<head>` jeder App-Seite + `applyTheme()` in `app.js`, beide lesen denselben Key); CSS-Override-Block am Ende von `app/assets/css/style.css`. Marketing-Seiten sind ausgenommen. |
 
@@ -1529,7 +1527,7 @@ fehlgeschlagene Logins/Upload-Flooding weiterhin offen (§8).
 - [x] **Erreichte Klausurnote nachtragen**: **wird nicht umgesetzt.** `Klausur.note` entfällt — Lesify erfasst das Endergebnis bewusst nicht. „Geschrieben"-Karte zeigt nur einen neutralen Chip.
 - [x] **Archivierung / Aufbewahrung**: _(Texte seit 2026-09-18: Löschung erst mit Kontoende, siehe §6 „Datenaufbewahrung“ — Cron-Job noch offen)_ ursprünglich: **alle Inhalte werden nach 1 Jahr automatisch gelöscht** (Cron); Hinweis in Datenschutz **und** Einstellungen (siehe §6 „Datenaufbewahrung"). Ersetzt die Archivierungs-Frage.
 - [x] **Familien-Sitz entfernen**: **Inhalte des Sitzes werden gelöscht.** Restliche Sitz-/Proration-/Einladungsmechanik: später.
-- [x] **Benachrichtigungs-Versand**: Wichtige Mails (Zahlung/Abo/Beleg) über Stripe. `erinnerungVorKlausuren` / `woechentlicheZusammenfassung` bleiben als wirkungslose Toggles, eigener Versand dafür zurückgestellt. (Double-Opt-in/Reset-Mails laufen seit 2026-09-17 über Resend, siehe §8 „Entschieden am 2026-09-17".)
+- [x] **Benachrichtigungs-Versand**: Wichtige Mails (Zahlung/Abo/Beleg) über Stripe. `erinnerungVorKlausuren` / `woechentlicheZusammenfassung` wurden am 2026-09-23 komplett entfernt (Toggles, Felder, Migration `einstellungen_ohne_benachrichtigungen`). (Double-Opt-in/Reset-Mails laufen seit 2026-09-17 über Resend, siehe §8 „Entschieden am 2026-09-17".)
 - [x] **KI-Missbrauchsschutz**: die KI ist **auf schulrelevante Themen begrenzt**, alles andere wird direkt abgeblockt (Themen-Guard vor jedem Chat-/Generierungs-Call, siehe §3).
 - [x] **Testklausuren pro Klausur**: **genau zwei** pro Klausur, gebündelt durch den `Lernplan` (Testklausur 1 Tag 1 alle Themen, Testklausur 2 Tag 5 nur schwache/wackelige). Angezeigt wird die Note der zuletzt _analysierten_ (`Lesify.klausurNote`), keine gemittelte „Vorbereitungsnote". **(2026-09-04)** Das Backend verhindert eine **dritte** Testklausur zur selben `klausurId` **hart** — es gibt pro Klausurvorbereitung genau diese zwei.
 - [x] **Chat-Kontinuität im Lernplan**: **ein Chat pro `(Lerntag, Modus, Thema)`** in `Lernplan.chatMap`. Kein Chat über mehrere Tage.
@@ -1598,7 +1596,7 @@ fehlgeschlagene Logins/Upload-Flooding weiterhin offen (§8).
 - [ ] **Eltern-/Minderjährigen-Einwilligung**: Ablauf/Erneuerung der Einwilligung bei der Schüler:in-Rolle (das Eltern-Kind-Modell selbst ist entschieden, siehe oben).
 - [x] **Familien-Paket-Mechanik (produktiv)**: Sitz nachträglich hinzufügen/entfernen mit echter Proration/Downgrade zum Zeitraumende. `PATCH /abo` + `geplanteSitze` + Job `abo-geplante-aenderungen`, echtes Stripe-Adapter steht — der Job senkt seit 2026-09-18 auch wirklich den Stripe-Preis (vorher nur lokale DB, siehe Bug-Notiz bei `PATCH /abo` oben). **Weiterhin offen, keine Code-Aufgabe:** kein Bestätigungsschritt in der UI vor einer Sitz-/Tarif-Erhöhung — die greift sofort und erzeugt bei einem bereits aktiv abrechnenden (nicht mehr in der Testphase befindlichen) Abo eine echte, sofort fällige Proration-Buchung bei Stripe, ohne dass die Eltern vorher einen Betrag sehen oder bestätigen (live verifiziert: Tarifwechsel auf einem aktiven Test-Abo erzeugte sofort zwei `invoiceItems`, „Unused time" + „Remaining time", die in die nächste Rechnung einfließen). Während der 14-Tage-Testphase löst dieselbe Aktion dagegen nachweislich **keine** Belastung aus — Stripe verschiebt nur den künftigen Rechnungsbetrag, ohne eine Proration-Buchung anzulegen.
 - [x] **Kontaktformular — Zielsystem** (2026-09-23): Resend → `kontakt@lesify.de` (`KONTAKT_EMPFAENGER`), Reply-To = Absender:in. Spam-Schutz = IP-Rate-Limit + Honeypot-Feld (kein Captcha). Offen: ob `marketing/kontakt/` (am 2026-09-22 entfernt) zurückkommt oder es bei `mailto:` bleibt.
-- [ ] **Klausur-Erinnerung + Wöchentliche Zusammenfassung**: Toggles in `einstellungen.html` bleiben wirkungslos — eigener Mail-Versand dafür ist bewusst zurückgestellt (siehe „Entschieden am 2026-09-17").
+- [x] **Klausur-Erinnerung + Wöchentliche Zusammenfassung** — **entfernt (Entscheidung 2026-09-23):** Toggles aus `einstellungen.html`, Felder aus `Einstellungen` (Migration `20260923120000_einstellungen_ohne_benachrichtigungen`, DROP COLUMN), `PATCH /user/einstellungen` nimmt nur noch `kiTonfall`.
 - [ ] **Auth-Fehlversuche**: temporärer Account-Lockout nach X Fehlversuchen vs. nur IP-Drosselung (Default aktuell: Drosselung + exponentieller Backoff, kein harter Lockout).
 
 ---

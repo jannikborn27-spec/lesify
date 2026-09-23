@@ -46,25 +46,6 @@
       </div>
 
       <div class="card settings-card">
-        <h3>Benachrichtigungen</h3>
-        <p class="settings-sub">Steuere, wann Lesify sich meldet.</p>
-        <div class="toggle-row">
-          <div>
-            <div class="toggle-label">Erinnerung vor Klausuren</div>
-            <div class="toggle-sub">Hinweis ein paar Tage vor einem eingetragenen Klausurtermin.</div>
-          </div>
-          <label class="toggle-switch"><input type="checkbox" id="s-erinnerung"><span class="track"><span class="thumb"></span></span></label>
-        </div>
-        <div class="toggle-row">
-          <div>
-            <div class="toggle-label">Wöchentliche Zusammenfassung</div>
-            <div class="toggle-sub">Kurzer Überblick über Fortschritt und offene Lerntage.</div>
-          </div>
-          <label class="toggle-switch"><input type="checkbox" id="s-zusammenfassung"><span class="track"><span class="thumb"></span></span></label>
-        </div>
-      </div>
-
-      <div class="card settings-card">
         <h3>Erscheinungsbild</h3>
         <p class="settings-sub">Gilt nur für die App, nicht für die öffentliche Website.</p>
         <div class="toggle-row" style="padding-top:0">
@@ -149,8 +130,6 @@ document.addEventListener('DOMContentLoaded', async function () {
   }
 
   var settings = await Lesify.getSettings();
-  document.getElementById('s-erinnerung').checked = !!settings.erinnerungVorKlausuren;
-  document.getElementById('s-zusammenfassung').checked = !!settings.woechentlicheZusammenfassung;
   document.getElementById('s-tonfall').value = settings.kiTonfall;
   // Dunkles Design ist eine reine Geräte-Einstellung (kein Feld im Backend-
   // Einstellungen-Modell) — lebt nur in localStorage, geräteweise.
@@ -182,20 +161,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     LesifyUI.toast('Profil gespeichert.');
   });
 
-  document.getElementById('s-erinnerung').addEventListener('change', async function () {
-    var checked = this.checked;
-    try {
-      await Lesify.updateSettings({ erinnerungVorKlausuren: checked });
-      LesifyUI.toast(checked ? 'Erinnerungen aktiviert.' : 'Erinnerungen deaktiviert.');
-    } catch (err) { this.checked = !checked; LesifyUI.toast(Lesify.fehlerText(err)); }
-  });
-  document.getElementById('s-zusammenfassung').addEventListener('change', async function () {
-    var checked = this.checked;
-    try {
-      await Lesify.updateSettings({ woechentlicheZusammenfassung: checked });
-      LesifyUI.toast(checked ? 'Wöchentliche Zusammenfassung aktiviert.' : 'Wöchentliche Zusammenfassung deaktiviert.');
-    } catch (err) { this.checked = !checked; LesifyUI.toast(Lesify.fehlerText(err)); }
-  });
   document.getElementById('s-tonfall').addEventListener('change', async function () {
     try {
       await Lesify.updateSettings({ kiTonfall: this.value });

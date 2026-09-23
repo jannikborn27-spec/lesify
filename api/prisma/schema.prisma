@@ -212,9 +212,7 @@ model Abo {
 
 model Einstellungen {
   userId                       String    @id @db.Uuid
-  erinnerungVorKlausuren       Boolean   @default(false)
-  woechentlicheZusammenfassung Boolean   @default(false)
-  kiTonfall                    KiTonfall @default(freundlich)
+  kiTonfall KiTonfall @default(freundlich)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

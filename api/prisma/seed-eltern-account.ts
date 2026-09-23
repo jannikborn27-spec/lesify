@@ -66,8 +66,6 @@ async function main() {
       createdAt: daysAgo(60),
       einstellungen: {
         create: {
-          erinnerungVorKlausuren: true,
-          woechentlicheZusammenfassung: true,
           kiTonfall: KiTonfall.freundlich,
         },
       },
@@ -110,7 +108,7 @@ async function main() {
       aboId,
       passwordHash: 'kind:kein-login',
       createdAt: daysAgo(40),
-      einstellungen: { create: { erinnerungVorKlausuren: true, kiTonfall: KiTonfall.motivierend } },
+      einstellungen: { create: { kiTonfall: KiTonfall.motivierend } },
     },
   });
   const L = PLAN_LIMITS.premium;

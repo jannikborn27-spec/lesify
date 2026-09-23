@@ -2209,8 +2209,6 @@ async function main() {
       await tx.einstellungen.create({
         data: {
           userId: U,
-          erinnerungVorKlausuren: true,
-          woechentlicheZusammenfassung: true,
           kiTonfall: KiTonfall.freundlich,
         },
       });

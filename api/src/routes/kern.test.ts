@@ -166,7 +166,7 @@ describe.runIf(hatDb)('kern-API — Flow (Supabase)', () => {
       payload: { kiTonfall: 'direkt' },
     });
     expect(p.json().kiTonfall).toBe('direkt');
-    expect(p.json().woechentlicheZusammenfassung).toBe(false);
+    expect(p.json()).not.toHaveProperty('woechentlicheZusammenfassung');
   });
 
   it('GET /usage — Premium-Kontingente während der Testphase', async () => {

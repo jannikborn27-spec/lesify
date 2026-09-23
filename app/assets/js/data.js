@@ -456,7 +456,6 @@
           id: 'kind-mara', name: 'Mara Berger', klasse: '8. Klasse', farbe: 'violet',
           email: 'mara.berger@example.com', eingeladen: true, aktiv: true,
           letzteAktivitaet: 'vor 3 Stunden',
-          erinnerungVorKlausuren: true, woechentlicheZusammenfassung: true,
           woche: {
             faecher: 6, themen: 14, chatsDieWoche: 9, nachrichtenDieWoche: 63,
             lernzettelGesamt: 11, testklausurenDieWoche: 2, anstehendeKlausuren: 2,
@@ -480,7 +479,6 @@
           id: 'kind-jonas', name: 'Jonas Berger', klasse: '6. Klasse', farbe: 'teal',
           email: 'jonas.berger@example.com', eingeladen: true, aktiv: true,
           letzteAktivitaet: 'vor 2 Tagen',
-          erinnerungVorKlausuren: true, woechentlicheZusammenfassung: false,
           woche: {
             faecher: 4, themen: 7, chatsDieWoche: 2, nachrichtenDieWoche: 11,
             lernzettelGesamt: 3, testklausurenDieWoche: 0, anstehendeKlausuren: 1,
@@ -499,7 +497,6 @@
           id: 'kind-lea', name: 'Lea Berger', klasse: '9. Klasse', farbe: 'amber',
           email: null, eingeladen: false, aktiv: false,
           letzteAktivitaet: null,
-          erinnerungVorKlausuren: true, woechentlicheZusammenfassung: true,
           woche: {
             faecher: 0, themen: 0, chatsDieWoche: 0, nachrichtenDieWoche: 0,
             lernzettelGesamt: 0, testklausurenDieWoche: 0, anstehendeKlausuren: 0,
@@ -524,8 +521,6 @@
     user: { name: 'Jannik B.', klasse: '8. Klasse', rolle: 'schueler' },
 
     settings: {
-      erinnerungVorKlausuren: true,
-      woechentlicheZusammenfassung: false,
       ki_tonfall: 'freundlich',
       // Erscheinungsbild der App (nur eingeloggter Bereich, nicht Marketing).
       // Wird beim Seitenaufbau als data-theme="dark" am <html> gesetzt.
@@ -1356,8 +1351,6 @@
         id: k.id, name: k.name, klasse: k.klasse, farbe: k.farbe || 'graphit',
         email: k.email || null, eingeladen: !!k.eingeladen, aktiv: !!k.aktiv,
         letzteAktivitaet: k.letzteAktivitaet || null,
-        erinnerungVorKlausuren: k.erinnerungVorKlausuren !== false,
-        woechentlicheZusammenfassung: !!k.woechentlicheZusammenfassung,
         woche: k.woche || {},
         aktivitaetAmpel: kindAktivitaetAmpel(k.woche)
       };
@@ -1408,7 +1401,6 @@
       farbe: d.farbe || 'graphit',
       email: null, eingeladen: false, aktiv: false,
       letzteAktivitaet: null,
-      erinnerungVorKlausuren: true, woechentlicheZusammenfassung: true,
       woche: {
         faecher: 0, themen: 0, chatsDieWoche: 0, nachrichtenDieWoche: 0,
         lernzettelGesamt: 0, testklausurenDieWoche: 0, anstehendeKlausuren: 0,

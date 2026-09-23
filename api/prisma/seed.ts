@@ -770,8 +770,6 @@ async function main() {
       createdAt: daysAgo(30),
       einstellungen: {
         create: {
-          erinnerungVorKlausuren: true,
-          woechentlicheZusammenfassung: false,
           kiTonfall: KiTonfall.freundlich,
         },
       },

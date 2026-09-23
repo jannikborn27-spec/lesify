@@ -607,12 +607,18 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       (`api/src/lib/mailTemplates.ts`: Logo, Button, Footer, Klartext-Variante);
       dieselbe Vorlage für die **Kind-Einladung** (`POST /abo/kinder/:id/einladung`
       verschickt jetzt ebenfalls eine Mail, 2026-09-18)._
-- [ ] **Klausur-Erinnerung + Wöchentliche Zusammenfassung:** die Toggles
-      existieren in `einstellungen.html`, sind aber wirkungslos, bis ein
-      Versandweg feststeht (bewusst zurückgestellt, siehe
-      `backend-planning.md` §8).
-- [ ] **Kontaktformular-Zielsystem:** wohin sollen `POST /kontakt`-Nachrichten
-      tatsächlich gehen (Postfach/Ticketsystem)?
+- [x] **Klausur-Erinnerung + Wöchentliche Zusammenfassung komplett entfernt**
+      (Entscheidung 2026-09-23): Toggles aus `einstellungen.html`, Felder aus
+      `Einstellungen`/`data.js`/Seeds. Migration
+      `20260923120000_einstellungen_ohne_benachrichtigungen` (DROP COLUMN) —
+      **noch per `pnpm --filter @lesify/api db:deploy` gegen Dev- und
+      Prod-DB fahren** (Code läuft auch vorher, Prisma ignoriert die Spalten).
+- [x] **Kontaktformular-Zielsystem** (Entscheidung 2026-09-23): Resend →
+      `kontakt@lesify.de` (`KONTAKT_EMPFAENGER`), Reply-To = Absender:in.
+      **Offen:** die Formular-Seite `marketing/kontakt/` war am 2026-09-22
+      bewusst entfernt worden (CTAs → `mailto:hallo@lesify.de`) — zurückholen
+      oder bei `mailto:` bleiben? Und: existiert das Postfach
+      `kontakt@lesify.de` (Resend verschickt nur, empfängt nicht)?
 
 ### 6. Betrieb (Phase 15/16)
 
@@ -3613,8 +3619,8 @@ bis das Thema wieder aufgemacht wird.
       eintragen (Vorschlag: `inhalte-aufbewahrung`/`usage-historie`/
       `abo-geplante-aenderungen`/`ki-kosten-alarm` täglich, `token-hygiene`
       stündlich), Exit-Code != 0 alarmiert. → Phase 16._
-- [ ] _(zurückgestellt)_ `erinnerungVorKlausuren`, `woechentlicheZusammenfassung`,
-      Trial-Reminder.
+- [x] ~~`erinnerungVorKlausuren`, `woechentlicheZusammenfassung`~~ — entfernt
+      2026-09-23. Trial-Reminder weiterhin zurückgestellt.
 
 ---
 
@@ -4535,8 +4541,7 @@ Kritisch, weil Zielgruppe minderjährig ist.
       (nicht vorher).
 - [ ] **Suche** auf echten Index heben, falls die Substring-Variante nicht mehr trägt.
 - [ ] **Zurückgestellte Themen wieder aufmachen:** Eltern-Kind-Modell, Familien-Sitz-
-      Mechanik (Proration/Einladung), Klausur-Erinnerung + Wochenreport-Versand,
-      manueller Lernplan-Neustart. (Double-Opt-in-/Reset-Mail-Versand ist seit
+      Mechanik (Proration/Einladung), manueller Lernplan-Neustart. (Double-Opt-in-/Reset-Mail-Versand ist seit
       2026-09-17 erledigt, siehe Phase 10.)
 - [ ] **Feedback-Schleife** mit Schüler:innen/Eltern; Backlog priorisieren.
 - [ ] **`backend-planning.md` bleibt das lebende Dokument** — bei jeder Änderung an

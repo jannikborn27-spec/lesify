@@ -205,10 +205,12 @@ export async function testklausurenRoutes(app: FastifyInstance): Promise<void> {
     });
 
     const zeilen = ergebnisse.map((e) => {
-      const note = prozentZuNote(e.prozent);
+      // Strict-Tool-Schemas erlauben kein minimum/maximum — Bereich hier absichern.
+      const prozent = Math.min(100, Math.max(0, Math.round(e.prozent)));
+      const note = prozentZuNote(prozent);
       return {
         themaId: e.themaId,
-        prozent: e.prozent,
+        prozent,
         note,
         erklaerung: e.erklaerung,
         ampel: noteAmpel(note),

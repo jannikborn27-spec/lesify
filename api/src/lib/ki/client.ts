@@ -72,7 +72,48 @@ function leereUsage(): KiUsage {
   return { inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheCreationTokens: 0 };
 }
 
-type OnUsage = (info: { callTyp: string; model: string; usage: KiUsage }) => void;
+type OnUsage = (info: {
+  callTyp: string;
+  model: string;
+  usage: KiUsage;
+  stopReason?: string | null;
+}) => void;
+
+/**
+ * Macht ein Tool-Schema „strict"-tauglich (`additionalProperties: false` auf
+ * jedem Objekt), damit die API die Tool-Eingabe garantiert schema-konform
+ * liefert — ohne das kamen bei echten Calls vereinzelt Objekte mit fehlenden
+ * Pflichtfeldern zurück (2026-09-23, `ki:smoke`).
+ */
+export function strictSchema(schema: unknown): unknown {
+  if (Array.isArray(schema)) return schema.map(strictSchema);
+  if (!schema || typeof schema !== 'object') return schema;
+  const aus: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(schema)) {
+    aus[k] =
+      k === 'properties' && v && typeof v === 'object'
+        ? Object.fromEntries(Object.entries(v).map(([pk, pv]) => [pk, strictSchema(pv)]))
+        : strictSchema(v);
+  }
+  if (aus.type === 'object') aus.additionalProperties = false;
+  // Strict-Modus lehnt numerische Grenzen ab (400) — als Hinweis in die
+  // Beschreibung verschieben; die Aufrufer klemmen den Wert selbst.
+  if ('minimum' in aus || 'maximum' in aus) {
+    const bereich = `Bereich ${aus.minimum ?? '…'}–${aus.maximum ?? '…'}`;
+    aus.description = aus.description ? `${aus.description} (${bereich})` : bereich;
+    delete aus.minimum;
+    delete aus.maximum;
+  }
+  return aus;
+}
+
+/** Abgeschnittene Antwort (`stop_reason: max_tokens`) — nie halbe Daten weiterreichen. */
+export class KiAbgeschnittenError extends Error {
+  constructor(callTyp: string, maxTokens: number) {
+    super(`KI-Antwort bei max_tokens=${maxTokens} abgeschnitten (${callTyp})`);
+    this.name = 'KiAbgeschnittenError';
+  }
+}
 
 const standardOnUsage: OnUsage = (info) => {
   // Kosten-Kalibrierung (§7/docs/RUNBOOK.md): strukturiertes Log, kein PII.
@@ -136,13 +177,16 @@ export class AnthropicKiClient implements KiClient {
         {
           name: opts.tool.name,
           description: opts.tool.beschreibung,
-          input_schema: opts.tool.schema as Anthropic.Messages.Tool.InputSchema,
+          input_schema: strictSchema(opts.tool.schema) as Anthropic.Messages.Tool.InputSchema,
+          strict: true,
         },
       ],
       tool_choice: { type: 'tool', name: opts.tool.name },
     });
     const usage = this.usageAus(res.usage);
-    this.onUsage({ callTyp: opts.callTyp, model: opts.model, usage });
+    this.onUsage({ callTyp: opts.callTyp, model: opts.model, usage, stopReason: res.stop_reason });
+    if (res.stop_reason === 'max_tokens')
+      throw new KiAbgeschnittenError(opts.callTyp, opts.maxTokens);
 
     const block = res.content.find((b): b is Anthropic.ToolUseBlock => b.type === 'tool_use');
     if (!block) throw new Error(`KI-Antwort ohne tool_use-Block (${opts.callTyp})`);
@@ -158,7 +202,9 @@ export class AnthropicKiClient implements KiClient {
       messages: this.messagesAus(opts),
     });
     const usage = this.usageAus(res.usage);
-    this.onUsage({ callTyp: opts.callTyp, model: opts.model, usage });
+    this.onUsage({ callTyp: opts.callTyp, model: opts.model, usage, stopReason: res.stop_reason });
+    // Freitext (Chat) bei max_tokens trotzdem zurückgeben — ein etwas kurzer
+    // Chat-Text ist besser als ein Fehler; das Log oben zeigt den stopReason.
 
     const block = res.content.find((b): b is Anthropic.TextBlock => b.type === 'text');
     return { text: block?.text ?? '', usage };

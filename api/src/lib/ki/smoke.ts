@@ -26,6 +26,7 @@ interface UsageZeile {
   callTyp: string;
   model: string;
   kostenEurMikro: number;
+  stopReason?: string;
   usage: { inputTokens?: number; outputTokens?: number };
 }
 let schrittUsage: UsageZeile[] = [];
@@ -54,7 +55,7 @@ async function schritt<T>(name: string, fn: () => Promise<T>): Promise<T | undef
   try {
     const ergebnis = await fn();
     const kosten = schrittUsage.reduce((s, z) => s + z.kostenEurMikro, 0);
-    const calls = schrittUsage.map((z) => z.callTyp).join(', ') || '—';
+    const calls = schrittUsage.map((z) => `${z.callTyp}/${z.stopReason}`).join(', ') || '—';
     origLog(
       `✓ ${name}  (${((Date.now() - t0) / 1000).toFixed(1)} s, ${eur(kosten)}; Calls: ${calls})`,
     );
@@ -70,7 +71,7 @@ function erwarte(bedingung: unknown, meldung: string): asserts bedingung {
   if (!bedingung) throw new Error(meldung);
 }
 
-const app = buildApp({ logger: false, storage: new FakeStorageGateway() });
+const app = buildApp({ logger: true, storage: new FakeStorageGateway() });
 const prisma = getPrisma();
 const email = `smoke+${crypto.randomUUID()}@smoke.lesify.test`;
 const passwort = 'smoke-test-pass-1234';
@@ -223,9 +224,7 @@ async function main() {
       payload: { text: 'Füge bitte ein Beispiel mit gemischten Zahlen hinzu.' },
     });
     erwarte(res.statusCode === 200, `${res.statusCode}: ${res.body}`);
-    origLog(
-      `    Antwort: ${auszug(res.json().antwortText ?? res.json().revisionen?.at(-1)?.antwortText)}`,
-    );
+    origLog(`    Antwort: ${auszug(res.json().revisionen?.at(-1)?.text)}`);
   });
 
   let lernplanId = '';

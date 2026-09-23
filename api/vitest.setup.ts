@@ -8,6 +8,7 @@ process.env.NODE_ENV ??= 'test';
 // Die Testsuite läuft immer gegen den deterministischen FakeKiClient — auch
 // wenn in api/.env ein echter ANTHROPIC_API_KEY steht (sonst kostet jeder
 // `pnpm test` echtes Geld und die Fake-Assertions schlagen fehl). Echte Calls
-// testet `pnpm ki:smoke` gezielt.
-delete process.env.ANTHROPIC_API_KEY;
-delete process.env.KI_DEV_ADAPTER;
+// testet `pnpm ki:smoke` gezielt. Leerstring statt `delete`: der Prisma-Client
+// lädt beim Import selbst api/.env nach und würde einen gelöschten Key wieder
+// setzen — vorhandene (auch leere) Variablen überschreibt er nicht.
+process.env.ANTHROPIC_API_KEY = '';

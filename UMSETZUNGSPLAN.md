@@ -3328,8 +3328,17 @@ Preise/Modellwahl-Prinzipien: `00-overview.md` §7.
       `User.klassenstufe`) fließt in jeden generierenden Call._
 - [ ] **Kosten-Log auswerten** — _erst sinnvoll mit echtem `ANTHROPIC_API_KEY`
       und realer Nutzung._
-- [ ] **Echter Key lokal eingetragen + alle Calls live getestet** (2026-09-23:
-      Vorbereitung erledigt, Key-Eintrag + Lauf stehen aus) — _neues Skript
+- [x] **Echter Key lokal eingetragen + alle Calls live getestet** (2026-09-23)
+      — _Key in `api/.env`, `ki:smoke` 4× durchgelaufen (9 echte Calls,
+      ~0,03–0,04 €/Lauf), dazu Klick-Test im Browser (Chat inkl. KI-Titel,
+      Lernzettel erstellen + überarbeiten, Klausur → Testklausur 1). Dabei
+      gefundene und behobene Fehler: zu knappe `maxTokens` + fehlende
+      `stop_reason`-Prüfung → abgeschnittenes Tool-JSON → 500er bei Call 09/12
+      und leerer Chat-Titel; jetzt `strict: true`-Tool-Schemas,
+      `KiAbgeschnittenError`, realistische Obergrenzen, `prozent` geklemmt
+      (Details `backend-planning.md` §3). Außerdem lud der Prisma-Client
+      `api/.env` in der Testsuite nach und ließ Tests echte Calls machen —
+      `vitest.setup.ts` setzt den Key jetzt auf `''`. Neues Skript
       `pnpm --filter @lesify/api ki:smoke` (`api/src/lib/ki/smoke.ts`): fährt
       alle zwölf Calls einmal end-to-end gegen den echten Client (Wegwerf-User,
       Fake-Storage), gibt je Schritt Auszug + geschätzte Kosten aus den
@@ -3337,6 +3346,20 @@ Preise/Modellwahl-Prinzipien: `00-overview.md` §7.
       entfernt `ANTHROPIC_API_KEY`/`KI_DEV_ADAPTER` jetzt vor den Tests, damit
       `pnpm test` auch mit Key in `api/.env` nie echte (kostenpflichtige)
       Calls macht._
+- [ ] **Chat-Antworten streamen** — _live gemessen 10–15 s Wartezeit mit nur
+      Tipp-Punkten; war schon als Nachholbedarf bei Calls 03–06 notiert, ist
+      mit echtem Modell jetzt spürbar._
+- [ ] **PDF-Font: Box-Drawing-Zeichen** — _Claude nutzt in Lernzetteln gern
+      `──`/`│` für Bruch-Skizzen; im Lernzettel-PDF erscheinen die als
+      `?????` (Glyphe fehlt im eingebetteten Font). Font mit den Zeichen
+      einbetten oder beim PDF-Rendern ersetzen._
+- [ ] **Vereinzelter `400 Invalid request data` bei Call 09 beobachten** —
+      _1 von 5 Smoke-Läufen, isoliert nicht reproduzierbar (Request-ID
+      `req_011CfL73ekp3NqRWtKL7y7ys`); bei Wiederauftreten Request loggen,
+      ggf. einmaligen Retry einbauen._
+- [ ] **Prompt Caching greift mit Haiku 4.5 noch nicht** — _Mindestpräfix
+      4.096 Token, Chat-System-Prompts ~1.300 → kein Cache. Kein Fehler;
+      erst relevant, wenn Themen Memory wächst oder das Modell wechselt._
 - [x] **backend-planning.md §1/§3/§4** auf den umgesetzten Stand gebracht.
 
 **Bridge bis Phase 5:** `Testklausur.loesungsText` (Migration) hält den

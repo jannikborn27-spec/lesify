@@ -789,10 +789,38 @@ läuft nirgends ein echter Call, mit Key nutzt `AnthropicKiClient` das
 - **Prompt Caching:** `cache: true` auf den vier Chat-Modi/frei (Calls
   03–06) — `cache_control` ans Ende des kompletten System-Prompts (Modus +
   Themen Memory + Tonfall), wie in `00-overview.md` §7 vorgegeben.
-- **Offen:** echter Anthropic-Key + Budget-Cap fürs erste Live-Testen (siehe
-  `docs/RUNBOOK.md`); Themen-Memory-Verdichtung, wenn ein Thema über die
-  ~4.000-Token-Schwelle wächst (Erweiterung, noch nicht gebraucht);
-  KI-Kosten-Dashboard aus dem Usage-Log (Phase 15/17).
+  **Live-Befund 2026-09-23:** Haiku 4.5 cacht erst ab **4.096 Token**
+  Präfix; die Chat-System-Prompts liegen aktuell bei ~1.300 Token →
+  `cacheCreationTokens`/`cacheReadTokens` bleiben 0, das Caching greift
+  (noch) nicht. Kein Fehler, spart nur nichts, bis Themen Memory wächst oder
+  auf ein Modell mit niedrigerer Schwelle gewechselt wird.
+- **Strict Tool Use + Abbruch-Erkennung (seit 2026-09-23, erster Live-Test):**
+  Jeder `toolAufruf` schickt das Schema mit `strict: true`
+  (`strictSchema()` in `client.ts`: `additionalProperties: false` auf jedem
+  Objekt, `minimum`/`maximum` — im Strict-Modus nicht erlaubt — wandern in die
+  `description`; der Aufrufer klemmt selbst, z. B. `prozent` 0–100 in
+  `POST /testklausuren/:id/analyse`). `stop_reason: max_tokens` wirft bei
+  Tool-Calls `KiAbgeschnittenError` statt halbe Objekte durchzureichen
+  (Freitext-Chats geben den Text trotzdem zurück). Anlass: die ursprünglichen
+  `maxTokens` (z. B. Titel 20, Lernplan-Abschnitte 130/Thema, Revision 700)
+  waren zu knapp, Tool-JSON kam abgeschnitten bzw. ohne Pflichtfelder zurück
+  → 500er. Neue Obergrenzen (nur Deckel, nicht verbraucht = nicht bezahlt):
+  Titel 60 · Chat 1.600 (Hausaufgaben/Üben 1.000) · Lernzettel 4.000 ·
+  Revision 3.000 · Testklausur-Aufgaben 500/Thema + 400 · Analyse
+  400/Aufgabe + 400 · Lernplan-Abschnitte 700/Thema + 300 ·
+  Datei-Zusammenfassung 600. `stopReason` steht jetzt mit im `kiUsage`-Log.
+- **Live-Smoke-Test:** `pnpm --filter @lesify/api ki:smoke`
+  (`api/src/lib/ki/smoke.ts`) fährt alle Calls einmal gegen den echten Client;
+  Stand 2026-09-23 mit Haiku 4.5: 9 Calls, ~0,03–0,04 € pro Durchlauf,
+  Latenz 5–30 s je Call (Lernzettel am längsten). Die Testsuite bleibt immer
+  auf dem `FakeKiClient` (`vitest.setup.ts` setzt `ANTHROPIC_API_KEY=''`).
+- **Offen:** Budget-Cap in der Anthropic-Konsole + Key bei Railway (siehe
+  `docs/RUNBOOK.md`); Streaming der Chat-Antworten (ohne Streaming 10–15 s
+  nur Tipp-Punkte); vereinzelter `400 invalid_request_error` („Invalid
+  request data") bei Call 09 in 1 von 5 Läufen, nicht reproduzierbar —
+  beobachten, ggf. einmaliger Retry; Themen-Memory-Verdichtung, wenn ein
+  Thema über die ~4.000-Token-Schwelle wächst (Erweiterung, noch nicht
+  gebraucht); KI-Kosten-Dashboard aus dem Usage-Log (Phase 15/17).
 
 #### Dev-only-Alternative: eigene Claude-Subscription statt API-Key (2026-09-05)
 

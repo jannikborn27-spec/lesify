@@ -67,7 +67,7 @@ Antworte ausschließlich über das bereitgestellte Tool.`;
       },
     },
     model: MODELL_GUENSTIG,
-    maxTokens: 20,
+    maxTokens: 60,
     temperature: 0.25,
   });
   return ausgabe.titel;
@@ -204,7 +204,7 @@ export async function chatAntwortErzeugen(
     system,
     messages,
     model: MODELL_STANDARD,
-    maxTokens: ctx.modus === 'hausaufgaben' || ctx.modus === 'ueben' ? 500 : 900,
+    maxTokens: ctx.modus === 'hausaufgaben' || ctx.modus === 'ueben' ? 1000 : 1600,
     temperature: 0.6,
     cache: true,
   });
@@ -270,7 +270,7 @@ Antworte ausschließlich über das bereitgestellte Tool.`;
       },
     },
     model: MODELL_STANDARD,
-    maxTokens: 2200,
+    maxTokens: 4000,
     temperature: 0.35,
   });
   return ausgabe;
@@ -360,7 +360,7 @@ Antworte ausschließlich über das bereitgestellte Tool.`;
       },
     },
     model: MODELL_STANDARD,
-    maxTokens: 700,
+    maxTokens: 3000,
     temperature: 0.3,
   });
   return ausgabe;
@@ -465,7 +465,7 @@ Antworte ausschließlich über das bereitgestellte Tool.`;
       },
     },
     model: MODELL_STANDARD,
-    maxTokens: ctx.themen.length * 200 + 200,
+    maxTokens: ctx.themen.length * 500 + 400,
     temperature: 0.45,
     fakeKontext: { themaIds: ctx.themen.map((t) => t.themaId) },
   });
@@ -558,7 +558,7 @@ Antworte ausschließlich über das bereitgestellte Tool.`;
       },
     },
     model: MODELL_STANDARD,
-    maxTokens: ctx.aufgaben.length * 250 + 200,
+    maxTokens: ctx.aufgaben.length * 400 + 400,
     temperature: 0.25,
     fakeKontext: { themaIds: ctx.aufgaben.map((a) => a.themaId) },
   });
@@ -640,7 +640,7 @@ Antworte ausschließlich über das bereitgestellte Tool.`;
       },
     },
     model: MODELL_GUENSTIG,
-    maxTokens: ctx.themen.length * 130 + 60,
+    maxTokens: ctx.themen.length * 700 + 300,
     temperature: 0.3,
     fakeKontext: { themaIds: ctx.themen.map((t) => t.themaId) },
   });
@@ -706,7 +706,7 @@ Antworte ausschließlich über das bereitgestellte Tool.`;
       },
     },
     model: MODELL_GUENSTIG,
-    maxTokens: 250,
+    maxTokens: 600,
     temperature: 0.25,
   });
   return ausgabe;

@@ -54,7 +54,11 @@ setze ich sie um.
       Obergrenze). Nach der Testphase Auto-Reload an + Monatslimit in der
       Konsole, Limit an Kundenzahl koppeln (Faustregel siehe
       `docs/RUNBOOK.md` „KI-Kosten"). AVV mit Anthropic: später.
-- [ ] **Offen: Fair-Use-Grenze für Infinite** — `nachrichten: null`
+- [ ] **Offen (in Diskussion, 2026-09-23): Fair-Use-Grenze für Infinite** —
+      deine Position: **keine Grenze**, Infinite verkauft „nie über Limits
+      nachdenken müssen", eine sichtbare oder versteckte Zahl zerstört das.
+      Alternativen ohne Kunden-Limit (Monitoring/Alarm je Nutzer, Drosselung
+      nur bei Missbrauchsmustern) werden noch besprochen. `nachrichten: null`
       (unbegrenzt) ist das einzige ungedeckelte Kostenrisiko. Gemessen
       ~0,48 ct/Nachricht; Break-even des Netto-Preises bei ~5.800
       Nachrichten/Monat. Vorschlag: sichtbar „unbegrenzt", intern
@@ -155,6 +159,15 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       Railway, Supabase, Resend, Stripe) + Google-Fonts-Hinweis ergänzt. AGB um
       das bislang fehlende Widerrufsrecht + Muster-Widerrufsformular ergänzt.
       **Weiterhin offen:** juristische Prüfung durch eine:n Anwalt:in._
+- [x] **Entscheidungen 2026-09-23** (Antworten auf die offene Fragenliste):
+      Angebotspreis bleibt für Bestandskunden (wer abschließt, zahlt den
+      gezeigten Preis); IP-Drosselung beim Login reicht (kein Account-Lockout);
+      PDF-Vorschau auf dem Handy: erste Seite reicht (kein PDF.js); Klausur-
+      Erinnerung/Wochenreport komplett entfernen; Kontaktformular → Resend an
+      `kontakt@lesify.de`; `/lan2/` wird Startseite; Kinder bei Pause/Ablauf
+      sperren, bei offener Zahlung nur lesen, Löschung nach 30 Tagen;
+      Kostenvorschau vor jeder Sitzänderung; Trial-Missbrauch über das
+      Zahlungsmittel sperren.
 - [ ] **Auftragsverarbeitungsverträge** mit Anthropic + Sub-Prozessoren
       (Supabase, Stripe, Hoster) abschließen, fürs Verarbeitungsverzeichnis.
 - [x] **KI-Nutzungshinweis-Text ergänzt** (2026-09-14): `chat.html`s
@@ -189,8 +202,20 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       einer `fake_sub_…`-Referenz anzusprechen). Live erneut verifiziert:
       derselbe Ablauf senkt den Stripe-Preis jetzt korrekt auf 3599 Cent.
       Alle 181 API-Tests grün.
-- [ ] **Offene Produktfrage (2026-09-18, noch nicht entschieden): Sitz-/
-      Tarif-Erhöhung ohne Bestätigungsschritt.** `PATCH /abo` wirkt sofort,
+- [x] **Kostenvorschau vor Sitzänderung gebaut (Entscheidung 2026-09-23:
+      „der Kunde muss sehen, was mit der Abrechnung passiert").** Neuer
+      Endpunkt `GET /abo/vorschau` (Stripe `invoices.createPreview`), in
+      `eltern-abo.html` öffnet +/− jetzt erst eine Bestätigung mit bisherigem
+      und neuem Preis, anteiligem Betrag und nächster Abbuchung; Erhöhung nur
+      über „Zahlungspflichtig hinzufügen" (Button-Lösung § 312j BGB),
+      Kleinunternehmer-Hinweis § 19 UStG. **Juristisch prüfen lassen**, ob
+      das für Vertragsänderungen reicht (zusammen mit AGB-Prüfung).
+      Folgepunkt: sobald das Schuljahresstart-Angebot endet, rechnet `PATCH
+      /abo` mit der dann gültigen Tabelle neu — für Bestandskunden mit
+      Angebotspreis (`Abo.angebot`) muss die Preisermittlung dann den
+      fixierten Angebotspreis nehmen (Entscheidung 2026-09-23: Preis bleibt).
+      _Ursprüngliche Frage (2026-09-18): Sitz-/
+      Tarif-Erhöhung ohne Bestätigungsschritt._ `PATCH /abo` wirkt sofort,
       die UI zeigt vorher keinen Preis und keine Bestätigung — nur einen
       Toast danach. Für ein Abo in der 14-Tage-Testphase ist das
       unproblematisch: live verifiziert, dass eine Sitz-/Tarif-Änderung
@@ -205,7 +230,33 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       Bestätigung zeigen (z. B. via `stripe.invoices.createPreview()`)?
       Nur für aktiv abrechnende Abos relevant, während der Testphase
       unkritisch.
-- [ ] **Frage beantwortet (2026-09-18): Was macht „Sommerpause" genau?**
+- [x] **Zugriffssperre gebaut (Entscheidung 2026-09-23):** Kind-Profile
+      sind bei `pausiert` und bei gekündigtem, abgelaufenem Abo gesperrt
+      (Sperrbildschirm), bei `zahlung_offen` nur lesend (Banner + einmaliges
+      Popup, schreibende Requests `403 zahlung_offen`); Eltern werden nie
+      gesperrt und sehen den Zustand als Banner. Nach 30 Tagen offener
+      Zahlung: Job `zahlung-offen-loeschung` beendet das Abo und löscht die
+      Kind-Profile samt Inhalten (7 Tage vorher Warn-Mail). Neuer Endpunkt
+      `POST /abo/zahlungsportal` (Stripe-Billing-Portal) als Ausweg.
+      Nebenbei behoben: Stripe-`subscription.updated` hat eine Kündigung/
+      Pause sofort wieder mit `aktiv` überschrieben. Migration
+      `20260923130000_abo_zahlung_offen`. Details `backend-planning.md` §1
+      „Zugriff je Status".
+      **Von dir noch nötig (Stripe-Dashboard):** (1) Billing → Customer
+      portal: Konfiguration einmal speichern (Zahlungsmethode ändern +
+      Rechnungen an, Kündigen **aus** — das läuft über Lesify), (2) Billing →
+      Revenue recovery → Retries: nach dem letzten Versuch „Abo als unbezahlt
+      markieren" statt „kündigen" (sonst endet das Abo vor unserer
+      30-Tage-Frist), Retries über ~3 Wochen, (3) E-Mails bei fehlgeschlagener
+      Zahlung an.
+- [ ] **Offen, besprechen: Kinder ohne E-Mail einloggen** (Wunsch 2026-09-23):
+      Eltern legen Kind-Profile an, das Kind soll sich **ohne eigene
+      E-Mail-Adresse** anmelden können; Einladung per E-Mail bleibt möglich,
+      muss aber auch anders gehen (z. B. Einladungs-Link/Code, den die Eltern
+      weitergeben). Klären: Login-Kennung ohne E-Mail (Benutzername? Code?),
+      Passwort-Reset ohne E-Mail (über das Elternkonto), Link-Gültigkeit.
+- [x] ~~**Frage beantwortet (2026-09-18): Was macht „Sommerpause" genau?**~~
+      (→ Zugriffssperre oben)
       Ruft `stripe.subscriptions.update(ref, {pause_collection:{behavior:
       'void'}})` — Stripe stellt für die Dauer der Pause keine Rechnungen
       mehr, ohne den Abrechnungszeitraum selbst zu verschieben — und setzt
@@ -658,9 +709,8 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
 - [ ] **Error-Tracking-Anbieter** (z. B. Sentry) — DSN besorgen, anschließen.
 - [ ] **DB-Backups:** Supabase-Feature aktivieren + einmal einen echten
       Restore testen.
-- [ ] **Auth-Lockout-Policy bestätigen:** aktuell nur IP-Drosselung mit
-      exponentiellem Backoff, kein harter Account-Lockout nach X
-      Fehlversuchen — reicht das, oder soll ein Lockout dazu?
+- [x] **Auth-Lockout-Policy bestätigt (2026-09-23):** IP-Drosselung mit
+      exponentiellem Backoff reicht, kein Account-Lockout.
 
 ### 7. Optionale Aufräumarbeiten (keine Entscheidung nötig, nur FYI)
 
@@ -3576,7 +3626,8 @@ Der gesamte abgeleitete Zustand muss **bit-genau** zu `data.js` passen.
       weg → **Cascade löscht alle Inhalte des Sitzes.** Einladungs-/Passwort-Flow
       Phase 12._
 - [ ] **Rechnungsstellung** + Umgang mit fehlgeschlagenen Zahlungen (Retry,
-      Mahnlogik, Zugriff bei `zahlung_offen`). _Braucht echtes Stripe-Adapter →
+      Mahnlogik, ~~Zugriff bei `zahlung_offen`~~ — gebaut 2026-09-23, siehe
+      „Zugriffssperre" oben; offen: Stripe-Retry-/Mail-Einstellungen). _Braucht echtes Stripe-Adapter →
       Phase 16._
 - [x] **backend-planning.md §1/§4/§8** — _§4 „Umsetzungsstand Phase 9", §1 `Abo`/
       `KindProfil`-Notizen, §8 Preis-Feinheiten + „Abrechnung produktiv"
@@ -3617,7 +3668,7 @@ bis das Thema wieder aufgemacht wird.
       räumt nur die Altlasten weg._
 - [ ] **Scheduler + Monitoring** — _die fünf Kommandos in Hosting-Cron/`pg_cron`
       eintragen (Vorschlag: `inhalte-aufbewahrung`/`usage-historie`/
-      `abo-geplante-aenderungen`/`ki-kosten-alarm` täglich, `token-hygiene`
+      `abo-geplante-aenderungen`/`ki-kosten-alarm`/`zahlung-offen-loeschung` täglich, `token-hygiene`
       stündlich), Exit-Code != 0 alarmiert. → Phase 16._
 - [x] ~~`erinnerungVorKlausuren`, `woechentlicheZusammenfassung`~~ — entfernt
       2026-09-23. Trial-Reminder weiterhin zurückgestellt.
@@ -4554,7 +4605,7 @@ Kritisch, weil Zielgruppe minderjährig ist.
       `/lernplaene/:id/lernzettel/dokument`, `/testklausuren/:id/dokument`), Vorschau per iframe in
       `lernzettel.html`, `lernplan-lernzettel.html`, `testklausur.html`, Download als PDF.
 - [x] Basisvorlage + Mockups (`docs/pdf-mockups/`), Vorlagencode in `api/src/lib/pdf/`.
-- [ ] Offen: PDF-Vorschau auf Mobilgeräten (iOS zeigt iframe-PDFs nur als erste Seite) — ggf. PDF.js.
+- [x] ~~PDF-Vorschau auf Mobilgeräten~~ — Entscheidung 2026-09-23: erste Seite reicht, kein PDF.js.
 
 ## Nachtrag 2026-09-19 (2) — Lernzettel-Revisionen ohne Gratis-Kontingent
 

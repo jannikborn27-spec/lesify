@@ -3,6 +3,8 @@ import type { PrismaClient } from '@prisma/client';
 import { buildApp } from '../app.js';
 import { getPrisma } from '../db.js';
 import { FakeZahlungsGateway } from '../lib/zahlung.js';
+import { FakeMailGateway } from '../lib/mailer.js';
+import { zahlungOffenFristPruefen } from '../lib/jobs.js';
 
 // Erzwingt den Fake-Zahlungsanbieter, unabhängig von einem lokal gesetzten
 // STRIPE_SECRET_KEY (api/.env) — dieselbe Determinismus-Regel wie beim
@@ -484,5 +486,131 @@ describe.runIf(hatDb)('abo — Eltern-Features Phase 12 (Supabase)', () => {
 
     const abo = await app.inject({ method: 'GET', url: '/abo', headers: auth() });
     expect(abo.json()).toMatchObject({ sitze: 2, geplanteSitze: null });
+  });
+});
+
+describe.runIf(hatDb)('abo — Kind-Zugriff je Abo-Status (Supabase, 2026-09-23)', () => {
+  const zahlung = new FakeZahlungsGateway();
+  const app = buildApp({ logger: false, zahlung });
+  const prisma = getPrisma();
+  let token = '';
+  let kindToken = '';
+  let kindId = '';
+  let aboRef = '';
+  const auth = () => ({ authorization: `Bearer ${token}` });
+  const kind = () => ({ authorization: `Bearer ${kindToken}` });
+  const webhook = (typ: string) =>
+    app.inject({ method: 'POST', url: '/abo/webhook', payload: { typ, aboRef } });
+  const fachAnlegen = () =>
+    app.inject({ method: 'POST', url: '/faecher', headers: kind(), payload: { name: 'Mathe' } });
+
+  beforeAll(async () => {
+    await app.ready();
+    token = await registriereUndLogin(app, `zugriff+${crypto.randomUUID()}@abo.lesify.test`);
+    const abo = await app.inject({
+      method: 'POST',
+      url: '/abo',
+      headers: auth(),
+      payload: { paket: 'premium', intervall: 'monatlich' },
+    });
+    aboRef = abo.json().subscriptionId;
+    kindId = (
+      await app.inject({
+        method: 'POST',
+        url: '/abo/kinder',
+        headers: auth(),
+        payload: { name: 'Kind Z', klassenstufe: '6. Klasse' },
+      })
+    ).json().id;
+    kindToken = (
+      await app.inject({ method: 'POST', url: `/abo/kinder/${kindId}/sitzung`, headers: auth() })
+    ).json().token;
+  });
+
+  it('Trial: Kind hat vollen Zugriff, /auth/me meldet voll', async () => {
+    const me = await app.inject({ method: 'GET', url: '/auth/me', headers: kind() });
+    expect(me.json().zugriff.zugriff).toBe('voll');
+    expect((await fachAnlegen()).statusCode).toBe(201);
+  });
+
+  it('pausiert: Kind gesperrt (403 abo_gesperrt), /auth/me geht, Eltern nicht gesperrt', async () => {
+    await app.inject({ method: 'POST', url: '/abo/pausieren', headers: auth() });
+    const faecher = await app.inject({ method: 'GET', url: '/faecher', headers: kind() });
+    expect(faecher.statusCode).toBe(403);
+    expect(faecher.json()).toMatchObject({
+      fehler: 'abo_gesperrt',
+      details: { grund: 'pausiert' },
+    });
+    const me = await app.inject({ method: 'GET', url: '/auth/me', headers: kind() });
+    expect(me.statusCode).toBe(200);
+    expect(me.json().zugriff.zugriff).toBe('gesperrt');
+    expect((await app.inject({ method: 'GET', url: '/abo', headers: auth() })).statusCode).toBe(
+      200,
+    );
+
+    await app.inject({ method: 'POST', url: '/abo/reaktivieren', headers: auth() });
+    expect((await app.inject({ method: 'GET', url: '/faecher', headers: kind() })).statusCode).toBe(
+      200,
+    );
+  });
+
+  it('Zahlung offen: Kind liest weiter, schreibt nicht (403 zahlung_offen), Frist 30 Tage', async () => {
+    await webhook('zahlung_fehlgeschlagen');
+    expect((await app.inject({ method: 'GET', url: '/faecher', headers: kind() })).statusCode).toBe(
+      200,
+    );
+    const neu = await fachAnlegen();
+    expect(neu.statusCode).toBe(403);
+    expect(neu.json().fehler).toBe('zahlung_offen');
+    const abo = (await app.inject({ method: 'GET', url: '/abo', headers: auth() })).json();
+    expect(abo.status).toBe('zahlung_offen');
+    expect(new Date(abo.loeschungAm).getTime() - new Date(abo.zahlungOffenSeit).getTime()).toBe(
+      30 * 86_400_000,
+    );
+  });
+
+  it('Rechnung bezahlt heilt zahlung_offen, setzt eine Kündigung aber nicht zurück', async () => {
+    await webhook('zahlung_erfolgreich');
+    let abo = (await app.inject({ method: 'GET', url: '/abo', headers: auth() })).json();
+    expect(abo).toMatchObject({ status: 'aktiv', zahlungOffenSeit: null });
+    expect((await fachAnlegen()).statusCode).toBe(201);
+
+    await app.inject({ method: 'POST', url: '/abo/kuendigen', headers: auth() });
+    await webhook('zahlung_erfolgreich');
+    abo = (await app.inject({ method: 'GET', url: '/abo', headers: auth() })).json();
+    expect(abo.status).toBe('gekuendigt');
+    await app.inject({ method: 'POST', url: '/abo/reaktivieren', headers: auth() });
+  });
+
+  it('Job: Warn-Mail 7 Tage vor Frist, nach 30 Tagen Kind-Profile gelöscht + Abo beendet', async () => {
+    await webhook('zahlung_fehlgeschlagen');
+    const aboId = (await app.inject({ method: 'GET', url: '/abo', headers: auth() })).json().id;
+    const mail = new FakeMailGateway();
+    const gesendet: string[] = [];
+    mail.zahlungOffenWarnungSenden = async ({ an }) => void gesendet.push(an);
+
+    await prisma.abo.update({
+      where: { id: aboId },
+      data: { zahlungOffenSeit: new Date(Date.now() - 24 * 86_400_000) },
+    });
+    const warn = await zahlungOffenFristPruefen(prisma, new Date(), zahlung, mail);
+    expect(warn.gewarnt).toBeGreaterThanOrEqual(1);
+    expect(gesendet.length).toBe(1);
+    // zweiter Lauf warnt nicht erneut
+    await zahlungOffenFristPruefen(prisma, new Date(), zahlung, mail);
+    expect(gesendet.length).toBe(1);
+
+    await prisma.abo.update({
+      where: { id: aboId },
+      data: { zahlungOffenSeit: new Date(Date.now() - 31 * 86_400_000) },
+    });
+    await zahlungOffenFristPruefen(prisma, new Date(), zahlung, mail);
+    expect(await prisma.user.findUnique({ where: { id: kindId } })).toBeNull();
+    const abo = (await app.inject({ method: 'GET', url: '/abo', headers: auth() })).json();
+    expect(abo).toMatchObject({ status: 'gekuendigt', zahlungOffenSeit: null });
+    // Elternkonto bleibt
+    expect((await app.inject({ method: 'GET', url: '/auth/me', headers: auth() })).statusCode).toBe(
+      200,
+    );
   });
 });

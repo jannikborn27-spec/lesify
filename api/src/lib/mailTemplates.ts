@@ -174,3 +174,30 @@ export function kontaktMail(input: {
   const text = `Von: ${input.name} <${input.email}>\nThema: ${input.thema}\n\n${input.nachricht}`;
   return { subject: `[Kontakt] ${input.thema} — ${input.name}`, html, text };
 }
+
+/** Zahlung seit 23 Tagen offen → 7 Tage vor der Löschung der Kind-Profile (Job `zahlung-offen-loeschung`). */
+export function zahlungOffenWarnungMail(input: {
+  name: string;
+  loeschungAm: string;
+  link: string;
+}): FertigeMail {
+  const satz = `Für dein Lesify-Abo ist seit mehreren Wochen eine Zahlung offen. Wenn sie bis zum ${input.loeschungAm} nicht beglichen ist, werden die Kind-Profile in deinem Konto samt aller Inhalte (Fächer, Chats, Lernzettel, Dateien) endgültig gelöscht und das Abo beendet.`;
+  return rendern({
+    betreff: 'Zahlung offen — Kind-Profile werden in 7 Tagen gelöscht',
+    vorschau: `Bitte aktualisiere deine Zahlungsmethode bis zum ${input.loeschungAm}.`,
+    ueberschrift: 'Deine Zahlung ist noch offen',
+    absaetze: [
+      `Hallo ${escapeHtml(input.name)},`,
+      escapeHtml(satz),
+      'Bis dahin können deine Kinder ihre Inhalte weiter ansehen, aber nichts Neues anlegen. Sobald die Zahlung durch ist, läuft alles sofort wieder normal.',
+    ],
+    button: { text: 'Zahlungsmethode aktualisieren', link: input.link },
+    hinweis:
+      'Du hast bereits bezahlt? Dann kannst du diese E-Mail ignorieren — es kann bis zu einem Tag dauern, bis die Zahlung bei uns ankommt.',
+    klartext: [
+      `Hallo ${input.name},`,
+      satz,
+      'Bis dahin können deine Kinder ihre Inhalte weiter ansehen, aber nichts Neues anlegen. Sobald die Zahlung durch ist, läuft alles sofort wieder normal.',
+    ],
+  });
+}

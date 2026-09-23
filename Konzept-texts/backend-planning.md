@@ -187,7 +187,28 @@ automatischer Abbuchung danach** (Stripe), jederzeit kündbar.
 | trialEndetAm | timestamp (nullable) | nur bei `status = test`; `createdAt + 14 Tage`. Bei Ablauf ohne Kündigung → Stripe bucht ab, `status → aktiv` |
 | aktuellerZeitraumEnde | date | Kündigung wird zu diesem Datum wirksam |
 | zahlungsanbieterRef | string (nullable) | Stripe-Referenz (Customer/Subscription). Phase 9: gesetzt als `fake_sub_…` durch den Platzhalter-Anbieter, echte Stripe-Referenz ab Phase 16 |
+| zahlungOffenSeit | timestamp (nullable) | **2026-09-23.** Erster Fehlschlag (Webhook → `zahlung_offen`); läuft bei weiteren Fehlschlägen nicht neu an, jeder andere Status setzt `null`. Frist: +30 Tage → Job `zahlung-offen-loeschung` |
+| loeschWarnungAm | timestamp (nullable) | **2026-09-23.** Warn-Mail an die Eltern (7 Tage vor Fristende) verschickt |
 | erstelltAm | timestamp | |
+
+**Zugriff je Status (Entscheidung 2026-09-23, `api/src/lib/aboZugriff.ts`)** —
+gilt nur für Kind-Profile (`rolle = schueler`), **Elternkonten werden nie
+gesperrt** und sehen den Zustand im Eltern-Bereich (Banner + `eltern-abo.html`):
+
+| Abo-Status | Kind-Zugriff | API |
+|---|---|---|
+| `test`, `aktiv`, `gekuendigt` vor `aktuellerZeitraumEnde` | voll | — |
+| `zahlung_offen` | **eingeschränkt**: alles lesen, nichts anlegen/erzeugen | nicht-GET → `403 zahlung_offen` (`details.loeschungAm`) |
+| `pausiert`, `gekuendigt` nach `aktuellerZeitraumEnde` | **gesperrt** (Sperrbildschirm, nur Abmelden) | alles außer `/auth/*` → `403 abo_gesperrt` (`details.grund`) |
+
+Durchgesetzt zentral in `requireAuth` (`app.ts`, `ZugriffCache` 30 s);
+`GET /auth/me` liefert `zugriff: {zugriff, grund, loeschungAm}` für
+`auth-gate.js`. Nach **30 Tagen** `zahlung_offen` beendet der Job
+`zahlung-offen-loeschung` das Abo sofort beim Anbieter und löscht **alle
+Kind-Profile samt Inhalten** (inkl. Objektspeicher); das Elternkonto bleibt
+bestehen. 7 Tage vorher: Warn-Mail (Resend). Kind-Profile hängen über
+`User.aboId` am Abo; ein Neuabschluss (`POST /abo`) hängt bestehende
+Kind-Profile auf das neue Abo um.
 
 Phase 9 (2026-09-04): Endpunkte `GET/POST/PATCH /abo`, `/abo/kuendigen`,
 `/abo/pausieren`, `/abo/webhook`, `/abo/kinder` umgesetzt (§4 „Umsetzungsstand
@@ -1045,11 +1066,13 @@ Query-Parameter, die `chat.html`/`thema.html` aus dem client-seitigen
 |---|---|---|
 | GET | `/abo` | Aktueller `paket`, `art`, `sitze`, `intervall`, `status`, `angebot`, `trialEndetAm`, `aktuellerZeitraumEnde` + abgeleitete Monatskontingente je Sitz |
 | POST | `/abo` | `{paket, intervall, sitze?}` → Checkout-Abschluss bei der Registrierung (Tarif + Intervall wählen, Zahlungsart hinterlegen). `paket` ∈ `starter\|premium\|infinite`; `sitze` 1 (Einzel) oder 2–4 (Familie); `intervall` ∈ `monatlich\|jaehrlich`. Legt bei Stripe Customer + Subscription mit **`trial_period_days: 14`** an (`Abo.status = test`), fixiert das aktive `angebot`. Nach 14 Tagen bucht Stripe automatisch ab → `status = aktiv`. **MwSt. nicht ausweisen** (Kleinunternehmer, nicht auf der Website nennen) |
-| PATCH | `/abo` | `{paket?, intervall?, sitze?}` → Tarif-/Intervall-/Sitzwechsel (Up-/Downgrade, Proration). Sitzverringerung erst zum `aktuellerZeitraumEnde` |
+| GET | `/abo/vorschau` | **Neu 2026-09-23.** `?sitze=&paket=&intervall=` → was eine Änderung kostet, **bevor** sie ausgeführt wird: `{wirksam: 'sofort'\|'periodenende', wirksamAm, imTest, sitze:{vorher,nachher}, aktuell:{betragCent,intervall}, neu:{betragCent,intervall}, anteiligCent, naechsteAbbuchung:{am,betragCent}}`. Sofortige Änderungen über Stripe `invoices.createPreview` (Proration-Zeilen), reine Sitzverringerung ohne Anbieter-Call. `eltern-abo.html` zeigt das vor jeder Sitzänderung als Bestätigung („Zahlungspflichtig hinzufügen", § 312j BGB) |
+| PATCH | `/abo` | `{paket?, intervall?, sitze?}` → Tarif-/Intervall-/Sitzwechsel (Up-/Downgrade, Proration). Sitzverringerung erst zum `aktuellerZeitraumEnde`. Zielzustand-Berechnung mit `/abo/vorschau` geteilt (`zielZustand`) |
+| POST | `/abo/zahlungsportal` | **Neu 2026-09-23.** → `{url}` einer Stripe-Billing-Portal-Sitzung (Zahlungsmethode ändern, offene Rechnung zahlen, Belege), Rückkehr auf `eltern-abo.html`. Braucht einmalig eine gespeicherte Portal-Konfiguration im Stripe-Dashboard |
 | POST | `/abo/kuendigen` | Kündigung zum `aktuellerZeitraumEnde`, kein sofortiger Zugriffsverlust |
-| POST | `/abo/pausieren` | Sommerpause (Status `pausiert`), Inhalte bleiben erhalten |
+| POST | `/abo/pausieren` | Sommerpause (Status `pausiert`), Inhalte bleiben erhalten, **Kind-Profile gesperrt** (seit 2026-09-23, siehe „Zugriff je Status" §1) |
 | POST | `/abo/reaktivieren` | **Neu (2026-09-13), Status-Logik korrigiert (2026-09-17).** Hebt Kündigung/Pause auf; nur von `gekuendigt`/`pausiert` aus, sonst `409 abo_nicht_reaktivierbar`. Stripe: `cancel_at_period_end=false` + `pause_collection=null`. `status` wird **nicht** hart auf `aktiv` gesetzt, sondern aus dem von Stripe nach dem Update zurückgegebenen echten Subscription-Status übernommen — ein während der Trial-Phase gekündigtes/pausiertes Abo bleibt nach der Reaktivierung `test` (Stripe: weiterhin `trialing`), bis die Trial regulär endet |
-| POST | `/abo/webhook` | Callback des Zahlungsanbieters (Zahlung erfolgreich/fehlgeschlagen → `status`) |
+| POST | `/abo/webhook` | Callback des Zahlungsanbieters (Zahlung erfolgreich/fehlgeschlagen → `status`). **2026-09-23:** `subscription.updated` mit `cancel_at_period_end`/`pause_collection` → `gekuendigt`/`pausiert` (vorher überschrieb Stripes `status: active` beides wieder mit `aktiv`); „Rechnung bezahlt" heilt nur `zahlung_offen`/`test`; `subscription.deleted` setzt `aktuellerZeitraumEnde` = tatsächliches Ende; pflegt `zahlungOffenSeit` |
 | GET | `/abo/kinder` · POST · DELETE | Kind-Profile im Familien-Abo verwalten (max. `Abo.sitze`, 2–4). `GET` liefert je Kind zusätzlich `eingeladen: boolean` (2026-09-13, aus `!!email`) |
 | POST | `/abo/kinder/:id/einladung` | `{email}` → E-Mail am Kind-Profil setzen + `emailVerifiedAt` (Elternkonto bürgt), Passwort-Token erzeugen und per Mail an die Kind-Adresse verschicken (Resend, gleiche Vorlage wie die anderen Mails, Link 14 Tage gültig; seit 2026-09-18); das Kind setzt sein Passwort über `POST /auth/passwort-zuruecksetzen` (Phase 12) |
 | POST | `/abo/kinder/:id/sitzung` | Kontext-Wechsel: gibt eine echte `Session` fürs Kind-Profil zurück (`{token, kindId}`); das Elternkonto handelt damit vollständig als Kind, Zurückwechseln = eigenes Token (Phase 12) |
@@ -1368,7 +1391,10 @@ DB löschen, dann Objektspeicher aufräumen) nutzt auch
 `POST /user/loeschen` (DSGVO-Konto-Löschung, §8/Phase 13). Aufruf über
 `pnpm --filter @lesify/api job inhalte-aufbewahrung`; Einhängen in einen echten
 Scheduler = Phase 16. Weitere Jobs: `usage-historie` (Usage-Zeilen > 12 Monate),
-`token-hygiene` (abgelaufene Sessions/Verification-Token).
+`token-hygiene` (abgelaufene Sessions/Verification-Token),
+`zahlung-offen-loeschung` (2026-09-23: Warn-Mail 7 Tage vor, Kind-Profile +
+Inhalte löschen und Abo beenden 30 Tage nach dem ersten Zahlungsfehlschlag —
+siehe §1 „Zugriff je Status"; täglich).
 
 ## 7. Usage-Tracking & Limits
 

@@ -5,12 +5,15 @@ import type { KiClient } from './lib/ki/client.js';
 import type { StorageGateway } from './lib/storage.js';
 import type { MailGateway } from './lib/mailer.js';
 import type { SessionCache } from './lib/sessionCache.js';
+import type { ZugriffCache } from './lib/aboZugriff.js';
 
 declare module 'fastify' {
   interface FastifyInstance {
     prisma: PrismaClient;
     /** Kurzlebiger Cache validierter Sessions, siehe requireAuth (app.ts). */
     sessionCache: SessionCache;
+    /** Abo-Zugriff je User (Kind-Sperre), siehe lib/aboZugriff.ts. */
+    zugriffCache: ZugriffCache;
     /** Zahlungsanbieter-Adapter (Phase 9; Fake bis Phase 16). */
     zahlung: ZahlungsGateway;
     /** Claude-Client (Phase 6; Fake ohne ANTHROPIC_API_KEY). */

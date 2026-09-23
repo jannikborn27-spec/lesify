@@ -202,6 +202,11 @@ model Abo {
   trialEndetAm          DateTime? // nur bei status = test; createdAt + 14 Tage
   aktuellerZeitraumEnde DateTime     @db.Date
   zahlungsanbieterRef   String? // Stripe Customer/Subscription
+  // Zahlung offen (2026-09-23): seit wann `status = zahlung_offen` — nach 30
+  // Tagen löscht der Job `zahlung-offen-loeschung` Kind-Profile + Inhalte.
+  zahlungOffenSeit      DateTime?
+  // Warn-Mail an die Eltern (7 Tage vor der Löschung) verschickt am …
+  loeschWarnungAm       DateTime?
   erstelltAm            DateTime     @default(now())
 
   owner          User   @relation("AboOwner", fields: [ownerUserId], references: [id], onDelete: Cascade)

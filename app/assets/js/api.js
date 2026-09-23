@@ -72,6 +72,8 @@
     abo_nicht_reaktivierbar: 'Das Abo ist bereits aktiv.',
     sitze_ausgeschoepft: 'Alle Plätze sind belegt.',
     kein_familienabo: 'Dafür ist ein Familien-Abo nötig.',
+    abo_gesperrt: 'Dein Zugang ist gerade pausiert — sprich mit deinen Eltern.',
+    zahlung_offen: 'Gerade kannst du nichts Neues anlegen: Beim Abo ist eine Zahlung offen. Sag deinen Eltern Bescheid.',
   };
   function fehlerText(err) {
     return (err && FEHLER_TEXT[err.code]) || 'Es ist ein Fehler aufgetreten.';
@@ -708,6 +710,14 @@
     },
     reaktivierenAbo: function () {
       return POST('/abo/reaktivieren', {});
+    },
+    /** Kostenvorschau einer Abo-Änderung (`{sitze|paket|intervall}`), vor `aendernAbo`. */
+    aboVorschau: function (aenderung) {
+      return GET('/abo/vorschau' + qs(aenderung));
+    },
+    /** Stripe-Billing-Portal (Zahlungsmethode, offene Rechnung, Belege) → `{url}`. */
+    zahlungsportal: function () {
+      return POST('/abo/zahlungsportal', {});
     },
     kinder: function () {
       return GET('/abo/kinder');

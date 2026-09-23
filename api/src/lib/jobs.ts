@@ -3,6 +3,8 @@ import { aboArtFuerSitze, aboPreis, monatsSchluessel } from '@lesify/shared';
 import { getStorageGateway, type StorageGateway } from './storage.js';
 import { getZahlungsGateway, type ZahlungsGateway } from './zahlung.js';
 import { kiKostenAlarmPruefen } from './ki/kosten.js';
+import { getMailGateway, type MailGateway } from './mailer.js';
+import { ZAHLUNG_OFFEN_WARN_TAGE_VORHER, loeschDatum } from './aboZugriff.js';
 
 /**
  * Wiederkehrende Wartungs-Jobs (Phase 10). Reine Funktionen — der echte
@@ -166,12 +168,96 @@ export async function geplanteAboAenderungenAnwenden(
   return { angewendet, wartetAufKindLoeschung: wartet };
 }
 
+/**
+ * Zahlung offen (Entscheidung 2026-09-23): Kind-Profile können ab dem ersten
+ * Fehlschlag nur noch lesen (`lib/aboZugriff.ts`). Dieser Job
+ * 1. schickt 7 Tage vor Fristende eine Warn-Mail an die Eltern (einmalig,
+ *    `loeschWarnungAm`),
+ * 2. beendet nach 30 Tagen ohne Zahlung das Abo sofort beim Zahlungsanbieter
+ *    und löscht alle Kind-Profile samt Inhalten (Cascade + Objektspeicher).
+ *    Das **Elternkonto bleibt** bestehen — es kann sich anmelden, sieht das
+ *    beendete Abo und kann neu abschließen.
+ * Zahlt jemand vorher, setzt der Webhook den Status zurück und
+ * `zahlungOffenSeit` auf null — dann greift hier nichts mehr.
+ */
+export async function zahlungOffenFristPruefen(
+  prisma: PrismaClient,
+  jetzt: Date = new Date(),
+  zahlung: ZahlungsGateway = getZahlungsGateway(),
+  mail: MailGateway = getMailGateway(),
+  storage: StorageGateway = getStorageGateway(),
+): Promise<{ gewarnt: number; beendet: number; kindProfileGeloescht: number }> {
+  const offen = await prisma.abo.findMany({
+    where: { status: 'zahlung_offen', zahlungOffenSeit: { not: null } },
+    include: { owner: true },
+  });
+  let gewarnt = 0;
+  let beendet = 0;
+  let kindProfileGeloescht = 0;
+  for (const abo of offen) {
+    const loeschungAm = loeschDatum(abo.zahlungOffenSeit!);
+    if (loeschungAm <= jetzt) {
+      await zahlung.subscriptionSofortBeenden(abo.zahlungsanbieterRef ?? abo.id);
+      const kinder = await prisma.user.findMany({
+        where: { parentUserId: abo.ownerUserId },
+        select: { id: true },
+      });
+      const kindIds = kinder.map((k) => k.id);
+      const dateiKeys = (
+        await prisma.datei.findMany({
+          where: { userId: { in: kindIds } },
+          select: { speicherPfad: true },
+        })
+      ).map((d) => d.speicherPfad);
+      await prisma.$transaction([
+        prisma.user.deleteMany({ where: { id: { in: kindIds } } }),
+        prisma.abo.update({
+          where: { id: abo.id },
+          data: {
+            status: 'gekuendigt',
+            aktuellerZeitraumEnde: jetzt,
+            zahlungOffenSeit: null,
+            loeschWarnungAm: null,
+          },
+        }),
+      ]);
+      try {
+        await storage.loeschen(dateiKeys);
+      } catch (err) {
+        console.error(
+          JSON.stringify({ job: 'zahlung-offen-loeschung', storageFehler: String(err) }),
+        );
+      }
+      beendet += 1;
+      kindProfileGeloescht += kindIds.length;
+      continue;
+    }
+    const warnAb = new Date(loeschungAm.getTime() - ZAHLUNG_OFFEN_WARN_TAGE_VORHER * 86_400_000);
+    if (!abo.loeschWarnungAm && warnAb <= jetzt && abo.owner.email) {
+      try {
+        await mail.zahlungOffenWarnungSenden({
+          an: abo.owner.email,
+          name: abo.owner.name,
+          loeschungAm,
+        });
+        await prisma.abo.update({ where: { id: abo.id }, data: { loeschWarnungAm: jetzt } });
+        gewarnt += 1;
+      } catch (err) {
+        // nächster Lauf versucht es erneut (loeschWarnungAm bleibt null)
+        console.error(JSON.stringify({ job: 'zahlung-offen-loeschung', mailFehler: String(err) }));
+      }
+    }
+  }
+  return { gewarnt, beendet, kindProfileGeloescht };
+}
+
 export const JOBS = {
   'inhalte-aufbewahrung': inhalteAelterAlsEinJahrLoeschen,
   'usage-historie': alteUsageZeilenLoeschen,
   'token-hygiene': abgelaufeneTokenLoeschen,
   'abo-geplante-aenderungen': geplanteAboAenderungenAnwenden,
   'ki-kosten-alarm': kiKostenAlarmPruefen,
+  'zahlung-offen-loeschung': zahlungOffenFristPruefen,
 } as const;
 
 export type JobName = keyof typeof JOBS;

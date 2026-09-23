@@ -68,15 +68,33 @@ document.addEventListener('DOMContentLoaded', async function () {
       pausiert: ['gelb', 'Sommerpause'],
       zahlung_offen: ['rot', 'Zahlung ausstehend'],
     };
+    var abgelaufen = abo.status === 'gekuendigt' && new Date(abo.aktuellerZeitraumEnde) <= new Date();
+    if (abgelaufen) statusMap.gekuendigt = ['rot', 'Beendet — Kinder haben keinen Zugriff mehr'];
     var st = statusMap[abo.status] || statusMap.aktiv;
     var laeuft = abo.status === 'aktiv' || abo.status === 'test' || abo.status === 'zahlung_offen';
+    var datum = function (iso) { return LesifyUI.Render.formatDatum(String(iso).slice(0, 10)); };
+
+    // Hinweis je Zustand (2026-09-23, Zugriffsregeln in api/src/lib/aboZugriff.ts)
+    var hinweis = '';
+    if (abo.status === 'zahlung_offen') {
+      hinweis = '<div class="abo-hinweis" role="status"><div><b>Die letzte Zahlung ist fehlgeschlagen</b>' +
+        'Deine Kinder können ihre Inhalte weiter ansehen, aber nichts Neues anlegen.' +
+        (abo.loeschungAm ? ' Geht die Zahlung bis zum <b style="display:inline">' + datum(abo.loeschungAm) + '</b> nicht ein, werden die Kind-Profile samt Inhalten gelöscht und das Abo beendet.' : '') +
+        '<div style="margin-top:10px"><button class="btn btn-sm btn-primary" type="button" data-portal>Zahlungsmethode aktualisieren</button></div></div></div>';
+    } else if (abo.status === 'pausiert') {
+      hinweis = '<div class="abo-hinweis abo-hinweis--gelb" role="status"><div><b>Sommerpause aktiv</b>' +
+        'Es wird nichts abgebucht. Deine Kinder können sich während der Pause nicht in die App einloggen — alle Inhalte bleiben erhalten.</div></div>';
+    } else if (abgelaufen) {
+      hinweis = '<div class="abo-hinweis" role="status"><div><b>Dein Abo ist beendet</b>' +
+        'Deine Kinder haben keinen Zugriff mehr. Ihre Inhalte bleiben noch gespeichert. <a href="/preise/">Neu abschließen</a></div></div>';
+    }
 
     main.innerHTML =
       '<div class="page-head"><div>' +
         '<div class="page-eyebrow">Eltern-Bereich</div>' +
         '<h1 class="page-title">Abo &amp; Sitze</h1>' +
         '<p class="page-sub">Tarif, Abrechnung und Familien-Plätze.</p>' +
-      '</div></div>' +
+      '</div></div>' + hinweis +
       '<div class="card eltern-card">' +
         '<h3>Aktueller Tarif</h3>' +
         '<p class="eltern-sub">Ein zusätzlicher Platz greift sofort; ein Platz weniger wird zum Ende des Abrechnungszeitraums wirksam.</p>' +
@@ -103,24 +121,69 @@ document.addEventListener('DOMContentLoaded', async function () {
           (laeuft
             ? '<button class="btn btn-sm btn-ghost" data-abo="pausieren">Sommerpause</button>' +
               '<button class="btn btn-sm btn-ghost" data-abo="kuendigen" style="color:var(--rot)">Kündigen</button>'
-            : '<button class="btn btn-sm btn-primary" data-abo="reaktivieren">Abo reaktivieren</button>') +
+            : abgelaufen
+              ? '<a class="btn btn-sm btn-primary" href="/preise/">Neu abschließen</a>'
+              : '<button class="btn btn-sm btn-primary" data-abo="reaktivieren">Abo reaktivieren</button>') +
+          (abgelaufen ? '' : '<button class="btn btn-sm btn-ghost" type="button" data-portal>Zahlungsmethode &amp; Rechnungen</button>') +
         '</div>' +
       '</div>';
+    abo.belegt = belegt;
     wire(abo);
+  }
+
+  /* Sitzänderung mit Kostenvorschau (Entscheidung 2026-09-23): erst
+     GET /abo/vorschau, dann Bestätigung mit Beträgen, erst danach PATCH /abo.
+     Erhöhung → Button „Zahlungspflichtig hinzufügen" (Button-Lösung, § 312j BGB). */
+  function euro(cent) {
+    return (cent / 100).toLocaleString('de-DE', { style: 'currency', currency: 'EUR' });
+  }
+  function proIntervall(iv) { return iv === 'jaehrlich' ? ' / Jahr' : ' / Monat'; }
+  async function sitzAendern(abo, ziel) {
+    var v;
+    try { v = await Lesify.aboVorschau({ sitze: ziel }); }
+    catch (err) { LesifyUI.toast(Lesify.fehlerText(err)); return; }
+    var mehr = ziel > abo.sitze;
+    var d = function (iso) { return LesifyUI.Render.formatDatum(String(iso).slice(0, 10)); };
+    var zeile = function (l, w, stark) {
+      return '<div class="abo-row"><span class="lbl">' + l + '</span><span class="val"' + (stark ? ' style="font-weight:700"' : '') + '>' + w + '</span></div>';
+    };
+    var body =
+      zeile('Plätze', v.sitze.vorher + ' → ' + v.sitze.nachher) +
+      zeile('Bisher', euro(v.aktuell.betragCent) + proIntervall(v.aktuell.intervall)) +
+      zeile(mehr ? 'Neu, ab sofort' : 'Neu, ab ' + d(v.wirksamAm), euro(v.neu.betragCent) + proIntervall(v.neu.intervall), true);
+    var text;
+    if (!mehr) {
+      text = 'Der Platz bleibt bis zum ' + d(v.wirksamAm) + ' nutzbar. Danach wird der neue Betrag abgebucht' +
+        (v.sitze.nachher < (abo.belegt || 0) ? ' — vorher musst du noch ein Kind-Profil entfernen.' : '.');
+    } else if (v.imTest) {
+      text = 'Du bist noch in der kostenlosen Testphase — jetzt wird nichts abgebucht. Am ' + d(v.naechsteAbbuchung.am) +
+        ' wird erstmals ' + euro(v.naechsteAbbuchung.betragCent) + ' abgebucht.';
+    } else {
+      body += zeile('Anteilig bis ' + d(v.naechsteAbbuchung.am), euro(v.anteiligCent));
+      text = 'Für die restliche Zeit des laufenden Zeitraums wird der anteilige Betrag berechnet. Er wird mit der nächsten Abbuchung am ' +
+        d(v.naechsteAbbuchung.am) + ' fällig — insgesamt dann ' + euro(v.naechsteAbbuchung.betragCent) + '.';
+    }
+    body += '<p class="text-sm" style="margin:14px 0 0;color:var(--ink-700);line-height:1.6">' + text + '</p>' +
+      '<p class="text-xs text-muted" style="margin:8px 0 0">Gemäß § 19 UStG wird keine Umsatzsteuer berechnet.</p>';
+    modal(mehr ? 'Platz hinzufügen' : 'Platz entfernen', null, body, async function () {
+      try {
+        var neu = await Lesify.aendernAbo({ sitze: ziel });
+        LesifyUI.toast(mehr ? 'Ein Platz ergänzt.' : neu.geplanteSitze != null ? 'Platz wird zum Periodenende entfernt.' : 'Platz entfernt.');
+        render();
+      } catch (err) { LesifyUI.toast(Lesify.fehlerText(err)); return false; }
+    }, mehr ? 'Zahlungspflichtig hinzufügen' : 'Platz entfernen');
   }
 
   function wire(abo) {
     var seatMinus = document.getElementById('seat-minus'), seatPlus = document.getElementById('seat-plus');
-    if (seatPlus) seatPlus.addEventListener('click', async function () {
-      try { await Lesify.aendernAbo({ sitze: abo.sitze + 1 }); LesifyUI.toast('Ein Platz ergänzt.'); render(); }
-      catch (err) { LesifyUI.toast(Lesify.fehlerText(err)); }
-    });
-    if (seatMinus) seatMinus.addEventListener('click', async function () {
-      try {
-        var neu = await Lesify.aendernAbo({ sitze: abo.sitze - 1 });
-        LesifyUI.toast(neu.geplanteSitze != null ? 'Platz wird zum Periodenende entfernt.' : 'Platz entfernt.');
-        render();
-      } catch (err) { LesifyUI.toast(Lesify.fehlerText(err)); }
+    if (seatPlus) seatPlus.addEventListener('click', function () { sitzAendern(abo, abo.sitze + 1); });
+    if (seatMinus) seatMinus.addEventListener('click', function () { sitzAendern(abo, abo.sitze - 1); });
+    LesifyUI.qsa('[data-portal]').forEach(function (b) {
+      b.addEventListener('click', async function () {
+        b.disabled = true;
+        try { var r = await Lesify.zahlungsportal(); location.href = r.url; }
+        catch (err) { b.disabled = false; LesifyUI.toast(Lesify.fehlerText(err)); }
+      });
     });
     LesifyUI.qsa('[data-abo]').forEach(function (b) {
       b.addEventListener('click', function () {
@@ -133,9 +196,12 @@ document.addEventListener('DOMContentLoaded', async function () {
               catch (err) { LesifyUI.toast(Lesify.fehlerText(err)); return false; }
             }, 'Kündigen', true);
         } else if (a === 'pausieren') {
-          Lesify.pausierenAbo().then(function () {
-            LesifyUI.toast('Sommerpause aktiviert — Inhalte bleiben erhalten.'); render();
-          }).catch(function (err) { LesifyUI.toast(Lesify.fehlerText(err)); });
+          modal('Sommerpause starten?', 'Während der Pause wird nichts abgebucht.',
+            '<p class="text-sm" style="margin:0;color:var(--ink-700);line-height:1.6">Deine Kinder können sich in dieser Zeit nicht in die App einloggen. Alle Inhalte bleiben erhalten, und du kannst die Pause jederzeit hier beenden.</p>',
+            async function () {
+              try { await Lesify.pausierenAbo(); LesifyUI.toast('Sommerpause aktiviert — Inhalte bleiben erhalten.'); render(); }
+              catch (err) { LesifyUI.toast(Lesify.fehlerText(err)); return false; }
+            }, 'Pause starten');
         } else if (a === 'reaktivieren') {
           Lesify.reaktivierenAbo().then(function () {
             LesifyUI.toast('Abo wieder aktiv.'); render();

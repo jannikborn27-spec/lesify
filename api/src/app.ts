@@ -1,4 +1,9 @@
-import Fastify, { type FastifyError, type FastifyInstance } from 'fastify';
+import Fastify, {
+  type FastifyError,
+  type FastifyInstance,
+  type FastifyReply,
+  type FastifyRequest,
+} from 'fastify';
 import multipart from '@fastify/multipart';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
@@ -15,6 +20,7 @@ import { getStorageGateway, type StorageGateway } from './lib/storage.js';
 import { getMailGateway, type MailGateway } from './lib/mailer.js';
 import { RateLimiter } from './lib/ratelimit.js';
 import { SessionCache } from './lib/sessionCache.js';
+import { ZugriffCache, requestErlaubt } from './lib/aboZugriff.js';
 import { healthRoutes } from './routes/health.js';
 import { authRoutes } from './routes/auth.js';
 import { faecherRoutes } from './routes/faecher.js';
@@ -139,6 +145,21 @@ export function buildApp(opts: BuildOpts = {}): FastifyInstance {
 
   const sessionCache = new SessionCache();
   app.decorate('sessionCache', sessionCache);
+  const zugriffCache = new ZugriffCache();
+  app.decorate('zugriffCache', zugriffCache);
+
+  // Abo-Zugriff (2026-09-23, lib/aboZugriff.ts): Kind-Profile bei pausiertem/
+  // abgelaufenem Abo gesperrt, bei offener Zahlung nur lesend. Eltern nie.
+  async function zugriffPruefen(request: FastifyRequest, reply: FastifyReply) {
+    const stand = await zugriffCache.stand(prisma, request.userId);
+    if (requestErlaubt(stand, request.method, request.url)) return;
+    const gesperrt = stand.zugriff === 'gesperrt';
+    await reply.code(403).send({
+      fehler: gesperrt ? 'abo_gesperrt' : 'zahlung_offen',
+      details: { grund: stand.grund, loeschungAm: stand.loeschungAm },
+    });
+    return reply;
+  }
 
   app.decorate('requireAuth', async function requireAuth(request, reply) {
     const header = request.headers.authorization;
@@ -151,7 +172,7 @@ export function buildApp(opts: BuildOpts = {}): FastifyInstance {
     const cachedUserId = sessionCache.get(tokenHash);
     if (cachedUserId) {
       request.userId = cachedUserId;
-      return;
+      return zugriffPruefen(request, reply);
     }
     const session = await prisma.session.findUnique({ where: { tokenHash } });
     if (!session || session.ablaeuftAm.getTime() < Date.now()) {
@@ -160,6 +181,7 @@ export function buildApp(opts: BuildOpts = {}): FastifyInstance {
     }
     sessionCache.set(tokenHash, session.userId, session.ablaeuftAm.getTime());
     request.userId = session.userId;
+    return zugriffPruefen(request, reply);
   });
 
   app.setErrorHandler((err: FastifyError, request, reply) => {

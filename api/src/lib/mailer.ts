@@ -4,6 +4,7 @@ import {
   emailBestaetigungMail,
   kindEinladungMail,
   kontaktMail,
+  zahlungOffenWarnungMail,
   passwortResetMail,
 } from './mailTemplates.js';
 
@@ -26,6 +27,14 @@ export interface MailGateway {
     token: string;
   }): Promise<void>;
   kontaktSenden(input: KontaktNachricht): Promise<void>;
+  zahlungOffenWarnungSenden(input: { an: string; name: string; loeschungAm: Date }): Promise<void>;
+}
+
+function elternAboLink(): string {
+  return `${env.MARKETING_URL}/app/eltern-abo.html`;
+}
+function datumDe(d: Date): string {
+  return d.toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
 export interface KontaktNachricht {
@@ -82,6 +91,20 @@ export class FakeMailGateway implements MailGateway {
         an: env.KONTAKT_EMPFAENGER,
         replyTo: input.email,
         thema: input.thema,
+      }),
+    );
+  }
+
+  async zahlungOffenWarnungSenden(input: {
+    an: string;
+    name: string;
+    loeschungAm: Date;
+  }): Promise<void> {
+    console.log(
+      JSON.stringify({
+        mailFake: 'zahlung_offen_warnung',
+        an: input.an,
+        loeschungAm: datumDe(input.loeschungAm),
       }),
     );
   }
@@ -144,6 +167,25 @@ export class ResendMailGateway implements MailGateway {
       ...mail,
     });
     if (error) throw new Error(`Resend-Versand fehlgeschlagen (kontakt): ${error.message}`);
+  }
+
+  async zahlungOffenWarnungSenden(input: {
+    an: string;
+    name: string;
+    loeschungAm: Date;
+  }): Promise<void> {
+    const mail = zahlungOffenWarnungMail({
+      name: input.name,
+      loeschungAm: datumDe(input.loeschungAm),
+      link: elternAboLink(),
+    });
+    const { error } = await this.resend.emails.send({
+      from: env.EMAIL_ABSENDER,
+      to: input.an,
+      ...mail,
+    });
+    if (error)
+      throw new Error(`Resend-Versand fehlgeschlagen (zahlung_offen_warnung): ${error.message}`);
   }
 }
 

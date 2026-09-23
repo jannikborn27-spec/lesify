@@ -6,7 +6,7 @@ import { oder404 } from '../lib/scope.js';
 import { HttpError } from '../lib/http.js';
 import { aboDTO } from '../lib/abo.js';
 import { inTagen, neuesToken } from '../lib/tokens.js';
-import { istProd } from '../env.js';
+import { env, istProd } from '../env.js';
 
 const KIND_EINLADUNG_TAGE = 14;
 
@@ -51,8 +51,30 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
 
     const abo = await prisma.abo.findFirst({ where: { zahlungsanbieterRef: erg.aboRef } });
     if (!abo) return { ok: true, ignoriert: 'abo_unbekannt' };
-    if (abo.status === erg.neuerStatus) return { ok: true, unveraendert: true };
-    await prisma.abo.update({ where: { id: abo.id }, data: { status: erg.neuerStatus } });
+    // „Rechnung bezahlt" heilt nur eine offene Zahlung bzw. beendet die Trial —
+    // eine laufende Kündigung/Pause darf es nicht still wieder auf `aktiv` setzen.
+    const nurRechnung = erg.typ.startsWith('invoice.') || erg.typ === 'zahlung_erfolgreich';
+    if (
+      nurRechnung &&
+      erg.neuerStatus === 'aktiv' &&
+      !['zahlung_offen', 'test'].includes(abo.status)
+    ) {
+      return { ok: true, unveraendert: true };
+    }
+    if (abo.status === erg.neuerStatus && !erg.endetAm) return { ok: true, unveraendert: true };
+    const offen = erg.neuerStatus === 'zahlung_offen';
+    await prisma.abo.update({
+      where: { id: abo.id },
+      data: {
+        status: erg.neuerStatus,
+        // 30-Tage-Frist startet beim ersten Fehlschlag und läuft bei weiteren
+        // Fehlschlägen NICHT neu an; jeder andere Status beendet sie.
+        zahlungOffenSeit: offen ? (abo.zahlungOffenSeit ?? new Date()) : null,
+        loeschWarnungAm: offen ? abo.loeschWarnungAm : null,
+        ...(erg.endetAm ? { aktuellerZeitraumEnde: erg.endetAm } : {}),
+      },
+    });
+    app.zugriffCache.zuruecksetzen();
     return { ok: true, status: erg.neuerStatus };
   });
 
@@ -127,6 +149,13 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
         where: { id: req.userId },
         data: { aboId: abo.id, trialEndetAm: null },
       });
+      // Bestehende Kind-Profile (Neuabschluss nach abgelaufener Kündigung)
+      // hängen sonst weiter am alten, beendeten Abo → blieben gesperrt.
+      await prisma.user.updateMany({
+        where: { parentUserId: req.userId },
+        data: { aboId: abo.id },
+      });
+      app.zugriffCache.zuruecksetzen();
 
       // clientSecret nur beim echten Stripe-Adapter gesetzt — das Frontend
       // ruft damit stripe.confirmSetup (Trial, seti_…) oder confirmPayment
@@ -137,15 +166,15 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
         .send({ ...aboDTO(abo), clientSecret: sub.clientSecret ?? null, subscriptionId: sub.ref });
     });
 
-    // PATCH /abo — Tarif-/Intervall-/Sitzwechsel (Proration beim Anbieter)
-    authed.patch('/abo', async (req) => {
-      const body = parse(aendernBody, req.body);
-      const abo = oder404(await eigenesAbo(req.userId));
-
-      const paket = body.paket ?? (abo.paket as 'starter' | 'premium' | 'infinite');
-      const intervall = body.intervall ?? (abo.intervall as 'monatlich' | 'jaehrlich');
+    // Zielzustand einer Änderung — geteilt von PATCH /abo und GET /abo/vorschau,
+    // damit die Vorschau exakt das zeigt, was PATCH danach ausführt.
+    const zielZustand = (
+      abo: { paket: string; intervall: string; sitze: number; geplanteSitze: number | null },
+      body: { paket?: string; intervall?: string; sitze?: number },
+    ) => {
+      const paket = (body.paket ?? abo.paket) as 'starter' | 'premium' | 'infinite';
+      const intervall = (body.intervall ?? abo.intervall) as 'monatlich' | 'jaehrlich';
       const zielSitze = body.sitze ?? abo.sitze;
-
       // Sitzverringerung: nicht sofort. `geplanteSitze` merken; wirksam zum
       // `aktuellerZeitraumEnde`, sobald genug Kind-Profile entfernt sind
       // (Job `abo-geplante-aenderungen`). Restliche Änderungen greifen sofort.
@@ -153,10 +182,91 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
       const geplanteSitze =
         zielSitze < abo.sitze ? zielSitze : zielSitze > abo.sitze ? null : abo.geplanteSitze;
       const art = aboArtFuerSitze(sitzeJetzt);
-
       if (!istGueltigeSitzzahl(art, sitzeJetzt) || (geplanteSitze != null && geplanteSitze < 1)) {
         throw new HttpError(400, 'validierung', { sitze: 'ungültige Sitzzahl' });
       }
+      return { paket, intervall, zielSitze, sitzeJetzt, geplanteSitze, art };
+    };
+
+    // GET /abo/vorschau?sitze=&paket=&intervall= — was eine Änderung kostet,
+    // BEVOR sie ausgeführt wird (Entscheidung 2026-09-23: Eltern sehen vor
+    // jeder Sitz-/Tarifänderung, was mit der Abrechnung passiert).
+    authed.get<{ Querystring: Record<string, string | undefined> }>(
+      '/abo/vorschau',
+      async (req) => {
+        const q = req.query;
+        const body = parse(aendernBody, {
+          ...(q.paket ? { paket: q.paket } : {}),
+          ...(q.intervall ? { intervall: q.intervall } : {}),
+          ...(q.sitze ? { sitze: Number(q.sitze) } : {}),
+        });
+        const abo = oder404(await eigenesAbo(req.userId));
+        const z = zielZustand(abo, body);
+        const alt = aboPreis({
+          paket: abo.paket,
+          art: aboArtFuerSitze(abo.sitze),
+          sitze: abo.sitze,
+          intervall: abo.intervall,
+        });
+        const imTest = abo.status === 'test';
+
+        // Nur weniger Sitze, sonst nichts geändert → nichts Sofortiges, neuer
+        // Preis ab dem nächsten Zeitraum.
+        const nurVerringerung =
+          z.geplanteSitze != null &&
+          z.paket === abo.paket &&
+          z.intervall === abo.intervall &&
+          z.sitzeJetzt === abo.sitze;
+        if (nurVerringerung) {
+          const spaeter = aboPreis({
+            paket: z.paket,
+            art: aboArtFuerSitze(z.geplanteSitze!),
+            sitze: z.geplanteSitze!,
+            intervall: z.intervall,
+          });
+          return {
+            wirksam: 'periodenende',
+            wirksamAm: abo.aktuellerZeitraumEnde,
+            imTest,
+            sitze: { vorher: abo.sitze, nachher: z.geplanteSitze },
+            aktuell: { betragCent: alt.betragCent, intervall: abo.intervall },
+            neu: { betragCent: spaeter.betragCent, intervall: z.intervall },
+            anteiligCent: 0,
+            naechsteAbbuchung: { am: abo.aktuellerZeitraumEnde, betragCent: spaeter.betragCent },
+          };
+        }
+
+        const neu = aboPreis({
+          paket: z.paket,
+          art: z.art,
+          sitze: z.sitzeJetzt,
+          intervall: z.intervall,
+        });
+        const v = await zahlung.aenderungVorschau(abo.zahlungsanbieterRef ?? abo.id, {
+          intervall: z.intervall,
+          betragCent: neu.betragCent,
+          alterBetragCent: alt.betragCent,
+          zeitraumEnde: abo.aktuellerZeitraumEnde,
+          imTest,
+        });
+        return {
+          wirksam: 'sofort',
+          wirksamAm: new Date(),
+          imTest,
+          sitze: { vorher: abo.sitze, nachher: z.sitzeJetzt },
+          aktuell: { betragCent: alt.betragCent, intervall: abo.intervall },
+          neu: { betragCent: neu.betragCent, intervall: z.intervall },
+          anteiligCent: v.anteiligCent,
+          naechsteAbbuchung: { am: v.naechsteAbbuchungAm, betragCent: v.naechsteAbbuchungCent },
+        };
+      },
+    );
+
+    // PATCH /abo — Tarif-/Intervall-/Sitzwechsel (Proration beim Anbieter)
+    authed.patch('/abo', async (req) => {
+      const body = parse(aendernBody, req.body);
+      const abo = oder404(await eigenesAbo(req.userId));
+      const { paket, intervall, sitzeJetzt, geplanteSitze, art } = zielZustand(abo, body);
 
       const preis = aboPreis({ paket, art, sitze: sitzeJetzt, intervall });
       const { aktuellerZeitraumEnde } = await zahlung.subscriptionAendern(
@@ -187,6 +297,7 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
         where: { id: abo.id },
         data: { status: 'gekuendigt' },
       });
+      app.zugriffCache.zuruecksetzen();
       return aboDTO(neu);
     });
 
@@ -198,6 +309,7 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
         where: { id: abo.id },
         data: { status: 'pausiert' },
       });
+      app.zugriffCache.zuruecksetzen();
       return aboDTO(neu);
     });
 
@@ -217,7 +329,20 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
         where: { id: abo.id },
         data: { status },
       });
+      app.zugriffCache.zuruecksetzen();
       return aboDTO(neu);
+    });
+
+    // POST /abo/zahlungsportal — Stripe-Billing-Portal (Zahlungsmethode ändern,
+    // offene Rechnung begleichen, Belege). Vor allem der Ausweg aus
+    // `zahlung_offen` (2026-09-23).
+    authed.post('/abo/zahlungsportal', async (req) => {
+      const abo = oder404(await eigenesAbo(req.userId));
+      const url = await zahlung.zahlungsportalUrl(
+        abo.zahlungsanbieterRef ?? abo.id,
+        `${env.MARKETING_URL}/app/eltern-abo.html`,
+      );
+      return { url };
     });
 
     // ---- Kind-Profile im Familien-Abo (max. Abo.sitze) --------------------

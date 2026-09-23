@@ -36,10 +36,33 @@ export interface SubZustand {
   clientSecret?: string | null;
 }
 
+export interface VorschauInput {
+  intervall: AboIntervallKey;
+  betragCent: number;
+  /** nur für den Fake (Stripe kennt beides selbst) */
+  alterBetragCent: number;
+  zeitraumEnde: Date;
+  imTest: boolean;
+}
+export interface Vorschau {
+  /** Anteiliger Betrag für den Rest des laufenden Zeitraums (kann negativ sein = Gutschrift). */
+  anteiligCent: number;
+  /** Nächste Abbuchung inkl. Anteil: wann und wie viel. */
+  naechsteAbbuchungAm: Date;
+  naechsteAbbuchungCent: number;
+}
+
 export interface WebhookErgebnis {
   aboRef: string;
   neuerStatus: AboStatus;
   typ: string;
+  /**
+   * Nur bei endgültigem Ende (Stripe `customer.subscription.deleted`): wann
+   * das Abo tatsächlich endete. Der Webhook setzt damit
+   * `aktuellerZeitraumEnde`, damit ein sofort beendetes Abo (z. B. nach
+   * Nichtzahlung) nicht bis zum ursprünglichen Periodenende weiterläuft.
+   */
+  endetAm?: Date;
 }
 
 export interface ZahlungsGateway {
@@ -59,6 +82,19 @@ export interface ZahlungsGateway {
    * (Bug 2026-09-17: `POST /abo/reaktivieren` schrieb bisher hart `aktiv`).
    */
   subscriptionReaktivieren(ref: string): Promise<{ status: AboStatus }>;
+  /** Sofort beenden (nicht zum Periodenende) — nach 30 Tagen offener Zahlung. */
+  subscriptionSofortBeenden(ref: string): Promise<void>;
+  /**
+   * URL einer Stripe-Billing-Portal-Sitzung: Zahlungsmethode ändern, offene
+   * Rechnung bezahlen, Belege laden. Braucht im Stripe-Dashboard einmalig eine
+   * gespeicherte Portal-Konfiguration (Settings → Billing → Customer portal).
+   */
+  zahlungsportalUrl(ref: string, rueckkehrUrl: string): Promise<string>;
+  /**
+   * Was eine sofort wirksame Änderung (mehr Sitze/anderer Tarif) kostet —
+   * VOR dem Ausführen, für die Bestätigung in eltern-abo.html (2026-09-23).
+   */
+  aenderungVorschau(ref: string, input: VorschauInput): Promise<Vorschau>;
   webhookVerarbeiten(rohBody: string, signatur: string | undefined): WebhookErgebnis;
 }
 
@@ -81,6 +117,7 @@ const WEBHOOK_STATUS: Record<string, AboStatus> = {
   zahlung_fehlgeschlagen: 'zahlung_offen',
   abo_gekuendigt: 'gekuendigt',
   abo_pausiert: 'pausiert',
+  abo_beendet: 'gekuendigt',
 };
 
 /**
@@ -124,6 +161,29 @@ export class FakeZahlungsGateway implements ZahlungsGateway {
     return { status: 'aktiv' };
   }
 
+  async subscriptionSofortBeenden(): Promise<void> {
+    // no-op: bei Stripe `subscriptions.cancel`
+  }
+
+  async zahlungsportalUrl(_ref: string, rueckkehrUrl: string): Promise<string> {
+    return `${rueckkehrUrl}${rueckkehrUrl.includes('?') ? '&' : '?'}fake_portal=1`;
+  }
+
+  async aenderungVorschau(_ref: string, input: VorschauInput): Promise<Vorschau> {
+    // Näherung wie Stripe: Differenz × verbleibender Anteil des Zeitraums;
+    // in der Testphase wird nichts anteilig berechnet.
+    const tage = input.intervall === 'jaehrlich' ? 365 : 30;
+    const rest = Math.max(0, (input.zeitraumEnde.getTime() - Date.now()) / 86_400_000);
+    const anteiligCent = input.imTest
+      ? 0
+      : Math.round(((input.betragCent - input.alterBetragCent) * Math.min(rest, tage)) / tage);
+    return {
+      anteiligCent,
+      naechsteAbbuchungAm: input.zeitraumEnde,
+      naechsteAbbuchungCent: input.betragCent + anteiligCent,
+    };
+  }
+
   webhookVerarbeiten(rohBody: string): WebhookErgebnis {
     // Echte Signaturprüfung (HMAC über den Roh-Body) macht jetzt
     // `StripeZahlungsGateway.webhookVerarbeiten` — der Fake bleibt bewusst
@@ -138,7 +198,7 @@ export class FakeZahlungsGateway implements ZahlungsGateway {
     const aboRef = String(payload.aboRef ?? '');
     const neuerStatus = WEBHOOK_STATUS[typ];
     if (!aboRef || !neuerStatus) throw new HttpError(400, 'ereignis_unbekannt', { typ });
-    return { aboRef, neuerStatus, typ };
+    return { aboRef, neuerStatus, typ, ...(typ === 'abo_beendet' ? { endetAm: new Date() } : {}) };
   }
 }
 
@@ -162,7 +222,7 @@ const STRIPE_PRODUKT_NAME: Record<AboPaketKey, string> = {
 };
 
 /** Mappt Stripe-Webhook-Event-Typen auf unseren internen `AboStatus`. */
-const STRIPE_STATUS: Record<string, AboStatus> = {
+export const STRIPE_STATUS: Record<string, AboStatus> = {
   active: 'aktiv',
   trialing: 'test',
   canceled: 'gekuendigt',
@@ -170,6 +230,56 @@ const STRIPE_STATUS: Record<string, AboStatus> = {
   past_due: 'zahlung_offen',
   unpaid: 'zahlung_offen',
 };
+
+/**
+ * Stripe-Event → (Subscription-Ref, Stripe-Status, ggf. Ende). Reine Funktion,
+ * getrennt von der Signaturprüfung, damit sie ohne Webhook-Secret testbar ist.
+ */
+export function stripeEventAuswerten(event: Stripe.Event): {
+  aboRef: string | null;
+  statusQuelle: string | null;
+  endetAm?: Date;
+} {
+  switch (event.type) {
+    case 'customer.subscription.created':
+    case 'customer.subscription.updated': {
+      const sub = event.data.object as Stripe.Subscription;
+      // Kündigung zum Periodenende und Sommerpause lassen Stripes
+      // `sub.status` auf `active`/`trialing` stehen — nur die Flags zeigen
+      // sie. Ohne diese Prüfung setzte jeder `updated`-Webhook nach
+      // POST /abo/kuendigen bzw. /pausieren den Status wieder auf `aktiv`
+      // zurück (Bug gefunden 2026-09-23).
+      if (sub.status === 'active' || sub.status === 'trialing') {
+        if (sub.pause_collection) return { aboRef: sub.id, statusQuelle: 'paused' };
+        if (sub.cancel_at_period_end) return { aboRef: sub.id, statusQuelle: 'canceled' };
+      }
+      return { aboRef: sub.id, statusQuelle: sub.status };
+    }
+    case 'customer.subscription.deleted': {
+      const sub = event.data.object as Stripe.Subscription;
+      return {
+        aboRef: sub.id,
+        statusQuelle: 'canceled',
+        endetAm: new Date((sub.ended_at ?? event.created) * 1000),
+      };
+    }
+    case 'invoice.paid':
+    case 'invoice.payment_succeeded': {
+      const inv = event.data.object as Stripe.Invoice;
+      const subRef = inv.parent?.subscription_details?.subscription;
+      const ref = typeof subRef === 'string' ? subRef : (subRef?.id ?? null);
+      return { aboRef: ref, statusQuelle: 'active' };
+    }
+    case 'invoice.payment_failed': {
+      const inv = event.data.object as Stripe.Invoice;
+      const subRef = inv.parent?.subscription_details?.subscription;
+      const ref = typeof subRef === 'string' ? subRef : (subRef?.id ?? null);
+      return { aboRef: ref, statusQuelle: 'past_due' };
+    }
+    default:
+      return { aboRef: null, statusQuelle: null };
+  }
+}
 
 /**
  * Echtes Stripe-Adapter (Phase 16). Aktiv, sobald `STRIPE_SECRET_KEY` gesetzt
@@ -299,6 +409,49 @@ export class StripeZahlungsGateway implements ZahlungsGateway {
     return { status: STRIPE_STATUS[sub.status] ?? 'aktiv' };
   }
 
+  async subscriptionSofortBeenden(ref: string): Promise<void> {
+    await this.stripe.subscriptions.cancel(ref);
+  }
+
+  async aenderungVorschau(ref: string, input: VorschauInput): Promise<Vorschau> {
+    const sub = await this.stripe.subscriptions.retrieve(ref);
+    const item = ersteItem(sub);
+    const produkt =
+      typeof item.price.product === 'string' ? item.price.product : item.price.product.id;
+    const customer = typeof sub.customer === 'string' ? sub.customer : sub.customer.id;
+    const vorschau = await this.stripe.invoices.createPreview({
+      customer,
+      subscription: ref,
+      subscription_details: {
+        items: [
+          { id: item.id, price_data: this.preisDaten(produkt, input.intervall, input.betragCent) },
+        ],
+        proration_behavior: 'create_prorations',
+      },
+    });
+    // Laut Stripe-Doku: nur Zeilen mit `proration: true` sind der Anteil.
+    const anteiligCent = vorschau.lines.data
+      .filter((l) => l.parent?.subscription_item_details?.proration)
+      .reduce((summe, l) => summe + l.amount, 0);
+    const am = vorschau.next_payment_attempt ?? vorschau.period_end;
+    return {
+      anteiligCent,
+      naechsteAbbuchungAm: new Date(am * 1000),
+      naechsteAbbuchungCent: vorschau.amount_due,
+    };
+  }
+
+  async zahlungsportalUrl(ref: string, rueckkehrUrl: string): Promise<string> {
+    const sub = await this.stripe.subscriptions.retrieve(ref);
+    const customer = typeof sub.customer === 'string' ? sub.customer : sub.customer.id;
+    const sitzung = await this.stripe.billingPortal.sessions.create({
+      customer,
+      return_url: rueckkehrUrl,
+      locale: 'de',
+    });
+    return sitzung.url;
+  }
+
   webhookVerarbeiten(rohBody: string, signatur: string | undefined): WebhookErgebnis {
     if (!env.STRIPE_WEBHOOK_SECRET) throw new HttpError(500, 'webhook_secret_fehlt');
     if (!signatur) throw new HttpError(400, 'signatur_fehlt');
@@ -310,42 +463,12 @@ export class StripeZahlungsGateway implements ZahlungsGateway {
       throw new HttpError(400, 'signatur_ungueltig');
     }
 
-    const { aboRef, statusQuelle } = ((): {
-      aboRef: string | null;
-      statusQuelle: string | null;
-    } => {
-      switch (event.type) {
-        case 'customer.subscription.created':
-        case 'customer.subscription.updated': {
-          const sub = event.data.object as Stripe.Subscription;
-          return { aboRef: sub.id, statusQuelle: sub.status };
-        }
-        case 'customer.subscription.deleted': {
-          const sub = event.data.object as Stripe.Subscription;
-          return { aboRef: sub.id, statusQuelle: 'canceled' };
-        }
-        case 'invoice.paid':
-        case 'invoice.payment_succeeded': {
-          const inv = event.data.object as Stripe.Invoice;
-          const subRef = inv.parent?.subscription_details?.subscription;
-          const ref = typeof subRef === 'string' ? subRef : (subRef?.id ?? null);
-          return { aboRef: ref, statusQuelle: 'active' };
-        }
-        case 'invoice.payment_failed': {
-          const inv = event.data.object as Stripe.Invoice;
-          const subRef = inv.parent?.subscription_details?.subscription;
-          const ref = typeof subRef === 'string' ? subRef : (subRef?.id ?? null);
-          return { aboRef: ref, statusQuelle: 'past_due' };
-        }
-        default:
-          return { aboRef: null, statusQuelle: null };
-      }
-    })();
+    const { aboRef, statusQuelle, endetAm } = stripeEventAuswerten(event);
 
     const neuerStatus = statusQuelle ? STRIPE_STATUS[statusQuelle] : undefined;
     if (!aboRef || !neuerStatus)
       throw new HttpError(400, 'ereignis_unbekannt', { typ: event.type });
-    return { aboRef, neuerStatus, typ: event.type };
+    return { aboRef, neuerStatus, typ: event.type, ...(endetAm ? { endetAm } : {}) };
   }
 }
 

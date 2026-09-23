@@ -59,7 +59,10 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
   app.get('/me', { preHandler: app.requireAuth }, async (req, reply) => {
     const user = await prisma.user.findUnique({ where: { id: req.userId } });
     if (!user) return reply.code(401).send({ fehler: 'nicht_angemeldet' });
-    return { user: userDTO(user) };
+    // Abo-Zugriff mitliefern — auth-gate.js zeigt damit den Sperrbildschirm
+    // (gesperrt) bzw. das Hinweis-Banner (Zahlung offen), siehe lib/aboZugriff.ts.
+    const zugriff = await app.zugriffCache.stand(prisma, user.id);
+    return { user: userDTO(user), zugriff };
   });
 
   // ---- POST /auth/registrieren -------------------------------------------

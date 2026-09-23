@@ -20,3 +20,6 @@ dist/
 
 # Prototyp-Altlast
 *.bak
+
+# statischer Site-Build (scripts/build-site.sh)
+_site/

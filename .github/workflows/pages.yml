@@ -7,6 +7,7 @@ on:
       - 'marketing/**'
       - 'app/**'
       - '.github/workflows/pages.yml'
+      - 'scripts/build-site.sh'
   workflow_dispatch:
 
 permissions:
@@ -26,10 +27,7 @@ jobs:
 
       - name: Site zusammenstellen
         run: |
-          mkdir -p _site
-          cp -r marketing/. _site/
-          mkdir -p _site/app
-          cp -r app/. _site/app/
+          bash scripts/build-site.sh
           echo "www.lesify.de" > _site/CNAME
 
       - uses: actions/upload-pages-artifact@v3

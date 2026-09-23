@@ -4587,11 +4587,41 @@ Kritisch, weil Zielgruppe minderjährig ist.
 
 ## Phase 16 — Deployment & Go-Live
 
+- [~] **Hosting-Wechsel GitHub Pages → Cloudflare Pages (Entscheidung
+      2026-09-23)** — Gründe: GitHub-Pages-Nutzungsbedingungen verbieten den
+      Betrieb eines kommerziellen SaaS, und GitHub Pages kann keine
+      Security-Header setzen. Vorbereitet: `scripts/build-site.sh` (baut
+      `_site/`, von Cloudflare **und** vom bisherigen GitHub-Workflow genutzt),
+      `marketing/_headers` (HSTS, nosniff, X-Frame-Options, Referrer-/
+      Permissions-Policy, CSP zunächst **Report-Only**, `/app/*` noindex),
+      API-Erkennung akzeptiert `*.lesify.pages.dev` als Testdomain. **Von dir:**
+      Cloudflare-Konto → Pages → Repo verbinden (Build `bash
+      scripts/build-site.sh`, Output `_site`), bei Railway `CORS_ORIGINS` um
+      `https://lesify.pages.dev` ergänzen, testen, dann Custom Domain
+      `www.lesify.de` + `lesify.de` umziehen und GitHub Pages abschalten.
+      Nach ~1 Woche ohne CSP-Meldungen: CSP scharf schalten.
+- [ ] **SEO-Sichtbarkeit (2026-09-23 geprüft):** technisch sauber (200,
+      indexierbar, Canonical, 301 apex→www, robots.txt + Sitemap ok) — Google
+      kennt die Seite nur noch nicht. **Von dir:** Google Search Console
+      (Domain-Property per DNS-TXT) → Sitemap einreichen → URL-Prüfung
+      „Indexierung beantragen" für `/`, `/preise/`, `/ueber-uns/`; dasselbe in
+      Bing Webmaster Tools. Hosting-Wechsel ändert daran nichts.
+- [ ] **Google Fonts selbst hosten** (Empfehlung 2026-09-23): `marketing.css`
+      und `app/style.css` laden Outfit/Hanken Grotesk von fonts.googleapis.com
+      → IP-Übermittlung an Google ohne Einwilligung (LG München 2022,
+      Abmahnrisiko). Fonts als WOFF2 ins Repo, `@font-face` lokal.
 - [ ] **Domain + DNS + TLS** für App und Marketing (EU-Hosting bestätigt).
       (Teilfortschritt: GitHub-Pages-Hosting für `marketing/`+`app/` steht
       bereits, siehe Phase 0 „Interim-Hosting" — fehlt nur noch die
       Custom-Domain-DNS-Eintragung. `api/` braucht separates Hosting,
       GitHub Pages kann keinen Server ausliefern.)
+- [x] **Staging — Entscheidung 2026-09-23: erst nach dem Launch**, sobald
+      zahlende Nutzer da sind und etwas geändert werden muss. Bis dahin ist
+      Produktion die Testumgebung (Stripe Test-Modus, Migrationen vor dem Push
+      von Hand). Spätestens vor der ersten Änderung nach dem Soft-Launch
+      einrichten (Railway-Environment `staging` + Dev-Supabase + Cloudflare-
+      Preview-Deploys). Die Punkte „Staging-Vollprobe", „Seed-Parität",
+      „E2E gegen staging" laufen bis dahin gegen Produktion im Test-Modus.
 - [ ] **CI/CD vervollständigen:** Merge auf `main` → Deploy auf `staging`;
       manueller Promote `staging` → `production`. Migrationen laufen automatisch,
       rückrollbar.

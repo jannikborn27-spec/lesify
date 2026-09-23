@@ -1,0 +1,16 @@
+# Cloudflare Pages: HTTP-Header für lesify.de (wird von GitHub Pages ignoriert).
+# Entscheidung 2026-09-23 (Hosting-Wechsel, Sicherheitsreview docs/QS-CHECKLISTE.md §3).
+# CSP läuft zuerst als *Report-Only*: Verstöße erscheinen nur in der Browser-
+# Konsole, nichts wird blockiert. Nach einer Woche ohne Meldungen auf
+# `Content-Security-Policy` umstellen.
+/*
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(self "https://js.stripe.com")
+  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com https://cdnjs.cloudflare.com https://browser.sentry-cdn.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://lesify-production.up.railway.app https://api.stripe.com https://*.ingest.de.sentry.io https://*.supabase.co https://cdnjs.cloudflare.com; frame-src https://js.stripe.com https://hooks.stripe.com blob:; object-src 'self' blob: https://lesify-production.up.railway.app https://*.supabase.co; worker-src 'self' blob: https://cdnjs.cloudflare.com; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+
+# Eingeloggte App nie in Suchmaschinen (zusätzlich zum <meta robots> je Seite).
+/app/*
+  X-Robots-Tag: noindex, nofollow

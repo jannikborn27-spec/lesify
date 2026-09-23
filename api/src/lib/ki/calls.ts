@@ -544,15 +544,23 @@ ${aufgabenBlock}
 Hochgeladene Lösung:
 ${ctx.loesungsText}
 
-Vorgehen pro Aufgabe:
+Vorgehen pro Aufgabe — in genau dieser Reihenfolge, erst prüfen, dann
+bewerten:
 1. Ordne den passenden Abschnitt der hochgeladenen Lösung der Aufgabe zu.
    Fehlt eine Antwort komplett, werte sie als 0 % (nicht raten).
-2. Bewerte die Antwort fachlich korrekt anhand des bereitgestellten
-   Materials zu diesem Thema.
-3. Vergib eine Prozentzahl (0–100) für die Qualität der Antwort.
-4. Schreibe eine Erklärung: bei richtiger Antwort kurz bestätigen/loben.
-   Bei Fehlern IMMER herleiten, warum die Antwort falsch/unvollständig war
-   und wie man richtig hinkommt. 2–4 Sätze.
+2. Feld „pruefung": Rechne bzw. löse jede (Teil-)Aufgabe zuerst SELBST
+   korrekt. Vergleiche dann Teilaufgabe für Teilaufgabe mit der
+   Schülerlösung und notiere je Teilaufgabe „richtig", „teilweise" oder
+   „falsch" mit kurzer Begründung. Achte auf das Endergebnis UND den Weg
+   (z. B. Rabatt abziehen statt addieren). Eine mathematisch korrekte
+   Umformung ist richtig, auch wenn sie anders aussieht als erwartet.
+3. Feld „prozent" (0–100): leite die Zahl aus deiner Prüfung ab — Anteil
+   der richtigen Teilaufgaben, „teilweise" zählt halb. Alles richtig = 100,
+   ein falsches Endergebnis bei einer Aufgabe ohne Teilaufgaben höchstens 40.
+   Die Zahl muss zu „pruefung" und „erklaerung" passen.
+4. Feld „erklaerung" (für den Schüler): bei richtiger Antwort kurz
+   bestätigen/loben. Bei Fehlern IMMER herleiten, warum die Antwort
+   falsch/unvollständig war und wie man richtig hinkommt. 2–4 Sätze.
 
 Wichtig: Gib für jede Aufgabe nur die Prozentzahl zurück, nicht die daraus
 abgeleitete Schulnote oder Ampel-Stufe — die werden vom Backend nach fester
@@ -576,12 +584,21 @@ Antworte ausschließlich über das bereitgestellte Tool.`;
             type: 'array',
             items: {
               type: 'object',
+              // Reihenfolge ist Absicht: erst prüfen, dann die Zahl — mit
+              // `prozent` vor der Begründung vergab das Modell live 100 % für
+              // eine Lösung, die seine eigene Erklärung als falsch einstufte
+              // (2026-09-23).
               properties: {
                 themaId: { type: 'string' },
+                pruefung: {
+                  type: 'string',
+                  description:
+                    'Interne Prüfung vor der Bewertung: eigene korrekte Lösung je Teilaufgabe, dann Vergleich mit der Schülerlösung — je Teilaufgabe richtig/teilweise/falsch mit Begründung',
+                },
                 prozent: { type: 'integer', minimum: 0, maximum: 100 },
                 erklaerung: { type: 'string' },
               },
-              required: ['themaId', 'prozent', 'erklaerung'],
+              required: ['themaId', 'pruefung', 'prozent', 'erklaerung'],
             },
           },
         },
@@ -589,7 +606,7 @@ Antworte ausschließlich über das bereitgestellte Tool.`;
       },
     },
     model: MODELL_ANALYSE,
-    maxTokens: ctx.aufgaben.length * 400 + 400,
+    maxTokens: ctx.aufgaben.length * 1000 + 400,
     temperature: 0.25,
     fakeKontext: { themaIds: ctx.aufgaben.map((a) => a.themaId) },
   });

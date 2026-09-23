@@ -783,7 +783,12 @@ läuft nirgends ein echter Call, mit Key nutzt `AnthropicKiClient` das
   zugeordnet, ohne Call-Sites anzufassen. **Seit 2026-09-23 dritte Klasse
   `env.KI_MODELL_ANALYSE` (Default `claude-sonnet-5`) nur für Call 11
   (Testklausur-Analyse)** — Bewertung/Noten, darum stärkeres Modell (~1,4 ct
-  statt ~0,5 ct je Analyse). `modellParameter()` in `client.ts` kapselt die
+  statt ~0,5 ct je Analyse). **Tool-Schema der Analyse: `pruefung` vor
+  `prozent`** (erst eigene Lösung + Vergleich je Teilaufgabe, dann die Zahl
+  nach fester Regel „Anteil richtiger Teilaufgaben, teilweise = halb") —
+  mit der alten Reihenfolge `prozent → erklaerung` vergab das Modell live
+  100 % für eine Lösung, die es selbst als falsch erklärte. `pruefung` wird
+  nicht gespeichert (nur Reasoning-Feld). `modellParameter()` in `client.ts` kapselt die
   Modell-Unterschiede: Haiku 4.5 bekommt `temperature`, neuere Modelle
   (Sonnet 5 …) lehnen `temperature` ab und denken ohne Angabe adaptiv —
   dort wird `thinking: {type: 'disabled'}` gesetzt (verträgt sich sonst

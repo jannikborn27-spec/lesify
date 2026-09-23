@@ -3363,6 +3363,17 @@ Preise/Modellwahl-Prinzipien: `00-overview.md` §7.
       entfernt `ANTHROPIC_API_KEY`/`KI_DEV_ADAPTER` jetzt vor den Tests, damit
       `pnpm test` auch mit Key in `api/.env` nie echte (kostenpflichtige)
       Calls macht._
+- [x] **Testklausur-Analyse bewertete falsch — behoben** (2026-09-23) — _Echter
+      End-to-End-Test (Bild-Upload → Testklausur 1 → Lösungsfoto →
+      Transkription → Analyse → Testklausur 2 → Lernplan-Lernzettel): die
+      Foto-Transkription war fehlerfrei, aber Sonnet gab **100 % für eine
+      falsche Prozent-Lösung** (eigene Erklärung sagte „falsch") und 65 % für
+      komplett richtige Bruchrechnung → Testklausur 2 übte das falsche Thema.
+      Ursache: Schema/Prompt verlangten `prozent` **vor** der Begründung, ohne
+      Thinking. Jetzt Pflichtfeld `pruefung` davor (erst selbst lösen, dann je
+      Teilaufgabe vergleichen) + feste Punkteregel (Anteil richtiger
+      Teilaufgaben, „teilweise" halb). Nachtest 3/3 korrekt (Bruch 100 %,
+      Prozent 40 %), ~1,1 ct/Analyse._
 - [x] **Chat-Antworten streamen** (2026-09-23) — _`POST /chats/:id/nachrichten`
       mit `Accept: text/event-stream` antwortet als Server-Sent Events
       (`lib/sse.ts`: `delta`-Events, am Ende `fertig` mit derselben JSON wie

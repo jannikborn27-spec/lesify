@@ -53,6 +53,9 @@ const schema = z.object({
   // /passwort-zuruecksetzen/) — für die Links in den E-Mails. Lokal Default
   // auf den `pnpm dev`-Port von marketing/ (siehe README).
   MARKETING_URL: z.string().default('http://localhost:4002'),
+  // Empfänger für das Kontaktformular (POST /kontakt, Entscheidung 2026-09-23).
+  // Versand über Resend, Reply-To = Absender:in des Formulars.
+  KONTAKT_EMPFAENGER: z.string().default('kontakt@lesify.de'),
   // CORS (§4/Phase 11): Marketing/App laufen auf anderem Origin als die API
   // (lokal andere Ports, produktiv andere Domain — siehe Phase 16). Kommagetrennte
   // Liste erlaubter Origins, z. B. "https://lesify.de,https://www.lesify.de".

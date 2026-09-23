@@ -155,3 +155,22 @@ export function kindEinladungMail(input: {
     ],
   });
 }
+
+/** Kontaktformular → Support-Postfach. Schlicht (interne Mail), Reply-To setzt der Mailer. */
+export function kontaktMail(input: {
+  name: string;
+  email: string;
+  thema: string;
+  nachricht: string;
+}): FertigeMail {
+  const zeilen = escapeHtml(input.nachricht).replace(/\n/g, '<br>');
+  const html = `<!doctype html><html lang="de"><head><meta charset="utf-8"></head>
+<body style="font-family:${FONT};font-size:15px;line-height:1.6;color:#172128;">
+<p style="margin:0 0 4px;"><b>Von:</b> ${escapeHtml(input.name)} &lt;${escapeHtml(input.email)}&gt;</p>
+<p style="margin:0 0 16px;"><b>Thema:</b> ${escapeHtml(input.thema)}</p>
+<div style="padding:16px;border:1px solid #e2e7ea;border-radius:10px;background:#f8fafb;">${zeilen}</div>
+<p style="margin:16px 0 0;font-size:12px;color:#6e8494;">Über das Kontaktformular auf lesify.de — „Antworten" geht direkt an die Absender:in.</p>
+</body></html>`;
+  const text = `Von: ${input.name} <${input.email}>\nThema: ${input.thema}\n\n${input.nachricht}`;
+  return { subject: `[Kontakt] ${input.thema} — ${input.name}`, html, text };
+}

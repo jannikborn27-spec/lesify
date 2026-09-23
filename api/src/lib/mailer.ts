@@ -1,9 +1,15 @@
 import { Resend } from 'resend';
 import { env, istProd } from '../env.js';
-import { emailBestaetigungMail, kindEinladungMail, passwortResetMail } from './mailTemplates.js';
+import {
+  emailBestaetigungMail,
+  kindEinladungMail,
+  kontaktMail,
+  passwortResetMail,
+} from './mailTemplates.js';
 
 /**
  * E-Mail-Versand (Phase 10, §5): Double-Opt-in- und Passwort-Reset-Mails.
+ * Dazu das Kontaktformular (`POST /kontakt` → `KONTAKT_EMPFAENGER`).
  * Zahlungs-/Abo-/Beleg-Mails bleiben bei Stripe (siehe backend-planning.md §0).
  *
  * Ohne `RESEND_API_KEY` läuft ein deterministisches `FakeMailGateway` (loggt
@@ -19,6 +25,14 @@ export interface MailGateway {
     elternName: string;
     token: string;
   }): Promise<void>;
+  kontaktSenden(input: KontaktNachricht): Promise<void>;
+}
+
+export interface KontaktNachricht {
+  name: string;
+  email: string;
+  thema: string;
+  nachricht: string;
 }
 
 function bestaetigungsLink(token: string): string {
@@ -58,6 +72,17 @@ export class FakeMailGateway implements MailGateway {
   }): Promise<void> {
     console.log(
       JSON.stringify({ mailFake: 'kind_einladung', an: input.an, link: resetLink(input.token) }),
+    );
+  }
+
+  async kontaktSenden(input: KontaktNachricht): Promise<void> {
+    console.log(
+      JSON.stringify({
+        mailFake: 'kontakt',
+        an: env.KONTAKT_EMPFAENGER,
+        replyTo: input.email,
+        thema: input.thema,
+      }),
     );
   }
 }
@@ -108,6 +133,17 @@ export class ResendMailGateway implements MailGateway {
       ...mail,
     });
     if (error) throw new Error(`Resend-Versand fehlgeschlagen (kind_einladung): ${error.message}`);
+  }
+
+  async kontaktSenden(input: KontaktNachricht): Promise<void> {
+    const mail = kontaktMail(input);
+    const { error } = await this.resend.emails.send({
+      from: env.EMAIL_ABSENDER,
+      to: env.KONTAKT_EMPFAENGER,
+      replyTo: input.email,
+      ...mail,
+    });
+    if (error) throw new Error(`Resend-Versand fehlgeschlagen (kontakt): ${error.message}`);
   }
 }
 

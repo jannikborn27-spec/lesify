@@ -12,3 +12,7 @@ process.env.NODE_ENV ??= 'test';
 // lädt beim Import selbst api/.env nach und würde einen gelöschten Key wieder
 // setzen — vorhandene (auch leere) Variablen überschreibt er nicht.
 process.env.ANTHROPIC_API_KEY = '';
+
+// Gleiches Prinzip für Resend: sonst verschickt jeder `pnpm test` echte Mails
+// (Registrierungs-Bestätigungen, Kontaktformular an kontakt@lesify.de).
+process.env.RESEND_API_KEY = '';

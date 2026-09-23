@@ -1199,7 +1199,7 @@ Stripe-Calls auslösen.
 ### Kontakt
 | Methode | Pfad | Zweck |
 |---|---|---|
-| POST | `/kontakt` | `{name, email, thema, nachricht}` → Ticket/Weiterleitung an Support-Postfach, Spam-Schutz serverseitig, kein Login nötig. **Ungenutzt seit 2026-09-22:** die Marketing-Seite `marketing/kontakt/`, die dieses Formular bediente, wurde entfernt (alle „Kontakt"-CTAs verweisen jetzt auf `mailto:hallo@lesify.de`) — Endpunkt, Rate-Limit (§7) und Mail-Template (`mailTemplates.ts`) bleiben im Code, sind aber nicht mehr verlinkt. |
+| POST | `/kontakt` | `{name, email, thema, nachricht}` → Ticket/Weiterleitung an Support-Postfach, Spam-Schutz serverseitig, kein Login nötig. **Ungenutzt seit 2026-09-22:** die Marketing-Seite `marketing/kontakt/`, die dieses Formular bediente, wurde entfernt (alle „Kontakt"-CTAs verweisen jetzt auf `mailto:hallo@lesify.de`) — Endpunkt, Rate-Limit (§7) und Mail-Template (`mailTemplates.ts`) bleiben im Code, sind aber nicht mehr verlinkt. **Zustellung seit 2026-09-23:** Resend an `KONTAKT_EMPFAENGER` (Default `kontakt@lesify.de`), Reply-To = Absender:in; Versandfehler → `503 kontakt_versand_fehlgeschlagen` (kein zweiter Weg zur Nachricht). Ob die Formular-Seite zurückkommt, ist offen. |
 
 ---
 
@@ -1597,7 +1597,7 @@ fehlgeschlagene Logins/Upload-Flooding weiterhin offen (§8).
       Login-Anbindung der Marketing-Seite ist seit 2026-09-12 erledigt (§11).
 - [ ] **Eltern-/Minderjährigen-Einwilligung**: Ablauf/Erneuerung der Einwilligung bei der Schüler:in-Rolle (das Eltern-Kind-Modell selbst ist entschieden, siehe oben).
 - [x] **Familien-Paket-Mechanik (produktiv)**: Sitz nachträglich hinzufügen/entfernen mit echter Proration/Downgrade zum Zeitraumende. `PATCH /abo` + `geplanteSitze` + Job `abo-geplante-aenderungen`, echtes Stripe-Adapter steht — der Job senkt seit 2026-09-18 auch wirklich den Stripe-Preis (vorher nur lokale DB, siehe Bug-Notiz bei `PATCH /abo` oben). **Weiterhin offen, keine Code-Aufgabe:** kein Bestätigungsschritt in der UI vor einer Sitz-/Tarif-Erhöhung — die greift sofort und erzeugt bei einem bereits aktiv abrechnenden (nicht mehr in der Testphase befindlichen) Abo eine echte, sofort fällige Proration-Buchung bei Stripe, ohne dass die Eltern vorher einen Betrag sehen oder bestätigen (live verifiziert: Tarifwechsel auf einem aktiven Test-Abo erzeugte sofort zwei `invoiceItems`, „Unused time" + „Remaining time", die in die nächste Rechnung einfließen). Während der 14-Tage-Testphase löst dieselbe Aktion dagegen nachweislich **keine** Belastung aus — Stripe verschiebt nur den künftigen Rechnungsbetrag, ohne eine Proration-Buchung anzulegen.
-- [ ] **Kontaktformular** (`marketing/kontakt.html`): Zielsystem (Support-Postfach/Ticketsystem). Spam-Schutz = IP-Rate-Limit + Honeypot-Feld (kein Captcha), Feinheiten offen.
+- [x] **Kontaktformular — Zielsystem** (2026-09-23): Resend → `kontakt@lesify.de` (`KONTAKT_EMPFAENGER`), Reply-To = Absender:in. Spam-Schutz = IP-Rate-Limit + Honeypot-Feld (kein Captcha). Offen: ob `marketing/kontakt/` (am 2026-09-22 entfernt) zurückkommt oder es bei `mailto:` bleibt.
 - [ ] **Klausur-Erinnerung + Wöchentliche Zusammenfassung**: Toggles in `einstellungen.html` bleiben wirkungslos — eigener Mail-Versand dafür ist bewusst zurückgestellt (siehe „Entschieden am 2026-09-17").
 - [ ] **Auth-Fehlversuche**: temporärer Account-Lockout nach X Fehlversuchen vs. nur IP-Drosselung (Default aktuell: Drosselung + exponentieller Backoff, kein harter Lockout).
 

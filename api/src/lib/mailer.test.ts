@@ -29,4 +29,16 @@ describe('FakeMailGateway (loggt statt zu versenden, ohne RESEND_API_KEY)', () =
     expect(geloggt.an).toBe('a@b.de');
     expect(geloggt.link).toContain('/passwort-zuruecksetzen/?token=reset456');
   });
+
+  it('kontaktSenden loggt Empfänger (KONTAKT_EMPFAENGER) und Reply-To', async () => {
+    const spy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const mail: MailGateway = new FakeMailGateway();
+    await mail.kontaktSenden({ name: 'Alex', email: 'a@b.de', thema: 'Frage', nachricht: 'Hallo' });
+
+    expect(spy).toHaveBeenCalledTimes(1);
+    const geloggt = JSON.parse(spy.mock.calls[0]![0] as string);
+    expect(geloggt.mailFake).toBe('kontakt');
+    expect(geloggt.an).toBe('kontakt@lesify.de');
+    expect(geloggt.replyTo).toBe('a@b.de');
+  });
 });

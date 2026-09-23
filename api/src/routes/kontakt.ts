@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import { HttpError } from '../lib/http.js';
 import { parse } from '../lib/validate.js';
 
 const body = z.object({
@@ -14,7 +15,8 @@ const body = z.object({
 
 export async function kontaktRoutes(app: FastifyInstance): Promise<void> {
   // POST /kontakt — kein Login nötig. IP-Rate-Limit läuft global (§7, Phase 15,
-  // Klasse „kontakt"). Zielsystem (Support-Postfach/Ticket) offen (Phase 0/§8).
+  // Klasse „kontakt"). Zustellung per Resend an KONTAKT_EMPFAENGER
+  // (kontakt@lesify.de, Entscheidung 2026-09-23), Reply-To = Absender:in.
   app.post('/kontakt', async (req, reply) => {
     const data = parse(body, req.body);
 
@@ -27,7 +29,14 @@ export async function kontaktRoutes(app: FastifyInstance): Promise<void> {
       { kontakt: { name: data.name, email: data.email, thema: data.thema } },
       'kontaktformular',
     );
-    // TODO(Phase 0/§8): an Support-Postfach / Ticketsystem weiterreichen.
+    // Anders als bei Registrierung/Reset: hier gibt es keinen zweiten Weg zur
+    // Nachricht — schlägt der Versand fehl, muss die Person das erfahren.
+    try {
+      await app.mail.kontaktSenden(data);
+    } catch (err) {
+      req.log.error({ err }, 'kontakt_versand_fehlgeschlagen');
+      throw new HttpError(503, 'kontakt_versand_fehlgeschlagen');
+    }
     return reply.send({ ok: true });
   });
 }

@@ -249,16 +249,19 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       markieren" statt „kündigen" (sonst endet das Abo vor unserer
       30-Tage-Frist), Retries über ~3 Wochen, (3) E-Mails bei fehlgeschlagener
       Zahlung an.
-- [ ] **Trial-Missbrauch sperren (Entscheidung 2026-09-23: übers
-      Zahlungsmittel) — Details offen, noch nicht gebaut.** Technisch: Karte
-      zuverlässig (Stripe `card.fingerprint`), PayPal zuverlässig (PayPal-
-      Payer-ID), Apple/Google Pay nur teilweise (Wallet-Token ≠ Kartennummer),
-      Klarna/Amazon Pay gar nicht (keine stabile Kennung). Zu klären: (a) was
-      passiert bei erkanntem Zahlungsmittel — Kasse lehnt ab (Prüfung vor dem
-      Abo-Anlegen, Umbau `checkout.js`) oder Abo startet sofort kostenpflichtig
-      (Hinweis vor dem Bestell-Button Pflicht); (b) Klarna/Amazon Pay in der
-      Testphase weiter anbieten? Ergänzend geplant: dasselbe Lesify-Konto
-      bekommt nie eine zweite Testphase (Kasse muss das vorher anzeigen).
+- [x] **Trial-Missbrauch gesperrt (Entscheidung 2026-09-23: „refuse")** —
+      Testphase einmal je Zahlungsmittel. Nach dem Hinterlegen prüft `POST
+      /abo/testphase-pruefen` (Kasse bzw. `checkout-erfolg/` nach PayPal-
+      Redirect, Webhook als Sicherheitsnetz) die Kennung (Karte: Stripe-
+      Fingerprint, PayPal: Payer-ID, als SHA-256 in `TrialZahlungsmittel`).
+      Bekannt → Subscription sofort beendet (nichts abgebucht), Kasse zeigt die
+      Ablehnung + „Ohne Testphase abschließen" (`?ohne_testphase=1`, `POST /abo
+      {ohneTestphase:true}`, Button „Zahlungspflichtig abschließen"). Hinweis
+      in Kasse + AGB §4, Datenschutzerklärung ergänzt. Migration
+      `20260923140000_trial_zahlungsmittel`. **Grenzen:** Apple/Google Pay nur
+      teilweise erkennbar, Klarna/Amazon Pay gar nicht (Testphase bleibt dort
+      möglich). **Mit echtem Stripe (Test-Modus) einmal durchspielen:** Karte
+      4242… zweimal mit zwei Konten → zweites Mal Ablehnung.
 - [ ] **Offen, besprechen: Kinder ohne E-Mail einloggen** (Wunsch 2026-09-23):
       Eltern legen Kind-Profile an, das Kind soll sich **ohne eigene
       E-Mail-Adresse** anmelden können; Einladung per E-Mail bleibt möglich,

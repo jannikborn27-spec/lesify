@@ -5,6 +5,7 @@ import { parse } from '../lib/validate.js';
 import { oder404 } from '../lib/scope.js';
 import { HttpError } from '../lib/http.js';
 import { aboDTO } from '../lib/abo.js';
+import { testphasePruefen } from '../lib/testphase.js';
 import { inTagen, neuesToken } from '../lib/tokens.js';
 import { env, istProd } from '../env.js';
 
@@ -22,6 +23,9 @@ const anlegenBody = z.object({
   // Nur fürs Zahlungsanbieter-Kundenkonto (Stripe Customer.email für Rechnungen) —
   // Login läuft über den Account, der beim Registrieren schon existiert.
   email: z.string().trim().toLowerCase().email().max(320).optional(),
+  // Sofort kostenpflichtig, ohne 14-Tage-Testphase (nach einer Ablehnung
+  // „Zahlungsmittel hatte schon eine Testphase", 2026-09-23).
+  ohneTestphase: z.boolean().optional(),
 });
 
 const aendernBody = z
@@ -60,6 +64,12 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
       !['zahlung_offen', 'test'].includes(abo.status)
     ) {
       return { ok: true, unveraendert: true };
+    }
+    // Sicherheitsnetz zur Kasse: Testphase mit bereits genutztem Zahlungsmittel
+    // beenden, falls die Kasse `POST /abo/testphase-pruefen` nie aufgerufen hat.
+    if (abo.status === 'test' && erg.typ.startsWith('customer.subscription.')) {
+      const p = await testphasePruefen(prisma, zahlung, abo);
+      if (p.ergebnis === 'abgelehnt') return { ok: true, testphaseAbgelehnt: true };
     }
     if (abo.status === erg.neuerStatus && !erg.endetAm) return { ok: true, unveraendert: true };
     const offen = erg.neuerStatus === 'zahlung_offen';
@@ -129,6 +139,7 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
         sitze,
         intervall: body.intervall,
         betragCent: preis.betragCent,
+        ohneTestphase: body.ohneTestphase === true,
       });
 
       const abo = await prisma.abo.create({
@@ -261,6 +272,17 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
         };
       },
     );
+
+    // POST /abo/testphase-pruefen — direkt nach dem Hinterlegen des
+    // Zahlungsmittels (Kasse bzw. checkout-erfolg/ nach PayPal-Redirect).
+    // `409 testphase_bereits_genutzt` → Abo ist schon wieder entfernt,
+    // die Kasse bietet den Abschluss ohne Testphase an.
+    authed.post('/abo/testphase-pruefen', async (req) => {
+      const abo = oder404(await eigenesAbo(req.userId));
+      const p = await testphasePruefen(prisma, zahlung, abo);
+      if (p.ergebnis === 'abgelehnt') throw new HttpError(409, 'testphase_bereits_genutzt');
+      return { ok: true, geprueft: p.ergebnis === 'ok' };
+    });
 
     // PATCH /abo — Tarif-/Intervall-/Sitzwechsel (Proration beim Anbieter)
     authed.patch('/abo', async (req) => {

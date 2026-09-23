@@ -614,3 +614,51 @@ describe.runIf(hatDb)('abo — Kind-Zugriff je Abo-Status (Supabase, 2026-09-23)
     );
   });
 });
+
+describe.runIf(hatDb)('abo — Testphase einmal je Zahlungsmittel (Supabase, 2026-09-23)', () => {
+  const zahlung = new FakeZahlungsGateway();
+  const app = buildApp({ logger: false, zahlung });
+  const karte = `card:fp_${crypto.randomUUID()}`;
+  const abschluss = (token: string, extra: Record<string, unknown> = {}) =>
+    app.inject({
+      method: 'POST',
+      url: '/abo',
+      headers: { authorization: `Bearer ${token}` },
+      payload: { paket: 'premium', intervall: 'monatlich', ...extra },
+    });
+  const pruefen = (token: string) =>
+    app.inject({
+      method: 'POST',
+      url: '/abo/testphase-pruefen',
+      headers: { authorization: `Bearer ${token}` },
+    });
+
+  it('erste Testphase mit einer Karte geht durch, zweite mit derselben Karte wird abgelehnt', async () => {
+    await app.ready();
+    const a = await registriereUndLogin(app, `trialA+${crypto.randomUUID()}@abo.lesify.test`);
+    const refA = (await abschluss(a)).json().subscriptionId;
+    zahlung.kennungen.set(refA, karte);
+    expect((await pruefen(a)).json()).toEqual({ ok: true, geprueft: true });
+    // erneutes Prüfen desselben Abos bleibt ok (idempotent)
+    expect((await pruefen(a)).statusCode).toBe(200);
+
+    const b = await registriereUndLogin(app, `trialB+${crypto.randomUUID()}@abo.lesify.test`);
+    const refB = (await abschluss(b)).json().subscriptionId;
+    zahlung.kennungen.set(refB, karte);
+    const abgelehnt = await pruefen(b);
+    expect(abgelehnt.statusCode).toBe(409);
+    expect(abgelehnt.json().fehler).toBe('testphase_bereits_genutzt');
+    // Abo ist entfernt → Konto kann neu abschließen, dann ohne Testphase
+    const bAuth = { authorization: `Bearer ${b}` };
+    expect((await app.inject({ method: 'GET', url: '/abo', headers: bAuth })).statusCode).toBe(404);
+    const ohne = await abschluss(b, { ohneTestphase: true });
+    expect(ohne.statusCode).toBe(201);
+    expect(ohne.json()).toMatchObject({ status: 'aktiv', trialEndetAm: null });
+  });
+
+  it('Zahlungsart ohne Kennung (Klarna/Amazon Pay) → nicht prüfbar, Testphase bleibt', async () => {
+    const c = await registriereUndLogin(app, `trialC+${crypto.randomUUID()}@abo.lesify.test`);
+    await abschluss(c);
+    expect((await pruefen(c)).json()).toEqual({ ok: true, geprueft: false });
+  });
+});

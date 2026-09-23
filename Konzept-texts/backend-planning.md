@@ -191,6 +191,13 @@ automatischer Abbuchung danach** (Stripe), jederzeit kündbar.
 | loeschWarnungAm | timestamp (nullable) | **2026-09-23.** Warn-Mail an die Eltern (7 Tage vor Fristende) verschickt |
 | erstelltAm | timestamp | |
 
+### TrialZahlungsmittel (neu 2026-09-23)
+Zahlungsmittel, mit denen schon eine Testphase lief. `kennungHash` (PK,
+SHA-256 von `card:<fingerprint>`/`paypal:<payerId>`), `aboId`, `erstelltAm`.
+Bewusst **ohne FK** und ohne Löschung bei Konto-Löschung (sonst per
+Konto-Löschen umgehbar) — in der Datenschutzerklärung als Hashwert zur
+Missbrauchsverhinderung (Art. 6 Abs. 1 lit. f) benannt.
+
 **Zugriff je Status (Entscheidung 2026-09-23, `api/src/lib/aboZugriff.ts`)** —
 gilt nur für Kind-Profile (`rolle = schueler`), **Elternkonten werden nie
 gesperrt** und sehen den Zustand im Eltern-Bereich (Banner + `eltern-abo.html`):
@@ -1075,9 +1082,10 @@ Query-Parameter, die `chat.html`/`thema.html` aus dem client-seitigen
 | Methode | Pfad | Zweck |
 |---|---|---|
 | GET | `/abo` | Aktueller `paket`, `art`, `sitze`, `intervall`, `status`, `angebot`, `trialEndetAm`, `aktuellerZeitraumEnde` + abgeleitete Monatskontingente je Sitz |
-| POST | `/abo` | `{paket, intervall, sitze?}` → Checkout-Abschluss bei der Registrierung (Tarif + Intervall wählen, Zahlungsart hinterlegen). `paket` ∈ `starter\|premium\|infinite`; `sitze` 1 (Einzel) oder 2–4 (Familie); `intervall` ∈ `monatlich\|jaehrlich`. Legt bei Stripe Customer + Subscription mit **`trial_period_days: 14`** an (`Abo.status = test`), fixiert das aktive `angebot`. Nach 14 Tagen bucht Stripe automatisch ab → `status = aktiv`. **MwSt. nicht ausweisen** (Kleinunternehmer, nicht auf der Website nennen) |
+| POST | `/abo` | `{paket, intervall, sitze?, ohneTestphase?}` (`ohneTestphase` seit 2026-09-23: sofort kostenpflichtig, Stripe ohne `trial_period_days`, Frontend bestätigt einen PaymentIntent; Stripe-Status `incomplete` → `zahlung_offen` bis zur ersten Zahlung) → Checkout-Abschluss bei der Registrierung (Tarif + Intervall wählen, Zahlungsart hinterlegen). `paket` ∈ `starter\|premium\|infinite`; `sitze` 1 (Einzel) oder 2–4 (Familie); `intervall` ∈ `monatlich\|jaehrlich`. Legt bei Stripe Customer + Subscription mit **`trial_period_days: 14`** an (`Abo.status = test`), fixiert das aktive `angebot`. Nach 14 Tagen bucht Stripe automatisch ab → `status = aktiv`. **MwSt. nicht ausweisen** (Kleinunternehmer, nicht auf der Website nennen) |
 | GET | `/abo/vorschau` | **Neu 2026-09-23.** `?sitze=&paket=&intervall=` → was eine Änderung kostet, **bevor** sie ausgeführt wird: `{wirksam: 'sofort'\|'periodenende', wirksamAm, imTest, sitze:{vorher,nachher}, aktuell:{betragCent,intervall}, neu:{betragCent,intervall}, anteiligCent, naechsteAbbuchung:{am,betragCent}}`. Sofortige Änderungen über Stripe `invoices.createPreview` (Proration-Zeilen), reine Sitzverringerung ohne Anbieter-Call. `eltern-abo.html` zeigt das vor jeder Sitzänderung als Bestätigung („Zahlungspflichtig hinzufügen", § 312j BGB) |
 | PATCH | `/abo` | `{paket?, intervall?, sitze?}` → Tarif-/Intervall-/Sitzwechsel (Up-/Downgrade, Proration). Sitzverringerung erst zum `aktuellerZeitraumEnde`. Zielzustand-Berechnung mit `/abo/vorschau` geteilt (`zielZustand`) |
+| POST | `/abo/testphase-pruefen` | **Neu 2026-09-23 (Testphase einmal je Zahlungsmittel).** Direkt nach dem Hinterlegen des Zahlungsmittels (Kasse nach `confirmSetup` mit `redirect: 'if_required'`; nach Redirect-Zahlungsarten `checkout-erfolg/`). Kennung `card:<fingerprint>` / `paypal:<payerId>` → SHA-256 in `TrialZahlungsmittel`. Schon für ein anderes Abo genutzt → Stripe-Subscription sofort beenden (nichts abgebucht), Abo-Zeile löschen, `409 testphase_bereits_genutzt`; Kasse bietet `?ohne_testphase=1` an. Klarna/Amazon Pay haben keine Kennung → `{geprueft:false}`, Testphase bleibt. Zusätzlich als Sicherheitsnetz im Webhook (`customer.subscription.*` bei `status = test`) |
 | POST | `/abo/zahlungsportal` | **Neu 2026-09-23.** → `{url}` einer Stripe-Billing-Portal-Sitzung (Zahlungsmethode ändern, offene Rechnung zahlen, Belege), Rückkehr auf `eltern-abo.html`. Braucht einmalig eine gespeicherte Portal-Konfiguration im Stripe-Dashboard |
 | POST | `/abo/kuendigen` | Kündigung zum `aktuellerZeitraumEnde`, kein sofortiger Zugriffsverlust |
 | POST | `/abo/pausieren` | Sommerpause (Status `pausiert`), Inhalte bleiben erhalten, **Kind-Profile gesperrt** (seit 2026-09-23, siehe „Zugriff je Status" §1) |

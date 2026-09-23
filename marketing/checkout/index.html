@@ -37,7 +37,7 @@
       <ul class="co-feats" id="co-feats"></ul>
 
       <div class="co-total">
-        <span>Nach der Testphase fällig</span>
+        <span id="co-total-label">Nach der Testphase fällig</span>
         <b id="co-total">19,99 €</b>
       </div>
 
@@ -61,7 +61,7 @@
     <div class="checkout__form-inner">
       <a class="auth-card__back" href="/preise/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg> Zurück zu den Preisen</a>
       <h2>Zahlung</h2>
-      <p class="checkout__sub">Deine 14 Tage Testphase starten sofort, danach wird abgebucht. Kündigen kannst du in den Kontoeinstellungen.</p>
+      <p class="checkout__sub" id="co-sub">Deine 14 Tage Testphase starten sofort, danach wird abgebucht. Kündigen kannst du in den Kontoeinstellungen. Die Testphase gibt es einmal pro Konto und Zahlungsmittel.</p>
 
       <form id="payment-form" novalidate>
         <div class="field">
@@ -82,7 +82,7 @@
         <div class="co-message" id="payment-message" role="alert"></div>
 
         <button class="btn btn-primary btn-block btn-lg" id="submit" type="submit">
-          <span class="co-btn-label">Kostenlos testen &middot; danach <span id="btn-amount">19,99 €</span></span>
+          <span class="co-btn-label"><span id="btn-prefix">Kostenlos testen &middot; danach</span> <span id="btn-amount">19,99 €</span></span>
           <span class="co-spinner" aria-hidden="true"></span>
         </button>
 

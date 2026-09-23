@@ -18,6 +18,11 @@ export interface SubAnlegenInput {
   sitze: number;
   intervall: AboIntervallKey;
   betragCent: number;
+  /**
+   * Ohne 14-Tage-Testphase, sofort kostenpflichtig — für alle, deren
+   * Zahlungsmittel schon eine Testphase hatte (2026-09-23).
+   */
+  ohneTestphase?: boolean;
 }
 
 export interface SubZustand {
@@ -85,6 +90,12 @@ export interface ZahlungsGateway {
   /** Sofort beenden (nicht zum Periodenende) — nach 30 Tagen offener Zahlung. */
   subscriptionSofortBeenden(ref: string): Promise<void>;
   /**
+   * Stabile Kennung des hinterlegten Zahlungsmittels (`card:<fingerprint>`,
+   * `paypal:<payerId>`), `null` wenn (noch) keins hinterlegt ist oder die
+   * Zahlungsart keine stabile Kennung hat (Klarna, Amazon Pay).
+   */
+  zahlungsmittelKennung(ref: string): Promise<string | null>;
+  /**
    * URL einer Stripe-Billing-Portal-Sitzung: Zahlungsmethode ändern, offene
    * Rechnung bezahlen, Belege laden. Braucht im Stripe-Dashboard einmalig eine
    * gespeicherte Portal-Konfiguration (Settings → Billing → Customer portal).
@@ -127,8 +138,19 @@ const WEBHOOK_STATUS: Record<string, AboStatus> = {
  * jetzt schon end-to-end testbar ist. Echtes Stripe-Adapter: Phase 16.
  */
 export class FakeZahlungsGateway implements ZahlungsGateway {
+  /** Tests setzen hier je Subscription-Ref die simulierte Kennung. */
+  readonly kennungen = new Map<string, string>();
+
   async subscriptionAnlegen(input: SubAnlegenInput): Promise<SubZustand> {
     const jetzt = new Date();
+    if (input.ohneTestphase) {
+      return {
+        ref: `fake_sub_${randomUUID()}`,
+        status: 'aktiv',
+        trialEndetAm: null,
+        aktuellerZeitraumEnde: zeitraumEnde(jetzt, input.intervall),
+      };
+    }
     const trialEndetAm = tageAddieren(jetzt, ABO_TRIAL_TAGE);
     return {
       ref: `fake_sub_${randomUUID()}`,
@@ -163,6 +185,10 @@ export class FakeZahlungsGateway implements ZahlungsGateway {
 
   async subscriptionSofortBeenden(): Promise<void> {
     // no-op: bei Stripe `subscriptions.cancel`
+  }
+
+  async zahlungsmittelKennung(ref: string): Promise<string | null> {
+    return this.kennungen.get(ref) ?? null;
   }
 
   async zahlungsportalUrl(_ref: string, rueckkehrUrl: string): Promise<string> {
@@ -229,6 +255,9 @@ export const STRIPE_STATUS: Record<string, AboStatus> = {
   paused: 'pausiert',
   past_due: 'zahlung_offen',
   unpaid: 'zahlung_offen',
+  // Abschluss ohne Testphase: bis die erste Zahlung bestätigt ist.
+  incomplete: 'zahlung_offen',
+  incomplete_expired: 'gekuendigt',
 };
 
 /**
@@ -332,7 +361,9 @@ export class StripeZahlungsGateway implements ZahlungsGateway {
     const sub = await this.stripe.subscriptions.create({
       customer: customer.id,
       items: [{ price_data: this.preisDaten(produkt, input.intervall, input.betragCent) }],
-      trial_period_days: ABO_TRIAL_TAGE,
+      // Ohne Testphase: sofortige erste Rechnung, das Frontend bestätigt den
+      // PaymentIntent (`pi_…`) statt eines SetupIntents.
+      ...(input.ohneTestphase ? {} : { trial_period_days: ABO_TRIAL_TAGE }),
       // Ohne `trial_settings.end_behavior` erzeugt Stripe bei einer
       // Trial-Subscription KEIN `pending_setup_intent` — die Trial-Rechnung
       // ist 0 € und braucht serverseitig keine Zahlungsbestätigung, also
@@ -340,7 +371,9 @@ export class StripeZahlungsGateway implements ZahlungsGateway {
       // aufrufen (checkout.js wirft dann `kein_client_secret`). Erst
       // `missing_payment_method: 'cancel'` weist Stripe an, die Zahlungsdaten
       // schon jetzt zu verlangen und dafür den SetupIntent auszustellen.
-      trial_settings: { end_behavior: { missing_payment_method: 'cancel' } },
+      ...(input.ohneTestphase
+        ? {}
+        : { trial_settings: { end_behavior: { missing_payment_method: 'cancel' as const } } }),
       payment_behavior: 'default_incomplete',
       payment_settings: {
         save_default_payment_method: 'on_subscription',
@@ -411,6 +444,27 @@ export class StripeZahlungsGateway implements ZahlungsGateway {
 
   async subscriptionSofortBeenden(ref: string): Promise<void> {
     await this.stripe.subscriptions.cancel(ref);
+  }
+
+  async zahlungsmittelKennung(ref: string): Promise<string | null> {
+    const sub = await this.stripe.subscriptions.retrieve(ref, {
+      expand: ['default_payment_method'],
+    });
+    let pm = sub.default_payment_method as Stripe.PaymentMethod | null;
+    // Direkt nach `confirmSetup` ist das Zahlungsmittel schon am Customer,
+    // aber evtl. noch nicht als Default an der Subscription eingetragen.
+    if (!pm) {
+      const customer = typeof sub.customer === 'string' ? sub.customer : sub.customer.id;
+      pm = (await this.stripe.customers.listPaymentMethods(customer, { limit: 1 })).data[0] ?? null;
+    }
+    if (!pm) return null;
+    if (pm.type === 'card' && pm.card?.fingerprint) return `card:${pm.card.fingerprint}`;
+    const paypal = pm.paypal as
+      { payer_id?: string | null; payer_email?: string | null } | undefined;
+    if (pm.type === 'paypal' && (paypal?.payer_id || paypal?.payer_email)) {
+      return `paypal:${paypal.payer_id ?? paypal.payer_email}`;
+    }
+    return null;
   }
 
   async aenderungVorschau(ref: string, input: VorschauInput): Promise<Vorschau> {

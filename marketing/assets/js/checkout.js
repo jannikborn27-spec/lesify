@@ -37,6 +37,9 @@
   }
 
   var params = new URLSearchParams(location.search);
+  // Abschluss ohne Testphase — nach „Zahlungsmittel hatte schon eine
+  // Testphase" (Entscheidung 2026-09-23: Testphase einmal je Zahlungsmittel).
+  var ohneTestphase = params.get('ohne_testphase') === '1';
   var planKey = params.get('plan');
   var interval = params.get('interval') === 'yearly' ? 'yearly' : 'monthly';
 
@@ -128,9 +131,14 @@
     $('co-total').innerHTML = totalHtml;
     $('btn-amount').textContent = t.display;
 
-    var trial = CFG.trialDays
+    var trial = CFG.trialDays && !ohneTestphase
       ? CFG.trialDays + ' Tage kostenlos testen, danach '
-      : '';
+      : 'Sofort fällig, danach ';
+    if (ohneTestphase) {
+      $('co-total-label').textContent = 'Heute fällig';
+      $('btn-prefix').textContent = 'Zahlungspflichtig abschließen ·';
+      $('co-sub').textContent = 'Das Abo startet sofort ohne Testphase, der erste Betrag wird direkt abgebucht. Kündigen kannst du in den Kontoeinstellungen.';
+    }
     $('co-billing').textContent = trial + (interval === 'yearly'
       ? t.display + ' einmal jährlich abgebucht, jährlich kündbar.'
       : 'monatlich abgebucht, monatlich kündbar.');
@@ -242,23 +250,42 @@
           paket: isFamily ? famTier : planKey,
           intervall: interval === 'yearly' ? 'jaehrlich' : 'monatlich',
           sitze: isFamily ? famSeats : 1,
-          email: email
+          email: email,
+          ohneTestphase: ohneTestphase
         })
       }).then(function (r) {
         if (!r.ok) return r.json().then(function (d) { throw new Error(d.fehler || 'anlegen_fehlgeschlagen'); });
         return r.json();
       }).then(function (data) {
         if (!data.clientSecret) throw new Error('kein_client_secret');
-        var returnUrl = location.origin + '/checkout-erfolg/';
+        // Auswahl mitgeben: checkout-erfolg/ braucht sie für „ohne Testphase
+        // abschließen", falls die Prüfung nach einem Redirect ablehnt.
+        var returnUrl = location.origin + '/checkout-erfolg/' + location.search;
         // Bei Trial ohne Sofortbelastung liefert Stripe ein SetupIntent
         // (Präfix `seti_…`) statt eines PaymentIntent (`pi_…`) — je nachdem
         // ruft man confirmSetup oder confirmPayment.
         var istSetup = data.clientSecret.indexOf('seti_') === 0;
         var confirm = istSetup ? stripe.confirmSetup : stripe.confirmPayment;
+        // `if_required`: Karten bleiben auf der Seite, damit wir vor der
+        // Weiterleitung noch prüfen können, ob das Zahlungsmittel schon eine
+        // Testphase hatte. Redirect-Zahlungsarten (PayPal, …) prüft
+        // checkout-erfolg/ nach der Rückkehr.
         return confirm.call(stripe, {
           elements: elements,
           clientSecret: data.clientSecret,
-          confirmParams: { return_url: returnUrl }
+          confirmParams: { return_url: returnUrl },
+          redirect: 'if_required'
+        }).then(function (res) {
+          if (res && res.error) return res;
+          if (!istSetup) { location.href = returnUrl; return null; }
+          return fetch(API_BASE + '/abo/testphase-pruefen', {
+            method: 'POST',
+            headers: { Authorization: 'Bearer ' + token }
+          }).then(function (r) {
+            if (r.status === 409) { testphaseAbgelehnt(); return null; }
+            location.href = returnUrl;
+            return null;
+          });
         });
       }).then(function (res) {
         if (res && res.error) message(res.error.message, 'error');
@@ -274,6 +301,22 @@
       });
     });
   });
+
+  /* Zahlungsmittel hatte schon eine Testphase → Abschluss abgelehnt (das
+     angelegte Abo ist serverseitig bereits wieder entfernt, nichts abgebucht). */
+  function testphaseAbgelehnt() {
+    var el = $('payment-message');
+    el.className = 'co-message is-visible co-message--error';
+    el.innerHTML = 'Mit diesem Zahlungsmittel wurde bereits eine kostenlose Testphase genutzt — ' +
+      'eine zweite ist nicht möglich. Es wurde nichts abgebucht. ' +
+      '<a href="' + ohneTestphaseHref() + '">Lesify ohne Testphase abschließen</a>';
+  }
+  function ohneTestphaseHref() {
+    var u = new URL(location.href);
+    u.searchParams.set('ohne_testphase', '1');
+    return u.pathname + u.search;
+  }
+  window.LesifyCheckout = { ohneTestphaseHref: ohneTestphaseHref };
 
   renderSummary();
   initStripe();

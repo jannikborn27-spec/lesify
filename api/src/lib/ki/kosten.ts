@@ -181,9 +181,25 @@ export async function kiKostenAlarmPruefen(
   return ergebnis;
 }
 
-async function sitzeAktiverAbosJePaket(prisma: PrismaClient): Promise<Record<Paket, number>> {
+export async function sitzeAktiverAbosJePaket(
+  prisma: PrismaClient,
+  { ohneTestkonten = false }: { ohneTestkonten?: boolean } = {},
+): Promise<Record<Paket, number>> {
+  // Testsuite/Smoke-Läufe legen Konten unter `*.lesify.test` an (inkl. Abos);
+  // für Auswertungen optional herausfiltern.
+  const testIds = ohneTestkonten
+    ? (
+        await prisma.user.findMany({
+          where: { email: { endsWith: '.lesify.test' } },
+          select: { id: true },
+        })
+      ).map((u) => u.id)
+    : [];
   const abos = await prisma.abo.findMany({
-    where: { status: { in: AKTIVE_ABO_STATUS } },
+    where: {
+      status: { in: AKTIVE_ABO_STATUS },
+      ...(testIds.length ? { ownerUserId: { notIn: testIds } } : {}),
+    },
     select: { paket: true, sitze: true },
   });
   const sitze: Record<Paket, number> = { starter: 0, premium: 0, infinite: 0 };

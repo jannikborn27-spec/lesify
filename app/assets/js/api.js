@@ -19,6 +19,16 @@
 (function () {
   'use strict';
 
+  // Fehler-Tracking (Sentry) — eine gemeinsame Datei für Website + App,
+  // liegt unter marketing/ (= Domain-Root). Ohne eingetragenen DSN no-op,
+  // lokal (anderer Port, Datei nicht vorhanden) ein harmloser 404.
+  if (/(^|\.)lesify\.de$/.test(location.hostname)) {
+    var ft = document.createElement('script');
+    ft.src = '/assets/js/fehler-tracking.js';
+    ft.async = true;
+    document.head.appendChild(ft);
+  }
+
   var PROD_API_BASE = 'https://lesify-production.up.railway.app';
   var istProdHost = /(^|\.)lesify\.de$/.test(location.hostname);
   var BASE = (window.LESIFY_API_BASE || (istProdHost ? PROD_API_BASE : 'http://localhost:3000')).replace(

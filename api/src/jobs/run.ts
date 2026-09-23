@@ -15,6 +15,9 @@
  */
 import { getPrisma } from '../db.js';
 import { JOBS, type JobName } from '../lib/jobs.js';
+import { fehlerMelden, sentryLeeren, sentryStarten } from '../lib/sentry.js';
+
+sentryStarten();
 
 async function main(): Promise<void> {
   const arg = process.argv[2];
@@ -38,7 +41,9 @@ async function main(): Promise<void> {
   await prisma.$disconnect();
 }
 
-main().catch((err) => {
+main().catch(async (err) => {
   console.error(err);
+  fehlerMelden(err, { job: process.argv[2] });
+  await sentryLeeren();
   process.exit(1);
 });

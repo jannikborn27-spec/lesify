@@ -62,6 +62,8 @@ const schema = z.object({
   // Unter `development`/`test` egal (jeder Origin erlaubt, lokale Ports wechseln
   // je nach Tooling); in `production` **Pflicht** — ohne sie bleibt CORS zu (fail-closed).
   CORS_ORIGINS: z.string().optional(),
+  // Error-Tracking (Sentry, EU-Region) — optional: ohne DSN kein Versand.
+  SENTRY_DSN: z.string().optional(),
 });
 
 /** Validierte Umgebungsvariablen. Wirft beim Start, wenn Pflichtwerte fehlen. */

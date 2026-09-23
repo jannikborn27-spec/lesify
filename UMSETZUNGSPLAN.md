@@ -719,7 +719,16 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       noch nicht umgesetzt): z. B. `thema.html` lädt `Lesify.faecher()` und
       `Lesify.getThema()` nacheinander statt gleichzeitig, obwohl beide
       unabhängig sind — ein Roundtrip weniger pro Seitenaufruf möglich.
-- [ ] **Error-Tracking-Anbieter** (z. B. Sentry) — DSN besorgen, anschließen.
+- [~] **Error-Tracking: Sentry (Entscheidung 2026-09-23)** — Code steht,
+      wartet auf die DSNs. API: `api/src/lib/sentry.ts` (aktiv mit
+      `SENTRY_DSN` bei Railway; meldet 500er, KI-Ausfälle, Job-Abbrüche; keine
+      Bodys/Header/Query/KI-Prompts, nur interne User-ID). Browser:
+      `marketing/assets/js/fehler-tracking.js` (DSN oben in der Datei
+      eintragen; geladen von `api.js` auf allen App-Seiten + der Kasse; nur
+      auf lesify.de; keine Klick-/Eingabe-Breadcrumbs). Datenschutzerklärung
+      ergänzt. **Von dir:** Sentry-Konto (EU-Region), Projekte `lesify-api`
+      (Node) + `lesify-web` (Browser JS), IP-Speicherung aus, Alert-Regel
+      „neuer Fehler → E-Mail", AVV/DPA in Sentry akzeptieren.
 - [ ] **DB-Backups:** Supabase-Feature aktivieren + einmal einen echten
       Restore testen.
 - [x] **Auth-Lockout-Policy bestätigt (2026-09-23):** IP-Drosselung mit

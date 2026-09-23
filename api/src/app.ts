@@ -20,6 +20,7 @@ import { getStorageGateway, type StorageGateway } from './lib/storage.js';
 import { getMailGateway, type MailGateway } from './lib/mailer.js';
 import { RateLimiter } from './lib/ratelimit.js';
 import { SessionCache } from './lib/sessionCache.js';
+import { fehlerMelden } from './lib/sentry.js';
 import { ZugriffCache, requestErlaubt } from './lib/aboZugriff.js';
 import { healthRoutes } from './routes/health.js';
 import { authRoutes } from './routes/auth.js';
@@ -197,9 +198,11 @@ export function buildApp(opts: BuildOpts = {}): FastifyInstance {
     // diesem Fall nie gezählt (Zähler laufen erst nach erfolgreichem Call).
     if (err instanceof Anthropic.APIError || err instanceof KiAbgeschnittenError) {
       request.log.error({ err, kiFehler: true }, 'KI-Call fehlgeschlagen');
+      fehlerMelden(err, { route: request.routeOptions.url, userId: request.userId || undefined });
       return reply.code(503).send({ fehler: 'ki_nicht_verfuegbar' });
     }
     request.log.error(err);
+    fehlerMelden(err, { route: request.routeOptions.url, userId: request.userId || undefined });
     return reply.code(500).send({ fehler: 'serverfehler' });
   });
 

@@ -1414,6 +1414,12 @@ Scheduler = Phase 16. Weitere Jobs: `usage-historie` (Usage-Zeilen > 12 Monate),
 Inhalte löschen und Abo beenden 30 Tage nach dem ersten Zahlungsfehlschlag —
 siehe §1 „Zugriff je Status"; täglich).
 
+**Error-Tracking (2026-09-23):** Sentry, EU-Region. API meldet über
+`fehlerMelden()` (`api/src/lib/sentry.ts`) alle 500er, KI-Ausfälle und
+abgebrochenen Jobs; aktiv nur mit `SENTRY_DSN`. Browser-Fehler über
+`marketing/assets/js/fehler-tracking.js` (DSN in der Datei, nur auf
+lesify.de). Keine Bodys, Header, Query-Parameter, KI-Prompts oder IPs.
+
 ## 7. Usage-Tracking & Limits
 
 - Monatlicher Reset **fix zum Monatsersten** (Entscheidung 2026-09-03; Cron oder

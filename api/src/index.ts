@@ -6,6 +6,9 @@
 import 'dotenv/config';
 import { buildApp } from './app.js';
 import { env } from './env.js';
+import { sentryStarten } from './lib/sentry.js';
+
+sentryStarten();
 
 if (!env.DATABASE_URL) {
   console.error('DATABASE_URL fehlt — api/.env anlegen (siehe api/.env.example).');

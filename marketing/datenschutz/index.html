@@ -63,6 +63,7 @@
       <li><strong>Railway</strong> (Railway Corporation, USA): Hosting der Backend-API.</li>
       <li><strong>Supabase</strong> (Supabase Inc., EU-Region/Frankfurt): Datenbank und Dateispeicher. Lern- und Kontodaten werden auf Servern innerhalb der EU gespeichert.</li>
       <li><strong>Resend</strong>: Versand von Bestätigungs- und Passwort-Zurücksetzen-E-Mails.</li>
+      <li><strong>Anthropic</strong> (Anthropic, PBC, San Francisco, CA, USA): KI-Funktionen über die Claude API — Details in Abschnitt 6.</li>
       <li><strong>Stripe</strong> (Stripe Payments Europe, Ltd., Irland, bzw. Stripe, Inc., USA): Zahlungsabwicklung für Abos. Beim Bezahlvorgang werden Zahlungsdaten (z. B. Kartendaten) direkt im Browser an Stripe übertragen und dort verarbeitet — sie laufen nicht über unsere eigenen Server. Näheres in der Datenschutzerklärung von Stripe: <a href="https://stripe.com/de/privacy" target="_blank" rel="noopener">stripe.com/de/privacy</a>.</li>
     </ul>
     <p>
@@ -73,12 +74,38 @@
 
     <h2>6. KI-Verarbeitung</h2>
     <p>
-      Für Erklärungen, Lernzettel, Datei-Zusammenfassungen und die Auswertung von Testklausuren ist
-      vorgesehen, Inhalte an den KI-Anbieter Anthropic (Claude API) zu übermitteln, auf vertraglicher
-      Grundlage und ohne Nutzung der Eingaben zu Trainingszwecken. Der Auftragsverarbeitungsvertrag
-      mit Anthropic wird vor dem produktiven Einsatz abgeschlossen. Aktuell findet im Live-Betrieb
-      von Lesify noch keine echte Übermittlung statt — angezeigte KI-Antworten sind simulierter
-      Platzhaltertext.
+      Die KI-Funktionen von Lesify (KI-Chat, Lernzettel, Zusammenfassungen hochgeladener Dateien,
+      Erstellung und Auswertung von Testklausuren, Lernplan-Inhalte) nutzen die Claude API des
+      Anbieters <strong>Anthropic, PBC</strong> (San Francisco, USA). Anthropic verarbeitet die Daten
+      als Auftragsverarbeiter ausschließlich, um die jeweilige Antwort zu erzeugen.
+    </p>
+    <p>An Anthropic übermittelt werden nur die Inhalte, die für die jeweilige Antwort nötig sind:</p>
+    <ul>
+      <li>deine Nachricht im KI-Chat und der bisherige Verlauf dieses Chats (höchstens die letzten 30 Nachrichten),</li>
+      <li>Fach, Thema und Klassenstufe (damit Erklärungen zum Niveau passen) sowie Lerninhalte zu diesem Thema — z. B. Lernzettel, Zusammenfassungen deiner Dateien und frühere Chats zum selben Thema,</li>
+      <li>der Inhalt hochgeladener Dateien (Text bzw. Bild), wenn du eine Datei hochlädst oder an eine Nachricht anhängst,</li>
+      <li>bei Testklausuren die Aufgaben und deine hochgeladene Lösung (Foto oder Dokument).</li>
+    </ul>
+    <p>
+      <strong>Nicht</strong> übermittelt werden dein Name, deine E-Mail-Adresse, dein Passwort,
+      Zahlungsdaten oder andere Kontodaten. Bitte schreib auch in Fragen und hochgeladenen Dateien
+      keine persönlichen Angaben, die für die Lernfrage nicht nötig sind (z. B. vollständige Namen oder
+      Adressen).
+    </p>
+    <p>
+      Anthropic nutzt die über die API übermittelten Inhalte nach eigenen Vertragsbedingungen
+      <strong>nicht zum Training</strong> seiner KI-Modelle und speichert sie nur für einen begrenzten
+      Zeitraum (z. B. zur Missbrauchserkennung). Die Verarbeitung findet in den USA statt; die
+      Übermittlung stützt sich auf die EU-Standardvertragsklauseln (siehe Abschnitt 5). Der
+      Auftragsverarbeitungsvertrag mit Anthropic wird vor dem produktiven Einsatz abgeschlossen.
+      Weitere Informationen: <a href="https://www.anthropic.com/legal/privacy" target="_blank" rel="noopener">anthropic.com/legal/privacy</a>.
+    </p>
+    <p>
+      Rechtsgrundlage ist die Erfüllung des Nutzungsvertrags (Art. 6 Abs. 1 lit. b DSGVO), da die
+      KI-Funktionen Kern des Angebots sind. Die Ergebnisse der Testklausur-Auswertung (Prozentwerte,
+      daraus abgeleitete Übungsnote und Ampel) sind eine automatisch erstellte Einschätzung zum Üben —
+      keine Leistungsbewertung durch die Schule und keine Entscheidung mit rechtlicher Wirkung.
+      KI-Antworten können Fehler enthalten; wichtige Angaben solltest du nachprüfen.
     </p>
 
     <h2>7. Dateispeicherung</h2>

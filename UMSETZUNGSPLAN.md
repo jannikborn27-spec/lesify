@@ -637,7 +637,7 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
 - [ ] **Stripe Live-Modus** + Rechnungsstellung + Umgang mit fehlgeschlagenen
       Zahlungen (Retry/Mahnlogik) — eigener Schritt nach dem Test-Modus oben,
       sinnvoll erst wenn die Preis-Feinheiten (siehe oben) final sind.
-- [ ] **Anthropic-Key fehlt in Produktion (festgestellt 2026-09-25):**
+- [x] **Anthropic-Key fehlt in Produktion (festgestellt 2026-09-25, behoben 2026-09-25 — workspace-gebundener Key bei Railway, KI live):**
       `/health` zeigte `ki.adapter: "fake"` — die Live-App antwortete bisher nur
       mit Platzhalter-Text. `ANTHROPIC_API_KEY` bei Railway setzen. Seit
       2026-09-25 zeigt `/health` den Adapter an, und der Start loggt
@@ -684,8 +684,7 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       (Entscheidung 2026-09-23): Toggles aus `einstellungen.html`, Felder aus
       `Einstellungen`/`data.js`/Seeds. Migration
       `20260923120000_einstellungen_ohne_benachrichtigungen` (DROP COLUMN) —
-      **noch per `pnpm --filter @lesify/api db:deploy` gegen Dev- und
-      Prod-DB fahren** (Code läuft auch vorher, Prisma ignoriert die Spalten).
+      Gegen Dev- und Prod-DB angewandt (2026-09-25).
 - [x] **Kontaktformular-Zielsystem** (Entscheidung 2026-09-23): Resend →
       `kontakt@lesify.de` (`KONTAKT_EMPFAENGER`), Reply-To = Absender:in.
       **Offen:** die Formular-Seite `marketing/kontakt/` war am 2026-09-22
@@ -728,8 +727,7 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       noch nicht umgesetzt): z. B. `thema.html` lädt `Lesify.faecher()` und
       `Lesify.getThema()` nacheinander statt gleichzeitig, obwohl beide
       unabhängig sind — ein Roundtrip weniger pro Seitenaufruf möglich.
-- [~] **Error-Tracking: Sentry (Entscheidung 2026-09-23)** — Code steht,
-      wartet auf die DSNs. API: `api/src/lib/sentry.ts` (aktiv mit
+- [x] **Error-Tracking: Sentry (Entscheidung 2026-09-23)** — live seit 2026-09-25. API: `api/src/lib/sentry.ts` (aktiv mit
       `SENTRY_DSN` bei Railway; meldet 500er, KI-Ausfälle, Job-Abbrüche; keine
       Bodys/Header/Query/KI-Prompts, nur interne User-ID). Browser:
       `marketing/assets/js/fehler-tracking.js` (DSN oben in der Datei
@@ -737,9 +735,9 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       auf lesify.de; keine Klick-/Eingabe-Breadcrumbs). Datenschutzerklärung
       ergänzt. **Eingerichtet 2026-09-25:** Sentry-Konto (EU-Region),
       `lesify-api`-DSN als `SENTRY_DSN` bei Railway, `lesify-web`-DSN in
-      `fehler-tracking.js`. **Noch von dir:** IP-Speicherung in beiden
-      Projekten aus, Alert-Regel „neuer Fehler → E-Mail", DPA in Sentry
-      akzeptieren.
+      `fehler-tracking.js`. IP-Speicherung aus + DPA akzeptiert (2026-09-25).
+      Alert-Regel bewusst **nicht** eingerichtet (Entscheidung 2026-09-25:
+      Sentry wird regelmäßig von Hand angesehen).
 - [ ] **DB-Backups:** Supabase-Feature aktivieren + einmal einen echten
       Restore testen.
 - [x] **Auth-Lockout-Policy bestätigt (2026-09-23):** IP-Drosselung mit
@@ -4552,8 +4550,8 @@ Kritisch, weil Zielgruppe minderjährig ist.
 - [x] **Strukturiertes Logging** — _pino-JSON; `redact` entfernt
       `authorization`/`cookie`/`stripe-signature`; Bodys werden nicht geloggt
       (keine Chat-Texte/Passwörter). Log-Sink = Phase 16._
-- [ ] **Error-Tracking** (Backend + Frontend) mit Alerting — _zentraler
-      `setErrorHandler` loggt strukturiert; DSN/Provider anschließen in Phase 16._
+- [x] **Error-Tracking** (Backend + Frontend) — _Sentry live seit 2026-09-25,
+      siehe „Was jetzt noch von dir gebraucht wird" §6; ohne Mail-Alert (Entscheidung)._
 - [x] **Healthchecks** — _`GET /health/live` (ohne DB), `GET /health` +
       `/health/ready` (inkl. `SELECT 1`, `uptimeSek`). Externer Monitor = Phase 16._
 - [ ] **DB-Backups** — _Supabase-Feature aktivieren + Restore einmal echt testen

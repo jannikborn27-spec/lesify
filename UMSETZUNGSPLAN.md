@@ -4630,6 +4630,12 @@ Kritisch, weil Zielgruppe minderjährig ist.
       `DATABASE_URL` aus Railway verdeckt ab, leitet den Session-Pooler ab).
       Bis Migrationen beim Deploy automatisch laufen: **vor jedem Push mit neuer
       Migration dieses Skript ausführen.**
+- [x] **Railway-Auto-Deploy war aus (gefunden 2026-09-25)** — Pushes auf
+      `main` landeten nie automatisch auf Railway (letzter Stand lief nur, weil
+      Variablen-Änderungen neu starten). Jetzt „Auto" an; Deploy `43f5487`
+      live verifiziert (neue Endpunkte, DB, CORS). Heißt auch: API-Änderungen
+      der Tage davor waren möglicherweise nie live — mit diesem Deploy ist
+      alles auf `main`-Stand.
 - [ ] **CI/CD vervollständigen:** Merge auf `main` → Deploy auf `staging`;
       manueller Promote `staging` → `production`. Migrationen laufen automatisch,
       rückrollbar.

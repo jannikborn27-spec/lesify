@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import type { OutgoingHttpHeaders } from 'node:http';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { KiAbgeschnittenError } from './ki/client.js';
+import { fehlerMelden } from './sentry.js';
 
 /** Möchte der Client die Antwort als Server-Sent Events (`Accept: text/event-stream`)? */
 export function willStream(req: FastifyRequest): boolean {
@@ -41,6 +42,7 @@ export async function streameSse(
   } catch (err) {
     const kiFehler = err instanceof Anthropic.APIError || err instanceof KiAbgeschnittenError;
     req.log.error({ err, kiFehler }, 'Stream-Antwort fehlgeschlagen');
+    fehlerMelden(err, { route: req.routeOptions.url, userId: req.userId || undefined });
     senden({ typ: 'fehler', fehler: kiFehler ? 'ki_nicht_verfuegbar' : 'serverfehler' });
   } finally {
     raw.end();

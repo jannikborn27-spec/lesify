@@ -1,0 +1,14 @@
+// Cloudflare (Workers mit statischen Assets) — Hosting für lesify.de
+// (Entscheidung 2026-09-23, Umzug von GitHub Pages). Kein Server-Code: es wird
+// nur der von `bash scripts/build-site.sh` gebaute Ordner `_site/` ausgeliefert
+// (marketing/ = Root, app/ unter /app). Header kommen aus `marketing/_headers`.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "lesify",
+  "compatibility_date": "2026-09-25",
+  "assets": {
+    "directory": "./_site",
+    "not_found_handling": "404-page",
+    "html_handling": "auto-trailing-slash"
+  }
+}

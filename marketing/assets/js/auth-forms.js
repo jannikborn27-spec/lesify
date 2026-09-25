@@ -19,7 +19,7 @@
   'use strict';
 
   var PROD_API_BASE = 'https://lesify-production.up.railway.app';
-  var istProdHost = /(^|\.)lesify\.(de|pages\.dev)$/.test(location.hostname); // .pages.dev = Cloudflare-Testdomain
+  var istProdHost = /(^|\.)lesify\.de$|\.(pages|workers)\.dev$/.test(location.hostname); // *.pages.dev/*.workers.dev = Cloudflare-Testdomain
   var API_BASE = (
     window.LESIFY_API_BASE || (istProdHost ? PROD_API_BASE : 'http://localhost:3000')
   ).replace(/\/$/, '');

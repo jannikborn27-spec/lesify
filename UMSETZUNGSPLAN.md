@@ -4589,8 +4589,11 @@ Kritisch, weil Zielgruppe minderjährig ist.
 
 ## Phase 16 — Deployment & Go-Live
 
-- [~] **Hosting-Wechsel GitHub Pages → Cloudflare Pages (Entscheidung
-      2026-09-23)** — Gründe: GitHub-Pages-Nutzungsbedingungen verbieten den
+- [~] **Hosting-Wechsel GitHub Pages → Cloudflare (Entscheidung
+      2026-09-23; 2026-09-25: Cloudflares neuer Assistent legt statt „Pages"
+      einen **Worker mit statischen Assets** an — `wrangler.jsonc` im Root
+      zeigt auf `_site/`, `_headers` gilt dort genauso; API-Erkennung
+      akzeptiert `*.workers.dev`)** — Gründe: GitHub-Pages-Nutzungsbedingungen verbieten den
       Betrieb eines kommerziellen SaaS, und GitHub Pages kann keine
       Security-Header setzen. Vorbereitet: `scripts/build-site.sh` (baut
       `_site/`, von Cloudflare **und** vom bisherigen GitHub-Workflow genutzt),

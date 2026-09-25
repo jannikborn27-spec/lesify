@@ -4624,6 +4624,12 @@ Kritisch, weil Zielgruppe minderjährig ist.
       einrichten (Railway-Environment `staging` + Dev-Supabase + Cloudflare-
       Preview-Deploys). Die Punkte „Staging-Vollprobe", „Seed-Parität",
       „E2E gegen staging" laufen bis dahin gegen Produktion im Test-Modus.
+- [x] **Prod-Migrationen 2026-09-25 angewendet** (`20260919…lernzettel_ohne_gratis_nachrichten`,
+      `20260923…einstellungen_ohne_benachrichtigungen`, `…abo_zahlung_offen`,
+      `…trial_zahlungsmittel`) über `bash scripts/prod-migrate.sh` (fragt die
+      `DATABASE_URL` aus Railway verdeckt ab, leitet den Session-Pooler ab).
+      Bis Migrationen beim Deploy automatisch laufen: **vor jedem Push mit neuer
+      Migration dieses Skript ausführen.**
 - [ ] **CI/CD vervollständigen:** Merge auf `main` → Deploy auf `staging`;
       manueller Promote `staging` → `production`. Migrationen laufen automatisch,
       rückrollbar.

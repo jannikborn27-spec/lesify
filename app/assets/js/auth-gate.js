@@ -16,8 +16,15 @@
   var ELTERN_KINDER_SEITE = 'eltern-kinder.html';
   var SCHUELER_START = 'dashboard.html';
 
+  // Aktuelle Seite als Dateiname — mit `.html`, auch wenn der Host „schöne"
+  // URLs ohne Endung ausliefert (Cloudflare leitet /app/x.html → /app/x um).
+  function seite() {
+    var s = (location.pathname.split('/').pop() || '').toLowerCase();
+    return s && s.indexOf('.') < 0 ? s + '.html' : s;
+  }
+
   function raus() {
-    var ziel = encodeURIComponent(location.pathname.split('/').pop() || '');
+    var ziel = encodeURIComponent(seite());
     location.replace(LOGIN + (ziel ? '?weiter=' + ziel : ''));
   }
 
@@ -36,7 +43,7 @@
   // per Einladung eingeloggtes Kind) hat auf keiner `eltern-*.html`-Seite
   // etwas verloren.
   function weiche(user) {
-    var hier = (location.pathname.split('/').pop() || '').toLowerCase();
+    var hier = seite();
     var aufElternSeite = hier === ELTERN_SEITE || hier.indexOf('eltern-') === 0;
     if (user && user.rolle === 'elternteil') {
       if (aufElternSeite) return;
@@ -125,7 +132,7 @@
     zahlungOffenPopup(z.loeschungAm);
   }
   function elternZustand() {
-    var hier = (location.pathname.split('/').pop() || '').toLowerCase();
+    var hier = seite();
     if (hier === 'eltern-abo.html' || !window.Lesify.getAbo) return; // dort steht es ausführlich
     window.Lesify.getAbo().then(function (abo) {
       var abgelaufen = abo.status === 'gekuendigt' && new Date(abo.aktuellerZeitraumEnde) <= new Date();

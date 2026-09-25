@@ -81,6 +81,7 @@
     // Familien-Abo auf einer `eltern-*.html`-Seite landet, also verrät die
     // Seite selbst die Ansicht.
     var hier = (location.pathname.split('/').pop() || '').toLowerCase();
+    if (hier && hier.indexOf('.') < 0) hier += '.html'; // Cloudflare: URLs ohne .html
     return hier === 'eltern.html' || hier.indexOf('eltern-') === 0;
   }
 

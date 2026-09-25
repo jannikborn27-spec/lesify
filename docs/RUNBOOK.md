@@ -11,9 +11,42 @@ Alert-Kanäle und der Secret-Store kommen mit dem Hosting in Phase 16 dazu.
 | Healthchecks           | `GET /health/live` (Prozess, kein DB-Zugriff), `GET /health` + `/health/ready` (inkl. `SELECT 1`, `uptimeSek`)                                                                                                                                                                                                                                                                                      | Externe Uptime-Prüfung (Cron/Monitor) in Phase 16                                                                                            |
 | Rate-Limiting          | `RateLimiter` als `onRequest`-Hook, Regeln §7 (auth 10/min·IP, ki 20/min, io 120/min, kontakt 3/min·IP), `429` + `Retry-After`                                                                                                                                                                                                                                                                      | Mehr-Instanz-Betrieb → Redis; User-Keying (Hook nach Auth); Schwellen nach echtem Traffic kalibrieren                                        |
 | Error-Handling         | zentraler `setErrorHandler`: `HttpError` → sauberer Code, sonst `500` + `request.log.error`                                                                                                                                                                                                                                                                                                         | Error-Tracker (Sentry o. ä.) mit DSN in Phase 16 anschließen                                                                                 |
-| Wartungs-Jobs          | `pnpm --filter @lesify/api job <name>` (Aufbewahrung, Usage-Historie, Token-Hygiene, Abo-Änderungen, KI-Kosten-Alarm), JSON-Summary, Exit-Code                                                                                                                                                                                                                                                      | Scheduler + Job-Monitoring in Phase 16                                                                                                       |
+| Wartungs-Jobs          | `pnpm --filter @lesify/api job <name>` (Aufbewahrung, Usage-Historie, Token-Hygiene, Abo-Änderungen, KI-Kosten-Alarm), JSON-Summary, Exit-Code                                                                                                                                                                                                                                                      | Railway-Cron `lesify-jobs` (siehe unten), Fehler → Sentry                                                                                    |
 | KI-Kosten              | `response.usage` wird je Call in `KiKosten` (Monat/Call-Typ/Modell) aggregiert (`api/src/lib/ki/kosten.ts`); Job `ki-kosten-alarm` vergleicht die Monatssumme gegen das aus `PLAN_ECONOMICS` abgeleitete Budget (aktive Sitze × geplante API-Kosten/Sitz, auf den bisherigen Monatsanteil hochgerechnet) und loggt `kiKostenAlarm`, wenn die Ist-Kosten mehr als das 1,5-fache des Budgets betragen | Anthropic-Preistabelle in `kosten.ts` ist Stand 2026-09 und **vor echten Ausgaben gegenprüfen**; Scheduler-Anbindung für den Job in Phase 16 |
 | DB-Backups             | Supabase (automatische Backups im Projekt aktivieren)                                                                                                                                                                                                                                                                                                                                               | Restore **einmal echt testen** vor Go-Live                                                                                                   |
+
+## Wartungs-Jobs (Railway-Cron) + Migrationen beim Deploy
+
+**Ein** Cron-Service reicht: `job geplant` läuft stündlich, führt
+`token-hygiene` jede Stunde aus und alle übrigen Jobs (`inhalte-aufbewahrung`,
+`usage-historie`, `abo-geplante-aenderungen`, `ki-kosten-alarm`,
+`zahlung-offen-loeschung`) einmal täglich um 03 Uhr UTC
+(`geplanteJobs()` in `api/src/lib/jobs.ts`). Fehler → Exit-Code 1 + Sentry.
+
+Einrichtung (einmalig, Railway-Projekt):
+
+1. **+ New → GitHub Repo → dasselbe Repo** → neuer Service, umbenennen in
+   `lesify-jobs`.
+2. **Settings → Build:** Root Directory leer (Repo-Wurzel), Build Command
+   identisch zum API-Service (`pnpm install --frozen-lockfile && pnpm --filter
+@lesify/shared build && pnpm --filter @lesify/api db:generate && pnpm
+--filter @lesify/api build`).
+3. **Settings → Deploy:** Start Command `pnpm --filter @lesify/api job:prod
+geplant`, **Cron Schedule** `0 * * * *`, Restart Policy **Never**.
+   Keine Public Domain.
+4. **Variables:** alle Variablen des API-Services übernehmen (am einfachsten:
+   „Shared Variables" oder Raw Editor kopieren) — mindestens `DATABASE_URL`,
+   `SUPABASE_*`, `STRIPE_SECRET_KEY`, `RESEND_API_KEY`, `EMAIL_ABSENDER`,
+   `MARKETING_URL`, `SENTRY_DSN`, `NODE_ENV=production`.
+5. Prüfen: Deployments → der Lauf zur vollen Stunde zeigt eine JSON-Zeile
+   `{"job":"token-hygiene",…}` und endet mit Exit 0.
+
+**Migrationen automatisch beim Deploy** (ersetzt `scripts/prod-migrate.sh`
+vor jedem Push): im **API-Service** → Settings → Deploy → **Pre-deploy
+Command** `pnpm --filter @lesify/api db:deploy`. Dafür braucht der Service die
+Variable `DIRECT_URL` = `DATABASE_URL` mit Port **5432** statt 6543 und ohne
+`?pgbouncer=true`/`connection_limit`-Parameter (Session-Pooler). Schlägt die
+Migration fehl, wird nicht ausgerollt — die alte Version läuft weiter.
 
 ## Störungsfälle
 
@@ -106,5 +139,5 @@ Limit anheben — wirkt ohne Neustart.
 - [ ] Externe Uptime-Prüfung auf `/health/ready`
 - [ ] Error-Tracker mit DSN verbunden, Test-Fehler kommt an
 - [ ] Log-Sink erhält Logs, PII-Schwärzung stichprobenartig geprüft
-- [ ] Scheduler ruft die Wartungs-Jobs, Job-Fehler alarmiert
+- [ ] Scheduler ruft die Wartungs-Jobs, Job-Fehler alarmiert (Railway-Cron `lesify-jobs`, Abschnitt „Wartungs-Jobs")
 - [ ] Rate-Limit-Schwellen nach Last-/Smoke-Test angepasst

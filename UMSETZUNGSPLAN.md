@@ -3710,7 +3710,13 @@ bis das Thema wieder aufgemacht wird.
 - [x] **Usage-Reset** — _kein eigener Job nötig: der Monatszähler resettet
       implizit über den `Usage.monat`-Schlüssel (Phase 8). `usage-historie`
       räumt nur die Altlasten weg._
-- [ ] **Scheduler + Monitoring** — _die fünf Kommandos in Hosting-Cron/`pg_cron`
+- [~] **Scheduler + Monitoring** — _**Code erledigt 2026-09-25:** ein stündlicher
+      Railway-Cron (`job:prod geplant`, `geplanteJobs()` in `lib/jobs.ts`):
+      `token-hygiene` stündlich, alle anderen Jobs täglich 03 Uhr UTC; Fehler →
+      Exit 1 + Sentry. **Von dir:** Cron-Service `lesify-jobs` in Railway
+      anlegen (Anleitung `docs/RUNBOOK.md` „Wartungs-Jobs"). War bis dahin in
+      Produktion **nie** gelaufen (u. a. Sitzverringerung, 30-Tage-Löschung).
+      Ursprünglich: die fünf Kommandos in Hosting-Cron/`pg_cron`
       eintragen (Vorschlag: `inhalte-aufbewahrung`/`usage-historie`/
       `abo-geplante-aenderungen`/`ki-kosten-alarm`/`zahlung-offen-loeschung` täglich, `token-hygiene`
       stündlich), Exit-Code != 0 alarmiert. → Phase 16._
@@ -4659,6 +4665,10 @@ Kritisch, weil Zielgruppe minderjährig ist.
       live verifiziert (neue Endpunkte, DB, CORS). Heißt auch: API-Änderungen
       der Tage davor waren möglicherweise nie live — mit diesem Deploy ist
       alles auf `main`-Stand.
+- [~] **Migrationen automatisch beim Deploy (2026-09-25 vorbereitet):** Railway
+      Pre-deploy Command `pnpm --filter @lesify/api db:deploy` + Variable
+      `DIRECT_URL` — **von dir** einzutragen (`docs/RUNBOOK.md`). Danach ist
+      `scripts/prod-migrate.sh` vor dem Push nicht mehr nötig.
 - [ ] **CI/CD vervollständigen:** Merge auf `main` → Deploy auf `staging`;
       manueller Promote `staging` → `production`. Migrationen laufen automatisch,
       rückrollbar.

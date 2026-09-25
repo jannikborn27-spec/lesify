@@ -1407,8 +1407,10 @@ best effort — ein einzelner fehlgeschlagener Objekt-Löschversuch bricht den J
 nicht ab, wird nur geloggt). Dieselbe Reihenfolge (erst Keys einsammeln, dann
 DB löschen, dann Objektspeicher aufräumen) nutzt auch
 `POST /user/loeschen` (DSGVO-Konto-Löschung, §8/Phase 13). Aufruf über
-`pnpm --filter @lesify/api job inhalte-aufbewahrung`; Einhängen in einen echten
-Scheduler = Phase 16. Weitere Jobs: `usage-historie` (Usage-Zeilen > 12 Monate),
+`pnpm --filter @lesify/api job inhalte-aufbewahrung`. Scheduler (2026-09-25):
+**ein** stündlicher Railway-Cron `job:prod geplant` — `token-hygiene` jede
+Stunde, alle anderen Jobs täglich 03 Uhr UTC (`geplanteJobs()`); Einrichtung
+`docs/RUNBOOK.md`. Weitere Jobs: `usage-historie` (Usage-Zeilen > 12 Monate),
 `token-hygiene` (abgelaufene Sessions/Verification-Token),
 `zahlung-offen-loeschung` (2026-09-23: Warn-Mail 7 Tage vor, Kind-Profile +
 Inhalte löschen und Abo beenden 30 Tage nach dem ersten Zahlungsfehlschlag —

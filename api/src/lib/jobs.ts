@@ -261,3 +261,18 @@ export const JOBS = {
 } as const;
 
 export type JobName = keyof typeof JOBS;
+
+/** Stunde (UTC), in der die täglichen Jobs laufen — nachts, wenig Last. */
+export const TAEGLICH_UM_UTC = 3;
+
+/**
+ * Was ein stündlicher Cron-Lauf (`job geplant`, Railway-Cron `0 * * * *`)
+ * ausführt: `token-hygiene` jede Stunde, alle übrigen Jobs einmal täglich um
+ * {@link TAEGLICH_UM_UTC} Uhr UTC. So reicht **ein** Cron-Service. Alle Jobs
+ * sind idempotent (Warn-Mail über `Abo.loeschWarnungAm`), ein doppelter Lauf
+ * schadet nicht.
+ */
+export function geplanteJobs(jetzt = new Date()): JobName[] {
+  if (jetzt.getUTCHours() !== TAEGLICH_UM_UTC) return ['token-hygiene'];
+  return Object.keys(JOBS) as JobName[];
+}

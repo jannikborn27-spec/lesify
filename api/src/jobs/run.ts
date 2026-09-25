@@ -8,13 +8,15 @@
  *   pnpm --filter @lesify/api job ki-kosten-alarm
  *   pnpm --filter @lesify/api job zahlung-offen-loeschung
  *   pnpm --filter @lesify/api job all
+ *   pnpm --filter @lesify/api job geplant   (stündlicher Cron, siehe geplanteJobs)
  *
- * Der echte Scheduler (Hosting-Cron / pg_cron / Worker, Phase 16) ruft genau
- * diese Kommandos auf. Exit-Code != 0 signalisiert einen Fehlschlag ans
- * Monitoring.
+ * Produktion: Railway-Cron-Service `lesify-jobs`, Schedule `0 * * * *`, Start
+ * `pnpm --filter @lesify/api job:prod geplant` (gebautes `dist/`, kein tsx) —
+ * Einrichtung in `docs/RUNBOOK.md` „Wartungs-Jobs". Exit-Code != 0 und jeder
+ * Fehler gehen an Sentry.
  */
 import { getPrisma } from '../db.js';
-import { JOBS, type JobName } from '../lib/jobs.js';
+import { JOBS, geplanteJobs, type JobName } from '../lib/jobs.js';
 import { fehlerMelden, sentryLeeren, sentryStarten } from '../lib/sentry.js';
 
 sentryStarten();
@@ -22,11 +24,16 @@ sentryStarten();
 async function main(): Promise<void> {
   const arg = process.argv[2];
   if (!arg) {
-    console.error(`Job fehlt. Verfügbar: ${Object.keys(JOBS).join(', ')}, all`);
+    console.error(`Job fehlt. Verfügbar: ${Object.keys(JOBS).join(', ')}, all, geplant`);
     process.exit(2);
   }
   const prisma = getPrisma();
-  const namen: JobName[] = arg === 'all' ? (Object.keys(JOBS) as JobName[]) : [arg as JobName];
+  const namen: JobName[] =
+    arg === 'all'
+      ? (Object.keys(JOBS) as JobName[])
+      : arg === 'geplant'
+        ? geplanteJobs()
+        : [arg as JobName];
 
   for (const name of namen) {
     const job = JOBS[name];

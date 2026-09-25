@@ -4,8 +4,21 @@ import { getPrisma } from '../db.js';
 import {
   abgelaufeneTokenLoeschen,
   alteUsageZeilenLoeschen,
+  geplanteJobs,
   inhalteAelterAlsEinJahrLoeschen,
+  JOBS,
 } from './jobs.js';
+
+describe('geplanteJobs — ein stündlicher Cron für alle Jobs', () => {
+  it('außerhalb von 03 Uhr UTC nur token-hygiene', () => {
+    expect(geplanteJobs(new Date('2026-10-01T14:00:00Z'))).toEqual(['token-hygiene']);
+    expect(geplanteJobs(new Date('2026-10-01T02:59:00Z'))).toEqual(['token-hygiene']);
+  });
+
+  it('um 03 Uhr UTC alle Jobs', () => {
+    expect(geplanteJobs(new Date('2026-10-01T03:00:00Z'))).toEqual(Object.keys(JOBS));
+  });
+});
 
 const hatDb = !!process.env.DATABASE_URL;
 

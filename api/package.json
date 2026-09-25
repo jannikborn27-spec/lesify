@@ -12,6 +12,7 @@
     "build": "tsc -p tsconfig.build.json",
     "start": "node dist/index.js",
     "job": "tsx src/jobs/run.ts",
+    "job:prod": "node dist/jobs/run.js",
     "pdf:mockups": "tsx src/lib/pdf/mockups.ts",
     "ki:smoke": "tsx src/lib/ki/smoke.ts",
     "ki:eval": "tsx src/lib/ki/eval.ts",

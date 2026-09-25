@@ -15,7 +15,7 @@
    ========================================================= */
 (function () {
   'use strict';
-  var DSN = ''; // ← hier den Browser-DSN aus Sentry einsetzen
+  var DSN = 'https://f5ed64ea587e0393c17a91181e0115b5@o4512146262196224.ingest.de.sentry.io/4512146288934992'; // Projekt lesify-web (EU)
   if (!DSN || window.__lesifySentry) return;
   window.__lesifySentry = true;
   if (!/(^|\.)lesify\.de$/.test(location.hostname)) return; // lokal nie senden

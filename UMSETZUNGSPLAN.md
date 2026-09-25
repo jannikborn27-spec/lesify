@@ -726,9 +726,11 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       `marketing/assets/js/fehler-tracking.js` (DSN oben in der Datei
       eintragen; geladen von `api.js` auf allen App-Seiten + der Kasse; nur
       auf lesify.de; keine Klick-/Eingabe-Breadcrumbs). Datenschutzerklärung
-      ergänzt. **Von dir:** Sentry-Konto (EU-Region), Projekte `lesify-api`
-      (Node) + `lesify-web` (Browser JS), IP-Speicherung aus, Alert-Regel
-      „neuer Fehler → E-Mail", AVV/DPA in Sentry akzeptieren.
+      ergänzt. **Eingerichtet 2026-09-25:** Sentry-Konto (EU-Region),
+      `lesify-api`-DSN als `SENTRY_DSN` bei Railway, `lesify-web`-DSN in
+      `fehler-tracking.js`. **Noch von dir:** IP-Speicherung in beiden
+      Projekten aus, Alert-Regel „neuer Fehler → E-Mail", DPA in Sentry
+      akzeptieren.
 - [ ] **DB-Backups:** Supabase-Feature aktivieren + einmal einen echten
       Restore testen.
 - [x] **Auth-Lockout-Policy bestätigt (2026-09-23):** IP-Drosselung mit

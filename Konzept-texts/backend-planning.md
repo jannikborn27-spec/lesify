@@ -622,6 +622,13 @@ oben — nichts inhaltlich Neues, nur beim Umsetzen festgelegt:
   `themaId` → …) bleibt zusätzlich bestehen.
 - **`User.email` ist `nullable` + `unique`** (mehrere `NULL` erlaubt) — Kind-
   Profile im Familien-Abo haben keine eigene Login-Mail.
+- **`User.benutzername`** (`nullable` + `unique`, seit 2026-09-25, Migration
+  `20260925120000_kind_benutzername`): Login ohne E-Mail für Kind-Profile, von
+  den Eltern vergeben (`POST /abo/kinder/:id/zugang`). 3–30 Zeichen
+  `[a-z0-9._-]`, klein gespeichert, **nie mit `@`** — so ist eine Login-Kennung
+  eindeutig E-Mail (mit `@`) oder Benutzername (`lib/benutzername.ts`). Ein
+  Kind kann E-Mail **und** Benutzername gleichzeitig haben. Kind-Profile ohne
+  Passwort tragen den Platzhalter-Hash `kind:kein-login` (kein Login möglich).
 - **`Lernplan.testklausur1Id` / `testklausur2Id`**: je `unique` (echte 1:1-
   Bindung Lernplan ↔ Testklausur, zusätzlich zur `klausurId`-1:1).
 - **Enum-Namen in Prisma** (PascalCase, Werte unverändert): `Rolle`, `AboPaket`,
@@ -1071,9 +1078,9 @@ Query-Parameter, die `chat.html`/`thema.html` aus dem client-seitigen
 | Methode | Pfad | Zweck |
 |---|---|---|
 | POST | `/auth/registrieren` | `{name, email, passwort, einwilligung: true}` → **Eltern-Konto** anlegen (`rolle` server-seitig fest `elternteil`, `klassenstufe = null` — kein Client-Input mehr seit 2026-09-16), Double-Opt-in-Token erzeugen und per Mail verschicken (Resend, `marketing/email-bestaetigen/`; ohne `RESEND_API_KEY` nur geloggt), **14-Tage-Testphase** starten (`User.trialEndetAm = createdAt + 14 Tage`). `einwilligung` (Zustimmung zu Nutzungsbedingungen/Datenschutz) ist **Pflicht** — fehlt sie → `400`; der Zeitpunkt landet als `User.einwilligungAm`. Tarif-Wahl + Zahlungsart laufen über den Checkout (`POST /abo`); Kind-Profile kommen erst danach über `POST /abo/kinder` |
-| POST | `/auth/login` | `{email, passwort, angemeldetBleiben?}` → Session/JWT |
+| POST | `/auth/login` | `{kennung, passwort, angemeldetBleiben?}` → Session/JWT. `kennung` = E-Mail **oder** Benutzername (Kind-Profile, 2026-09-25), Groß-/Kleinschreibung egal; `email` bleibt als Alias für `kennung` erlaubt |
 | POST | `/auth/logout` | Session invalidieren |
-| POST | `/auth/passwort-vergessen` | `{email}` → Reset-Token, per Mail verschickt (Resend, `marketing/passwort-zuruecksetzen/`; immer 200, keine Konto-Enumeration) |
+| POST | `/auth/passwort-vergessen` | `{kennung}` (E-Mail oder Benutzername; `email` als Alias) → Reset-Token, per Mail verschickt (Resend, `marketing/passwort-zuruecksetzen/`; immer 200, keine Konto-Enumeration). **Kind-Profile:** der Link geht immer an die **E-Mail der Eltern** (Vorlage `kindPasswortResetMail`, Entscheidung 2026-09-25), auch wenn das Kind eine eigene E-Mail hat |
 | POST | `/auth/passwort-zuruecksetzen` | `{token, neuesPasswort}` → Passwort setzen, Token verbrauchen, **alle Sessions löschen** |
 | POST | `/auth/email-bestaetigen` | `{token}` → `emailVerifiedAt` setzen (Einmal-Token) |
 | GET | `/auth/me` | aktuelle Sitzung → `{user}` (`requireAuth`); für das Frontend-Auth-Gate (Phase 11) |
@@ -1092,6 +1099,7 @@ Query-Parameter, die `chat.html`/`thema.html` aus dem client-seitigen
 | POST | `/abo/reaktivieren` | **Neu (2026-09-13), Status-Logik korrigiert (2026-09-17).** Hebt Kündigung/Pause auf; nur von `gekuendigt`/`pausiert` aus, sonst `409 abo_nicht_reaktivierbar`. Stripe: `cancel_at_period_end=false` + `pause_collection=null`. `status` wird **nicht** hart auf `aktiv` gesetzt, sondern aus dem von Stripe nach dem Update zurückgegebenen echten Subscription-Status übernommen — ein während der Trial-Phase gekündigtes/pausiertes Abo bleibt nach der Reaktivierung `test` (Stripe: weiterhin `trialing`), bis die Trial regulär endet |
 | POST | `/abo/webhook` | Callback des Zahlungsanbieters (Zahlung erfolgreich/fehlgeschlagen → `status`). **2026-09-23:** `subscription.updated` mit `cancel_at_period_end`/`pause_collection` → `gekuendigt`/`pausiert` (vorher überschrieb Stripes `status: active` beides wieder mit `aktiv`); „Rechnung bezahlt" heilt nur `zahlung_offen`/`test`; `subscription.deleted` setzt `aktuellerZeitraumEnde` = tatsächliches Ende; pflegt `zahlungOffenSeit` |
 | GET | `/abo/kinder` · POST · DELETE | Kind-Profile im Familien-Abo verwalten (max. `Abo.sitze`, 2–4). `GET` liefert je Kind zusätzlich `eingeladen: boolean` (2026-09-13, aus `!!email`) |
+| POST | `/abo/kinder/:id/zugang` | `{benutzername, passwort?}` → Login **ohne E-Mail** fürs Kind-Profil (2026-09-25): Eltern vergeben Benutzername + Passwort und geben beides weiter. `passwort` nur beim ersten Einrichten Pflicht (`400 passwort_fehlt`), danach optional (nur umbenennen); neues Passwort beendet alle Sessions des Kindes. `409 benutzername_vergeben`. `GET /abo/kinder` liefert dazu `email`, `benutzername`, `eingeladen` (= E-Mail oder Benutzername gesetzt) |
 | POST | `/abo/kinder/:id/einladung` | `{email}` → E-Mail am Kind-Profil setzen + `emailVerifiedAt` (Elternkonto bürgt), Passwort-Token erzeugen und per Mail an die Kind-Adresse verschicken (Resend, gleiche Vorlage wie die anderen Mails, Link 14 Tage gültig; seit 2026-09-18); das Kind setzt sein Passwort über `POST /auth/passwort-zuruecksetzen` (Phase 12) |
 | POST | `/abo/kinder/:id/sitzung` | Kontext-Wechsel: gibt eine echte `Session` fürs Kind-Profil zurück (`{token, kindId}`); das Elternkonto handelt damit vollständig als Kind, Zurückwechseln = eigenes Token (Phase 12) |
 | GET | `/abo/kinder/:id/zusammenfassung` | Aggregierte Wochenkennzahlen (Fächer/Themen/Chats+Nachrichten der Woche/Lernzettel/Testklausuren/anstehende Klausuren) — **kein Chat-Wortlaut** (Phase 12). Liefert zusätzlich `faecherListe` (`{name, farbe, themen}[]`) und `anstehendeKlausurenListe` (`{fach, datum}[]`) für `eltern-kind.html` (2026-09-13) — reine Metadaten, kein neuer Content-Zugriff. |

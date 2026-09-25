@@ -116,6 +116,10 @@ model User {
   name            String
   klassenstufe    String? // nur bei Kind-Profilen (rolle=schueler) gesetzt — Eltern-Accounts haben keine Klassenstufe
   email           String?   @unique // bei Kind-Profilen im Familien-Abo leer
+  // Login ohne E-Mail für Kind-Profile (Entscheidung 2026-09-25): von den
+  // Eltern vergeben, klein geschrieben, ohne „@" (so ist ein Login-Feld
+  // eindeutig E-Mail oder Benutzername). Siehe lib/benutzername.ts.
+  benutzername    String?   @unique
   rolle           Rolle
   parentUserId    String?   @db.Uuid
   aboId           String?   @db.Uuid

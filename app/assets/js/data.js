@@ -1349,7 +1349,8 @@
     return kinderListe().map(function (k) {
       return {
         id: k.id, name: k.name, klasse: k.klasse, farbe: k.farbe || 'graphit',
-        email: k.email || null, eingeladen: !!k.eingeladen, aktiv: !!k.aktiv,
+        email: k.email || null, benutzername: k.benutzername || null, // Login ohne E-Mail (2026-09-25)
+        eingeladen: !!k.eingeladen, aktiv: !!k.aktiv,
         letzteAktivitaet: k.letzteAktivitaet || null,
         woche: k.woche || {},
         aktivitaetAmpel: kindAktivitaetAmpel(k.woche)

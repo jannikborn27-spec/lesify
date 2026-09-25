@@ -27,12 +27,12 @@
     <div class="auth-card">
       <a class="auth-card__back" href="/login/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg> Zurück zur Anmeldung</a>
       <h1>Passwort zurücksetzen</h1>
-      <p class="auth-card__sub">Gib die E-Mail-Adresse deines Kontos ein.</p>
+      <p class="auth-card__sub">Gib die E-Mail-Adresse oder den Benutzernamen deines Kontos ein. Bei Kinder-Profilen geht der Link an die E-Mail-Adresse der Eltern.</p>
 
       <form style="margin-top:2rem" novalidate>
         <div class="field">
-          <label for="email">E-Mail</label>
-          <input class="input" type="email" id="email" name="email" placeholder="name@beispiel.de" autocomplete="email" required>
+          <label for="email">E-Mail oder Benutzername</label>
+          <input class="input" type="text" id="email" name="email" placeholder="name@beispiel.de" autocomplete="username" autocapitalize="none" spellcheck="false" required>
         </div>
         <button class="btn btn-primary btn-block btn-lg" type="submit">Link zum Zurücksetzen senden</button>
       </form>

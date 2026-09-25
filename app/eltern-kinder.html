@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   function kindCard(kind) {
     var col = Lesify.getKindColor(kind.id);
     var pending = !kind.eingeladen;
-    var sub = kind.klassenstufe + (pending ? ' · Einladung ausstehend' : '');
+    var sub = kind.klassenstufe + ' · ' + LesifyUI.kindZugangAnmeldung(kind);
 
     return '<div class="card kind-card is-open' + (pending ? ' is-pending' : '') + '" data-kind="' + kind.id + '" style="padding:0">' +
       '<div style="display:flex;align-items:center;gap:14px;padding:16px 20px">' +
@@ -77,8 +77,8 @@ document.addEventListener('DOMContentLoaded', async function () {
       '<div class="kc-body" style="border-top:1px solid var(--line)">' +
         '<div class="kc-actions" style="margin-top:0">' +
           (kind.eingeladen
-            ? '<button class="btn btn-sm btn-ghost" data-act="einladen">Erneut einladen</button>'
-            : '<button class="btn btn-sm btn-primary" data-act="einladen">Einladung senden</button>') +
+            ? '<button class="btn btn-sm btn-ghost" data-act="einladen">Zugang ändern</button>'
+            : '<button class="btn btn-sm btn-primary" data-act="einladen">Zugang einrichten</button>') +
           (kind.eingeladen ? '<button class="btn btn-sm btn-ghost" data-act="ansehen">Als ' + kind.name.split(' ')[0] + ' ansehen</button>' : '') +
           '<button class="btn btn-sm btn-ghost" data-act="entfernen" style="color:var(--rot)">Entfernen</button>' +
         '</div>' +
@@ -114,21 +114,7 @@ document.addEventListener('DOMContentLoaded', async function () {
       var act = btn.getAttribute('data-act');
 
       if (act === 'einladen') {
-        modal('Kind einladen', 'Wir schicken eine E-Mail mit einem Link, über den ' + kind.name.split(' ')[0] + ' ein eigenes Passwort setzt.',
-          '<div class="field mt-0"><label for="m-mail">E-Mail-Adresse</label>' +
-          '<input class="input" id="m-mail" type="email" placeholder="name@beispiel.de"></div>',
-          async function (scrim) {
-            var mail = scrim.querySelector('#m-mail').value.trim();
-            if (!mail || mail.indexOf('@') < 1) { scrim.querySelector('#m-mail').focus(); return false; }
-            try {
-              await Lesify.kinderEinladung(id, mail);
-              LesifyUI.toast('Einladung an ' + mail + ' gesendet.');
-              render();
-            } catch (err) {
-              LesifyUI.toast(Lesify.fehlerText(err));
-              return false;
-            }
-          }, 'Einladung senden');
+        LesifyUI.kindZugangModal(kind, render);
       } else if (act === 'ansehen') {
         Lesify.kinderSitzung(id).then(function (r) {
           Lesify.startElternModus(r.token);
@@ -154,7 +140,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     var addBtn = document.getElementById('kind-add');
     if (addBtn && !addBtn.disabled) addBtn.addEventListener('click', function () {
-      modal('Kind hinzufügen', 'Legt ein neues Profil an. Einladen kannst du danach jederzeit.',
+      modal('Kind hinzufügen', 'Legt ein neues Profil an. Den Zugang (Benutzername oder E-Mail-Einladung) richtest du danach ein.',
         '<div class="field"><label for="m-name">Name</label><input class="input" id="m-name" type="text" placeholder="Vor- und Nachname"></div>' +
         '<div class="field mt-0"><label for="m-klasse">Klassenstufe</label><input class="input" id="m-klasse" type="text" placeholder="z. B. 7. Klasse"></div>',
         async function (scrim) {

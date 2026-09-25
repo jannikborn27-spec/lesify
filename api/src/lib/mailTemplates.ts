@@ -133,6 +133,31 @@ export function passwortResetMail(input: { link: string }): FertigeMail {
   });
 }
 
+/**
+ * Passwort-Reset eines Kind-Profils — geht an die **Eltern** (Entscheidung
+ * 2026-09-25: Kinder ohne E-Mail, Reset läuft über das Elternkonto).
+ */
+export function kindPasswortResetMail(input: { kindName: string; link: string }): FertigeMail {
+  const kind = escapeHtml(input.kindName);
+  return rendern({
+    betreff: `Neues Passwort für ${input.kindName} — Lesify`,
+    vorschau: `Für das Lesify-Profil von ${input.kindName} wurde ein neues Passwort angefordert.`,
+    ueberschrift: 'Neues Passwort für dein Kind',
+    absaetze: [
+      'Hallo,',
+      `für das Lesify-Profil von <strong>${kind}</strong> wurde ein neues Passwort angefordert. Über den Button kannst du eins vergeben und es an ${kind} weitergeben.`,
+      'Alternativ kannst du das Passwort jederzeit im Eltern-Bereich unter „Kinder &amp; Zugänge" ändern.',
+    ],
+    button: { text: 'Passwort vergeben', link: input.link },
+    hinweis:
+      'Der Link ist 1 Tag gültig und nur einmal nutzbar. Niemand hat das angefordert? Dann ignoriere diese E-Mail — das Passwort bleibt unverändert.',
+    klartext: [
+      'Hallo,',
+      `für das Lesify-Profil von ${input.kindName} wurde ein neues Passwort angefordert. Über den folgenden Link kannst du eins vergeben und es weitergeben. Alternativ im Eltern-Bereich unter „Kinder & Zugänge".`,
+    ],
+  });
+}
+
 export function kindEinladungMail(input: {
   kindName: string;
   elternName: string;

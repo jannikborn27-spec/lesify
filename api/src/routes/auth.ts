@@ -4,6 +4,7 @@ import { hashPasswort, pruefePasswort } from '../lib/password.js';
 import { hashToken, inTagen, neuesToken } from '../lib/tokens.js';
 import { env, istProd } from '../env.js';
 import { userDTO } from '../lib/dto.js';
+import { kennungSchema, kennungWhere } from '../lib/benutzername.js';
 
 const TRIAL_TAGE = 14;
 const EMAIL_TOKEN_TAGE = 7;
@@ -28,12 +29,23 @@ const registrierenBody = z.object({
   einwilligung: z.literal(true),
 });
 const emailBestaetigenBody = z.object({ token: z.string().min(1).max(500) });
-const loginBody = z.object({
-  email,
-  passwort: passwortLogin,
-  angemeldetBleiben: z.boolean().optional(),
-});
-const passwortVergessenBody = z.object({ email });
+// Login + Passwort vergessen: `kennung` = E-Mail **oder** Benutzername (Kind-
+// Profile ohne E-Mail, 2026-09-25). `email` bleibt als Alias für ältere
+// Clients erlaubt.
+const kennungFelder = { kennung: kennungSchema.optional(), email: kennungSchema.optional() };
+const kennungDa = (b: { kennung?: string; email?: string }) => !!(b.kennung ?? b.email);
+const loginBody = z
+  .object({
+    ...kennungFelder,
+    passwort: passwortLogin,
+    angemeldetBleiben: z.boolean().optional(),
+  })
+  .refine(kennungDa, { path: ['kennung'] })
+  .transform((b) => ({ ...b, kennung: (b.kennung ?? b.email)! }));
+const passwortVergessenBody = z
+  .object(kennungFelder)
+  .refine(kennungDa, { path: ['kennung'] })
+  .transform((b) => ({ kennung: (b.kennung ?? b.email)! }));
 const passwortZuruecksetzenBody = z.object({
   token: z.string().min(1).max(500),
   neuesPasswort: passwort,
@@ -146,7 +158,7 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
     if (bad) return bad;
     const body = parsed.data!;
 
-    const user = await prisma.user.findUnique({ where: { email: body.email } });
+    const user = await prisma.user.findFirst({ where: kennungWhere(body.kennung) });
     let ok = false;
     if (user) {
       ok = await pruefePasswort(user.passwordHash, body.passwort);
@@ -184,9 +196,16 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
     const bad = ungueltig(reply, parsed);
     if (bad) return bad;
 
-    const user = await prisma.user.findUnique({ where: { email: parsed.data!.email } });
+    const user = await prisma.user.findFirst({ where: kennungWhere(parsed.data!.kennung) });
+    // Kind-Profile: der Link geht immer an die Eltern (Entscheidung 2026-09-25),
+    // egal ob das Kind per E-Mail oder Benutzername angemeldet ist.
+    const eltern =
+      user?.rolle === 'schueler' && user.parentUserId
+        ? await prisma.user.findUnique({ where: { id: user.parentUserId } })
+        : null;
+    const empfaenger = user?.parentUserId ? eltern?.email : user?.email;
     let resetToken: string | undefined;
-    if (user) {
+    if (user && empfaenger) {
       const token = neuesToken();
       await prisma.$transaction([
         // frühere, ungenutzte Reset-Token entwerten
@@ -205,7 +224,11 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
       ]);
       resetToken = token.roh;
       try {
-        await mail.passwortResetSenden({ an: user.email!, token: token.roh });
+        await mail.passwortResetSenden({
+          an: empfaenger,
+          token: token.roh,
+          ...(eltern ? { kindName: user.name } : {}),
+        });
       } catch (err) {
         app.log.error({ err }, 'passwort_reset_versand_fehlgeschlagen');
       }

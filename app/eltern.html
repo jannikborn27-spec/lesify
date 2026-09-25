@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   function miniKarte(kind) {
     var col = Lesify.getKindColor(kind.id);
-    var sub = kind.klassenstufe + (kind.eingeladen ? '' : ' · Einladung ausstehend');
+    var sub = kind.klassenstufe + (kind.eingeladen ? '' : ' · Noch kein Zugang');
     return '<a class="card eltern-mini-card" href="eltern-kind.html?id=' + kind.id + '">' +
       '<span class="fach-avatar" style="width:38px;height:38px;flex-shrink:0;background:' + col.base + '"><span>' +
         kind.name.charAt(0).toUpperCase() + '</span></span>' +

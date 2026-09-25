@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         '<div><div class="page-eyebrow">' + kind.klassenstufe + '</div>' +
         '<h1 class="page-title">' + kind.name + '</h1></div>' +
       '</div></div>' +
-      (kind.eingeladen ? '' : '<div style="margin:6px 0 22px"><span class="ampel-chip">Einladung ausstehend</span></div>') +
+      '<div style="margin:6px 0 22px"><span class="ampel-chip">' + LesifyUI.kindZugangAnmeldung(kind) + '</span></div>' +
 
       '<div class="card eltern-card">' +
         '<h3>Diese Woche</h3>' +
@@ -102,8 +102,8 @@ document.addEventListener('DOMContentLoaded', async function () {
         '<h3>Verwalten</h3>' +
         '<div class="kc-actions" style="margin-top:0">' +
           (kind.eingeladen
-            ? '<button class="btn btn-sm btn-ghost" data-act="einladen">Erneut einladen</button>'
-            : '<button class="btn btn-sm btn-primary" data-act="einladen">Einladung senden</button>') +
+            ? '<button class="btn btn-sm btn-ghost" data-act="einladen">Zugang ändern</button>'
+            : '<button class="btn btn-sm btn-primary" data-act="einladen">Zugang einrichten</button>') +
           (kind.eingeladen ? '<button class="btn btn-sm btn-ghost" data-act="ansehen">Als ' + kind.name.split(' ')[0] + ' ansehen</button>' : '') +
           '<button class="btn btn-sm btn-ghost" data-act="entfernen" style="color:var(--rot)">Entfernen</button>' +
         '</div>' +
@@ -141,6 +141,10 @@ document.addEventListener('DOMContentLoaded', async function () {
   }
 
   function wire() {
+    // render() läuft nach jeder Änderung erneut — den Listener auf `main` nur
+    // einmal anhängen, sonst öffnen sich Dialoge mehrfach.
+    if (main.dataset.verdrahtet) return;
+    main.dataset.verdrahtet = '1';
     main.addEventListener('click', function (e) {
       var btn = e.target.closest('[data-act]');
       if (!btn) return;
@@ -148,22 +152,11 @@ document.addEventListener('DOMContentLoaded', async function () {
       var act = btn.getAttribute('data-act');
 
       if (act === 'einladen') {
-        modal('Kind einladen', 'Wir schicken eine E-Mail mit einem Link, über den ' + kind.name.split(' ')[0] + ' ein eigenes Passwort setzt.',
-          '<div class="field mt-0"><label for="m-mail">E-Mail-Adresse</label>' +
-          '<input class="input" id="m-mail" type="email" placeholder="name@beispiel.de"></div>',
-          async function (scrim) {
-            var mail = scrim.querySelector('#m-mail').value.trim();
-            if (!mail || mail.indexOf('@') < 1) { scrim.querySelector('#m-mail').focus(); return false; }
-            try {
-              await Lesify.kinderEinladung(kind.id, mail);
-              LesifyUI.toast('Einladung an ' + mail + ' gesendet.');
-              kind.eingeladen = true;
-              render();
-            } catch (err) {
-              LesifyUI.toast(Lesify.fehlerText(err));
-              return false;
-            }
-          }, 'Einladung senden');
+        LesifyUI.kindZugangModal(kind, async function () {
+          var liste = await Lesify.kinder();
+          for (var i = 0; i < liste.length; i++) if (liste[i].id === kind.id) kind = liste[i];
+          render();
+        });
       } else if (act === 'ansehen') {
         Lesify.kinderSitzung(kind.id).then(function (r) {
           Lesify.startElternModus(r.token);

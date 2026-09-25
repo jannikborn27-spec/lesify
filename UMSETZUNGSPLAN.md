@@ -264,7 +264,15 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       teilweise erkennbar, Klarna/Amazon Pay gar nicht (Testphase bleibt dort
       möglich). **Mit echtem Stripe (Test-Modus) einmal durchspielen:** Karte
       4242… zweimal mit zwei Konten → zweites Mal Ablehnung.
-- [ ] **Kinder ohne E-Mail einloggen — entschieden 2026-09-25, in Umsetzung:**
+- [x] **Kinder ohne E-Mail einloggen — entschieden + umgesetzt 2026-09-25:**
+      `User.benutzername` (Migration `20260925120000_kind_benutzername`, Dev
+      angewandt — **Prod über den nächsten Deploy/`prod-migrate.sh`**), `POST
+      /abo/kinder/:id/zugang`, Login + „Passwort vergessen" akzeptieren E-Mail
+      oder Benutzername, Reset-Link für Kinder an die Eltern-E-Mail. UI: ein
+      Dialog „Zugang für …" (Benutzername | Per E-Mail einladen) in
+      `eltern-kinder.html`/`eltern-kind.html` (`LesifyUI.kindZugangModal`).
+      Getestet (6 API-Tests + Browser-Durchlauf lokal).
+      _Entscheidung:_
       Kind-Konto entsteht **über das Elternkonto**; Anmeldung entweder mit
       eigener E-Mail (Einladung wie bisher) **oder mit Benutzername** +
       Passwort, das die Eltern vergeben. Passwort-Reset für Kinder läuft

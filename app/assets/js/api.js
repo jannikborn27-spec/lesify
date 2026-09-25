@@ -81,6 +81,9 @@
     passwort_falsch: 'Falsches Passwort.',
     abo_nicht_reaktivierbar: 'Das Abo ist bereits aktiv.',
     sitze_ausgeschoepft: 'Alle Plätze sind belegt.',
+    benutzername_vergeben: 'Dieser Benutzername ist schon vergeben — bitte einen anderen wählen.',
+    passwort_fehlt: 'Bitte ein Passwort vergeben (mindestens 8 Zeichen).',
+    email_vergeben: 'Für diese E-Mail-Adresse besteht bereits ein Konto.',
     kein_familienabo: 'Dafür ist ein Familien-Abo nötig.',
     fair_use_erreicht: 'Du hast diesen Monat außergewöhnlich viele Nachrichten geschickt. Ab dem 1. des nächsten Monats geht es weiter — bei Fragen schreib uns an hallo@lesify.de.',
     abo_gesperrt: 'Dein Zugang ist gerade pausiert — sprich mit deinen Eltern.',
@@ -742,6 +745,15 @@
     /** E-Mail am Kind-Profil setzen; Antwort enthält (dev) `resetToken`. */
     kinderEinladung: function (id, email) {
       return POST('/abo/kinder/' + id + '/einladung', { email: email });
+    },
+    /**
+     * Login ohne E-Mail (2026-09-25): Benutzername + Passwort fürs Kind-Profil
+     * vergeben/ändern. `passwort` optional, wenn schon eins gesetzt ist.
+     */
+    kinderZugang: function (id, benutzername, passwort) {
+      var body = { benutzername: benutzername };
+      if (passwort) body.passwort = passwort;
+      return POST('/abo/kinder/' + id + '/zugang', body);
     },
     /** Kontext-Wechsel: eigene Session fürs Kind-Profil → `{token, kindId}`. */
     kinderSitzung: function (id) {

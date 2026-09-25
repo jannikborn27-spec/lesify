@@ -6,6 +6,7 @@ export function userDTO(u: User) {
     name: u.name,
     klassenstufe: u.klassenstufe,
     email: u.email,
+    benutzername: u.benutzername,
     rolle: u.rolle,
     trialEndetAm: u.trialEndetAm,
     emailVerifiedAt: u.emailVerifiedAt,

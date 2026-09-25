@@ -2033,5 +2033,103 @@
     });
   }
 
-  window.LesifyUI = { fachColorVars: fachColorVars, pdfVorschau: pdfVorschau, pdfDownload: pdfDownload, mdToHtml: mdToHtml, mdEscape: mdEscape, toast: toast, openModal: openModal, closeModal: closeModal, Icons: Icons, Render: Render, searchResultsHtml: searchResultsHtml, searchDropdownHtml: searchDropdownHtml, qs: qs, qsa: qsa, openFachColorPicker: openFachColorPicker, openDateiModal: openDateiModal, setPageWatermark: setPageWatermark };
+  /* ---------- Kind-Zugang (Eltern-Bereich) ----------
+     Ein Dialog für beide Wege, ein Kind-Profil anmeldbar zu machen
+     (Entscheidung 2026-09-25): Benutzername + Passwort, das die Eltern vergeben
+     und weitergeben (Kind braucht keine E-Mail), oder Einladung per E-Mail
+     (Kind setzt das Passwort selbst). Genutzt von eltern-kinder.html und
+     eltern-kind.html; `onDone()` wird nach Erfolg aufgerufen. */
+  function kindZugangAnmeldung(kind) {
+    if (kind.benutzername) return 'Anmeldung: ' + mdEscape(kind.benutzername);
+    if (kind.email) return 'Anmeldung: ' + mdEscape(kind.email);
+    return 'Noch kein Zugang';
+  }
+
+  function kindZugangModal(kind, onDone) {
+    var vorname = mdEscape(kind.name.split(' ')[0]);
+    var modus = kind.email && !kind.benutzername ? 'email' : 'benutzername';
+    var vorschlag = kind.benutzername || kind.name.split(' ')[0].toLowerCase()
+      .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss')
+      .replace(/[^a-z0-9._-]/g, '');
+    var scrim = document.createElement('div');
+    scrim.className = 'modal-scrim';
+    scrim.innerHTML =
+      '<div class="modal" style="max-width:440px">' +
+        '<div class="modal-head"><div>' +
+          '<h3 class="modal-title">Zugang für ' + vorname + '</h3>' +
+          '<p class="modal-sub">Wie soll sich ' + vorname + ' anmelden?</p>' +
+        '</div><button class="modal-close" type="button" aria-label="Schließen">' + Icons.x + '</button></div>' +
+        '<div class="modal-body">' +
+          '<div class="tabs" role="tablist" style="margin-bottom:16px">' +
+            '<button type="button" class="tab-btn" role="tab" data-modus="benutzername">Benutzername</button>' +
+            '<button type="button" class="tab-btn" role="tab" data-modus="email">Per E-Mail einladen</button>' +
+          '</div>' +
+          '<div data-feld="benutzername">' +
+            '<div class="field mt-0"><label for="kz-name">Benutzername</label>' +
+              '<input class="input" id="kz-name" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="30" value="' + mdEscape(vorschlag) + '">' +
+              '<span class="hint">3–30 Zeichen: Kleinbuchstaben, Ziffern, Punkt, Binde- oder Unterstrich.</span></div>' +
+            '<div class="field"><label for="kz-pw">' + (kind.benutzername ? 'Neues Passwort (leer lassen = unverändert)' : 'Passwort') + '</label>' +
+              '<input class="input" id="kz-pw" type="text" autocomplete="new-password" autocapitalize="none" spellcheck="false" maxlength="200">' +
+              '<span class="hint">Mindestens 8 Zeichen. Gib Benutzername und Passwort an ' + vorname + ' weiter — angemeldet wird auf lesify.de unter „Anmelden". Passwort vergessen? Den Link bekommst du an deine E-Mail-Adresse.</span></div>' +
+          '</div>' +
+          '<div data-feld="email">' +
+            '<div class="field mt-0"><label for="kz-mail">E-Mail-Adresse von ' + vorname + '</label>' +
+              '<input class="input" id="kz-mail" type="email" placeholder="name@beispiel.de" value="' + mdEscape(kind.email || '') + '">' +
+              '<span class="hint">Wir schicken einen Link, über den ' + vorname + ' ein eigenes Passwort setzt (14 Tage gültig).</span></div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="modal-foot">' +
+          '<button class="btn btn-ghost" type="button" data-x>Abbrechen</button>' +
+          '<button class="btn btn-primary" type="button" data-ok></button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(scrim);
+    requestAnimationFrame(function () { scrim.classList.add('is-open'); });
+    function close() { scrim.classList.remove('is-open'); setTimeout(function () { scrim.remove(); }, 200); }
+    function zeigen(m) {
+      modus = m;
+      qsa('[data-modus]', scrim).forEach(function (b) {
+        var an = b.getAttribute('data-modus') === m;
+        b.classList.toggle('is-active', an);
+        b.setAttribute('aria-selected', an ? 'true' : 'false');
+      });
+      qsa('[data-feld]', scrim).forEach(function (f) { f.hidden = f.getAttribute('data-feld') !== m; });
+      qs('[data-ok]', scrim).textContent = m === 'email' ? 'Einladung senden' : 'Zugang speichern';
+    }
+    zeigen(modus);
+    qsa('[data-modus]', scrim).forEach(function (b) {
+      b.addEventListener('click', function () { zeigen(b.getAttribute('data-modus')); });
+    });
+    scrim.addEventListener('click', function (e) { if (e.target === scrim) close(); });
+    qs('.modal-close', scrim).addEventListener('click', close);
+    qs('[data-x]', scrim).addEventListener('click', close);
+    var okBtn = qs('[data-ok]', scrim);
+    okBtn.addEventListener('click', async function () {
+      try {
+        okBtn.disabled = true;
+        if (modus === 'email') {
+          var mail = qs('#kz-mail', scrim).value.trim();
+          if (!mail || mail.indexOf('@') < 1) { qs('#kz-mail', scrim).focus(); return; }
+          await Lesify.kinderEinladung(kind.id, mail);
+          toast('Einladung an ' + mail + ' gesendet.');
+        } else {
+          var name = qs('#kz-name', scrim).value.trim().toLowerCase();
+          var pw = qs('#kz-pw', scrim).value;
+          if (!/^[a-z0-9][a-z0-9._-]{2,29}$/.test(name)) { toast('Benutzername: 3–30 Zeichen, nur a–z, 0–9, Punkt, - und _.'); qs('#kz-name', scrim).focus(); return; }
+          if (pw && pw.length < 8) { toast('Das Passwort braucht mindestens 8 Zeichen.'); qs('#kz-pw', scrim).focus(); return; }
+          if (!pw && !kind.benutzername && !kind.email) { toast('Bitte ein Passwort vergeben.'); qs('#kz-pw', scrim).focus(); return; }
+          await Lesify.kinderZugang(kind.id, name, pw);
+          toast(pw ? 'Zugang gespeichert — Benutzername „' + name + '" und Passwort jetzt an ' + kind.name.split(' ')[0] + ' weitergeben.' : 'Benutzername geändert.');
+        }
+        close();
+        if (onDone) onDone();
+      } catch (err) {
+        toast(Lesify.fehlerText(err));
+      } finally {
+        okBtn.disabled = false;
+      }
+    });
+  }
+
+  window.LesifyUI = { fachColorVars: fachColorVars, pdfVorschau: pdfVorschau, pdfDownload: pdfDownload, mdToHtml: mdToHtml, mdEscape: mdEscape, toast: toast, openModal: openModal, closeModal: closeModal, Icons: Icons, Render: Render, searchResultsHtml: searchResultsHtml, searchDropdownHtml: searchDropdownHtml, qs: qs, qsa: qsa, openFachColorPicker: openFachColorPicker, openDateiModal: openDateiModal, setPageWatermark: setPageWatermark, kindZugangModal: kindZugangModal, kindZugangAnmeldung: kindZugangAnmeldung };
 })();

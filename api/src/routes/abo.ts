@@ -7,11 +7,21 @@ import { HttpError } from '../lib/http.js';
 import { aboDTO } from '../lib/abo.js';
 import { testphasePruefen } from '../lib/testphase.js';
 import { inTagen, neuesToken } from '../lib/tokens.js';
+import { hashPasswort } from '../lib/password.js';
+import { benutzernameSchema } from '../lib/benutzername.js';
 import { env, istProd } from '../env.js';
 
 const KIND_EINLADUNG_TAGE = 14;
+/** Platzhalter-Hash eines Kind-Profils, das noch kein Passwort hat (kein Login möglich). */
+const KIND_OHNE_PASSWORT = 'kind:kein-login';
 
 const einladungBody = z.object({ email: z.string().trim().toLowerCase().email().max(320) });
+// Zugang ohne E-Mail: Eltern vergeben Benutzername + Passwort (2026-09-25).
+// Passwort nur beim ersten Einrichten Pflicht — danach optional (nur umbenennen).
+const zugangBody = z.object({
+  benutzername: benutzernameSchema,
+  passwort: z.string().min(8).max(200).optional(),
+});
 
 const paketEnum = z.enum(['starter', 'premium', 'infinite']);
 const intervallEnum = z.enum(['monatlich', 'jaehrlich']);
@@ -377,9 +387,11 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
         id: k.id,
         name: k.name,
         klassenstufe: k.klassenstufe,
-        // Einladung = E-Mail gesetzt (via POST .../einladung) — kein eigenes
-        // Statusfeld nötig, siehe Phase-11-Entscheidung 2026-09-13.
-        eingeladen: !!k.email,
+        // „eingeladen" = das Kind kann sich anmelden: E-Mail gesetzt (via POST
+        // .../einladung) oder Benutzername vergeben (POST .../zugang, 2026-09-25).
+        eingeladen: !!k.email || !!k.benutzername,
+        email: k.email,
+        benutzername: k.benutzername,
       }));
     });
 
@@ -406,7 +418,7 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
           rolle: 'schueler',
           parentUserId: req.userId,
           aboId: abo.id,
-          passwordHash: 'kind:kein-login', // Phase 12: echte Einladung/Passwort-Setzung
+          passwordHash: KIND_OHNE_PASSWORT, // Passwort via Einladung oder PUT .../zugang
           einstellungen: { create: {} },
         },
       });
@@ -468,6 +480,34 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
         app.log.error({ err }, 'kind_einladung_versand_fehlgeschlagen');
       }
       return { ok: true, ...(istProd ? {} : { resetToken: token.roh }) };
+    });
+
+    // POST /abo/kinder/:id/zugang — Benutzername (+ Passwort) für ein Kind-Profil
+    // vergeben/ändern: Login ohne eigene E-Mail (Entscheidung 2026-09-25). Das
+    // Passwort setzen die Eltern und geben es weiter; ändern sie es, werden alle
+    // Sitzungen des Kindes beendet. Unabhängig von einer E-Mail-Einladung —
+    // beides kann gleichzeitig gesetzt sein.
+    authed.post<{ Params: { id: string } }>('/abo/kinder/:id/zugang', async (req) => {
+      const body = parse(zugangBody, req.body);
+      const kind = oder404(await eigenesKind(req.userId, req.params.id));
+
+      const belegt = await prisma.user.findFirst({ where: { benutzername: body.benutzername } });
+      if (belegt && belegt.id !== kind.id) throw new HttpError(409, 'benutzername_vergeben');
+      if (!body.passwort && kind.passwordHash === KIND_OHNE_PASSWORT)
+        throw new HttpError(400, 'passwort_fehlt');
+
+      await prisma.user.update({
+        where: { id: kind.id },
+        data: {
+          benutzername: body.benutzername,
+          ...(body.passwort ? { passwordHash: await hashPasswort(body.passwort) } : {}),
+        },
+      });
+      if (body.passwort) {
+        await prisma.session.deleteMany({ where: { userId: kind.id } });
+        app.sessionCache.invalidateUser(kind.id);
+      }
+      return { ok: true, benutzername: body.benutzername };
     });
 
     // POST /abo/kinder/:id/sitzung — Kontext-Wechsel: eine echte Session für das

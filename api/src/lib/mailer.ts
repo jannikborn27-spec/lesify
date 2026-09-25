@@ -6,6 +6,7 @@ import {
   kontaktMail,
   zahlungOffenWarnungMail,
   passwortResetMail,
+  kindPasswortResetMail,
 } from './mailTemplates.js';
 
 /**
@@ -19,7 +20,8 @@ import {
  */
 export interface MailGateway {
   emailBestaetigungSenden(input: { an: string; name: string; token: string }): Promise<void>;
-  passwortResetSenden(input: { an: string; token: string }): Promise<void>;
+  /** `kindName` gesetzt = Reset eines Kind-Profils, `an` ist dann die Eltern-E-Mail. */
+  passwortResetSenden(input: { an: string; token: string; kindName?: string }): Promise<void>;
   kindEinladungSenden(input: {
     an: string;
     kindName: string;
@@ -63,10 +65,14 @@ export class FakeMailGateway implements MailGateway {
     );
   }
 
-  async passwortResetSenden(input: { an: string; token: string }): Promise<void> {
+  async passwortResetSenden(input: {
+    an: string;
+    token: string;
+    kindName?: string;
+  }): Promise<void> {
     console.log(
       JSON.stringify({
-        mailFake: 'passwort_reset',
+        mailFake: input.kindName ? 'kind_passwort_reset' : 'passwort_reset',
         an: input.an,
         link: resetLink(input.token),
       }),
@@ -129,8 +135,15 @@ export class ResendMailGateway implements MailGateway {
       throw new Error(`Resend-Versand fehlgeschlagen (email_bestaetigung): ${error.message}`);
   }
 
-  async passwortResetSenden(input: { an: string; token: string }): Promise<void> {
-    const mail = passwortResetMail({ link: resetLink(input.token) });
+  async passwortResetSenden(input: {
+    an: string;
+    token: string;
+    kindName?: string;
+  }): Promise<void> {
+    const link = resetLink(input.token);
+    const mail = input.kindName
+      ? kindPasswortResetMail({ kindName: input.kindName, link })
+      : passwortResetMail({ link });
     const { error } = await this.resend.emails.send({
       from: env.EMAIL_ABSENDER,
       to: input.an,

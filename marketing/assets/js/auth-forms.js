@@ -37,7 +37,7 @@
 
   var FEHLER_TEXT = {
     email_vergeben: 'Für diese E-Mail-Adresse besteht bereits ein Konto.',
-    anmeldedaten_falsch: 'E-Mail oder Passwort ist falsch.',
+    anmeldedaten_falsch: 'E-Mail/Benutzername oder Passwort ist falsch.',
     validierung: 'Bitte alle Felder korrekt ausfüllen.',
     kontakt_versand_fehlgeschlagen:
       'Die Nachricht konnte gerade nicht zugestellt werden. Bitte später erneut versuchen.',
@@ -132,8 +132,10 @@
       e.preventDefault();
       showMsg(msg, '', '');
       setBusy(btn, true, 'Anmelden …');
+      var kennung = form.email.value.trim(); // E-Mail oder Benutzername (Kind-Profile)
       post('/auth/login', {
-        email: form.email.value.trim(),
+        kennung: kennung,
+        email: kennung, // Alias — solange eine ältere API nur `email` kennt
         passwort: form.pw.value,
         angemeldetBleiben: !!form.stay.checked,
       })
@@ -208,7 +210,8 @@
       e.preventDefault();
       showMsg(msg, '', '');
       setBusy(btn, true, 'Wird gesendet …');
-      post('/auth/passwort-vergessen', { email: form.email.value.trim() })
+      var kennung = form.email.value.trim();
+      post('/auth/passwort-vergessen', { kennung: kennung, email: kennung })
         .then(function (r) {
           setBusy(btn, false);
           // Aus Datenschutzgründen antwortet der Server immer gleich, egal ob
@@ -221,7 +224,7 @@
               '<a href="' + link + '">Passwort jetzt zurücksetzen</a>';
             msg.className = 'co-message is-visible co-message--info';
           } else {
-            showMsg(msg, 'Falls ein Konto zu dieser E-Mail existiert, wurde ein Link zum Zurücksetzen verschickt.', 'success');
+            showMsg(msg, 'Falls ein Konto dazu existiert, wurde ein Link zum Zurücksetzen verschickt — bei Kinder-Profilen an die E-Mail-Adresse der Eltern.', 'success');
           }
           form.reset();
         })

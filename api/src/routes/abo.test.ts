@@ -662,3 +662,153 @@ describe.runIf(hatDb)('abo — Testphase einmal je Zahlungsmittel (Supabase, 202
     expect((await pruefen(c)).json()).toEqual({ ok: true, geprueft: false });
   });
 });
+
+describe.runIf(hatDb)('Kind-Zugang ohne E-Mail: Benutzername (Entscheidung 2026-09-25)', () => {
+  const resets: { an: string; token: string; kindName?: string }[] = [];
+  class MitschnittMail extends FakeMailGateway {
+    override async passwortResetSenden(input: { an: string; token: string; kindName?: string }) {
+      resets.push(input);
+    }
+  }
+  const app = buildApp({
+    logger: false,
+    zahlung: new FakeZahlungsGateway(),
+    mail: new MitschnittMail(),
+  });
+  const elternEmail = `bn+${crypto.randomUUID()}@abo.lesify.test`;
+  const benutzername = `kind.${crypto.randomUUID().slice(0, 8)}`;
+  let token = '';
+  const auth = () => ({ authorization: `Bearer ${token}` });
+  let kindId = '';
+
+  const login = (kennung: string, passwort: string) =>
+    app.inject({ method: 'POST', url: '/auth/login', payload: { kennung, passwort } });
+
+  beforeAll(async () => {
+    await app.ready();
+    token = await registriereUndLogin(app, elternEmail);
+    await app.inject({
+      method: 'POST',
+      url: '/abo',
+      headers: auth(),
+      payload: { paket: 'starter', intervall: 'monatlich', sitze: 2 },
+    });
+    const r = await app.inject({
+      method: 'POST',
+      url: '/abo/kinder',
+      headers: auth(),
+      payload: { name: 'Mia Test', klassenstufe: '6. Klasse' },
+    });
+    kindId = r.json().id;
+  });
+
+  it('erstes Einrichten ohne Passwort → 400 passwort_fehlt; ungültiger Name → 400', async () => {
+    const ohne = await app.inject({
+      method: 'POST',
+      url: `/abo/kinder/${kindId}/zugang`,
+      headers: auth(),
+      payload: { benutzername },
+    });
+    expect(ohne.json().fehler).toBe('passwort_fehlt');
+    const mitAt = await app.inject({
+      method: 'POST',
+      url: `/abo/kinder/${kindId}/zugang`,
+      headers: auth(),
+      payload: { benutzername: 'mia@x', passwort: 'mia-pass-1234' },
+    });
+    expect(mitAt.statusCode).toBe(400);
+  });
+
+  it('Eltern vergeben Benutzername + Passwort → Kind meldet sich mit Benutzername an', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: `/abo/kinder/${kindId}/zugang`,
+      headers: auth(),
+      payload: { benutzername: benutzername.toUpperCase(), passwort: 'mia-pass-1234' },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json().benutzername).toBe(benutzername);
+
+    const ok = await login(` ${benutzername.toUpperCase()} `, 'mia-pass-1234');
+    expect(ok.statusCode).toBe(200);
+    expect(ok.json().user.benutzername).toBe(benutzername);
+    expect((await login(benutzername, 'falsch-1234')).statusCode).toBe(401);
+
+    const liste = await app.inject({ method: 'GET', url: '/abo/kinder', headers: auth() });
+    const k = (liste.json() as { id: string; eingeladen: boolean; benutzername: string }[]).find(
+      (x) => x.id === kindId,
+    );
+    expect(k).toMatchObject({ eingeladen: true, benutzername });
+  });
+
+  it('Benutzername ist eindeutig → 409 benutzername_vergeben', async () => {
+    const zweites = await app.inject({
+      method: 'POST',
+      url: '/abo/kinder',
+      headers: auth(),
+      payload: { name: 'Ben Test', klassenstufe: '8. Klasse' },
+    });
+    const res = await app.inject({
+      method: 'POST',
+      url: `/abo/kinder/${zweites.json().id}/zugang`,
+      headers: auth(),
+      payload: { benutzername, passwort: 'ben-pass-1234' },
+    });
+    expect(res.statusCode).toBe(409);
+    expect(res.json().fehler).toBe('benutzername_vergeben');
+  });
+
+  it('Passwort vergessen mit Benutzername → Link geht an die Eltern-E-Mail', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: '/auth/passwort-vergessen',
+      payload: { kennung: benutzername },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(resets.at(-1)).toMatchObject({ an: elternEmail, kindName: 'Mia Test' });
+
+    const setz = await app.inject({
+      method: 'POST',
+      url: '/auth/passwort-zuruecksetzen',
+      payload: { token: resets.at(-1)!.token, neuesPasswort: 'mia-neu-1234' },
+    });
+    expect(setz.statusCode).toBe(200);
+    expect((await login(benutzername, 'mia-neu-1234')).statusCode).toBe(200);
+  });
+
+  it('Passwort-Änderung durch die Eltern beendet die Sitzungen des Kindes', async () => {
+    const kindToken = (await login(benutzername, 'mia-neu-1234')).json().token;
+    const kindAuth = { authorization: `Bearer ${kindToken}` };
+    expect(
+      (await app.inject({ method: 'GET', url: '/auth/me', headers: kindAuth })).statusCode,
+    ).toBe(200);
+
+    await app.inject({
+      method: 'POST',
+      url: `/abo/kinder/${kindId}/zugang`,
+      headers: auth(),
+      payload: { benutzername, passwort: 'mia-dritt-1234' },
+    });
+    expect(
+      (await app.inject({ method: 'GET', url: '/auth/me', headers: kindAuth })).statusCode,
+    ).toBe(401);
+    // nur umbenennen geht ohne Passwort
+    const um = await app.inject({
+      method: 'POST',
+      url: `/abo/kinder/${kindId}/zugang`,
+      headers: auth(),
+      payload: { benutzername: `${benutzername}x` },
+    });
+    expect(um.statusCode).toBe(200);
+    expect((await login(`${benutzername}x`, 'mia-dritt-1234')).statusCode).toBe(200);
+  });
+
+  it('Login mit altem Feldnamen `email` funktioniert weiter', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: '/auth/login',
+      payload: { email: elternEmail, passwort: 'abo-test-pass-1234' },
+    });
+    expect(res.statusCode).toBe(200);
+  });
+});

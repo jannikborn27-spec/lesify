@@ -446,6 +446,18 @@ export function getKiClient(): KiClient {
       );
       instanz = new ClaudeAgentSdkKiClient();
     } else {
+      if (env.NODE_ENV === 'production') {
+        // Wie bei Stripe/Resend: in Produktion laut statt still — sonst
+        // antwortet die App mit Platzhalter-Text und niemand merkt es
+        // (so passiert bis 2026-09-25, siehe /health → ki.adapter).
+        console.error(
+          JSON.stringify({
+            kiFakeClientInProd: true,
+            warnung:
+              'ANTHROPIC_API_KEY fehlt in Produktion — die KI liefert nur Platzhalter-Antworten.',
+          }),
+        );
+      }
       instanz = new FakeKiClient();
     }
   }

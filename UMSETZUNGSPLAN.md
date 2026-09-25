@@ -637,6 +637,15 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
 - [ ] **Stripe Live-Modus** + Rechnungsstellung + Umgang mit fehlgeschlagenen
       Zahlungen (Retry/Mahnlogik) — eigener Schritt nach dem Test-Modus oben,
       sinnvoll erst wenn die Preis-Feinheiten (siehe oben) final sind.
+- [ ] **Anthropic-Key fehlt in Produktion (festgestellt 2026-09-25):**
+      `/health` zeigte `ki.adapter: "fake"` — die Live-App antwortete bisher nur
+      mit Platzhalter-Text. `ANTHROPIC_API_KEY` bei Railway setzen. Seit
+      2026-09-25 zeigt `/health` den Adapter an, und der Start loggt
+      `kiFakeClientInProd`, falls der Key fehlt.
+- [ ] **Test-Zugänge vor Launch absichern:** `eltern@lesify.de` /
+      `dev@lesify.de` haben Passwörter, die im (öffentlichen) Repo stehen
+      (`api/prisma/seed-*.ts`) — vor dem Launch in Prod löschen oder Passwort
+      ändern.
 - [ ] **Anthropic-Produktions-Key mit Budget-Limit** — weiterhin deine
       Entscheidung/dein Account (Anthropic-Konsole: Key erzeugen, Budget-Cap
       setzen, dann `ANTHROPIC_API_KEY` bei Railway eintragen; ohne Key läuft

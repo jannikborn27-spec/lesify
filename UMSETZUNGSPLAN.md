@@ -4608,7 +4608,7 @@ Kritisch, weil Zielgruppe minderjährig ist.
       (Domain-Property per DNS-TXT) → Sitemap einreichen → URL-Prüfung
       „Indexierung beantragen" für `/`, `/preise/`, `/ueber-uns/`; dasselbe in
       Bing Webmaster Tools. Hosting-Wechsel ändert daran nichts.
-- [ ] **Google Fonts selbst hosten** (Empfehlung 2026-09-23): `marketing.css`
+- [x] **Google Fonts selbst gehostet (2026-09-25)** — `assets/fonts/` (6 variable WOFF2, latin + latin-ext, 140 KB, je in `marketing/` und `app/`), `fonts.css` statt Google-`@import`, Datenschutz §11 + CSP angepasst. _Ursprünglich:_ `marketing.css`
       und `app/style.css` laden Outfit/Hanken Grotesk von fonts.googleapis.com
       → IP-Übermittlung an Google ohne Einwilligung (LG München 2022,
       Abmahnrisiko). Fonts als WOFF2 ins Repo, `@font-face` lokal.

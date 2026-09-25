@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kontakt — Lesify</title>
+<meta name="description" content="Frage, Feedback oder Problem? Schreib uns — wir antworten per E-Mail.">
+<link rel="icon" href="/assets/img/logo.png">
+<link rel="stylesheet" href="/assets/css/marketing.css">
+</head>
+<body data-page="kontakt">
+<header id="mkt-nav"></header>
+
+<main class="legal">
+  <div class="container legal__body">
+    <h1>Kontakt</h1>
+    <p class="legal__updated">Frage, Feedback oder ein Problem mit deinem Konto? Schreib uns — wir antworten per E-Mail, meist innerhalb von 1–2 Werktagen.</p>
+
+    <form class="kontakt-form" novalidate>
+      <div class="field">
+        <label for="name">Name</label>
+        <input class="input" type="text" id="name" name="name" autocomplete="name" maxlength="120" required>
+      </div>
+      <div class="field">
+        <label for="email">E-Mail</label>
+        <input class="input" type="email" id="email" name="email" placeholder="name@beispiel.de" autocomplete="email" maxlength="320" required>
+        <span class="hint">An diese Adresse schicken wir die Antwort.</span>
+      </div>
+      <div class="field">
+        <label for="thema">Worum geht es?</label>
+        <select class="input" id="thema" name="thema" required>
+          <option value="Allgemeine Frage">Allgemeine Frage</option>
+          <option value="Abo & Zahlung">Abo &amp; Zahlung</option>
+          <option value="Technisches Problem">Technisches Problem</option>
+          <option value="Datenschutz">Datenschutz</option>
+          <option value="Feedback">Feedback</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="nachricht">Nachricht</label>
+        <textarea class="input" id="nachricht" name="nachricht" rows="7" maxlength="5000" required></textarea>
+      </div>
+      <!-- Honeypot: für Menschen unsichtbar, Bots füllen es aus -->
+      <div class="visually-hidden" aria-hidden="true">
+        <label for="website">Website</label>
+        <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+      </div>
+      <button class="btn btn-primary btn-lg" type="submit">Nachricht senden</button>
+    </form>
+
+    <p style="margin-top:2rem">Mit dem Absenden verarbeiten wir deine Angaben, um deine Anfrage zu beantworten — mehr dazu in der <a href="/datenschutz/">Datenschutzerklärung</a>.</p>
+  </div>
+</main>
+
+<footer id="mkt-footer"></footer>
+<script src="/assets/js/marketing.js"></script>
+<script src="/assets/js/auth-forms.js"></script>
+</body>
+</html>

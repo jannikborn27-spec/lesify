@@ -242,7 +242,9 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       Pause sofort wieder mit `aktiv` überschrieben. Migration
       `20260923130000_abo_zahlung_offen`. Details `backend-planning.md` §1
       „Zugriff je Status".
-      **Von dir noch nötig (Stripe-Dashboard):** (1) Billing → Customer
+      **Stripe-Dashboard erledigt (2026-09-25):** Retries → „als unbezahlt
+      markieren", Kundenportal aktiv, Mails bei fehlgeschlagener Kartenzahlung
+      an, Produktions-Webhook gesetzt. _Ursprüngliche Liste:_ (1) Billing → Customer
       portal: Konfiguration einmal speichern (Zahlungsmethode ändern +
       Rechnungen an, Kündigen **aus** — das läuft über Lesify), (2) Billing →
       Revenue recovery → Retries: nach dem letzten Versuch „Abo als unbezahlt
@@ -262,7 +264,11 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       teilweise erkennbar, Klarna/Amazon Pay gar nicht (Testphase bleibt dort
       möglich). **Mit echtem Stripe (Test-Modus) einmal durchspielen:** Karte
       4242… zweimal mit zwei Konten → zweites Mal Ablehnung.
-- [ ] **Offen, besprechen: Kinder ohne E-Mail einloggen** (Wunsch 2026-09-23):
+- [ ] **Kinder ohne E-Mail einloggen — entschieden 2026-09-25, in Umsetzung:**
+      Kind-Konto entsteht **über das Elternkonto**; Anmeldung entweder mit
+      eigener E-Mail (Einladung wie bisher) **oder mit Benutzername** +
+      Passwort, das die Eltern vergeben. Passwort-Reset für Kinder läuft
+      **über die E-Mail der Eltern**. _Ursprünglicher Wunsch (2026-09-23):_
       Eltern legen Kind-Profile an, das Kind soll sich **ohne eigene
       E-Mail-Adresse** anmelden können; Einladung per E-Mail bleibt möglich,
       muss aber auch anders gehen (z. B. Einladungs-Link/Code, den die Eltern
@@ -433,7 +439,7 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       Stripe-Iframe) statt auf einen App-Bug hin — beim manuellen Testen in
       einem normalen Browser bisher nicht reproduziert. Falls es dir beim
       eigenen Test doch begegnet: bitte melden, dann tiefer nachgehen.
-- [ ] **Offen, keine Code-Aufgabe:** ist in Produktion (Railway) tatsächlich
+- [x] **Produktions-Webhook gesetzt (bestätigt 2026-09-25).** _Frage war:_ ist in Produktion (Railway) tatsächlich
       ein Stripe-Webhook-Endpoint auf `/abo/webhook` konfiguriert? Ohne ihn
       bleibt jeder außerhalb der App ausgelöste Statuswechsel (Reaktivierung
       s. o., aber auch fehlgeschlagene Abbuchungen, `invoice.payment_failed`
@@ -687,10 +693,14 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       Gegen Dev- und Prod-DB angewandt (2026-09-25).
 - [x] **Kontaktformular-Zielsystem** (Entscheidung 2026-09-23): Resend →
       `kontakt@lesify.de` (`KONTAKT_EMPFAENGER`), Reply-To = Absender:in.
-      **Offen:** die Formular-Seite `marketing/kontakt/` war am 2026-09-22
-      bewusst entfernt worden (CTAs → `mailto:hallo@lesify.de`) — zurückholen
-      oder bei `mailto:` bleiben? Und: existiert das Postfach
-      `kontakt@lesify.de` (Resend verschickt nur, empfängt nicht)?
+      **Formular-Seite `marketing/kontakt/` zurückgeholt (Entscheidung
+      2026-09-25):** Footer-Link „Kontakt", CTAs auf 404/Über uns/FAQ zeigen
+      auf `/kontakt/`, Sitemap-Eintrag, Datenschutz §3 (Kontaktanfragen) + §5
+      (STRATO als Postfach-Anbieter). **Von dir:** Postfach `kontakt@lesify.de`
+      bei STRATO anlegen (Resend verschickt nur, empfängt nicht). Prüfen, ob
+      `hallo@lesify.de` (Impressum, AGB-Widerruf) und `datenschutz@lesify.de`
+      (Datenschutzerklärung) ebenfalls existieren — sonst als Weiterleitung auf
+      `kontakt@` anlegen.
 
 ### 6. Betrieb (Phase 15/16)
 
@@ -739,7 +749,10 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       Alert-Regel bewusst **nicht** eingerichtet (Entscheidung 2026-09-25:
       Sentry wird regelmäßig von Hand angesehen).
 - [ ] **DB-Backups:** Supabase-Feature aktivieren + einmal einen echten
-      Restore testen.
+      Restore testen. **Entscheidung 2026-09-25:** vorerst Supabase Free
+      (keine abrufbaren Backups); Werbung starten, bis 2–3 zahlende Kunden da
+      sind, dann Rentabilität prüfen und auf Pro wechseln. Überbrückung:
+      nächtlicher eigener Dump (siehe Scheduler).
 - [x] **Auth-Lockout-Policy bestätigt (2026-09-23):** IP-Drosselung mit
       exponentiellem Backoff reicht, kein Account-Lockout.
 

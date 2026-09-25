@@ -3,7 +3,7 @@
    ---------------------------------------------------------
    Verdrahtet die Marketing-Formulare/-Seiten an die echte API:
    login/, registrieren/, passwort-vergessen/, passwort-zuruecksetzen/,
-   email-bestaetigen/ (siehe UMSETZUNGSPLAN.md Phase 11
+   email-bestaetigen/, kontakt/ (siehe UMSETZUNGSPLAN.md Phase 11
    "Marketing-Formulare verdrahten" + Phase 10 "E-Mail-Versand").
    Eigenständig statt `assets/js/api.js` zu laden
    (gleicher Ansatz wie `checkout.js`) — die Marketing-Seite bleibt
@@ -39,6 +39,8 @@
     email_vergeben: 'Für diese E-Mail-Adresse besteht bereits ein Konto.',
     anmeldedaten_falsch: 'E-Mail oder Passwort ist falsch.',
     validierung: 'Bitte alle Felder korrekt ausfüllen.',
+    kontakt_versand_fehlgeschlagen:
+      'Die Nachricht konnte gerade nicht zugestellt werden. Bitte später erneut versuchen.',
     token_ungueltig: 'Dieser Link ist ungültig oder abgelaufen. Bitte einen neuen anfordern.',
     rate_limit: 'Zu viele Versuche — bitte kurz warten und erneut probieren.',
   };
@@ -280,7 +282,41 @@
       });
   }
 
+  /* ---------- kontakt/ ---------- */
+  function initKontakt() {
+    var form = document.querySelector('.kontakt-form');
+    if (!form) return;
+    var msg = ensureMsgEl(form);
+    var btn = form.querySelector('button[type="submit"]');
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var daten = {
+        name: form.name.value.trim(),
+        email: form.email.value.trim(),
+        thema: form.thema.value,
+        nachricht: form.nachricht.value.trim(),
+        website: form.website.value,
+      };
+      if (!daten.name || !daten.email || !daten.nachricht) {
+        showMsg(msg, fehlerText('validierung'), 'error');
+        return;
+      }
+      showMsg(msg, '', '');
+      setBusy(btn, true, 'Wird gesendet …');
+      post('/kontakt', daten)
+        .then(function () {
+          form.reset();
+          showMsg(msg, 'Danke! Deine Nachricht ist angekommen — wir melden uns per E-Mail.', 'success');
+        })
+        .catch(function (err) {
+          showMsg(msg, fehlerText(err.code), 'error');
+        })
+        .then(function () { setBusy(btn, false); });
+    });
+  }
+
   var PAGE_INIT = {
+    kontakt: initKontakt,
     login: initLogin,
     registrieren: initRegistrieren,
     'passwort-vergessen': initPasswortVergessen,

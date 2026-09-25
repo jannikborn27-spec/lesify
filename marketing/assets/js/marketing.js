@@ -45,7 +45,8 @@
     { title: 'Service', links: [
       { href: '/login/', label: 'Anmelden' },
       { href: '/preise/', label: 'Preise' },
-      { href: '/preise/', label: 'Kostenlos starten' }
+      { href: '/preise/', label: 'Kostenlos starten' },
+      { href: '/kontakt/', label: 'Kontakt' }
     ]},
     { title: 'Rechtstexte', links: [
       { href: '/impressum/', label: 'Impressum' },
@@ -274,7 +275,7 @@
      invertiertem Farbschema (schwarzer Hintergrund/heller Text statt
      hellem Hintergrund/dunklem Text), sonst 1:1 dasselbe Layout wie auf
      Home/Über uns. */
-  var FOOTER_DARK_PAGES = ['preise', 'impressum', 'datenschutz', 'agb'];
+  var FOOTER_DARK_PAGES = ['preise', 'impressum', 'datenschutz', 'agb', 'kontakt'];
   function buildFooter() {
     var host = document.getElementById('mkt-footer');
     if (!host) return;
@@ -2990,7 +2991,7 @@
     if (v === '9') return lw('faq', v, '<div class="container container--narrow faq-centered">' + headC +
       FAQ.items.map(function (it, i) { return faqDetails('faq-item', i, it); }).join('') + '</div>');
     if (v === '10') return lw('faq', v, '<div class="container faq-ask">' +
-      '<div>' + head + '<p class="faq-ask__cta">Noch offen? <a href="mailto:hallo@lesify.de">Schreib uns</a>.</p></div>' +
+      '<div>' + head + '<p class="faq-ask__cta">Noch offen? <a href="/kontakt/">Schreib uns</a>.</p></div>' +
       '<div class="faq-ask__list">' + FAQ.items.map(function (it, i) { return faqDetails('faq-item', i, it); }).join('') + '</div></div>');
     /* v1 · Bold — kräftige nummerierte Karten, Kreis-Toggle, Kontakt-Fuß */
     return lw('faq', v, '<div class="container container--narrow faq-bold">' +
@@ -3002,7 +3003,7 @@
           '<span class="faq-bcard__tog" aria-hidden="true"></span></summary>' +
           '<div class="faq-bcard__a">' + it.a + '</div></details>';
       }).join('') + '</div>' +
-      '<div class="faq-bold__foot"><b>Noch eine Frage offen?</b><a class="btn btn-secondary" href="mailto:hallo@lesify.de">Schreib uns</a></div></div>');
+      '<div class="faq-bold__foot"><b>Noch eine Frage offen?</b><a class="btn btn-secondary" href="/kontakt/">Schreib uns</a></div></div>');
   }
 
   /* ---------- Abschluss-CTA (cta) ---------- */

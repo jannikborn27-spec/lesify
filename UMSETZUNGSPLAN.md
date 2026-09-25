@@ -150,15 +150,15 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
 
 ### 3. Recht & Texte (Phase 13) — keine Code-Aufgabe, blockiert aber den Launch
 
-- [~] **Impressum / Datenschutzerklärung / AGB** mit echten Angaben füllen
+- [x] **Impressum / Datenschutzerklärung / AGB** mit echten Angaben füllen
       (`marketing/impressum.html`, `datenschutz.html`, `agb.html`) und
-      juristisch prüfen lassen. _2026-09-22: echte Angaben eingetragen
+      juristisch prüfen lassen. _2026-09-25: laut dir erledigt (inkl. Prüfung)._ _2026-09-22: echte Angaben eingetragen
       (Jannik Born, Bergstraße 81, 35418 Buseck, Wirtschafts-ID DE444591259 —
       übernommen aus dem Impressum von aborn-media.de, selbe Person/Kleinunternehmer-Status).
       Datenschutz um Hosting-/Auftragsverarbeiter-Abschnitt (GitHub Pages,
       Railway, Supabase, Resend, Stripe) + Google-Fonts-Hinweis ergänzt. AGB um
       das bislang fehlende Widerrufsrecht + Muster-Widerrufsformular ergänzt.
-      **Weiterhin offen:** juristische Prüfung durch eine:n Anwalt:in._
+      ~~Weiterhin offen: juristische Prüfung~~ — erledigt 2026-09-25._
 - [x] **Entscheidungen 2026-09-23** (Antworten auf die offene Fragenliste):
       Angebotspreis bleibt für Bestandskunden (wer abschließt, zahlt den
       gezeigten Preis); IP-Drosselung beim Login reicht (kein Account-Lockout);
@@ -168,8 +168,9 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       sperren, bei offener Zahlung nur lesen, Löschung nach 30 Tagen;
       Kostenvorschau vor jeder Sitzänderung; Trial-Missbrauch über das
       Zahlungsmittel sperren.
-- [ ] **Auftragsverarbeitungsverträge** mit Anthropic + Sub-Prozessoren
+- [x] **Auftragsverarbeitungsverträge** mit Anthropic + Sub-Prozessoren
       (Supabase, Stripe, Hoster) abschließen, fürs Verarbeitungsverzeichnis.
+      _Laut dir erledigt 2026-09-25 (Recht komplett)._
 - [x] **KI-Nutzungshinweis-Text ergänzt** (2026-09-14): `chat.html`s
       Composer-Hinweis erweitert auf „Lesify kann Fehler machen — prüfe
       wichtige Angaben nach. Antworten sind keine offizielle
@@ -720,8 +721,8 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       **Formular-Seite `marketing/kontakt/` zurückgeholt (Entscheidung
       2026-09-25):** Footer-Link „Kontakt", CTAs auf 404/Über uns/FAQ zeigen
       auf `/kontakt/`, Sitemap-Eintrag, Datenschutz §3 (Kontaktanfragen) + §5
-      (STRATO als Postfach-Anbieter). **Von dir:** Postfach `kontakt@lesify.de`
-      bei STRATO anlegen (Resend verschickt nur, empfängt nicht). Prüfen, ob
+      (STRATO als Postfach-Anbieter). ~~Postfach `kontakt@lesify.de` bei STRATO
+      anlegen~~ — **angelegt 2026-09-25.** Prüfen, ob
       `hallo@lesify.de` (Impressum, AGB-Widerruf) und `datenschutz@lesify.de`
       (Datenschutzerklärung) ebenfalls existieren — sonst als Weiterleitung auf
       `kontakt@` anlegen.
@@ -4489,14 +4490,14 @@ Kritisch, weil Zielgruppe minderjährig ist.
 > müssen (Texte schreiben, Verträge abschließen, juristische Prüfung), bleibt
 > offen und ist in der Schlussliste gesammelt._
 
-- [~] **Impressum / Datenschutzerklärung / AGB** mit echten Angaben füllen
+- [x] **Impressum / Datenschutzerklärung / AGB** mit echten Angaben füllen
       (`marketing/impressum.html`, `datenschutz.html`, `agb.html`) — rechtlich
       prüfen lassen. _Textarbeit + Anwalt, kein Code. 2026-09-22: echte
       Angaben (Jannik Born / Aborn Media-Adresse & Wirtschafts-ID),
       Hosting-/Auftragsverarbeiter-Abschnitt und Widerrufsrecht ergänzt —
-      siehe §3 „Recht & Texte" oben. Anwaltliche Prüfung weiterhin offen._
-- [ ] **Auftragsverarbeitung mit Anthropic** + Sub-Prozessoren (Supabase, Stripe,
-      Hoster) abschließen und ins Verarbeitungsverzeichnis. _Vertragsarbeit._
+      siehe §3 „Recht & Texte" oben. Anwaltliche Prüfung erledigt 2026-09-25._
+- [x] **Auftragsverarbeitung mit Anthropic** + Sub-Prozessoren (Supabase, Stripe,
+      Hoster) abschließen und ins Verarbeitungsverzeichnis. _Erledigt 2026-09-25._
 - [x] **Eltern-/Minderjährigen-Einwilligung im Registrierungsflow** —
       _`POST /auth/registrieren` verlangt `einwilligung: true` (sonst `400`),
       speichert `User.einwilligungAm` als Nachweis. Migration `user_einwilligung`.
@@ -4655,6 +4656,13 @@ Kritisch, weil Zielgruppe minderjährig ist.
       `https://lesify.pages.dev` ergänzen, testen, dann Custom Domain
       `www.lesify.de` + `lesify.de` umziehen und GitHub Pages abschalten.
       Nach ~1 Woche ohne CSP-Meldungen: CSP scharf schalten.
+      **Stand 2026-09-25 abends:** Cloudflare ist nur **Proxy vor GitHub Pages**
+      (Antwort-Header `x-github-request-id`, keine Header aus `_headers`) — der
+      Worker `lesify` hat die Domains noch nicht. Fehlt: Worker → Settings →
+      Domains & Routes → `www.lesify.de` + `lesify.de` als Custom Domain
+      hinzufügen (ersetzt die A/CNAME-Einträge auf GitHub), Redirect-Regel apex
+      → www in Cloudflare, dann GitHub Pages abschalten. Erkennbar am Erfolg:
+      `strict-transport-security` im Header, kein `x-github-request-id` mehr.
 - [ ] **SEO-Sichtbarkeit (2026-09-23 geprüft):** technisch sauber (200,
       indexierbar, Canonical, 301 apex→www, robots.txt + Sitemap ok) — Google
       kennt die Seite nur noch nicht. **Von dir:** Google Search Console
@@ -4666,6 +4674,17 @@ Kritisch, weil Zielgruppe minderjährig ist.
       → IP-Übermittlung an Google ohne Einwilligung (LG München 2022,
       Abmahnrisiko). Fonts als WOFF2 ins Repo, `@font-face` lokal.
 - [ ] **Domain + DNS + TLS** für App und Marketing (EU-Hosting bestätigt).
+      **Geprüft 2026-09-25 (abends, per DNS-over-HTTPS):** Nameserver =
+      Cloudflare ✅, `www`/apex laufen über Cloudflare ✅ (apex → www 301 ✅),
+      MX → STRATO ✅, DMARC `p=reject` ✅, Resend-DKIM + Bounce-MX unter `send` ✅.
+      **Noch falsch/fehlend:** (1) `send.send`-CNAME existiert, ist aber
+      **proxied (orange Wolke)** → auf „DNS only" stellen, sonst sieht Resend
+      den CNAME nicht; dasselbe für `autoconfig`. (2) **Kein SPF-TXT auf
+      `lesify.de`** und **kein STRATO-DKIM** — mit `p=reject` werden Mails, die
+      du aus `kontakt@lesify.de` (STRATO) verschickst/beantwortest, von
+      Gmail & Co. voraussichtlich abgewiesen. SPF-Wert laut STRATO-Hilfe + DKIM
+      im STRATO-Mail-Menü aktivieren und den angezeigten Eintrag in Cloudflare
+      anlegen.
       **2026-09-25: Nameserver bei STRATO auf Cloudflare umgestellt**
       (`ryan`/`sureena.ns.cloudflare.com`, Delegation bei DENIC bestätigt).
       Zone in Cloudflare übernommen (A/www/autoconfig „DNS only", MX/SRV/DMARC,

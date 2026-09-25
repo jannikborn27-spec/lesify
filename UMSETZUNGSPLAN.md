@@ -4650,6 +4650,13 @@ Kritisch, weil Zielgruppe minderjährig ist.
       → IP-Übermittlung an Google ohne Einwilligung (LG München 2022,
       Abmahnrisiko). Fonts als WOFF2 ins Repo, `@font-face` lokal.
 - [ ] **Domain + DNS + TLS** für App und Marketing (EU-Hosting bestätigt).
+      **2026-09-25: Nameserver bei STRATO auf Cloudflare umgestellt**
+      (`ryan`/`sureena.ns.cloudflare.com`, Delegation bei DENIC bestätigt).
+      Zone in Cloudflare übernommen (A/www/autoconfig „DNS only", MX/SRV/DMARC,
+      Resend-MX + DKIM unter `send`). **Fehlt noch:** CNAME `send.send` →
+      `send.forge.rmta.net` (Resend-SPF/Bounce). Seite läuft vorerst weiter von
+      GitHub Pages; nächster Schritt: Worker-Custom-Domains `www.lesify.de` +
+      `lesify.de`, Redirect-Regel apex → www, danach GitHub Pages abschalten.
       (Teilfortschritt: GitHub-Pages-Hosting für `marketing/`+`app/` steht
       bereits, siehe Phase 0 „Interim-Hosting" — fehlt nur noch die
       Custom-Domain-DNS-Eintragung. `api/` braucht separates Hosting,

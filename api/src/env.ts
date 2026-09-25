@@ -1,5 +1,18 @@
 import { z } from 'zod';
 
+// Geheimnisse aus Hosting-Dashboards: beim Kopieren rutschen gern Leerzeichen,
+// Zeilenumbrüche oder Anführungszeichen mit (2026-09-25: KI in Prod lief deshalb
+// evtl. nicht) — hier einheitlich abschneiden.
+const geheimnis = z
+  .string()
+  .transform((v) =>
+    v
+      .trim()
+      .replace(/^["']|["']$/g, '')
+      .trim(),
+  )
+  .optional();
+
 const schema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().positive().default(3000),
@@ -11,11 +24,11 @@ const schema = z.object({
   SESSION_TAGE: z.coerce.number().int().positive().default(7),
   SESSION_TAGE_ANGEMELDET_BLEIBEN: z.coerce.number().int().positive().default(90),
   // Stripe (Phase 9) — optional: fehlt der Key, läuft der Fake-Zahlungsanbieter.
-  STRIPE_SECRET_KEY: z.string().optional(),
-  STRIPE_WEBHOOK_SECRET: z.string().optional(),
+  STRIPE_SECRET_KEY: geheimnis,
+  STRIPE_WEBHOOK_SECRET: geheimnis,
   // Claude API (Phase 6) — optional: fehlt der Key, läuft der Fake-KI-Client
   // (deterministische Platzhalter-Antworten, kein echter Call/Kosten).
-  ANTHROPIC_API_KEY: z.string().optional(),
+  ANTHROPIC_API_KEY: geheimnis,
   // Supabase Storage (Phase 5) — optional: fehlen URL/Service-Key, läuft das
   // deterministische FakeStorageGateway (In-Memory, kein echter Upload) —
   // wie FakeKiClient/FakeZahlungsGateway.
@@ -45,7 +58,7 @@ const schema = z.object({
   KI_DEV_ADAPTER: z.enum(['claude-agent-sdk']).optional(),
   // E-Mail (Phase 10, §5): fehlt der Key, läuft der FakeMailGateway (loggt
   // statt zu versenden — wie FakeKiClient/FakeZahlungsGateway/FakeStorageGateway).
-  RESEND_API_KEY: z.string().optional(),
+  RESEND_API_KEY: geheimnis,
   // Absenderadresse für Double-Opt-in-/Passwort-Reset-Mails. Muss zu einer bei
   // Resend verifizierten Domain gehören, sonst weist Resend den Versand ab.
   EMAIL_ABSENDER: z.string().default('Lesify <no-reply@send.lesify.de>'),
@@ -63,7 +76,7 @@ const schema = z.object({
   // je nach Tooling); in `production` **Pflicht** — ohne sie bleibt CORS zu (fail-closed).
   CORS_ORIGINS: z.string().optional(),
   // Error-Tracking (Sentry, EU-Region) — optional: ohne DSN kein Versand.
-  SENTRY_DSN: z.string().optional(),
+  SENTRY_DSN: geheimnis,
 });
 
 /** Validierte Umgebungsvariablen. Wirft beim Start, wenn Pflichtwerte fehlen. */

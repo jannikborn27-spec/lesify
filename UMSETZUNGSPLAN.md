@@ -264,6 +264,22 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       teilweise erkennbar, Klarna/Amazon Pay gar nicht (Testphase bleibt dort
       möglich). **Mit echtem Stripe (Test-Modus) einmal durchspielen:** Karte
       4242… zweimal mit zwei Konten → zweites Mal Ablehnung.
+- [x] **Bug (2026-09-25, gemeldet & behoben): Kasse meldete bei jeder Karte/
+      E-Mail „Für dieses Konto besteht bereits ein Abo".** Ursache: die Kasse
+      schließt für das **im Browser angemeldete Konto** ab (Sitzung aus
+      früheren Tests, z. B. `eltern@lesify.de`), die Rechnungs-E-Mail im
+      Formular spielt dafür keine Rolle — und zeigte nirgends, welches Konto
+      das ist. Stripe-Test-Daten bestätigen: seit 2026-09-18 keine neue
+      Subscription, die Versuche scheiterten also vor Stripe am `409`. Fix:
+      Kasse zeigt „Abschluss für das Konto … · Anderes Konto verwenden"
+      (meldet ab → Registrierung, Auswahl bleibt erhalten), füllt die
+      Rechnungs-E-Mail vor, sperrt Kinder-Profile, und `abo_vorhanden` bietet
+      „Abo verwalten" / „Mit anderem Konto abschließen". Zweite, gleich
+      gelagerte Schwachstelle mitbehoben: `POST /abo` legt die Abo-Zeile vor der
+      Kartenbestätigung an — ein abgebrochener Versuch (Karte abgelehnt,
+      3-D-Secure zu) blockierte das Konto dauerhaft. Jetzt räumt ein neuer
+      Versuch einen Abschluss ohne Zahlungsmittel automatisch ab
+      (`abschlussAbgebrochen`). Test in `abo.test.ts`, Browser-Durchlauf lokal.
 - [x] **Kinder ohne E-Mail einloggen — entschieden + umgesetzt 2026-09-25:**
       `User.benutzername` (Migration `20260925120000_kind_benutzername`, Dev
       angewandt — **Prod über den nächsten Deploy/`prod-migrate.sh`**), `POST

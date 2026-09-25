@@ -137,7 +137,21 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
       }
       const bestehendes = await eigenesAbo(req.userId);
       if (bestehendes && istAktuellesAboBlockierend(bestehendes)) {
-        throw new HttpError(409, 'abo_vorhanden');
+        // Ein abgebrochener Abschluss (nie ein Zahlungsmittel hinterlegt) ist
+        // kein echtes Abo — aufräumen und neu anlegen statt 409 (Bug 2026-09-25).
+        const ref = bestehendes.zahlungsanbieterRef ?? bestehendes.id;
+        const abgebrochen =
+          ['test', 'zahlung_offen'].includes(bestehendes.status) &&
+          // Seed-/Alt-Abos ohne echte Stripe-Subscription → Fehler = „nicht abgebrochen"
+          (await zahlung.abschlussAbgebrochen(ref).catch(() => false));
+        if (!abgebrochen) throw new HttpError(409, 'abo_vorhanden');
+        await zahlung.subscriptionSofortBeenden(ref).catch((err) => {
+          req.log.warn({ err, ref }, 'abgebrochenes_abo_beenden_fehlgeschlagen');
+        });
+        await prisma.$transaction([
+          prisma.user.updateMany({ where: { aboId: bestehendes.id }, data: { aboId: null } }),
+          prisma.abo.delete({ where: { id: bestehendes.id } }),
+        ]);
       }
 
       const preis = aboPreis({ paket: body.paket, art, sitze, intervall: body.intervall });

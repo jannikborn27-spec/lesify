@@ -1957,6 +1957,13 @@ select.input {
 .co-message--error { background: var(--rot-bg); color: var(--rot); }
 .co-message--info { background: var(--ink-50); color: var(--ink-700); border: 1px solid var(--line); }
 .co-message--success { background: var(--gruen-bg); color: var(--gruen); }
+
+/* Kasse: mit welchem Konto wird abgeschlossen (Bug 2026-09-25 — die Kasse
+   nahm stillschweigend das zuletzt angemeldete Konto). */
+.co-konto { margin: 0 0 18px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 10px; font-size: 0.9rem; color: var(--ink-700); }
+.co-konto b { color: var(--ink-950); }
+.co-konto--fehler { border-color: var(--rot); color: var(--rot); }
+.co-konto button { background: none; border: 0; padding: 0; font: inherit; color: var(--ink-950); text-decoration: underline; cursor: pointer; }
 .co-message a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
 
 #submit { margin-top: 20px; position: relative; }

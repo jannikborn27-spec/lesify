@@ -812,3 +812,39 @@ describe.runIf(hatDb)('Kind-Zugang ohne E-Mail: Benutzername (Entscheidung 2026-
     expect(res.statusCode).toBe(200);
   });
 });
+
+describe.runIf(hatDb)('abo — abgebrochener Abschluss blockiert nicht (Bug 2026-09-25)', () => {
+  const zahlung = new FakeZahlungsGateway();
+  const app = buildApp({ logger: false, zahlung });
+  let token = '';
+  const auth = () => ({ authorization: `Bearer ${token}` });
+  const anlegen = () =>
+    app.inject({
+      method: 'POST',
+      url: '/abo',
+      headers: auth(),
+      payload: { paket: 'premium', intervall: 'monatlich' },
+    });
+
+  beforeAll(async () => {
+    await app.ready();
+    token = await registriereUndLogin(app, `abbruch+${crypto.randomUUID()}@abo.lesify.test`);
+  });
+
+  it('Kasse ohne Zahlungsmittel abgebrochen → neuer Versuch räumt auf und legt neu an', async () => {
+    const erster = await anlegen();
+    expect(erster.statusCode).toBe(201);
+    zahlung.abgebrochen.add(erster.json().subscriptionId);
+
+    const zweiter = await anlegen();
+    expect(zweiter.statusCode).toBe(201);
+    expect(zweiter.json().id).not.toBe(erster.json().id);
+    const prisma = getPrisma();
+    expect(await prisma.abo.findUnique({ where: { id: erster.json().id } })).toBeNull();
+
+    // mit hinterlegtem Zahlungsmittel bleibt es beim 409
+    const dritter = await anlegen();
+    expect(dritter.statusCode).toBe(409);
+    expect(dritter.json().fehler).toBe('abo_vorhanden');
+  });
+});

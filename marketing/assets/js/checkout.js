@@ -36,6 +36,40 @@
     return;
   }
 
+  // Angemeldetes Konto anzeigen (Bug 2026-09-25): die Kasse schließt für das
+  // Konto ab, dessen Sitzung im Browser liegt — nicht für die Rechnungs-E-Mail
+  // im Formular. Ohne diese Zeile landete man nach früheren Tests unbemerkt im
+  // alten Konto (→ „bereits ein Abo"). Veraltete Sitzung → zur Registrierung.
+  function abmeldenUndNeu() {
+    try { localStorage.removeItem(TOKEN_KEY); } catch (e) { /* privater Modus */ }
+    location.href = '/registrieren/' + location.search;
+  }
+  var kontoEmail = '';
+  fetch(API_BASE + '/auth/me', { headers: { Authorization: 'Bearer ' + sessionToken() } })
+    .then(function (r) {
+      if (r.status === 401) { abmeldenUndNeu(); return null; }
+      return r.ok ? r.json() : null;
+    })
+    .then(function (d) {
+      if (!d || !d.user) return;
+      var u = d.user;
+      kontoEmail = u.email || u.benutzername || '';
+      var el = document.getElementById('co-konto');
+      el.hidden = false;
+      el.innerHTML = 'Abschluss für das Konto <b></b> · <button type="button">Anderes Konto verwenden</button>';
+      el.querySelector('b').textContent = kontoEmail;
+      el.querySelector('button').addEventListener('click', abmeldenUndNeu);
+      var mail = document.getElementById('co-email');
+      if (mail && !mail.value && u.email) mail.value = u.email;
+      if (u.rolle !== 'elternteil') {
+        el.classList.add('co-konto--fehler');
+        el.insertAdjacentHTML('beforeend', '<br>Das ist ein Kinder-Profil — ein Abo schließen nur Eltern ab. Bitte mit dem Elternkonto anmelden.');
+        var btn = document.querySelector('#payment-form button[type="submit"]');
+        if (btn) btn.disabled = true;
+      }
+    })
+    .catch(function () { /* API nicht erreichbar — Absenden zeigt den Fehler */ });
+
   var params = new URLSearchParams(location.search);
   // Abschluss ohne Testphase — nach „Zahlungsmittel hatte schon eine
   // Testphase" (Entscheidung 2026-09-23: Testphase einmal je Zahlungsmittel).
@@ -294,9 +328,20 @@
         // Echter Fehlercode landet in der Konsole (Popup bleibt bewusst generisch) —
         // z. B. `kein_client_secret`, wenn Stripe keinen SetupIntent ausstellt.
         console.error('[checkout] Abo/Zahlung fehlgeschlagen:', err);
-        message(err && err.message === 'abo_vorhanden'
-          ? 'Für dieses Konto besteht bereits ein Abo.'
-          : 'Die Zahlung konnte nicht abgeschlossen werden. Bitte später erneut versuchen.', 'error');
+        if (err && err.message === 'abo_vorhanden') {
+          var el = $('payment-message');
+          el.className = 'co-message is-visible co-message--error';
+          el.innerHTML = 'Das Konto <b></b> hat bereits ein Abo. ' +
+            '<a href="/app/eltern-abo.html">Abo verwalten</a> · ' +
+            '<a href="#" data-anderes-konto>Mit anderem Konto abschließen</a>';
+          el.querySelector('b').textContent = kontoEmail || 'mit dem du angemeldet bist';
+          el.querySelector('[data-anderes-konto]').addEventListener('click', function (ev) {
+            ev.preventDefault();
+            abmeldenUndNeu();
+          });
+        } else {
+          message('Die Zahlung konnte nicht abgeschlossen werden. Bitte später erneut versuchen.', 'error');
+        }
         setLoading(false);
       });
     });

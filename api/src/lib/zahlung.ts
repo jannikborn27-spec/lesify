@@ -96,6 +96,14 @@ export interface ZahlungsGateway {
    */
   zahlungsmittelKennung(ref: string): Promise<string | null>;
   /**
+   * Abgebrochener Abschluss: Subscription steht noch am Anfang (`trialing`/
+   * `incomplete`), aber es wurde **nie ein Zahlungsmittel** hinterlegt (Karte
+   * abgelehnt, 3-D-Secure abgebrochen, Tab geschlossen). `POST /abo` legt die
+   * Abo-Zeile schon vor der Kartenbestätigung an — ohne diese Prüfung blockierte
+   * ein einziger Fehlversuch jeden weiteren (Bug 2026-09-25).
+   */
+  abschlussAbgebrochen(ref: string): Promise<boolean>;
+  /**
    * URL einer Stripe-Billing-Portal-Sitzung: Zahlungsmethode ändern, offene
    * Rechnung bezahlen, Belege laden. Braucht im Stripe-Dashboard einmalig eine
    * gespeicherte Portal-Konfiguration (Settings → Billing → Customer portal).
@@ -189,6 +197,13 @@ export class FakeZahlungsGateway implements ZahlungsGateway {
 
   async zahlungsmittelKennung(ref: string): Promise<string | null> {
     return this.kennungen.get(ref) ?? null;
+  }
+
+  /** Tests markieren hier Subscriptions, deren Kasse abgebrochen wurde. */
+  readonly abgebrochen = new Set<string>();
+
+  async abschlussAbgebrochen(ref: string): Promise<boolean> {
+    return this.abgebrochen.has(ref);
   }
 
   async zahlungsportalUrl(_ref: string, rueckkehrUrl: string): Promise<string> {
@@ -465,6 +480,15 @@ export class StripeZahlungsGateway implements ZahlungsGateway {
       return `paypal:${paypal.payer_id ?? paypal.payer_email}`;
     }
     return null;
+  }
+
+  async abschlussAbgebrochen(ref: string): Promise<boolean> {
+    const sub = await this.stripe.subscriptions.retrieve(ref);
+    if (!['trialing', 'incomplete', 'incomplete_expired'].includes(sub.status)) return false;
+    if (sub.default_payment_method) return false;
+    const customer = typeof sub.customer === 'string' ? sub.customer : sub.customer.id;
+    const pms = await this.stripe.customers.listPaymentMethods(customer, { limit: 1 });
+    return pms.data.length === 0;
   }
 
   async aenderungVorschau(ref: string, input: VorschauInput): Promise<Vorschau> {

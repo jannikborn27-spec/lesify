@@ -43,6 +43,13 @@ drankommt. Häk die Zeile ab, sobald sie geklärt ist; bei „ich brauche X von
 dir" trag die Antwort direkt in die Zeile ein oder sag mir Bescheid, dann
 setze ich sie um.
 
+> **Seit 2026-09-26:** Alles Testen/Verifizieren (Kasse-Bug, E2E, Seed-Parität,
+> A11y-Rest, Lasttest, Job-Logs) und die Umstellung auf **Stripe Live** sind in
+> der **„Schlussrunde vor dem Launch"** (Phase 16, direkt vor der
+> Launch-Checkliste) gebündelt — ein kompletter Testdurchgang durch dich, erst
+> wenn alles andere steht. Verschobene Zeilen hier und in den Phasen sind mit
+> `[→]` markiert.
+
 ### 0. KI — Entscheidungen (2026-09-23)
 
 - [x] **Modelle:** Haiku 4.5 für alle Calls, **Sonnet 5 nur für die
@@ -3130,6 +3137,12 @@ Blockiert alles Weitere. Erst die offenen Produktfragen klären, dann bauen.
       Kombinationen zwischen ~320px (v1) und ~610px (breiteste
       Kombination), mobil (375px) einheitlich und unverändert über
       alle Varianten, keine Konsolenfehler.
+- [x] **Entscheidung 2026-09-26 — Testen + Stripe Live ans Ende:** kein
+      verteiltes Testen mehr zwischendurch. Alle Test-/Verifikationspunkte und
+      der Stripe-Live-Wechsel sind in der „Schlussrunde vor dem Launch"
+      (Phase 16) gebündelt; vor dem Launch macht der Nutzer **einen**
+      vollständigen Testdurchgang (gegen Produktion im Stripe-Test-Modus),
+      danach Fixes → Stripe Live → Launch.
 
 ---
 

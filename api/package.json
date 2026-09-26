@@ -17,6 +17,7 @@
     "ki:smoke": "tsx src/lib/ki/smoke.ts",
     "ki:eval": "tsx src/lib/ki/eval.ts",
     "ki:kosten": "tsx src/lib/ki/kostenbericht.ts",
+    "passwort:sql": "tsx src/tools/passwort-sql.ts",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run --passWithNoTests",
     "db:generate": "prisma generate",

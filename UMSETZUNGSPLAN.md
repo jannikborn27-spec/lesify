@@ -684,6 +684,11 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       zeigt auf die **Dev-DB** (`sulfsxsihrqdhwvaacfx`), nicht auf Produktion —
       die Seeds liefen dort. Offen: in der Prod-DB prüfen, ob die beiden Konten
       existieren (SQL-Editor), falls ja löschen/Passwort ändern._
+      _2026-09-26: `eltern@lesify.de` existiert in Prod → **bleibt für den
+      Volltest**, wird erst vor dem Launch gelöscht. Passwort jetzt neu setzen
+      ohne Postfach: `pnpm --filter @lesify/api passwort:sql eltern@lesify.de`
+      (fragt verdeckt, gibt nur argon2id-Hash + SQL aus, beendet alle Sessions)
+      → im Supabase-SQL-Editor des Prod-Projekts ausführen._
 - [ ] **Anthropic-Produktions-Key mit Budget-Limit** — weiterhin deine
       Entscheidung/dein Account (Anthropic-Konsole: Key erzeugen, Budget-Cap
       setzen, dann `ANTHROPIC_API_KEY` bei Railway eintragen; ohne Key läuft

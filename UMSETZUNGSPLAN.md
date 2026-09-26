@@ -4679,7 +4679,7 @@ Kritisch, weil Zielgruppe minderjährig ist.
       noindex`, CORS-Preflight der API für `https://www.lesify.de` ok (204).
       `.github/workflows/pages.yml` entfernt. **Offen:** GitHub Pages im Repo
       abschalten (Settings → Pages); Cloudflare-Auto-Deploy bei Push
-      (Workers Builds) beim nächsten Marketing-/App-Commit bestätigen; CSP
+      (Workers Builds) ✅ bestätigt 2026-09-26; CSP
       nach ~1 Woche ohne Meldungen scharf schalten (eigene Zeile unten).
       _Historie:_ **Stand 2026-09-25 abends:** Cloudflare ist nur **Proxy vor GitHub Pages**
       (Antwort-Header `x-github-request-id`, keine Header aus `_headers`) — der

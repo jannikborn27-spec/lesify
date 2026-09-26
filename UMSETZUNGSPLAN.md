@@ -698,10 +698,12 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       vergessen" (Mail) ändern; Kinder ohne E-Mail nur über die Eltern. Kleiner
       Endpunkt (`POST /auth/passwort-aendern`, altes + neues Passwort, andere
       Sessions beenden) + Formular in `einstellungen.html`. Nicht launch-kritisch.
-- [ ] **Anthropic-Produktions-Key mit Budget-Limit** — weiterhin deine
-      Entscheidung/dein Account (Anthropic-Konsole: Key erzeugen, Budget-Cap
-      setzen, dann `ANTHROPIC_API_KEY` bei Railway eintragen; ohne Key läuft
-      weiter der `FakeKiClient`, kein Blocker).
+- [x] **Anthropic-Produktions-Key mit Budget-Limit** — _erledigt 2026-09-25:
+      Key bei Railway gesetzt (`/health` zeigt `ki.adapter: anthropic`); das
+      Budget-Limit ist bis nach der Testphase das Prepaid-Guthaben ohne
+      Auto-Reload (Entscheidung 2026-09-23, §0 oben). Danach: Auto-Reload +
+      Monatslimit in der Konsole._ Ursprünglich: Anthropic-Konsole: Key erzeugen, Budget-Cap
+      setzen, dann `ANTHROPIC_API_KEY` bei Railway eintragen.
       **Technischer Teil erledigt (2026-09-14):** `pnpm dev` lud `api/.env`
       bisher gar nicht (nur die Testsuite tat das über `vitest.setup.ts`) —
       `api/src/index.ts` importiert jetzt `dotenv/config` als allerersten

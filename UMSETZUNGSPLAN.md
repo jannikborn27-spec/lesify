@@ -4694,7 +4694,7 @@ Kritisch, weil Zielgruppe minderjährig ist.
       → `….strato.de` (STRATO-weite Schlüssel, identisch zu `aborn-media.de`,
       folgen Rotationen automatisch). Bewusst **kein SPF** auf `lesify.de`
       (STRATO setzt standardmäßig keins; DMARC besteht über DKIM-Alignment).
-      Offen nur: Test-Mail `kontakt@` → Gmail, „Original anzeigen" = DKIM/DMARC PASS._
+      Test 2026-09-26: Mail von `kontakt@` über mail-tester.com → **10/10**, DKIM gültig, DMARC bestanden._
       _Hinweis unten („Noch falsch/fehlend") ist damit historisch._
       **Geprüft 2026-09-25 (abends, per DNS-over-HTTPS):** Nameserver =
       Cloudflare ✅, `www`/apex laufen über Cloudflare ✅ (apex → www 301 ✅),

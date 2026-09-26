@@ -38,8 +38,11 @@ geplant`, **Cron Schedule** `0 * * * *`, Restart Policy **Never**.
    „Shared Variables" oder Raw Editor kopieren) — mindestens `DATABASE_URL`,
    `SUPABASE_*`, `STRIPE_SECRET_KEY`, `RESEND_API_KEY`, `EMAIL_ABSENDER`,
    `MARKETING_URL`, `SENTRY_DSN`, `NODE_ENV=production`.
-5. Prüfen: Deployments → der Lauf zur vollen Stunde zeigt eine JSON-Zeile
-   `{"job":"token-hygiene",…}` und endet mit Exit 0.
+5. Prüfen: Deployments → der Lauf zur vollen Stunde zeigt „Wartungslauf
+   startet: token-hygiene", „Job token-hygiene fertig (… ms): {…}" und
+   „Wartungslauf beendet" (JSON-Logs mit `message`-Feld, Railway zeigt sonst
+   leere Zeilen) und endet mit Exit 0. Die Warnung „Node.js 20 and below are
+   deprecated" von supabase-js ist vorerst harmlos.
 
 **Migrationen automatisch beim Deploy** (ersetzt `scripts/prod-migrate.sh`
 vor jedem Push): im **API-Service** → Settings → Deploy → **Pre-deploy

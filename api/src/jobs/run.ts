@@ -35,6 +35,9 @@ async function main(): Promise<void> {
         ? geplanteJobs()
         : [arg as JobName];
 
+  // Railway liest einzeilige JSON-Logs als strukturierte Logs und zeigt nur das
+  // Feld `message` an — ohne `message` erscheint dort eine leere Zeile.
+  log(`Wartungslauf startet: ${namen.join(', ')}`, { jobs: namen });
   for (const name of namen) {
     const job = JOBS[name];
     if (!job) {
@@ -43,9 +46,19 @@ async function main(): Promise<void> {
     }
     const start = Date.now();
     const ergebnis = await job(prisma);
-    console.log(JSON.stringify({ job: name, dauerMs: Date.now() - start, ...ergebnis }));
+    const dauerMs = Date.now() - start;
+    log(`Job ${name} fertig (${dauerMs} ms): ${JSON.stringify(ergebnis)}`, {
+      job: name,
+      dauerMs,
+      ...ergebnis,
+    });
   }
   await prisma.$disconnect();
+  log('Wartungslauf beendet');
+}
+
+function log(message: string, felder: Record<string, unknown> = {}): void {
+  console.log(JSON.stringify({ message, level: 'info', ...felder }));
 }
 
 main().catch(async (err) => {

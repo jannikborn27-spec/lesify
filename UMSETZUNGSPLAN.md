@@ -4686,10 +4686,16 @@ Kritisch, weil Zielgruppe minderjährig ist.
       und `app/style.css` laden Outfit/Hanken Grotesk von fonts.googleapis.com
       → IP-Übermittlung an Google ohne Einwilligung (LG München 2022,
       Abmahnrisiko). Fonts als WOFF2 ins Repo, `@font-face` lokal.
-- [~] **Domain + DNS + TLS** für App und Marketing (EU-Hosting bestätigt).
+- [x] **Domain + DNS + TLS** für App und Marketing (EU-Hosting bestätigt).
       _2026-09-26: Web-Teil erledigt (Worker-Custom-Domains + TLS von
-      Cloudflare). Offen nur noch Mail-DNS: `send.send` + `autoconfig` auf
-      „DNS only", SPF-TXT auf `lesify.de`, STRATO-DKIM (siehe unten)._
+      Cloudflare). Mail-DNS erledigt + live geprüft: `send.send` →
+      `send.forge.rmta.net` und `autoconfig` → `autoconfigure.strato.de` jetzt
+      „DNS only"; STRATO-DKIM als CNAMEs `strato-dkim-0002`/`-0003._domainkey`
+      → `….strato.de` (STRATO-weite Schlüssel, identisch zu `aborn-media.de`,
+      folgen Rotationen automatisch). Bewusst **kein SPF** auf `lesify.de`
+      (STRATO setzt standardmäßig keins; DMARC besteht über DKIM-Alignment).
+      Offen nur: Test-Mail `kontakt@` → Gmail, „Original anzeigen" = DKIM/DMARC PASS._
+      _Hinweis unten („Noch falsch/fehlend") ist damit historisch._
       **Geprüft 2026-09-25 (abends, per DNS-over-HTTPS):** Nameserver =
       Cloudflare ✅, `www`/apex laufen über Cloudflare ✅ (apex → www 301 ✅),
       MX → STRATO ✅, DMARC `p=reject` ✅, Resend-DKIM + Bounce-MX unter `send` ✅.

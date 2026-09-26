@@ -673,7 +673,7 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       mit Platzhalter-Text. `ANTHROPIC_API_KEY` bei Railway setzen. Seit
       2026-09-25 zeigt `/health` den Adapter an, und der Start loggt
       `kiFakeClientInProd`, falls der Key fehlt.
-- [ ] **Test-Zugänge vor Launch absichern:** `eltern@lesify.de` /
+- [x] **Test-Zugänge vor Launch absichern:** `eltern@lesify.de` /
       `dev@lesify.de` haben Passwörter, die im (öffentlichen) Repo stehen
       (`api/prisma/seed-*.ts`) — vor dem Launch in Prod löschen oder Passwort
       ändern.
@@ -684,11 +684,20 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       zeigt auf die **Dev-DB** (`sulfsxsihrqdhwvaacfx`), nicht auf Produktion —
       die Seeds liefen dort. Offen: in der Prod-DB prüfen, ob die beiden Konten
       existieren (SQL-Editor), falls ja löschen/Passwort ändern._
-      _2026-09-26: `eltern@lesify.de` existiert in Prod → **bleibt für den
-      Volltest**, wird erst vor dem Launch gelöscht. Passwort jetzt neu setzen
-      ohne Postfach: `pnpm --filter @lesify/api passwort:sql eltern@lesify.de`
-      (fragt verdeckt, gibt nur argon2id-Hash + SQL aus, beendet alle Sessions)
-      → im Supabase-SQL-Editor des Prod-Projekts ausführen._
+      _**Erledigt 2026-09-26:** In der Prod-DB existiert nur `dev@lesify.de`
+      (Passwort nie im Repo) — `eltern@lesify.de` gibt es dort **nicht**, es
+      war nur in der Dev-DB geseedet. Nichts zu tun. Für den Volltest frisch
+      über die Website registrieren (testet Registrierung + Mail + Kasse mit).
+      Neues Werkzeug für Konten ohne Postfach:
+      `pnpm --filter @lesify/api passwort:sql <email>` (verdeckte Eingabe, gibt
+      argon2id-Hash + SQL aus; Ausgabe mit `| pbcopy` direkt in die
+      Zwischenablage, sonst kann der Terminal-Zeilenumbruch den Hash beim
+      Kopieren zerstören)._
+- [ ] **Idee: „Passwort ändern" in den Einstellungen** (aufgefallen 2026-09-26):
+      eingeloggte Nutzer können ihr Passwort bisher nur über „Passwort
+      vergessen" (Mail) ändern; Kinder ohne E-Mail nur über die Eltern. Kleiner
+      Endpunkt (`POST /auth/passwort-aendern`, altes + neues Passwort, andere
+      Sessions beenden) + Formular in `einstellungen.html`. Nicht launch-kritisch.
 - [ ] **Anthropic-Produktions-Key mit Budget-Limit** — weiterhin deine
       Entscheidung/dein Account (Anthropic-Konsole: Key erzeugen, Budget-Cap
       setzen, dann `ANTHROPIC_API_KEY` bei Railway eintragen; ohne Key läuft

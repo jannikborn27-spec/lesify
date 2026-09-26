@@ -3736,7 +3736,9 @@ bis das Thema wieder aufgemacht wird.
       implizit über den `Usage.monat`-Schlüssel (Phase 8). `usage-historie`
       räumt nur die Altlasten weg._
 - [~] **Scheduler + Monitoring** — _**Code erledigt 2026-09-25:** ein stündlicher
-      Railway-Cron (`job:prod geplant`, `geplanteJobs()` in `lib/jobs.ts`):
+      Railway-Cron (`job:prod geplant`, `geplanteJobs()` in `lib/jobs.ts`)
+      — **Service `lesify-jobs` angelegt 2026-09-26** (Cron `0 * * * *`, Restart
+      Never, Variablen vom API-Service kopiert; erster Lauf-Log noch zu prüfen):
       `token-hygiene` stündlich, alle anderen Jobs täglich 03 Uhr UTC; Fehler →
       Exit 1 + Sentry. **Von dir:** Cron-Service `lesify-jobs` in Railway
       anlegen (Anleitung `docs/RUNBOOK.md` „Wartungs-Jobs"). War bis dahin in
@@ -4737,7 +4739,7 @@ Kritisch, weil Zielgruppe minderjährig ist.
       live verifiziert (neue Endpunkte, DB, CORS). Heißt auch: API-Änderungen
       der Tage davor waren möglicherweise nie live — mit diesem Deploy ist
       alles auf `main`-Stand.
-- [~] **Migrationen automatisch beim Deploy (2026-09-25 vorbereitet):** Railway
+- [x] **Migrationen automatisch beim Deploy (2026-09-25 vorbereitet, 2026-09-26 eingerichtet — Pre-deploy + `DIRECT_URL` gesetzt, Deploy lief durch, `/health` ok; `scripts/prod-migrate.sh` vor dem Push nicht mehr nötig):** Railway
       Pre-deploy Command `pnpm --filter @lesify/api db:deploy` + Variable
       `DIRECT_URL` — **von dir** einzutragen (`docs/RUNBOOK.md`). Danach ist
       `scripts/prod-migrate.sh` vor dem Push nicht mehr nötig.

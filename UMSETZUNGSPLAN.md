@@ -450,7 +450,7 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       {Datum} — dafür noch M Kind-Profil(e) entfernen", solange
       `geplanteSitze != null`. Live verifiziert (4→2 Sitze mit 3 belegten
       Plätzen).
-- [ ] **Untersucht, nicht code-seitig behebbar (2026-09-17):** beim
+- [→] _(verschoben → Schlussrunde, Phase 16)_ **Untersucht, nicht code-seitig behebbar (2026-09-17):** beim
       automatisierten Durchklicken tauchte wiederholt ein leeres Stripe
       Payment Element auf (Karten-/Zahlungsart-Felder unsichtbar, obwohl im
       DOM korrekt mit passender Höhe gemountet). `elements.submit()` meldete
@@ -471,7 +471,7 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       usw.) dauerhaft unsynchronisiert. Lokal mit `stripe listen
       --forward-to localhost:3000/abo/webhook` gegenprüfbar (CLI ist
       installiert, `stripe v1.50.11`), aber nicht Teil dieser QA-Runde.
-- [ ] **Offen, keine Code-Aufgabe:** Job `abo-geplante-aenderungen`
+- [→] _(verschoben → Schlussrunde, Phase 16)_ **Offen, keine Code-Aufgabe:** Job `abo-geplante-aenderungen`
       (Sitzverringerung zum Periodenende) wurde isoliert erfolgreich gegen
       die echte DB getestet (4→3 Sitze korrekt übernommen, sobald
       `aktuellerZeitraumEnde` erreicht **und** genug Kind-Profile entfernt
@@ -479,7 +479,7 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       „Scheduler + Monitoring" weiter unten, weiterhin offen) wendet ihn
       nie jemand automatisch an. Gehört vor Launch mit auf die
       Scheduler-Checkliste, nicht nur als Job-Code.
-- [ ] **Bug (2026-09-16, gemeldet): Kasse scheitert mit „Die Zahlung konnte
+- [→] _(verschoben → Schlussrunde, Phase 16)_ **Bug (2026-09-16, gemeldet): Kasse scheitert mit „Die Zahlung konnte
       nicht abgeschlossen werden" nach dem Absenden der Kartendaten.**
       Untersucht, zwei Änderungen gemacht, **Ursache aber noch nicht
       abschließend bestätigt** — dein nächster Test entscheidet:
@@ -665,7 +665,7 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       Weiterhin offen, reine Geschäftsentscheidung: Angebotsdauer/
       -verlängerung, ob der Rabattpreis dauerhaft an den Vertrag gebunden
       bleibt.
-- [ ] **Stripe Live-Modus** + Rechnungsstellung + Umgang mit fehlgeschlagenen
+- [→] _(verschoben → Schlussrunde, Phase 16)_ **Stripe Live-Modus** + Rechnungsstellung + Umgang mit fehlgeschlagenen
       Zahlungen (Retry/Mahnlogik) — eigener Schritt nach dem Test-Modus oben,
       sinnvoll erst wenn die Preis-Feinheiten (siehe oben) final sind.
 - [x] **Anthropic-Key fehlt in Produktion (festgestellt 2026-09-25, behoben 2026-09-25 — workspace-gebundener Key bei Railway, KI live):**
@@ -3688,7 +3688,7 @@ Der gesamte abgeleitete Zustand muss **bit-genau** zu `data.js` passen.
 - [x] **Stripe-Konto (Test-Modus):** _bereits vorhanden, Secret Key liefert
       echte Test-Mode-Objekte (siehe oben). Produkte legen sich selbst an,
       kein manueller Preis-Katalog nötig (dynamisches `price_data`)._
-- [ ] **Stripe-Konto Live-Modus** + Umschalten auf Live-Keys, Rechnungsstellung.
+- [→] _(verschoben → Schlussrunde, Phase 16)_ **Stripe-Konto Live-Modus** + Umschalten auf Live-Keys, Rechnungsstellung.
       _Ops-Schritt, sinnvoll erst mit öffentlich gehostetem `api/` (Phase 16)._
 - [x] **Trial-Modell (Phase 0):** _`POST /abo` legt über `zahlung.subscriptionAnlegen`
       sofort ein Trial-Abo an (`status = test`, `trialEndetAm = +14 Tage`,
@@ -3717,7 +3717,7 @@ Der gesamte abgeleitete Zustand muss **bit-genau** zu `data.js` passen.
       gedeckelt auf `Abo.sitze` → `409 sitze_ausgeschoepft`. `DELETE` → `User`-Zeile
       weg → **Cascade löscht alle Inhalte des Sitzes.** Einladungs-/Passwort-Flow
       Phase 12._
-- [ ] **Rechnungsstellung** + Umgang mit fehlgeschlagenen Zahlungen (Retry,
+- [→] _(verschoben → Schlussrunde, Phase 16)_ **Rechnungsstellung** + Umgang mit fehlgeschlagenen Zahlungen (Retry,
       Mahnlogik, ~~Zugriff bei `zahlung_offen`~~ — gebaut 2026-09-23, siehe
       „Zugriffssperre" oben; offen: Stripe-Retry-/Mail-Einstellungen). _Braucht echtes Stripe-Adapter →
       Phase 16._
@@ -3743,7 +3743,7 @@ bis das Thema wieder aufgemacht wird.
 > (Hosting-Cron / Supabase `pg_cron` / Worker) bleibt ein Ops-Schritt für
 > Phase 16._
 
-- [ ] **Stripe-Mails konfigurieren** (Beleg-/Zahlungs-/Kündigungs-Mails im
+- [→] _(verschoben → Schlussrunde, Phase 16)_ **Stripe-Mails konfigurieren** (Beleg-/Zahlungs-/Kündigungs-Mails im
       Stripe-Dashboard aktivieren, Wording prüfen). _Ops, Phase 16._
 - [x] **Double-Opt-in-/Reset-Versand** — _siehe Abschnitt „E-Mail-Versand" oben:
       Resend über `api/src/lib/mailer.ts`, seit 2026-09-17._
@@ -3758,7 +3758,7 @@ bis das Thema wieder aufgemacht wird.
 - [x] **Usage-Reset** — _kein eigener Job nötig: der Monatszähler resettet
       implizit über den `Usage.monat`-Schlüssel (Phase 8). `usage-historie`
       räumt nur die Altlasten weg._
-- [~] **Scheduler + Monitoring** — _**Code erledigt 2026-09-25:** ein stündlicher
+- [~] **Scheduler + Monitoring** _(Log-Bestätigung → Schlussrunde, Phase 16)_ — _**Code erledigt 2026-09-25:** ein stündlicher
       Railway-Cron (`job:prod geplant`, `geplanteJobs()` in `lib/jobs.ts`)
       — **Service `lesify-jobs` angelegt 2026-09-26** (Cron `0 * * * *`, Restart
       Never, Variablen vom API-Service kopiert). Erste Läufe 09:03/10:01 UTC:
@@ -4423,7 +4423,7 @@ sonst unverändert.
       Testklausur-Phasen-Umschalter komplett raus, dazu der bisher nicht
       gelistete Über-uns-Hero-Umschalter final auf v2. Details siehe
       Abschnitt 7 oben.
-- [ ] **Seed-Parität prüfen:** angebundene App auf `staging` == Prototyp mit
+- [→] _(verschoben → Schlussrunde, Phase 16)_ **Seed-Parität prüfen:** angebundene App auf `staging` == Prototyp mit
       `SEED`. _Braucht ein laufendes `staging` (Phase 16) — noch nicht
       erreichbar._
 
@@ -4576,7 +4576,7 @@ Kritisch, weil Zielgruppe minderjährig ist.
       1920px visuell geprüft (Marketing + App). Offen: echte
       API-Daten/Leer-/Fehlerzustände (braucht laufende API), Mockup-interne
       Mini-Schriften auf der Landing (bewusst belassen)._
-- [ ] **End-to-End-Test der Kern-Flows gegen `staging`** — _Checkliste in
+- [→] _(verschoben → Schlussrunde, Phase 16)_ **End-to-End-Test der Kern-Flows gegen `staging`** — _Checkliste in
       `docs/QS-CHECKLISTE.md` §2; braucht laufendes `staging` (Phase 16)._
 - [x] **KI-Calls mit aufgezeichneten Fixtures** (2026-09-23) — _`KI_FIXTURES_AUFNEHMEN=1
       pnpm --filter @lesify/api ki:smoke` schneidet echte Antworten mit
@@ -4587,7 +4587,7 @@ Kritisch, weil Zielgruppe minderjährig ist.
       **`pnpm --filter @lesify/api ki:eval`**: 4 feste Bewertungsfälle für die
       Testklausur-Analyse mit Soll-Bereichen (~4 ct/Lauf, Stand 4/4 ✓) — nach
       jeder Prompt-/Modelländerung an Call 11 laufen lassen._
-- [ ] **Lasttest** der teuren Pfade — _Ziele in `docs/QS-CHECKLISTE.md` §4;
+- [→] _(verschoben → Schlussrunde, Phase 16)_ **Lasttest** der teuren Pfade — _Ziele in `docs/QS-CHECKLISTE.md` §4;
       braucht `staging` + echte KI._
 - [x] **Sicherheitsreview (Stand-Tabelle)** — _`docs/QS-CHECKLISTE.md` §3: Auth,
       Scoping (getestet), Injection, Secrets, Webhook-HMAC (Phase 9,
@@ -4596,7 +4596,7 @@ Kritisch, weil Zielgruppe minderjährig ist.
       (2026-09-16, siehe unten) ✅; Security-Header für `app/`+`marketing/`
       bleibt offen — **blockiert von GitHub Pages** (kein Custom-Header-
       Support), lösbar erst mit dem echten Hosting-Wechsel (Phase 16)._
-- [ ] **Barrierefreiheit & Responsiveness** (statischer Audit erledigt
+- [→] _(verschoben → Schlussrunde, Phase 16)_ **Barrierefreiheit & Responsiveness** (statischer Audit erledigt
       2026-09-16, Rest offen) — _Checkliste `docs/QS-CHECKLISTE.md` §5.
       Statischer Code-Audit + Fixes: fehlende Formularfeld-Labels ergänzt
       (`aria-label`/`aria-labelledby`, 8 Stellen über `app/`), Toasts
@@ -4776,9 +4776,59 @@ Kritisch, weil Zielgruppe minderjährig ist.
 - [ ] **CI/CD vervollständigen:** Merge auf `main` → Deploy auf `staging`;
       manueller Promote `staging` → `production`. Migrationen laufen automatisch,
       rückrollbar.
-- [ ] **Prod-Secrets & -Konfiguration** final setzen (Zahlungsanbieter Live-Keys,
-      Anthropic-Prod-Key mit Budget-Limit, E-Mail-Domain verifiziert/SPF/DKIM).
-- [ ] **Staging-Vollprobe:** kompletter E2E-Flow inkl. echter Test-Zahlung.
+- [x] **Prod-Secrets & -Konfiguration** — _Anthropic-Key (2026-09-25), Resend-Domain/
+      DKIM (2026-09-18), Sentry, `DIRECT_URL` gesetzt. Einzig offen: Stripe-Live-Keys
+      → Schlussrunde B unten._
+
+### Schlussrunde vor dem Launch — ein Testdurchgang + Stripe Live (Entscheidung 2026-09-26)
+
+> Alles Testen/Verifizieren und die Umstellung auf Stripe Live ist hier
+> gebündelt, statt über die Phasen verteilt. Ablauf: erst alles Übrige fertig
+> bauen → dann **ein** vollständiger Testdurchgang durch dich (gegen Produktion
+> im Stripe-Test-Modus; Staging kommt erst nach dem Launch) → Befunde fixen →
+> Stripe auf Live → Launch. Die Ursprungszeilen weiter oben sind mit `[→]`
+> markiert und enthalten Details/Historie; abgehakt wird **hier**.
+
+**A. Testdurchgang (Stripe-Test-Modus)**
+
+- [ ] **Kern-Flows komplett durchklicken** nach `docs/QS-CHECKLISTE.md` §2 —
+      frisch über die Website registrieren (Registrierung + Bestätigungsmail),
+      Kasse, alle App-Kernflows inkl. KI, Eltern-Bereich/Kinder-Einladung,
+      Kontaktformular, Passwort vergessen. _Ersetzt „E2E gegen `staging`"
+      (Phase 14) und die frühere „Staging-Vollprobe"._
+- [ ] **Kasse-Bug vom 2026-09-16 bestätigen oder ausschließen** („Die Zahlung
+      konnte nicht abgeschlossen werden", Verdacht `STRIPE_SECRET_KEY` bei
+      Railway — Abschnitt 4 oben). Bei Fehlschlag Browser-Konsole
+      (`[checkout] …`) + Railway-Log (`zahlungFakeGatewayInProd`) mitschicken.
+- [ ] **Stripe Payment Element unsichtbar** — nur melden, falls es im normalen
+      Browser auftritt (Abschnitt 4 oben, bisher nur im Automations-Browser).
+- [ ] **Wartungs-Jobs:** einen `lesify-jobs`-Lauf mit lesbarem Log bestätigen
+      (Phase 10); Sitzverringerung zum Periodenende (`abo-geplante-aenderungen`)
+      einmal real angewendet sehen (Abschnitt 4).
+- [ ] **Seed-Parität:** angebundene App verhält sich wie der Prototyp mit `SEED`
+      (Phase 11).
+- [ ] **Barrierefreiheit & Responsiveness, manueller Rest** (Phase 14,
+      `docs/QS-CHECKLISTE.md` §5): WCAG-AA-Kontrast inkl. Dark Mode,
+      Screenreader-Durchgang (VoiceOver), Mobile bis ~360px, echte Leer-/
+      Fehlerzustände.
+- [ ] **Lasttest** der teuren Pfade (leicht, gegen Prod mit echter KI; Ziele
+      `docs/QS-CHECKLISTE.md` §4).
+- [ ] **Befunde fixen** + betroffene Stellen nachtesten.
+
+**B. Stripe Live**
+
+- [ ] **Preis-Entscheidung vorher:** Angebotsdauer/-verlängerung, ob der
+      Rabattpreis dauerhaft am Vertrag hängt (Abschnitt 4 oben).
+- [ ] **Stripe-Konto live schalten** (Aktivierung, Auszahlungskonto) → Live-Keys:
+      `STRIPE_SECRET_KEY` bei Railway, `publishableKey` + `mode: 'live'` in
+      `marketing/assets/js/stripe-config.js`; Live-Webhook auf `/abo/webhook`
+      anlegen, neues `STRIPE_WEBHOOK_SECRET` bei Railway.
+- [ ] **Rechnungsstellung + fehlgeschlagene Zahlungen:** Stripe-Retry-/
+      Mahn-Einstellungen (Zugriffssperre bei `zahlung_offen` ist gebaut).
+- [ ] **Stripe-Mails** (Beleg/Zahlung/Kündigung) im Dashboard aktivieren,
+      Wording prüfen.
+- [ ] **Eine echte Live-Zahlung** mit eigener Karte, danach erstatten/kündigen;
+      Webhook-Sync + Abo-Status in der App prüfen.
 - [ ] **Launch-Checkliste:** Impressum/Datenschutz/AGB live, Kontaktweg
       funktioniert, Reminder-Cron läuft, Backups laufen, Monitoring grün,
       Rollback-Weg dokumentiert.

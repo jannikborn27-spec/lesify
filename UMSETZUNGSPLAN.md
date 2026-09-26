@@ -4706,7 +4706,7 @@ Kritisch, weil Zielgruppe minderjährig ist.
       `Content-Security-Policy-Report-Only` → `Content-Security-Policy`, vorher
       Browser-Konsole der Kern-Seiten (Landing, Kasse, App inkl. PDF-Vorschau,
       Stripe) auf CSP-Meldungen prüfen.
-- [ ] **SEO-Sichtbarkeit (2026-09-23 geprüft):** technisch sauber (200,
+- [x] **SEO-Sichtbarkeit (2026-09-23 geprüft; 2026-09-26 eingereicht: Search Console Domain-Property `lesify.de` verifiziert, Sitemap eingereicht, Indexierung für `/`, `/preise/`, `/ueber-uns/` beantragt; Bing per GSC-Import):** technisch sauber (200,
       indexierbar, Canonical, 301 apex→www, robots.txt + Sitemap ok) — Google
       kennt die Seite nur noch nicht. **Von dir:** Google Search Console
       (Domain-Property per DNS-TXT) → Sitemap einreichen → URL-Prüfung

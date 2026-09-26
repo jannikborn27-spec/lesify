@@ -69,9 +69,12 @@ Dokumente müssen den aktuellen Stand widerspiegeln.
 ## Pflicht: Lokal + GitHub synchron halten
 
 Dieses Repo ist mit GitHub verbunden (`https://github.com/jannikborn27-spec/lesify`,
-Branch `main`) und über GitHub Pages live auf `www.lesify.de` (`marketing/` = Root,
-`app/` unter `/app`) — Deploy läuft automatisch bei jedem Push auf `main`
-(`.github/workflows/pages.yml`).
+Branch `main`) und über einen Cloudflare-Worker (statische Assets,
+`wrangler.jsonc`, Build `bash scripts/build-site.sh` → `_site/`) live auf
+`www.lesify.de` (`marketing/` = Root, `app/` unter `/app`, Header aus
+`marketing/_headers`) — Deploy läuft automatisch bei jedem Push auf `main`
+(Cloudflare Workers Builds; seit 2026-09-26, vorher GitHub Pages). Die API
+deployt Railway ebenfalls automatisch bei jedem Push.
 
 **Jede Änderung an diesem Projekt — Code, Doku, Assets, egal ob großes Feature
 oder kleiner Fix — muss noch in derselben Aufgabe sowohl lokal committet als

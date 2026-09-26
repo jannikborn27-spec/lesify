@@ -4640,7 +4640,7 @@ Kritisch, weil Zielgruppe minderjährig ist.
 
 ## Phase 16 — Deployment & Go-Live
 
-- [~] **Hosting-Wechsel GitHub Pages → Cloudflare (Entscheidung
+- [x] **Hosting-Wechsel GitHub Pages → Cloudflare (Entscheidung
       2026-09-23; 2026-09-25: Cloudflares neuer Assistent legt statt „Pages"
       einen **Worker mit statischen Assets** an — `wrangler.jsonc` im Root
       zeigt auf `_site/`, `_headers` gilt dort genauso; API-Erkennung
@@ -4656,13 +4656,26 @@ Kritisch, weil Zielgruppe minderjährig ist.
       `https://lesify.pages.dev` ergänzen, testen, dann Custom Domain
       `www.lesify.de` + `lesify.de` umziehen und GitHub Pages abschalten.
       Nach ~1 Woche ohne CSP-Meldungen: CSP scharf schalten.
-      **Stand 2026-09-25 abends:** Cloudflare ist nur **Proxy vor GitHub Pages**
+      **✅ Live seit 2026-09-26:** Worker `lesify` hat die Custom Domains
+      `lesify.de` + `www.lesify.de`, Redirect-Regel apex → www (301, Pfad +
+      Query bleiben). Live geprüft: HSTS/X-Frame/CSP-Report-Only aus `_headers`
+      kommen an, kein `x-github-request-id` mehr, `/app/*` mit `X-Robots-Tag:
+      noindex`, CORS-Preflight der API für `https://www.lesify.de` ok (204).
+      `.github/workflows/pages.yml` entfernt. **Offen:** GitHub Pages im Repo
+      abschalten (Settings → Pages); Cloudflare-Auto-Deploy bei Push
+      (Workers Builds) beim nächsten Marketing-/App-Commit bestätigen; CSP
+      nach ~1 Woche ohne Meldungen scharf schalten (eigene Zeile unten).
+      _Historie:_ **Stand 2026-09-25 abends:** Cloudflare ist nur **Proxy vor GitHub Pages**
       (Antwort-Header `x-github-request-id`, keine Header aus `_headers`) — der
       Worker `lesify` hat die Domains noch nicht. Fehlt: Worker → Settings →
       Domains & Routes → `www.lesify.de` + `lesify.de` als Custom Domain
       hinzufügen (ersetzt die A/CNAME-Einträge auf GitHub), Redirect-Regel apex
       → www in Cloudflare, dann GitHub Pages abschalten. Erkennbar am Erfolg:
       `strict-transport-security` im Header, kein `x-github-request-id` mehr.
+- [ ] **CSP scharf schalten** (frühestens ~2026-10-03): in `marketing/_headers`
+      `Content-Security-Policy-Report-Only` → `Content-Security-Policy`, vorher
+      Browser-Konsole der Kern-Seiten (Landing, Kasse, App inkl. PDF-Vorschau,
+      Stripe) auf CSP-Meldungen prüfen.
 - [ ] **SEO-Sichtbarkeit (2026-09-23 geprüft):** technisch sauber (200,
       indexierbar, Canonical, 301 apex→www, robots.txt + Sitemap ok) — Google
       kennt die Seite nur noch nicht. **Von dir:** Google Search Console
@@ -4673,7 +4686,10 @@ Kritisch, weil Zielgruppe minderjährig ist.
       und `app/style.css` laden Outfit/Hanken Grotesk von fonts.googleapis.com
       → IP-Übermittlung an Google ohne Einwilligung (LG München 2022,
       Abmahnrisiko). Fonts als WOFF2 ins Repo, `@font-face` lokal.
-- [ ] **Domain + DNS + TLS** für App und Marketing (EU-Hosting bestätigt).
+- [~] **Domain + DNS + TLS** für App und Marketing (EU-Hosting bestätigt).
+      _2026-09-26: Web-Teil erledigt (Worker-Custom-Domains + TLS von
+      Cloudflare). Offen nur noch Mail-DNS: `send.send` + `autoconfig` auf
+      „DNS only", SPF-TXT auf `lesify.de`, STRATO-DKIM (siehe unten)._
       **Geprüft 2026-09-25 (abends, per DNS-over-HTTPS):** Nameserver =
       Cloudflare ✅, `www`/apex laufen über Cloudflare ✅ (apex → www 301 ✅),
       MX → STRATO ✅, DMARC `p=reject` ✅, Resend-DKIM + Bounce-MX unter `send` ✅.

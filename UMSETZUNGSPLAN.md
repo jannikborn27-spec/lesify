@@ -677,6 +677,13 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       `dev@lesify.de` haben Passwörter, die im (öffentlichen) Repo stehen
       (`api/prisma/seed-*.ts`) — vor dem Launch in Prod löschen oder Passwort
       ändern.
+      _2026-09-26: Klarstellung — nur `eltern@lesify.de` hatte ein Passwort im
+      Repo (`seed-eltern-account.ts`), `dev@` nicht. Das Seed-Skript liest es
+      jetzt aus `SEED_ELTERN_PASSWORT` (sonst zufällig + ausgegeben); das alte
+      bleibt in der Git-Historie, zählt also als bekannt. Das lokale `api/.env`
+      zeigt auf die **Dev-DB** (`sulfsxsihrqdhwvaacfx`), nicht auf Produktion —
+      die Seeds liefen dort. Offen: in der Prod-DB prüfen, ob die beiden Konten
+      existieren (SQL-Editor), falls ja löschen/Passwort ändern._
 - [ ] **Anthropic-Produktions-Key mit Budget-Limit** — weiterhin deine
       Entscheidung/dein Account (Anthropic-Konsole: Key erzeugen, Budget-Cap
       setzen, dann `ANTHROPIC_API_KEY` bei Railway eintragen; ohne Key läuft
@@ -3476,7 +3483,7 @@ Preise/Modellwahl-Prinzipien: `00-overview.md` §7.
       Kosten bei 100 % × 2). Stand 2026-09 (nur Test-Läufe): 0,70 €, Chat-Cache
       bereits 47 %. **Befund:** die DB aus `api/.env` enthält 205 aktive Abos von
       Testkonten (Testsuite räumt nicht auf) — relevant, falls das dieselbe DB
-      wie Produktion ist (dann verfälschen sie auch den `ki-kosten-alarm`-Job)._
+      wie Produktion ist (dann verfälschen sie auch den `ki-kosten-alarm`-Job)._ _2026-09-26 geprüft: `api/.env` = Dev-DB (`sulfsxsihrqdhwvaacfx`), Produktion ist `vmktsooagaoahvuoznfn` → die Testkonten verfälschen Prod nicht._
 - [x] **Echter Key lokal eingetragen + alle Calls live getestet** (2026-09-23)
       — _Key in `api/.env`, `ki:smoke` 4× durchgelaufen (9 echte Calls,
       ~0,03–0,04 €/Lauf), dazu Klick-Test im Browser (Chat inkl. KI-Titel,

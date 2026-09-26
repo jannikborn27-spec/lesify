@@ -6,6 +6,8 @@
  *
  * Aufruf (NACH seed-dev-account.ts):
  *   pnpm --filter ./api exec tsx prisma/seed-eltern-account.ts
+ * Passwort: `SEED_ELTERN_PASSWORT` aus der Umgebung, sonst ein zufälliges, das
+ * am Ende ausgegeben wird — steht bewusst nicht im (öffentlichen) Repo.
  * Idempotent: entfernt zuerst den bisherigen Elternaccount samt Jonas und
  * legt alles neu an. Lena bleibt erhalten und wird wieder verknüpft; wird
  * seed-dev-account.ts danach erneut ausgeführt, behält es die Verknüpfung.
@@ -23,13 +25,14 @@ import {
   TestklausurStatus,
   type Ampel,
 } from '@prisma/client';
-import { randomUUID } from 'node:crypto';
+import { randomBytes, randomUUID } from 'node:crypto';
 import { PLAN_LIMITS, prozentZuNote, noteAmpel } from '@lesify/shared';
 import { hashPasswort } from '../src/lib/password.js';
 
 const prisma = new PrismaClient();
 const ELTERN_EMAIL = 'eltern@lesify.de';
-const ELTERN_PASSWORT = 'LesifyEltern-2026!';
+const ELTERN_PASSWORT =
+  process.env.SEED_ELTERN_PASSWORT || `Eltern-${randomBytes(9).toString('base64url')}`;
 const DEV_EMAIL = 'dev@lesify.de';
 
 const now = Date.now();
@@ -345,6 +348,7 @@ async function main() {
     ELTERN_EMAIL,
     '— Kinder: Lena M. (dev@lesify.de), Jonas Müller',
   );
+  if (!process.env.SEED_ELTERN_PASSWORT) console.log('Passwort (zufällig):', ELTERN_PASSWORT);
 }
 
 main()

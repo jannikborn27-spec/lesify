@@ -4815,7 +4815,10 @@ Kritisch, weil Zielgruppe minderjährig ist.
       Pre-deploy Command `pnpm --filter @lesify/api db:deploy` + Variable
       `DIRECT_URL` — **von dir** einzutragen (`docs/RUNBOOK.md`). Danach ist
       `scripts/prod-migrate.sh` vor dem Push nicht mehr nötig.
-- [ ] **CI/CD vervollständigen:** Merge auf `main` → Deploy auf `staging`;
+- [ ] **CI/CD vervollständigen** _(2026-09-28: GitHub-CI war seit Längerem schon
+      beim pnpm-Setup rot — doppelte pnpm-Version, fehlender `shared`-Build/
+      Prisma-Client, 4 Lint-Fehler in Tests; alles behoben, CI grün. Offen bleibt
+      nur der Staging-Teil, nach dem Launch)_: Merge auf `main` → Deploy auf `staging`;
       manueller Promote `staging` → `production`. Migrationen laufen automatisch,
       rückrollbar.
 - [x] **Prod-Secrets & -Konfiguration** — _Anthropic-Key (2026-09-25), Resend-Domain/

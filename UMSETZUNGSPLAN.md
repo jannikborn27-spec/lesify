@@ -4860,8 +4860,19 @@ Kritisch, weil Zielgruppe minderjährig ist.
       Passt die E-Mail zu einem Konto: Abo automatisch zum Periodenende kündigen,
       sonst Weiterleitung an `kontakt@`. Neuer Endpunkt → `backend-planning.md`.
       Danach vom Anwalt kurz abnehmen lassen.
-- [ ] **WCAG-AA-Kontrast** rechnerisch prüfen (alle Token-Paare hell/dunkel,
-      Ampel, Fachfarben) + fixen — manueller Rest (VoiceOver) bleibt im Test.
+- [x] **WCAG-AA-Kontrast** — _erledigt 2026-09-28: jede Seite (App hell/dunkel,
+      Kind + Eltern, Website) im Browser gemessen und gefixt, Details
+      `docs/QS-CHECKLISTE.md` §5. Offen nur die Avatar-Initialen der
+      Testimonial-Elemente (siehe nächster Punkt). VoiceOver bleibt im Test._
+- [ ] **Werbeaussagen ohne Beleg (gefunden 2026-09-28, vor Werbestart klären):**
+      Startseite/Preise zeigen „10.000+ Familien lernen schon mit Lesify",
+      „+9.994" und erfundene Kundenzitate (Sandra B., Markus T., Familie K.,
+      Jonas — `TEST.items` in `marketing.js`, Hero-Trust in `lan2.js`/
+      `marketing.js`). Vor dem Launch ohne echte Kund:innen = irreführend
+      (§5 UWG, Anhang Nr. 23b/c: gefälschte Bewertungen). Außerdem prüfen:
+      „Keine Kreditkarte nötig" (Testphase verlangt ein Zahlungsmittel —
+      stimmt nur, weil PayPal geht) und „Monatlich kündbar" (Jahresabo endet
+      zum Jahresende). **Entscheidung Jannik:** entfernen/ersetzen.
 - [ ] **Mobile-Durchgang bis 360 px** (App + Website) + fixen.
 - [ ] **CSP scharf schalten** ab 2026-10-03 (Zeile oben in Phase 16).
 - [x] **Aufräumen vor Werbestart** — _erledigt 2026-09-28: `/landing-old-dev-23092026/`

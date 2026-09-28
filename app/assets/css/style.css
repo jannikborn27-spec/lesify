@@ -16,7 +16,7 @@
   --ink-800: #25343f;
   --ink-700: #384a57;
   --ink-600: #516676;
-  --ink-500: #6e8494;
+  --ink-500: #5b7080;  /* Sekundärtext — ≥ 4.5:1 auf Weiß/Paper/ink-50 (WCAG AA, 2026-09-28; vorher #6e8494 = 3,4–3,9:1) */
   --ink-400: #889ba9;
   --ink-300: #aab8c3;
   --ink-200: #cbd4db;
@@ -39,11 +39,13 @@
   /* Ampel-Konzept — Statusfarben für Klausuren/Noten, tragen echte Information.
      Bleibt die einzige zusätzliche Farbebene neben Fog Blue. */
   --gruen: #2f8f5b;
+  --gruen-ink: #287b4e; /* dunkles Grün — nur für Text (≥ 4,5:1 auf --gruen-bg/Weiß), 2026-09-28 */
   --gruen-bg: #eef6f1;
   --gelb: #e8b923;      /* helles Ampel-Gelb — Flächen: Punkte, Ringe, Balken, Rahmen */
   --gelb-ink: #8a6a12;  /* dunkles Gelb — nur für Text auf --gelb-bg (Kontrast) */
   --gelb-bg: #fbf4df;
   --rot: #c1443c;
+  --rot-ink: #b13e37;   /* dunkles Rot — nur für Text (≥ 4,5:1 auf --rot-bg/Weiß), 2026-09-28 */
   --rot-bg: #fbeeed;
 
   --font-display: 'Outfit', 'Hanken Grotesk', system-ui, sans-serif;
@@ -203,7 +205,7 @@ svg { display: block; }
   font-weight: 600;
   letter-spacing: 0.09em;
   text-transform: uppercase;
-  color: var(--ink-400);
+  color: var(--ink-500);
   padding: 0 12px;
   margin: 14px 0 6px;
 }
@@ -690,7 +692,7 @@ a.ai-tile:hover .ai-tile-illustration { transform: translateY(-4px) scale(1.03);
   color: var(--ink-950);
   transition: border-color 140ms var(--ease-out), box-shadow 140ms var(--ease-out);
 }
-.input::placeholder, textarea::placeholder { color: var(--ink-400); }
+.input::placeholder, textarea::placeholder { color: var(--ink-500); }
 .input:focus, .select:focus, textarea:focus {
   outline: none;
   border-color: var(--ink-900);
@@ -837,10 +839,10 @@ textarea.input { height: auto; padding: 12px 14px; min-height: 90px; resize: ver
 .dv-doc-lead.is-pending { color: var(--ink-500); }
 .dv-doc-lines { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
 .dv-doc-lines span { height: 8px; border-radius: var(--radius-full); background: var(--ink-100); display: block; }
-.dv-doc-note { margin-top: auto; padding-top: 8px; font-size: 0.72rem; color: var(--ink-400); }
+.dv-doc-note { margin-top: auto; padding-top: 8px; font-size: 0.72rem; color: var(--ink-500); }
 .dv-doc-img {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 12px; text-align: center; color: var(--ink-400);
+  gap: 12px; text-align: center; color: var(--ink-500);
 }
 .dv-doc-img svg { width: 46px; height: 46px; }
 .dv-doc-imgcap { font-size: 0.78rem; }
@@ -1031,9 +1033,9 @@ textarea.input { height: auto; padding: 12px 14px; min-height: 90px; resize: ver
   height: 28px; padding: 0 12px; border-radius: var(--radius-full);
   font-size: 0.78rem; font-weight: 600;
 }
-.ampel-chip-gruen { background: var(--gruen-bg); color: var(--gruen); }
+.ampel-chip-gruen { background: var(--gruen-bg); color: var(--gruen-ink); }
 .ampel-chip-gelb { background: var(--gelb-bg); color: var(--gelb-ink); }
-.ampel-chip-rot { background: var(--rot-bg); color: var(--rot); }
+.ampel-chip-rot { background: var(--rot-bg); color: var(--rot-ink); }
 
 .note-chip { font-size: 0.85rem; color: var(--ink-800); }
 .note-chip strong { font-family: var(--font-display); font-weight: 700; }
@@ -1044,7 +1046,7 @@ textarea.input { height: auto; padding: 12px 14px; min-height: 90px; resize: ver
 }
 .note-delta {
   display: inline-flex; align-items: center; gap: 5px;
-  font-size: 0.78rem; font-weight: 600; color: var(--gruen);
+  font-size: 0.78rem; font-weight: 600; color: var(--gruen-ink);
   background: var(--gruen-bg); padding: 3px 9px 3px 7px; border-radius: var(--radius-full);
   animation: note-pop 480ms var(--ease-out);
 }
@@ -1064,11 +1066,11 @@ textarea.input { height: auto; padding: 12px 14px; min-height: 90px; resize: ver
 .vb-note-cap { font-size: 0.66rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
 .vb-note-lbl { font-size: 0.79rem; color: var(--ink-700); }
 .vb-note-gruen { background: var(--gruen-bg); }
-.vb-note-gruen .vb-note-num, .vb-note-gruen .vb-note-cap { color: var(--gruen); }
+.vb-note-gruen .vb-note-num, .vb-note-gruen .vb-note-cap { color: var(--gruen-ink); }
 .vb-note-gelb { background: var(--gelb-bg); }
 .vb-note-gelb .vb-note-num, .vb-note-gelb .vb-note-cap { color: var(--gelb-ink); }
 .vb-note-rot { background: var(--rot-bg); }
-.vb-note-rot .vb-note-num, .vb-note-rot .vb-note-cap { color: var(--rot); }
+.vb-note-rot .vb-note-num, .vb-note-rot .vb-note-cap { color: var(--rot-ink); }
 
 .vb-note-box-lg { gap: 18px; padding: 16px 26px 16px 22px; border-radius: var(--radius-xl); }
 .vb-note-box-lg .vb-note-num { font-size: 3.2rem; }
@@ -1107,7 +1109,7 @@ textarea.input { height: auto; padding: 12px 14px; min-height: 90px; resize: ver
 .klausur-card--erledigt { background: var(--bg-canvas); border-style: dashed; box-shadow: none; }
 .klausur-card--erledigt .klausur-card-title { color: var(--ink-600); }
 .klausur-card--erledigt .card-watermark { opacity: 0.45; }
-.klausur-card--erledigt .klausur-card-date { color: var(--ink-400); }
+.klausur-card--erledigt .klausur-card-date { color: var(--ink-500); }
 
 .klausur-card-flag {
   align-self: flex-start;
@@ -1366,7 +1368,7 @@ textarea.input { height: auto; padding: 12px 14px; min-height: 90px; resize: ver
 /* --- Dropdown-Eigenheiten (Gruppen-Label, Fußzeile, Leerzustand) --- */
 .search-dd-label {
   font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
-  color: var(--ink-400); padding: 11px 16px 5px;
+  color: var(--ink-500); padding: 11px 16px 5px;
 }
 .search-dd-footer {
   display: flex; align-items: center; justify-content: center; gap: 6px;
@@ -1531,7 +1533,7 @@ textarea.input { height: auto; padding: 12px 14px; min-height: 90px; resize: ver
 }
 .kpi-num { font-family: var(--font-display); font-size: 1.9rem; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; color: var(--ink-950); }
 .kpi-label { font-size: 0.78rem; color: var(--ink-500); font-weight: 600; }
-.kpi-foot { font-size: 0.74rem; color: var(--ink-400); margin-top: 2px; }
+.kpi-foot { font-size: 0.74rem; color: var(--ink-500); margin-top: 2px; }
 
 /* Zweispalten-Arbeitsfläche */
 .col-main-aside { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: var(--sp-8); align-items: start; }
@@ -1557,7 +1559,7 @@ textarea.input { height: auto; padding: 12px 14px; min-height: 90px; resize: ver
 .mini-panel-head .tcount { font-size: 0.7rem; background: var(--ink-100); color: var(--ink-600); border-radius: var(--radius-full); padding: 1px 7px; font-weight: 700; }
 .mini-panel-body { padding: 4px 0; }
 .mini-panel-body.is-pad { padding: 16px 18px; }
-.mini-panel-empty { padding: 18px; font-size: 0.82rem; color: var(--ink-400); }
+.mini-panel-empty { padding: 18px; font-size: 0.82rem; color: var(--ink-500); }
 
 /* Kompakte Inhaltszeile (Icon + Titel + Meta) */
 .row-item { display: flex; align-items: center; gap: 12px; padding: 12px 18px; }
@@ -1595,7 +1597,7 @@ textarea.input { height: auto; padding: 12px 14px; min-height: 90px; resize: ver
   border-color: var(--fach-color, var(--line));
 }
 .spotlight .sl-body { flex: 1; min-width: 220px; }
-.spotlight .sl-eyebrow { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-400); margin-bottom: 8px; }
+.spotlight .sl-eyebrow { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-500); margin-bottom: 8px; }
 .spotlight .sl-title { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 10px; }
 .spotlight .sl-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; color: var(--ink-500); font-size: 0.86rem; }
 
@@ -1618,7 +1620,7 @@ textarea.input { height: auto; padding: 12px 14px; min-height: 90px; resize: ver
 .progress-step .ps-dot {
   width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
-  background: var(--bg-surface); border: 1.5px solid var(--line-strong); color: var(--ink-400);
+  background: var(--bg-surface); border: 1.5px solid var(--line-strong); color: var(--ink-500);
   font-size: 0.72rem; font-weight: 700;
 }
 .progress-step .ps-dot svg { width: 13px; height: 13px; }
@@ -1680,7 +1682,7 @@ textarea.input { height: auto; padding: 12px 14px; min-height: 90px; resize: ver
 .dash-bento > .card .nk-label {
   display: block;
   font-size: 0.68rem; font-weight: 700; letter-spacing: 0.09em;
-  text-transform: uppercase; color: var(--ink-400);
+  text-transform: uppercase; color: var(--ink-500);
   margin-bottom: -4px;
 }
 
@@ -1702,7 +1704,7 @@ textarea.input { height: auto; padding: 12px 14px; min-height: 90px; resize: ver
 .ap-topic-pct { font-size: 0.76rem; font-weight: 700; color: var(--ink-500); font-family: var(--font-mono); }
 .ap-topic-verdict { font-size: 0.85rem; color: var(--ink-600); line-height: 1.5; margin-bottom: 10px; }
 
-.lp-countdown-eng { color: var(--rot); font-weight: 700; }
+.lp-countdown-eng { color: var(--rot-ink); font-weight: 700; }
 
 .lp-lernzettel-preview { border: 1px solid var(--line); border-radius: var(--radius-md); padding: 14px 16px; background: var(--bg-canvas); }
 .lp-lernzettel-preview h1 { font-size: 1rem; margin: 0 0 6px; }
@@ -1750,8 +1752,8 @@ textarea.input { height: auto; padding: 12px 14px; min-height: 90px; resize: ver
 .lp-cl-check:hover .lp-cl-box { border-color: var(--ink-500); }
 .lp-cl-check input:checked + .lp-cl-box { background: var(--gruen); border-color: var(--gruen); color: #fff; }
 .lp-cl-check input:focus-visible + .lp-cl-box { outline: 2px solid var(--ink-900); outline-offset: 2px; }
-.lp-cl-checktxt { font-size: 0.72rem; font-weight: 700; color: var(--ink-400); text-transform: uppercase; letter-spacing: 0.04em; }
-.lp-cl-check input:checked ~ .lp-cl-checktxt { color: var(--gruen); }
+.lp-cl-checktxt { font-size: 0.72rem; font-weight: 700; color: var(--ink-500); text-transform: uppercase; letter-spacing: 0.04em; }
+.lp-cl-check input:checked ~ .lp-cl-checktxt { color: var(--gruen-ink); }
 
 /* (2) Aktion — die Aufgabe / den Chat öffnen */
 .lp-cl-open {
@@ -1767,7 +1769,7 @@ textarea.input { height: auto; padding: 12px 14px; min-height: 90px; resize: ver
 .lp-cl-cta-arr { display: inline-flex; width: 13px; height: 13px; }
 .lp-cl-open:hover .lp-cl-cta { color: var(--ink-950); }
 .lp-cl-item.is-done .lp-cl-label { text-decoration: line-through; }
-.lp-cl-item.is-done .lp-cl-open { color: var(--ink-400); }
+.lp-cl-item.is-done .lp-cl-open { color: var(--ink-500); }
 
 /* ---- Split-Ansicht ---- */
 .lp-split { display: grid; grid-template-columns: 264px 1fr; gap: 22px; align-items: start; }
@@ -1796,7 +1798,7 @@ textarea.input { height: auto; padding: 12px 14px; min-height: 90px; resize: ver
 .lp-nav-erledigt .lp-nav-num { background: var(--gruen); border-color: var(--gruen); color: #fff; }
 .lp-nav-aktuell .lp-nav-num { border-color: var(--ink-900); color: var(--ink-950); }
 .lp-nav-txt { min-width: 0; display: flex; flex-direction: column; }
-.lp-nav-t { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-400); }
+.lp-nav-t { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-500); }
 .lp-nav-d { font-size: 0.82rem; font-weight: 600; color: var(--ink-800); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lp-nav-step.is-active .lp-nav-d { color: var(--ink-950); }
 .lp-split-main { border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--bg-surface); padding: 24px 26px; }
@@ -1863,10 +1865,15 @@ textarea.input { height: auto; padding: 12px 14px; min-height: 90px; resize: ver
 }
 .lp-fc--4 .lp-focus-desc { margin-top: 14px; }
 .lp-fc--4 .lp-focus-day { color: var(--fach-ink); }
-.lp-fc--4 .lp-nav-step.is-active { background: var(--fach-color); border-color: var(--fach-color); }
-.lp-fc--4 .lp-nav-step.is-active .lp-nav-t { color: rgba(255, 255, 255, 0.78); }
+/* Aktiver Tag: Fläche in --fach-ink statt --fach-color — weißer Text trifft
+   so bei allen 8 Fachfarben ≥ 4,5:1 (WCAG AA, 2026-09-28; mit --fach-color
+   z. B. Blau nur 3,2:1). Im Dunkel-Design ist --fach-ink fast weiß → dort die
+   dunkle Fach-Tönung (--fach-bg) mit Fachfarben-Rahmen. */
+.lp-fc--4 .lp-nav-step.is-active { background: var(--fach-ink); border-color: var(--fach-ink); }
+:root[data-theme="dark"] .lp-fc--4 .lp-nav-step.is-active { background: var(--fach-bg); border-color: var(--fach-color); }
+.lp-fc--4 .lp-nav-step.is-active .lp-nav-t { color: rgba(255, 255, 255, 0.9); }
 .lp-fc--4 .lp-nav-step.is-active .lp-nav-d { color: #fff; }
-.lp-fc--4 .lp-nav-step.is-active .lp-nav-num { background: rgba(255, 255, 255, 0.22); border-color: transparent; color: #fff; }
+.lp-fc--4 .lp-nav-step.is-active .lp-nav-num { background: transparent; border-color: rgba(255, 255, 255, 0.6); color: #fff; }
 .lp-fc--4 .lp-split-bar > span,
 .lp-fc--4 .lp-cl-bar > span { background: var(--fach-color); }
 /* Grün → Fachfarbe für alle Erledigt-Signale */
@@ -2064,11 +2071,13 @@ textarea.input { height: auto; padding: 12px 14px; min-height: 90px; resize: ver
   --bg-surface: var(--white);
 
   --gruen: #56b487;
+  --gruen-ink: var(--gruen);
   --gruen-bg: #163026;
   --gelb: #e8b923;
   --gelb-ink: #ecd9a4;
   --gelb-bg: #322c17;
   --rot: #e46a62;
+  --rot-ink: var(--rot);
   --rot-bg: #3a2320;
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
@@ -2206,7 +2215,7 @@ textarea.input { height: auto; padding: 12px 14px; min-height: 90px; resize: ver
   display: flex; gap: 12px; align-items: flex-start;
   margin: 0 0 20px; padding: 14px 16px;
   border-radius: var(--radius-md, 12px);
-  background: var(--rot-bg); color: var(--rot);
+  background: var(--rot-bg); color: var(--rot-ink);
   font-size: 0.9rem; line-height: 1.5;
 }
 .abo-hinweis--gelb { background: var(--gelb-bg); color: var(--gelb-ink); }

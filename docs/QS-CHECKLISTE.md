@@ -80,7 +80,17 @@ Vorlage für den QS-Durchlauf vor dem Launch (Phase 16).
       `[data-href]`-Kartenlinks (Klausur-/Datei-Karten) sind zusätzlich per
       `tabindex="0"`/`role="link"` + eigenem Enter/Space-Handler bedienbar
       (`app.js` `initCardLinks()`)._
-- [ ] Kontrastwerte (Fog-Blue-Palette, Ampel-Farben) gegen WCAG AA prüfen —
+- [x] **Kontrast WCAG AA (2026-09-28)** — gemessen statt geschätzt: ein
+      Browser-Skript prüft jeden sichtbaren Text gegen seinen tatsächlichen
+      Hintergrund (inkl. halbtransparenter Ebenen), 4,5:1 bzw. 3:1 für große
+      Schrift; alle App-Seiten (Kind + Eltern) hell/dunkel und alle
+      Website-Seiten. Fixes: `--ink-500` #6e8494 → #5b7080 (App + Website),
+      Text-Regeln von `--ink-400`/`--ink-300` auf `--ink-500`, neue
+      `--gruen-ink`/`--rot-ink` für Ampel-Text (Flächen unverändert), aktiver
+      Lernplan-Tag auf `--fach-ink` (alle 8 Fachfarben ≥ 5:1). Ergebnis: 0
+      Befunde außer den Avatar-Initialen der Testimonial-Elemente (hängen an
+      der Inhalts-Entscheidung, siehe UMSETZUNGSPLAN). Ursprünglicher Punkt:
+      Kontrastwerte (Fog-Blue-Palette, Ampel-Farben) gegen WCAG AA prüfen —
       _der Dark-Mode-Lesbarkeitsdurchlauf (Phase 0, 2026-09-08) hat einen
       Kontrast-Audit gemacht, aber nicht formal gegen WCAG-AA-Werte
       gerechnet; noch offen._

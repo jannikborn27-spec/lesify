@@ -153,7 +153,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   document.title = thema.name + ' · Lesify';
   document.getElementById('t-crumb').innerHTML =
     '<a href="fach.html?id=' + fach.id + '" style="color:var(--ink-500)">' + fach.name + '</a>' +
-    '<span style="color:var(--ink-400);margin:0 6px">/</span><span>' + thema.name + '</span>';
+    '<span aria-hidden="true" style="color:var(--ink-400);margin:0 6px">/</span><span>' + thema.name + '</span>';
 
   var MODE_LABEL = { erklaeren: 'Thema erklären', hausaufgaben: 'Hausaufgabenhilfe', ueben: 'Üben / Abfragen', zusammenfassen: 'Zusammenfassen' };
 

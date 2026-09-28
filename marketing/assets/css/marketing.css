@@ -15,7 +15,7 @@
   --ink-800: #25343f;
   --ink-700: #384a57;
   --ink-600: #516676;
-  --ink-500: #6e8494;
+  --ink-500: #5b7080; /* Sekundärtext — ≥ 4,5:1 auf Weiß/Paper (WCAG AA, 2026-09-28; vorher #6e8494) */
   --ink-400: #889ba9;
   --ink-300: #aab8c3;
   --ink-200: #cbd4db;
@@ -33,6 +33,7 @@
 
   /* Ampel — trägt echte Information, identisch zur App */
   --gruen: #2f8f5b;
+  --gruen-ink: #246f47; /* Grün für Text (≥ 4,5:1 auch auf --ink-100), 2026-09-28 */
   --gruen-bg: #eef6f1;
   --gelb: #e8b923;
   --gelb-ink: #8a6a12;
@@ -1223,7 +1224,7 @@ main { display: block; }
   font-family: var(--font-display);
   font-size: 1.15rem;
   font-weight: 600;
-  color: var(--ink-400);
+  color: var(--ink-500);
   text-decoration-thickness: 1.5px;
   align-self: baseline;
 }
@@ -1351,7 +1352,7 @@ main { display: block; }
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--ink-400);
+  color: var(--ink-500);
   margin-bottom: 16px;
 }
 .site-footer__col a {

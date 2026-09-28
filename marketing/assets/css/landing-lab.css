@@ -2163,7 +2163,7 @@ body[data-page="ueber-uns"] .site-footer::before {
 .sv--price4 .price-toggle { display: inline-flex; align-items: center; gap: 4px; margin: 0; padding: 4px; border: 0; border-radius: var(--radius-full); background: var(--ink-100); }
 .sv--price4 .price-toggle button { padding: 8px 15px; border-radius: var(--radius-full); font-size: 0.83rem; font-weight: 600; color: var(--ink-600); white-space: nowrap; }
 .sv--price4 .price-toggle button.is-on { background: var(--bg-surface); color: var(--ink-950); box-shadow: var(--shadow-sm); }
-.sv--price4 .price-toggle button i { font-style: normal; font-size: 0.7rem; color: var(--gruen); }
+.sv--price4 .price-toggle button i { font-style: normal; font-size: 0.7rem; color: var(--gruen-ink); }
 /* Familien-Paket-Auswahl: Stepper (Kinderzahl 1–4) statt Segment-Reihe.
    Wird bei >1 Kind grün eingefärbt und blendet die Sitz-Punkte ein. */
 .sv--price4 .price-seats {
@@ -2203,7 +2203,7 @@ body[data-page="ueber-uns"] .site-footer::before {
 .sv--price4 .price-card.is-feat h3 { display: flex; align-items: center; }
 .sv--price4 .price-card__desc { font-size: 0.84rem; color: var(--ink-500); margin: 4px 0 16px; }
 .sv--price4 .price-amt { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
-.sv--price4 .price-amt del { color: var(--ink-300); font-size: 0.9rem; }
+.sv--price4 .price-amt del { color: var(--ink-500); font-size: 0.9rem; }
 .sv--price4 .price-amt b { font-family: var(--font-display); font-weight: 700; font-size: 2.1rem; letter-spacing: -0.03em; }
 .sv--price4 .price-amt span { font-size: 0.8rem; color: var(--ink-500); }
 .sv--price4 .price-feats { list-style: none; padding: 0; margin: 18px 0 20px; display: flex; flex-direction: column; gap: 10px; }
@@ -2623,7 +2623,7 @@ body[data-page="preise"][data-price-color="7"] #price-section .price-voices__avr
 .faq-bcard[open] { border-color: var(--ink-950); box-shadow: var(--shadow-md); }
 .faq-bcard > summary { display: flex; align-items: center; gap: 16px; padding: 20px 22px; cursor: pointer; list-style: none; }
 .faq-bcard > summary::-webkit-details-marker { display: none; }
-.faq-bcard__n { flex-shrink: 0; font-family: var(--font-mono); font-weight: 700; font-size: 0.9rem; color: var(--ink-300); }
+.faq-bcard__n { flex-shrink: 0; font-family: var(--font-mono); font-weight: 700; font-size: 0.9rem; color: var(--ink-500); }
 .faq-bcard[open] .faq-bcard__n { color: var(--ink-950); }
 .faq-bcard__q { flex: 1; font-family: var(--font-display); font-weight: 600; font-size: clamp(1.02rem, 0.95rem + 0.4vw, 1.2rem); letter-spacing: -0.01em; }
 .faq-bcard__tog { position: relative; flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; background: var(--ink-100); }

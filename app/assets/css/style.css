@@ -1772,7 +1772,11 @@ textarea.input { height: auto; padding: 12px 14px; min-height: 90px; resize: ver
 .lp-cl-item.is-done .lp-cl-open { color: var(--ink-500); }
 
 /* ---- Split-Ansicht ---- */
-.lp-split { display: grid; grid-template-columns: 264px 1fr; gap: 22px; align-items: start; }
+/* minmax(0, 1fr) statt 1fr: sonst drückt die (mobil horizontal scrollende)
+   Tagesleiste die Spalte auf ihre volle Breite auf — bei 360 px war der
+   Lernplan ~1.190 px breit und rechts abgeschnitten (2026-09-28). */
+.lp-split { display: grid; grid-template-columns: 264px minmax(0, 1fr); gap: 22px; align-items: start; }
+.lp-split > * { min-width: 0; }
 .lp-split-nav { position: sticky; top: 20px; display: flex; flex-direction: column; gap: 14px; }
 .lp-split-meta { display: flex; flex-direction: column; gap: 8px; }
 .lp-split-count { font-family: var(--font-display); font-weight: 800; font-size: 1.6rem; color: var(--ink-950); line-height: 1; }
@@ -1804,7 +1808,7 @@ textarea.input { height: auto; padding: 12px 14px; min-height: 90px; resize: ver
 .lp-split-main { border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--bg-surface); padding: 24px 26px; }
 .lp-split-mhead { display: flex; align-items: center; gap: 12px; }
 @media (max-width: 900px) {
-  .lp-split { grid-template-columns: 1fr; gap: 16px; }
+  .lp-split { grid-template-columns: minmax(0, 1fr); gap: 16px; }
   .lp-split-nav { position: static; }
   .lp-split-steps { flex-direction: row; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
   .lp-nav-step { flex: 0 0 auto; }

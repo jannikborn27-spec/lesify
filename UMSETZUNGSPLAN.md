@@ -4873,7 +4873,13 @@ Kritisch, weil Zielgruppe minderjährig ist.
       „Keine Kreditkarte nötig" (Testphase verlangt ein Zahlungsmittel —
       stimmt nur, weil PayPal geht) und „Monatlich kündbar" (Jahresabo endet
       zum Jahresende). **Entscheidung Jannik:** entfernen/ersetzen.
-- [ ] **Mobile-Durchgang bis 360 px** (App + Website) + fixen.
+- [x] **Mobile-Durchgang bis 360 px** — _erledigt 2026-09-28: alle App-Seiten
+      (Kind + Eltern) und Website-Seiten bei 360×740 gemessen (Elemente, die
+      über den Rand ragen oder abgeschnitten werden; nur echte Scroll-Container
+      zählen als ok) + Sichtprüfung. Einziger Befund: Lernplan war ~1.190 px
+      breit und rechts abgeschnitten (Grid-Spalte `1fr` ließ sich von der
+      Tagesleiste aufdrücken) → `minmax(0, 1fr)`. Echtes Gerät (iPhone/Android)
+      bleibt im Test._
 - [ ] **CSP scharf schalten** ab 2026-10-03 (Zeile oben in Phase 16).
 - [x] **Aufräumen vor Werbestart** — _erledigt 2026-09-28: `/landing-old-dev-23092026/`
       wird nicht mehr ausgeliefert (`scripts/build-site.sh`, bleibt im Repo als

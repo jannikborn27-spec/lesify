@@ -120,7 +120,9 @@ Vorlage für den QS-Durchlauf vor dem Launch (Phase 16).
       Live-Check, kein automatisierter Test.
 - [ ] Screenreader: Nav, Usage-Ring — noch offener manueller Durchgang mit
       echtem Screenreader (VoiceOver/NVDA); Modals/Toasts siehe oben.
-- [ ] Mobile Breakpoints: `app/` und `marketing/` bis ~360 px Breite
+- [x] Mobile Breakpoints: `app/` und `marketing/` bis 360 px (2026-09-28,
+      gemessen + Sichtprüfung; Lernplan-Grid-Überlauf behoben). Echte Geräte
+      im Testdurchgang.
 - [x] `prefers-reduced-motion` respektieren — _bereits vorhanden (22
       Fundstellen in CSS/JS), im Audit nur bestätigt, keine Lücke gefunden._
 

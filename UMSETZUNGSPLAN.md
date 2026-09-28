@@ -830,7 +830,8 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       pruefen` gegen die Dev-DB bestanden (21 Tabellen / 10.162 Zeilen,
       Inhalte identisch, inkl. FK-Zyklus User↔Abo). Prod-Dump holen:
       `bash scripts/prod-backup-holen.sh`; Ernstfall-Anleitung im RUNBOOK
-      „DB-Backups". **Offen:** ersten nächtlichen Prod-Lauf im Railway-Log
+      „DB-Backups". Datenschutzerklärung §8 (Speicherdauer) nennt die täglichen
+      Sicherungen + 14 Tage Restlaufzeit gelöschter Daten (2026-09-28). **Offen:** ersten nächtlichen Prod-Lauf im Railway-Log
       sehen (→ Schlussrunde) und Supabase Pro nach 2–3 zahlenden Kunden. **Entscheidung 2026-09-25:** vorerst Supabase Free
       (keine abrufbaren Backups); Werbung starten, bis 2–3 zahlende Kunden da
       sind, dann Rentabilität prüfen und auf Pro wechseln. Überbrückung:

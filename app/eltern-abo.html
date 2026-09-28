@@ -14,11 +14,11 @@
   <div id="sidebar-root"></div>
   <div class="main">
     <div id="topbar-root"></div>
-    <main class="main-inner" id="eltern-main"></main>
+    <main class="main-inner" id="eltern-main" data-skeleton="seite"></main>
   </div>
 </div>
 
-<script src="assets/js/api.js?v=20260923stream"></script>
+<script src="assets/js/api.js?v=20260928laden"></script>
 <script src="assets/js/auth-gate.js"></script>
 <script src="assets/js/app.js"></script>
 <script>
@@ -55,8 +55,9 @@ document.addEventListener('DOMContentLoaded', async function () {
   }
 
   async function render() {
-    var abo = await Lesify.getAbo();
-    var belegt = (await Lesify.kinder()).length;
+    var geladen = await Promise.all([Lesify.getAbo(), Lesify.kinder()]);
+    var abo = geladen[0];
+    var belegt = geladen[1].length;
     // Vollständige Werte aus `AboStatus` (Prisma) — der Prototyp kannte nur
     // aktiv/gekuendigt/pausiert, das echte Abo kann zusätzlich `test`
     // (Trial) und `zahlung_offen` sein (Entscheidung 2026-09-13: hier

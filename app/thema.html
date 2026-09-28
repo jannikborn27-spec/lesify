@@ -39,7 +39,7 @@
     <main class="main-inner" id="t-mainwrap">
 
       <div class="page-eyebrow" id="t-crumb" style="margin-bottom:16px"></div>
-      <div id="t-head"></div>
+      <div id="t-head" data-skeleton="kopf"></div>
 
       <div data-tabs>
         <div class="thema-tabs" id="t-tabs"></div>
@@ -51,7 +51,7 @@
             <span class="section-title">Chats zu diesem Thema</span>
             <a href="#" class="btn btn-primary btn-sm" id="new-chat-btn">+ Neuer Chat</a>
           </div>
-          <div class="card divide-list" id="t-chats"></div>
+          <div class="card divide-list" id="t-chats" data-skeleton="liste"></div>
         </div>
 
         <div data-tab-panel="lernzettel" class="tab-panel">
@@ -62,7 +62,7 @@
             </button>
           </div>
           <p class="text-sm text-muted" style="margin:-14px 0 20px">Wird vollautomatisch aus allen Chats und Dateien dieses Themas erstellt.</p>
-          <div class="card divide-list" id="t-lernzettel"></div>
+          <div class="card divide-list" id="t-lernzettel" data-skeleton="liste"></div>
         </div>
 
         <div data-tab-panel="dateien" class="tab-panel">
@@ -128,7 +128,7 @@
   </div>
 </div>
 
-<script src="assets/js/api.js?v=20260923stream"></script>
+<script src="assets/js/api.js?v=20260928laden"></script>
 <script src="assets/js/auth-gate.js"></script>
 <script src="assets/js/app.js"></script>
 <script>
@@ -137,9 +137,11 @@ document.addEventListener('DOMContentLoaded', async function () {
   document.getElementById('lz-btn-icon').innerHTML = I.spark;
 
   var params = new URLSearchParams(window.location.search);
-  await Lesify.faecher();
   var themaId = params.get('id');
-  var thema = themaId ? await Lesify.getThema(themaId) : (await Lesify.themen())[0];
+  var thema = (await Promise.all([
+    Lesify.faecher(),
+    themaId ? Lesify.getThema(themaId) : Lesify.themen().then(function (l) { return l[0]; }),
+  ]))[1];
   themaId = thema.id;
   var fach = Lesify.getFach(thema.fachId);
   var fachVars = R.fachColorVars(fach.id);

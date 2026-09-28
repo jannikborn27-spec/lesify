@@ -32,7 +32,7 @@
 
       <div class="flex gap-2" style="margin-bottom:24px;flex-wrap:wrap" data-filter-group="#klausuren-list [data-filter]" id="klausur-filters"></div>
 
-      <div class="klausur-list" id="klausuren-list"></div>
+      <div class="klausur-list" id="klausuren-list" data-skeleton="liste"></div>
 
     </main>
   </div>
@@ -75,7 +75,7 @@
   </div>
 </div>
 
-<script src="assets/js/api.js?v=20260923stream"></script>
+<script src="assets/js/api.js?v=20260928laden"></script>
 <script src="assets/js/auth-gate.js"></script>
 <script src="assets/js/app.js"></script>
 <script>
@@ -86,14 +86,15 @@ document.addEventListener('DOMContentLoaded', async function () {
   // und Klausur-Karten-Badges synchron lesen) — erst danach rendern, siehe
   // Race-Condition-Lehre aus fach.html. Themen fächerübergreifend, weil die
   // Klausur-Liste hier über alle Fächer geht.
-  await Promise.all([Lesify.faecher(), Lesify.themen()]);
+  var ersteKlausuren = (await Promise.all([Lesify.faecher(), Lesify.themen(), Lesify.klausuren()]))[2];
 
   function drawFilters() {
     document.getElementById('klausur-filters').innerHTML = R.fachFilterChips();
   }
 
   async function drawList() {
-    var klausuren = await Lesify.klausuren();
+    var klausuren = ersteKlausuren || (await Lesify.klausuren());
+    ersteKlausuren = null;
     var html = klausuren.length ? R.klausurListe(klausuren) : '';
     document.getElementById('klausuren-list').innerHTML = html || ('<div class="empty-state"><div class="es-icon">' + I.docCheck + '</div><h4>Noch keine Klausuren</h4><p>Lege deine erste Klausur an.</p></div>');
   }

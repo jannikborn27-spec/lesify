@@ -37,6 +37,33 @@
   );
   var TOKEN_KEY = 'lesify:token';
 
+  // Ladezustand (2026-09-28): <html data-laden> bleibt gesetzt, bis die erste
+  // Request-Welle der Seite durch ist — style.css zeigt solange Skeletons in
+  // leeren `[data-skeleton]`-Containern. Die kurze Wartezeit nach dem letzten
+  // Request überbrückt `await a(); await b();`-Ketten (b startet in derselben
+  // Microtask-Kette, bevor der Timer feuert). Notbremse nach 15 s.
+  var wurzel = document.documentElement;
+  var offeneRequests = 0;
+  var ladenTimer = null;
+  wurzel.setAttribute('data-laden', '');
+  function ladenFertig() {
+    wurzel.removeAttribute('data-laden');
+  }
+  setTimeout(ladenFertig, 15000);
+  function mitLadezustand(promise) {
+    if (!wurzel.hasAttribute('data-laden')) return promise;
+    offeneRequests++;
+    clearTimeout(ladenTimer);
+    function ende() {
+      offeneRequests--;
+      if (offeneRequests === 0) ladenTimer = setTimeout(ladenFertig, 30);
+    }
+    return promise.then(
+      function (v) { ende(); return v; },
+      function (e) { ende(); throw e; },
+    );
+  }
+
   function getToken() {
     try {
       return localStorage.getItem(TOKEN_KEY) || '';
@@ -107,7 +134,7 @@
         init.body = JSON.stringify(body);
       }
     }
-    return fetch(BASE + pfad, init).then(function (res) {
+    return mitLadezustand(fetch(BASE + pfad, init).then(function (res) {
       if (res.status === 204) return null;
       return res.text().then(function (txt) {
         var data = null;
@@ -124,7 +151,7 @@
         }
         return data;
       });
-    });
+    }));
   }
 
   /**

@@ -14,11 +14,11 @@
   <div id="sidebar-root"></div>
   <div class="main">
     <div id="topbar-root"></div>
-    <main class="main-inner" id="eltern-main"></main>
+    <main class="main-inner" id="eltern-main" data-skeleton="seite"></main>
   </div>
 </div>
 
-<script src="assets/js/api.js?v=20260923stream"></script>
+<script src="assets/js/api.js?v=20260928laden"></script>
 <script src="assets/js/auth-gate.js"></script>
 <script src="assets/js/app.js"></script>
 <script>
@@ -27,8 +27,9 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   // Rollen-/Familie-Gate läuft in auth-gate.js (redirect vor dem Rendern);
   // hier nur noch das echte Rendern für ein bestätigtes Elternkonto.
-  var user = await Lesify.getUser();
-  var kinder = await Lesify.kinder();
+  var geladen = await Promise.all([Lesify.getUser(), Lesify.kinder()]);
+  var user = geladen[0];
+  var kinder = geladen[1];
 
   function miniKarte(kind) {
     var col = Lesify.getKindColor(kind.id);

@@ -21,7 +21,7 @@
         Alle Fächer
       </a>
 
-      <div class="page-head" id="fach-head"></div>
+      <div class="page-head" id="fach-head" data-skeleton="kopf"></div>
 
       <div class="section">
         <div class="section-head">
@@ -31,14 +31,14 @@
             Neues Thema hinzufügen
           </button>
         </div>
-        <div class="grid grid-3" id="fach-themen"></div>
+        <div class="grid grid-3" id="fach-themen" data-skeleton="karten"></div>
       </div>
 
       <div class="section">
         <div class="section-head">
           <span class="section-title">Klausuren</span>
         </div>
-        <div class="klausur-list" id="fach-klausuren"></div>
+        <div class="klausur-list" id="fach-klausuren" data-skeleton="liste"></div>
       </div>
 
     </main>
@@ -73,7 +73,7 @@
   </div>
 </div>
 
-<script src="assets/js/api.js?v=20260923stream"></script>
+<script src="assets/js/api.js?v=20260928laden"></script>
 <script src="assets/js/auth-gate.js"></script>
 <script src="assets/js/app.js"></script>
 <script>
@@ -81,8 +81,16 @@ document.addEventListener('DOMContentLoaded', async function () {
   var R = LesifyUI.Render, I = LesifyUI.Icons;
   var params = new URLSearchParams(window.location.search);
 
-  var faecher = await Lesify.faecher();
-  var fachId = params.get('id') || faecher[0].id;
+  // Mit bekannter id alles in einer Runde laden (Fächer, Themen, Klausuren);
+  // ohne id braucht es erst die Fächerliste für den Fallback aufs erste Fach.
+  var idParam = params.get('id');
+  var vorab = await Promise.all([
+    Lesify.faecher(),
+    idParam ? Lesify.themenFuerFach(idParam) : null,
+    idParam ? Lesify.klausuren() : null,
+  ]);
+  var faecher = vorab[0];
+  var fachId = idParam || faecher[0].id;
   var fach = Lesify.getFach(fachId) || faecher[0];
   fachId = fach.id;
   LesifyUI.setPageWatermark(Lesify.getFachIcon(fachId) || '', Lesify.getFachColor(fach.farbe).base);
@@ -90,8 +98,10 @@ document.addEventListener('DOMContentLoaded', async function () {
   document.title = fach.name + ' · Lesify';
   document.getElementById('nt-sub').textContent = 'Wird direkt ' + fach.name + ' zugeordnet.';
 
-  async function drawHead() {
-    fach = (await Lesify.faecher()).find(function (f) { return f.id === fachId; }) || fach;
+  // `ohneNeuladen`: erste Darstellung nutzt die eben geladene Fächerliste.
+  async function drawHead(ohneNeuladen) {
+    var liste = ohneNeuladen ? faecher : await Lesify.faecher();
+    fach = liste.find(function (f) { return f.id === fachId; }) || fach;
     document.getElementById('fach-head').innerHTML =
       '<div class="flex items-center gap-4">' +
         '<button type="button" class="fach-avatar-btn" data-fach-color="' + fach.id + '" aria-label="Farbe von ' + fach.name + ' ändern" title="Farbe ändern">' +
@@ -108,11 +118,11 @@ document.addEventListener('DOMContentLoaded', async function () {
   document.addEventListener('click', function (e) {
     var btn = e.target.closest('[data-fach-color]');
     if (!btn) return;
-    LesifyUI.openFachColorPicker(btn.getAttribute('data-fach-color'), drawHead);
+    LesifyUI.openFachColorPicker(btn.getAttribute('data-fach-color'), function () { drawHead(); });
   });
 
-  async function drawThemen() {
-    var themen = await Lesify.themenFuerFach(fachId);
+  async function drawThemen(vorgeladen) {
+    var themen = vorgeladen || (await Lesify.themenFuerFach(fachId));
     var html = themen.map(function (t) {
       return R.themaCard(t, { showFachBadge: false, filter: false, countKeys: ['chats', 'lernzettel', 'dateien'] });
     }).join('');
@@ -122,8 +132,8 @@ document.addEventListener('DOMContentLoaded', async function () {
     document.getElementById('fach-themen').innerHTML = html;
   }
 
-  async function drawKlausuren() {
-    var klausuren = (await Lesify.klausuren()).filter(function (k) { return k.fachId === fachId; });
+  async function drawKlausuren(vorgeladen) {
+    var klausuren = (vorgeladen || (await Lesify.klausuren())).filter(function (k) { return k.fachId === fachId; });
     var html = R.klausurListe(klausuren);
     if (!klausuren.length) {
       html = '<div class="empty-state"><div class="es-icon">' + I.docCheck + '</div><h4>Noch keine Klausuren</h4><p>Für ' + fach.name + ' wurde noch keine Klausur angelegt.</p><a class="btn btn-secondary" href="klausuren.html">Klausur hinzufügen</a></div>';
@@ -134,8 +144,15 @@ document.addEventListener('DOMContentLoaded', async function () {
   // drawThemen() zuerst und für sich (füllt den Themen-Cache, siehe api.js) —
   // drawKlausuren() rendert Thema-Badges daraus (Lesify.label(), synchron) und
   // müsste sonst raten, ob der Cache schon warm ist.
-  await drawThemen();
-  await Promise.all([drawHead(), drawKlausuren()]);
+  // Sind Themen + Klausuren schon mitgeladen (id bekannt), ist der Cache warm
+  // und alles rendert in einem Rutsch.
+  if (idParam && fachId === idParam) {
+    await drawThemen(vorab[1]);
+    await Promise.all([drawHead(true), drawKlausuren(vorab[2])]);
+  } else {
+    await drawThemen();
+    await Promise.all([drawHead(true), drawKlausuren()]);
+  }
 
   document.getElementById('new-thema-form').addEventListener('submit', async function (e) {
     e.preventDefault();

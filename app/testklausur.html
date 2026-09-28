@@ -101,9 +101,9 @@
       </a>
 
       <div class="tkx" id="tkx">
-        <div class="page-head tkx-head" id="tk-head"></div>
+        <div class="page-head tkx-head" id="tk-head" data-skeleton="kopf"></div>
         <div class="tkx-steps" id="tk-steps"></div>
-        <div class="tkx-panel" id="tk-panel"></div>
+        <div class="tkx-panel" id="tk-panel" data-skeleton="block"></div>
         <div class="tkx-result" id="tk-ergebnis"></div>
       </div>
 
@@ -111,14 +111,13 @@
   </div>
 </div>
 
-<script src="assets/js/api.js?v=20260923stream"></script>
+<script src="assets/js/api.js?v=20260928laden"></script>
 <script src="assets/js/auth-gate.js"></script>
 <script src="assets/js/app.js?v=20260919pdf"></script>
 <script>
 document.addEventListener('DOMContentLoaded', async function () {
   var R = LesifyUI.Render, I = LesifyUI.Icons;
   var params = new URLSearchParams(window.location.search);
-  await Promise.all([Lesify.faecher(), Lesify.themen()]);
 
   // Anders als klausuren.html/lernplan.html gibt es kein `GET /testklausuren`
   // (Bulk-Liste) — die Seite wird immer mit `?id=` verlinkt (aus
@@ -127,7 +126,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   var t;
   try {
     if (!tkId) throw new Error('kein id-Parameter');
-    t = await Lesify.getTestklausur(tkId);
+    t = (await Promise.all([Lesify.faecher(), Lesify.themen(), Lesify.getTestklausur(tkId)]))[2];
   } catch (err) {
     window.location.href = 'dashboard.html';
     return;

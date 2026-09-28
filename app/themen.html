@@ -26,13 +26,13 @@
 
       <div class="flex gap-2" style="margin-bottom:28px;flex-wrap:wrap" data-filter-group="#themen-grid [data-filter]" id="thema-filters"></div>
 
-      <div class="grid grid-3" id="themen-grid"></div>
+      <div class="grid grid-3" id="themen-grid" data-skeleton="karten"></div>
 
     </main>
   </div>
 </div>
 
-<script src="assets/js/api.js?v=20260923stream"></script>
+<script src="assets/js/api.js?v=20260928laden"></script>
 <script src="assets/js/auth-gate.js"></script>
 <script src="assets/js/app.js"></script>
 <script>
@@ -42,8 +42,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   // Fächer zuerst laden (füllt den Cache, den fachFilterChips()/badge()
   // synchron lesen), dann die Themen — GET /themen bringt Chats-/Lernzettel-/
   // Dateien-/Klausuren-Zähler schon eingebettet mit.
-  await Lesify.faecher();
-  var themen = await Lesify.themen();
+  var themen = (await Promise.all([Lesify.faecher(), Lesify.themen()]))[1];
   document.getElementById('thema-filters').innerHTML = R.fachFilterChips();
   document.getElementById('themen-grid').innerHTML = themen.map(function (t) {
     return R.themaCard(t);

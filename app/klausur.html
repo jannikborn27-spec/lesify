@@ -92,11 +92,11 @@
   <div id="sidebar-root"></div>
   <div class="main">
     <div id="topbar-root"></div>
-    <main class="main-inner" id="k-main"></main>
+    <main class="main-inner" id="k-main" data-skeleton="seite"></main>
   </div>
 </div>
 
-<script src="assets/js/api.js?v=20260923stream"></script>
+<script src="assets/js/api.js?v=20260928laden"></script>
 <script src="assets/js/auth-gate.js"></script>
 <script src="assets/js/app.js"></script>
 <script>
@@ -104,17 +104,26 @@ document.addEventListener('DOMContentLoaded', async function () {
   var R = LesifyUI.Render, I = LesifyUI.Icons;
 
   var params = new URLSearchParams(window.location.search);
-  await Lesify.faecher();
+  // Fächer-Cache, Klausur und (bei bekannter id) Lernplan gleichzeitig laden.
   var kId = params.get('id');
-  var k = kId ? await Lesify.getKlausur(kId) : (await Lesify.klausuren())[0];
+  var geladen = await Promise.all([
+    Lesify.faecher(),
+    kId ? Lesify.getKlausur(kId) : Lesify.klausuren().then(function (l) { return l[0]; }),
+    kId ? Lesify.getLernplanFuerKlausur(kId).catch(function () { return null; }) : null,
+  ]);
+  var k = geladen[1];
+  var lpVorab = geladen[2];
+  var mitId = !!kId;
   kId = k.id;
   var fach = Lesify.getFach(k.fachId);
   var fachCol = fach ? Lesify.getFachColor(fach.farbe) : null;
   LesifyUI.setPageWatermark(Lesify.getFachIcon(k.fachId) || '', fachCol ? fachCol.base : null);
   document.title = k.titel + ' · Lesify';
 
-  var lp = null;
-  try { lp = await Lesify.getLernplanFuerKlausur(kId); } catch (err) { lp = null; }
+  var lp = lpVorab;
+  if (!mitId) {
+    try { lp = await Lesify.getLernplanFuerKlausur(kId); } catch (err) { lp = null; }
+  }
   var vergangen = Lesify.klausurVergangen(k);
   var fcVars = R.fachColorVars(k.fachId);
 

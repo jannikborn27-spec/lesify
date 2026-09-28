@@ -42,7 +42,7 @@
         </div>
       </div>
 
-      <div class="grid grid-auto" id="files-container"></div>
+      <div class="grid grid-auto" id="files-container" data-skeleton="karten"></div>
 
     </main>
   </div>
@@ -84,7 +84,7 @@
   </div>
 </div>
 
-<script src="assets/js/api.js?v=20260923stream"></script>
+<script src="assets/js/api.js?v=20260928laden"></script>
 <script src="assets/js/auth-gate.js"></script>
 <script src="assets/js/app.js"></script>
 <script>
@@ -94,7 +94,8 @@ document.addEventListener('DOMContentLoaded', async function () {
   document.getElementById('view-grid').innerHTML = I.grid;
   document.getElementById('view-list').innerHTML = I.list;
 
-  await Promise.all([Lesify.faecher(), Lesify.themen()]);
+  // Dateien gleich mitladen (erste Darstellung), statt erst nach den Caches.
+  var ersteDateien = (await Promise.all([Lesify.faecher(), Lesify.themen(), Lesify.dateien()]))[2];
 
   function drawFilters() {
     document.getElementById('file-filters').innerHTML = R.fachFilterChips();
@@ -104,7 +105,8 @@ document.addEventListener('DOMContentLoaded', async function () {
   async function drawFiles() {
     var container = document.getElementById('files-container');
     container.className = currentView === 'grid' ? 'grid grid-auto' : 'card divide-list';
-    var dateien = await Lesify.dateien(); // bereits neueste zuerst
+    var dateien = ersteDateien || (await Lesify.dateien()); // bereits neueste zuerst
+    ersteDateien = null;
     var html = dateien.map(currentView === 'grid' ? R.dateiCard : R.dateiRow).join('');
     container.innerHTML = html || ('<div class="empty-state" style="grid-column:1/-1"><div class="es-icon">' + I.folder + '</div><h4>Noch keine Dateien</h4><p>Lade deine erste Datei hoch.</p></div>');
   }

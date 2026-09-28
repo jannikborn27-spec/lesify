@@ -793,11 +793,21 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       selbst (Skeleton/Ladezustand) und einzelne unnötig sequenzielle
       Awaits (z. B. `thema.html`) — auf Wunsch des Nutzers bewusst offen
       gelassen, siehe unten.
-- [ ] **Skeleton/Ladezustand statt leerer Seite** (Folgeidee aus obigem Bug,
-      noch nicht umgesetzt): Seiten zeigen bis zum ersten Render nichts außer
+- [x] **Skeleton/Ladezustand statt leerer Seite** — _erledigt 2026-09-28:_
+      `api.js` setzt `<html data-laden>`, bis die erste Request-Welle der Seite
+      durch ist (Notbremse 15 s); `style.css` zeigt solange Platzhalter in noch
+      leeren Containern mit `data-skeleton="seite|kopf|karten|liste|block"`
+      (20 Stellen über alle App-Seiten), erst nach 250 ms (kein Flackern),
+      Dark Mode + reduced motion berücksichtigt. Legitim leere Container
+      bleiben danach einfach leer. Ursprünglich (Folgeidee aus obigem Bug): Seiten zeigen bis zum ersten Render nichts außer
       leeren `<div>`s — ändert die reale Ladezeit nicht, aber die gefühlte.
-- [ ] **Sequenzielle statt parallele Awaits vor dem ersten Render** (Folgeidee,
-      noch nicht umgesetzt): z. B. `thema.html` lädt `Lesify.faecher()` und
+- [x] **Sequenzielle statt parallele Awaits vor dem ersten Render** — _erledigt
+      2026-09-28:_ unabhängige Erst-Ladevorgänge laufen jetzt per
+      `Promise.all` gleichzeitig auf `thema`, `themen`, `klausur` (inkl.
+      Lernplan), `klausuren`, `dateien`, `fach` (3 Runden → 1, doppeltes
+      `faecher()` entfernt), `lernzettel`, `lernplan-lernzettel`,
+      `testklausur`, `einstellungen`, `eltern`, `eltern-abo`. Lokal gegen die
+      Dev-DB alle Seiten durchgeklickt (Kind- und Eltern-Konto). Ursprünglich (Folgeidee): z. B. `thema.html` lädt `Lesify.faecher()` und
       `Lesify.getThema()` nacheinander statt gleichzeitig, obwohl beide
       unabhängig sind — ein Roundtrip weniger pro Seitenaufruf möglich.
 - [x] **Error-Tracking: Sentry (Entscheidung 2026-09-23)** — live seit 2026-09-25. API: `api/src/lib/sentry.ts` (aktiv mit

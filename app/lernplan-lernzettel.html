@@ -17,15 +17,15 @@
     <main class="main-inner" style="padding-bottom:60px">
 
       <div id="sp-crumb" class="page-eyebrow" style="margin-bottom:16px"></div>
-      <div class="page-head" id="sp-head" style="margin-bottom:var(--sp-6)"></div>
+      <div class="page-head" id="sp-head" data-skeleton="kopf" style="margin-bottom:var(--sp-6)"></div>
 
-      <div class="split-doc" id="sp-doc" style="max-width:760px"></div>
+      <div class="split-doc" id="sp-doc" data-skeleton="block" style="max-width:760px"></div>
 
     </main>
   </div>
 </div>
 
-<script src="assets/js/api.js?v=20260923stream"></script>
+<script src="assets/js/api.js?v=20260928laden"></script>
 <script src="assets/js/auth-gate.js"></script>
 <script src="assets/js/app.js?v=20260919pdf"></script>
 <script>
@@ -33,13 +33,11 @@ document.addEventListener('DOMContentLoaded', async function () {
   var I = LesifyUI.Icons, R = LesifyUI.Render;
   var params = new URLSearchParams(window.location.search);
   var lernplanId = params.get('lernplan') || params.get('id');
-  var lp = null;
-  try {
-    if (lernplanId) lp = await Lesify.getLernplan(lernplanId);
-    else if (params.get('klausur')) lp = await Lesify.getLernplanFuerKlausur(params.get('klausur'));
-  } catch (err) {
-    lp = null;
-  }
+  // Lernplan und Fächer-Cache gleichzeitig laden.
+  var lpP = lernplanId
+    ? Lesify.getLernplan(lernplanId)
+    : params.get('klausur') ? Lesify.getLernplanFuerKlausur(params.get('klausur')) : Promise.resolve(null);
+  var lp = (await Promise.all([lpP.catch(function () { return null; }), Lesify.faecher()]))[0];
 
   if (!lp) {
     document.getElementById('sp-head').innerHTML =
@@ -50,8 +48,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   lernplanId = lp.id;
 
   // lp.klausur kommt bereits eingebettet (GET /lernplaene/:id) — kein
-  // eigener Lesify.getKlausur()-Aufruf nötig.
-  await Lesify.faecher();
+  // eigener Lesify.getKlausur()-Aufruf nötig. Fächer-Cache ist oben geladen.
   var k = lp.klausur;
   var fach = k ? Lesify.getFach(k.fachId) : null;
   if (k) {

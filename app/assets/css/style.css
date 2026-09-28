@@ -979,6 +979,44 @@ textarea.input { height: auto; padding: 12px 14px; min-height: 90px; resize: ver
   border-radius: var(--radius-sm);
 }
 
+/* Ladezustand (2026-09-28): solange <html data-laden> gesetzt ist (api.js,
+   bis die erste Request-Welle der Seite durch ist), zeigen noch leere
+   Container mit `data-skeleton` Platzhalter. Sobald Inhalt drin ist (:empty
+   greift nicht mehr) oder das Laden vorbei ist, verschwinden sie von selbst —
+   ein legitim leerer Container bleibt danach also einfach leer. Erscheinen
+   erst nach 250 ms, damit schnelle Seiten nicht flackern. */
+@keyframes skel-ein { from { opacity: 0; } to { opacity: 1; } }
+[data-laden] [data-skeleton]:empty::before,
+[data-laden] [data-skeleton]:empty::after {
+  content: '';
+  display: block;
+  background: linear-gradient(90deg, var(--ink-100) 25%, var(--ink-50) 37%, var(--ink-100) 63%);
+  background-size: 400% 100%;
+  border-radius: var(--radius-lg);
+  animation: skel-ein 200ms ease 250ms both, shimmer 1.6s ease-in-out infinite;
+}
+/* ganze Seite (main leer): Titelzeile + große Karte */
+[data-laden] [data-skeleton="seite"]:empty::before { width: min(340px, 60%); height: 34px; border-radius: var(--radius-sm); margin: 8px 0 32px; }
+[data-laden] [data-skeleton="seite"]:empty::after { height: 260px; max-width: 900px; }
+/* Seitenkopf: Titel + Unterzeile (.page-head ist sonst eine Flex-Zeile) */
+[data-laden] [data-skeleton="kopf"]:empty { flex-direction: column; align-items: flex-start; }
+[data-laden] [data-skeleton="kopf"]:empty::before { width: min(320px, 60%); height: 32px; border-radius: var(--radius-sm); }
+[data-laden] [data-skeleton="kopf"]:empty::after { width: min(220px, 40%); height: 14px; border-radius: var(--radius-sm); margin-top: 12px; }
+/* Karten-Raster: ::before/::after werden zu zwei Grid-Zellen */
+[data-laden] [data-skeleton="karten"]:empty::before,
+[data-laden] [data-skeleton="karten"]:empty::after { height: 150px; }
+/* Liste: zwei Zeilen (Container ist Block oder Flex-Spalte) */
+[data-laden] [data-skeleton="liste"]:empty::before,
+[data-laden] [data-skeleton="liste"]:empty::after { height: 64px; border-radius: var(--radius-md); }
+[data-laden] [data-skeleton="liste"]:empty::after { margin-top: 12px; opacity: 0.7; }
+/* ein großer Inhaltsblock (Dokument, Lernplan, Panel) */
+[data-laden] [data-skeleton="block"]:empty::before { height: 280px; }
+[data-laden] [data-skeleton="block"]:empty::after { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  [data-laden] [data-skeleton]:empty::before,
+  [data-laden] [data-skeleton]:empty::after { animation: skel-ein 200ms ease 250ms both; }
+}
+
 /* =========================================================
    Ampel — grün/gelb/rot, das einzige Farbsystem der App
    ========================================================= */

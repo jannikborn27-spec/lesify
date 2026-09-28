@@ -752,10 +752,12 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       2026-09-25):** Footer-Link „Kontakt", CTAs auf 404/Über uns/FAQ zeigen
       auf `/kontakt/`, Sitemap-Eintrag, Datenschutz §3 (Kontaktanfragen) + §5
       (STRATO als Postfach-Anbieter). ~~Postfach `kontakt@lesify.de` bei STRATO
-      anlegen~~ — **angelegt 2026-09-25.** Prüfen, ob
-      `hallo@lesify.de` (Impressum, AGB-Widerruf) und `datenschutz@lesify.de`
-      (Datenschutzerklärung) ebenfalls existieren — sonst als Weiterleitung auf
-      `kontakt@` anlegen.
+      anlegen~~ — **angelegt 2026-09-25.** ~~Prüfen, ob
+      `hallo@`/`datenschutz@lesify.de` existieren~~ — **2026-09-28: existieren
+      nicht, `kontakt@lesify.de` ist die einzige Adresse.** Überall ersetzt:
+      Impressum, AGB (Widerruf + Muster-Formular), Datenschutz, JSON-LD
+      (`index.html`, `ueber-uns/`, Alt-Landing) und der Fair-Use-Text in
+      `app/assets/js/api.js`.
 
 ### 6. Betrieb (Phase 15/16)
 
@@ -4706,8 +4708,8 @@ Kritisch, weil Zielgruppe minderjährig ist.
       Query bleiben). Live geprüft: HSTS/X-Frame/CSP-Report-Only aus `_headers`
       kommen an, kein `x-github-request-id` mehr, `/app/*` mit `X-Robots-Tag:
       noindex`, CORS-Preflight der API für `https://www.lesify.de` ok (204).
-      `.github/workflows/pages.yml` entfernt. **Offen:** GitHub Pages im Repo
-      abschalten (Settings → Pages); Cloudflare-Auto-Deploy bei Push
+      `.github/workflows/pages.yml` entfernt. GitHub Pages im Repo abgeschaltet
+      (bestätigt 2026-09-28); Cloudflare-Auto-Deploy bei Push
       (Workers Builds) ✅ bestätigt 2026-09-26; CSP
       nach ~1 Woche ohne Meldungen scharf schalten (eigene Zeile unten).
       _Historie:_ **Stand 2026-09-25 abends:** Cloudflare ist nur **Proxy vor GitHub Pages**

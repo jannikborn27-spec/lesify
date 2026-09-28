@@ -85,7 +85,7 @@
     passwort_fehlt: 'Bitte ein Passwort vergeben (mindestens 8 Zeichen).',
     email_vergeben: 'Für diese E-Mail-Adresse besteht bereits ein Konto.',
     kein_familienabo: 'Dafür ist ein Familien-Abo nötig.',
-    fair_use_erreicht: 'Du hast diesen Monat außergewöhnlich viele Nachrichten geschickt. Ab dem 1. des nächsten Monats geht es weiter — bei Fragen schreib uns an hallo@lesify.de.',
+    fair_use_erreicht: 'Du hast diesen Monat außergewöhnlich viele Nachrichten geschickt. Ab dem 1. des nächsten Monats geht es weiter — bei Fragen schreib uns an kontakt@lesify.de.',
     abo_gesperrt: 'Dein Zugang ist gerade pausiert — sprich mit deinen Eltern.',
     zahlung_offen: 'Gerade kannst du nichts Neues anlegen: Beim Abo ist eine Zahlung offen. Sag deinen Eltern Bescheid.',
   };

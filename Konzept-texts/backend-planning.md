@@ -10,8 +10,9 @@
 > (Anker `index.html#price`), **Über uns** (`ueber-uns.html`), **FAQ** (Anker
 > `index.html#faq`); dazu Utility-Seiten ohne Nav-Eintrag: Login, Registrierung,
 > Passwort vergessen, Checkout, Impressum, Datenschutz, AGB (die Marketing-Seite
-> `kontakt/` wurde am 2026-09-22 entfernt — Kontakt-CTAs verweisen seither auf
-> `mailto:hallo@lesify.de`, siehe §11). Eigene
+> `kontakt/` wurde am 2026-09-22 entfernt und am 2026-09-25 zurückgeholt —
+> Kontakt-CTAs verweisen auf `/kontakt/`, siehe §11; einzige öffentliche
+> Mail-Adresse ist `kontakt@lesify.de`). Eigene
 > Seiten `preise.html` und `faq.html` gibt es **nicht mehr** — beide Inhalte
 > sind Abschnitte auf der Startseite (wie zuvor schon Funktions-Unterseiten
 > und `vergleich.html`: Vergleich unter `index.html#cmp`). Preis-Karten +
@@ -1246,7 +1247,7 @@ Stripe-Calls auslösen.
 ### Kontakt
 | Methode | Pfad | Zweck |
 |---|---|---|
-| POST | `/kontakt` | `{name, email, thema, nachricht}` → Ticket/Weiterleitung an Support-Postfach, Spam-Schutz serverseitig, kein Login nötig. **Ungenutzt seit 2026-09-22:** die Marketing-Seite `marketing/kontakt/`, die dieses Formular bediente, wurde entfernt (alle „Kontakt"-CTAs verweisen jetzt auf `mailto:hallo@lesify.de`) — Endpunkt, Rate-Limit (§7) und Mail-Template (`mailTemplates.ts`) bleiben im Code, sind aber nicht mehr verlinkt. **Zustellung seit 2026-09-23:** Resend an `KONTAKT_EMPFAENGER` (Default `kontakt@lesify.de`), Reply-To = Absender:in; Versandfehler → `503 kontakt_versand_fehlgeschlagen` (kein zweiter Weg zur Nachricht). Ob die Formular-Seite zurückkommt, ist offen. |
+| POST | `/kontakt` | `{name, email, thema, nachricht}` → Ticket/Weiterleitung an Support-Postfach, Spam-Schutz serverseitig, kein Login nötig. **Wieder in Benutzung seit 2026-09-25:** die Marketing-Seite `marketing/kontakt/` (2026-09-22 kurzzeitig entfernt) bedient das Formular wieder (Rate-Limit §7, Mail-Template `mailTemplates.ts`). **Zustellung seit 2026-09-23:** Resend an `KONTAKT_EMPFAENGER` (Default `kontakt@lesify.de`), Reply-To = Absender:in; Versandfehler → `503 kontakt_versand_fehlgeschlagen` (kein zweiter Weg zur Nachricht). |
 
 ---
 
@@ -2164,9 +2165,11 @@ Hanken Grotesk, Ampel-Farben, „Fog Blue"-Tonleiter). Kein Build, Vanilla JS.
   Abo-, Kontakt-Endpunkte), §5 (Auth) und §7 (Limits). **2026-09-22:** die
   Marketing-Seite `kontakt/` (samt Formular + Honeypot-Feld) wurde entfernt —
   alle „Kontakt"-CTAs (Footer, 404, Über uns, FAQ) verweisen jetzt auf
-  `mailto:hallo@lesify.de`; `initKontakt()` ist aus `auth-forms.js` entfernt,
-  der `POST /kontakt`-Endpunkt bleibt unverändert im Backend, ist aber
-  aktuell von keiner Seite mehr verlinkt.
+  `mailto:hallo@lesify.de`. **2026-09-25 zurückgeholt:** `marketing/kontakt/`
+  bedient `POST /kontakt` wieder (Resend → `kontakt@lesify.de`), CTAs zeigen
+  auf `/kontakt/`. **2026-09-28:** `hallo@`/`datenschutz@lesify.de` existieren
+  nicht — Impressum, AGB (Widerruf), Datenschutz, JSON-LD und der
+  Fair-Use-Text nennen jetzt überall `kontakt@lesify.de`.
 - **E-Mail-Versand + `email-bestaetigen.html` (2026-09-17, neu):**
   `/registrieren` und `/passwort-vergessen` verschicken jetzt echte Mails über
   Resend (siehe §0, §5, §8). Die neue Seite `email-bestaetigen.html` ist das

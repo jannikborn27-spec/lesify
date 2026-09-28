@@ -35,6 +35,8 @@ const schema = z.object({
   SUPABASE_URL: z.string().optional(),
   SUPABASE_SERVICE_KEY: z.string().optional(),
   SUPABASE_STORAGE_BUCKET: z.string().default('lesify-local'),
+  // Privater Bucket für die nächtlichen DB-Dumps (lib/backup.ts, 2026-09-28).
+  BACKUP_BUCKET: z.string().default('lesify-backups'),
   // 5-MB-Limit pro Datei, serverseitig hart (§6) — Bytes, nicht MB.
   DATEI_MAX_BYTES: z.coerce
     .number()

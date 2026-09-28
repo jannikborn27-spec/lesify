@@ -18,6 +18,8 @@ export interface StorageGateway {
   /** Serverseitiger Direktzugriff (Verarbeitungs-Job, §3/§6) — kein Umweg über eine signierte URL. */
   lesen(key: string): Promise<Buffer>;
   loeschen(keys: string[]): Promise<void>;
+  /** Alle Keys unter `prefix/` (eine Ebene, alphabetisch) — für die Backup-Rotation. */
+  auflisten(prefix: string): Promise<string[]>;
 }
 
 /**
@@ -88,6 +90,15 @@ export class SupabaseStorageGateway implements StorageGateway {
     const { error } = await this.client.storage.from(this.bucket).remove(keys);
     if (error) throw new Error(`Löschen fehlgeschlagen: ${error.message}`);
   }
+
+  async auflisten(prefix: string): Promise<string[]> {
+    await this.bereit();
+    const { data, error } = await this.client.storage
+      .from(this.bucket)
+      .list(prefix, { limit: 1000, sortBy: { column: 'name', order: 'asc' } });
+    if (error || !data) throw new Error(`Auflisten fehlgeschlagen (${prefix}): ${error?.message}`);
+    return data.filter((o) => o.id).map((o) => `${prefix}/${o.name}`);
+  }
 }
 
 /** Deterministischer In-Memory-Objektspeicher — Default in Dev/Test ohne Supabase-Storage-Zugang. */
@@ -112,6 +123,12 @@ export class FakeStorageGateway implements StorageGateway {
   async loeschen(keys: string[]): Promise<void> {
     for (const key of keys) this.objekte.delete(key);
   }
+
+  async auflisten(prefix: string): Promise<string[]> {
+    return [...this.objekte.keys()]
+      .filter((k) => k.startsWith(`${prefix}/`) && !k.slice(prefix.length + 1).includes('/'))
+      .sort();
+  }
 }
 
 let instanz: StorageGateway | undefined;
@@ -128,4 +145,21 @@ export function getStorageGateway(): StorageGateway {
         : new FakeStorageGateway();
   }
   return instanz;
+}
+
+let backupInstanz: StorageGateway | undefined;
+
+/**
+ * Eigener privater Bucket für die nächtlichen DB-Dumps (`BACKUP_BUCKET`,
+ * Default `lesify-backups`) — getrennt von den Nutzer-Uploads, damit kein
+ * Upload-Key je auf einen Dump zeigen kann (lib/backup.ts, 2026-09-28).
+ */
+export function getBackupAblage(): StorageGateway {
+  if (!backupInstanz) {
+    backupInstanz =
+      env.SUPABASE_URL && env.SUPABASE_SERVICE_KEY
+        ? new SupabaseStorageGateway(env.SUPABASE_URL, env.SUPABASE_SERVICE_KEY, env.BACKUP_BUCKET)
+        : new FakeStorageGateway();
+  }
+  return backupInstanz;
 }

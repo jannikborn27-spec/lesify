@@ -23,3 +23,6 @@ dist/
 
 # statischer Site-Build (scripts/build-site.sh)
 _site/
+
+# Lokale Kopien der DB-Dumps (Personendaten!) — nie committen
+api/backups/

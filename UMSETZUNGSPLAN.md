@@ -821,8 +821,17 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       `fehler-tracking.js`. IP-Speicherung aus + DPA akzeptiert (2026-09-25).
       Alert-Regel bewusst **nicht** eingerichtet (Entscheidung 2026-09-25:
       Sentry wird regelmäßig von Hand angesehen).
-- [ ] **DB-Backups:** Supabase-Feature aktivieren + einmal einen echten
-      Restore testen. **Entscheidung 2026-09-25:** vorerst Supabase Free
+- [~] **DB-Backups:** Supabase-Feature aktivieren + einmal einen echten
+      Restore testen. **Überbrückung erledigt 2026-09-28:** nächtlicher Job
+      `db-backup` (zuerst im 03-Uhr-UTC-Lauf von `lesify-jobs`, vor den
+      Lösch-Jobs) → alle Tabellen als JSON-Snapshot, gzip, privater Bucket
+      `lesify-backups`, 14 Tage Rotation (`api/src/lib/backup.ts`, Tests in
+      `backup.test.ts`). Restore-Probe `pnpm --filter @lesify/api backup
+      pruefen` gegen die Dev-DB bestanden (21 Tabellen / 10.162 Zeilen,
+      Inhalte identisch, inkl. FK-Zyklus User↔Abo). Prod-Dump holen:
+      `bash scripts/prod-backup-holen.sh`; Ernstfall-Anleitung im RUNBOOK
+      „DB-Backups". **Offen:** ersten nächtlichen Prod-Lauf im Railway-Log
+      sehen (→ Schlussrunde) und Supabase Pro nach 2–3 zahlenden Kunden. **Entscheidung 2026-09-25:** vorerst Supabase Free
       (keine abrufbaren Backups); Werbung starten, bis 2–3 zahlende Kunden da
       sind, dann Rentabilität prüfen und auf Pro wechseln. Überbrückung:
       nächtlicher eigener Dump (siehe Scheduler).
@@ -4662,8 +4671,9 @@ Kritisch, weil Zielgruppe minderjährig ist.
       siehe „Was jetzt noch von dir gebraucht wird" §6; ohne Mail-Alert (Entscheidung)._
 - [x] **Healthchecks** — _`GET /health/live` (ohne DB), `GET /health` +
       `/health/ready` (inkl. `SELECT 1`, `uptimeSek`). Externer Monitor = Phase 16._
-- [ ] **DB-Backups** — _Supabase-Feature aktivieren + Restore einmal echt testen
-      (Phase 16 / Schlussliste)._
+- [~] **DB-Backups** — _Überbrückungs-Dump + Restore-Probe seit 2026-09-28
+      (Details Abschnitt 6 oben); Supabase-Feature (Pro) nach 2–3 zahlenden
+      Kunden._
 - [x] **KI-Kosten-Dashboard** (2026-09-16) — _`response.usage` (Phase 6) wird
       pro Call in Euro-Millionsteln umgerechnet (`api/src/lib/ki/kosten.ts`,
       Anthropic-Listenpreise Stand 2026-09, **vor echten Ausgaben
@@ -4835,7 +4845,9 @@ Kritisch, weil Zielgruppe minderjährig ist.
 - [ ] **Stripe Payment Element unsichtbar** — nur melden, falls es im normalen
       Browser auftritt (Abschnitt 4 oben, bisher nur im Automations-Browser).
 - [ ] **Wartungs-Jobs:** einen `lesify-jobs`-Lauf mit lesbarem Log bestätigen
-      (Phase 10); Sitzverringerung zum Periodenende (`abo-geplante-aenderungen`)
+      (Phase 10), darunter den nächtlichen `db-backup` (03 Uhr UTC) — danach
+      einmal `bash scripts/prod-backup-holen.sh` + `backup pruefen` mit dem
+      echten Prod-Dump; Sitzverringerung zum Periodenende (`abo-geplante-aenderungen`)
       einmal real angewendet sehen (Abschnitt 4).
 - [ ] **Seed-Parität:** angebundene App verhält sich wie der Prototyp mit `SEED`
       (Phase 11).

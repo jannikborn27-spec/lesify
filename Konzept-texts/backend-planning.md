@@ -1423,6 +1423,13 @@ DB löschen, dann Objektspeicher aufräumen) nutzt auch
 Stunde, alle anderen Jobs täglich 03 Uhr UTC (`geplanteJobs()`); Einrichtung
 `docs/RUNBOOK.md`. Weitere Jobs: `usage-historie` (Usage-Zeilen > 12 Monate),
 `token-hygiene` (abgelaufene Sessions/Verification-Token),
+`db-backup` (2026-09-28, läuft im 03-Uhr-Lauf **zuerst**: Überbrückungs-Backup
+solange Supabase Free — alle Tabellen per `json_agg` in einem REPEATABLE-READ-
+Snapshot, gzip, privater Bucket `BACKUP_BUCKET` (Default `lesify-backups`),
+14 Dumps Rotation; Einspielen per `json_populate_recordset` in FK-Reihenfolge,
+Zyklen/Selbstbezüge über nachgetragene nullbare FK-Spalten — `api/src/lib/
+backup.ts`, Werkzeug `pnpm --filter @lesify/api backup liste|holen|pruefen|
+einspielen`, Runbook „DB-Backups"),
 `zahlung-offen-loeschung` (2026-09-23: Warn-Mail 7 Tage vor, Kind-Profile +
 Inhalte löschen und Abo beenden 30 Tage nach dem ersten Zahlungsfehlschlag —
 siehe §1 „Zugriff je Status"; täglich).
@@ -1569,7 +1576,8 @@ fehlgeschlagene Logins/Upload-Flooding weiterhin offen (§8).
   geloggt als `missbrauchVerdacht`. In `pruefeKiEingabe()` gebündelt, also vor
   jedem KI-Vorab-Filter-Aufruf aktiv. Fehlgeschlagene Logins/Upload-Flooding
   bleiben offen (§8). Tests: `api/src/lib/ki/guard.test.ts`.
-- **Offen (Phase 16):** Error-Tracker-DSN, Log-Sink, Backup-Restore-Test,
+- **Offen (Phase 16):** Error-Tracker-DSN, Log-Sink, ~~Backup-Restore-Test~~
+  (2026-09-28: Überbrückungs-Dump + Restore-Probe, siehe Jobs oben),
   Scheduler-Anbindung für alle fünf Wartungs-Jobs. Runbook: `docs/RUNBOOK.md`.
 
 ---

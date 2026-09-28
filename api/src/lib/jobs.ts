@@ -5,6 +5,7 @@ import { getZahlungsGateway, type ZahlungsGateway } from './zahlung.js';
 import { kiKostenAlarmPruefen } from './ki/kosten.js';
 import { getMailGateway, type MailGateway } from './mailer.js';
 import { ZAHLUNG_OFFEN_WARN_TAGE_VORHER, loeschDatum } from './aboZugriff.js';
+import { datenbankSichern } from './backup.js';
 
 /**
  * Wiederkehrende Wartungs-Jobs (Phase 10). Reine Funktionen — der echte
@@ -251,7 +252,10 @@ export async function zahlungOffenFristPruefen(
   return { gewarnt, beendet, kindProfileGeloescht };
 }
 
+// Reihenfolge = Ausführungsreihenfolge im nächtlichen Lauf: der Dump zuerst,
+// also bevor Aufbewahrungs-/Löschjobs etwas entfernen.
 export const JOBS = {
+  'db-backup': datenbankSichern,
   'inhalte-aufbewahrung': inhalteAelterAlsEinJahrLoeschen,
   'usage-historie': alteUsageZeilenLoeschen,
   'token-hygiene': abgelaufeneTokenLoeschen,

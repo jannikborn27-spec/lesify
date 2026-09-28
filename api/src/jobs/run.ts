@@ -1,6 +1,7 @@
 /**
  * CLI-Runner für die Wartungs-Jobs (Phase 10).
  *
+ *   pnpm --filter @lesify/api job db-backup   (nächtlicher DB-Dump, lib/backup.ts)
  *   pnpm --filter @lesify/api job inhalte-aufbewahrung
  *   pnpm --filter @lesify/api job usage-historie
  *   pnpm --filter @lesify/api job token-hygiene

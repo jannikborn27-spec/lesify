@@ -13,7 +13,39 @@ Alert-Kanäle und der Secret-Store kommen mit dem Hosting in Phase 16 dazu.
 | Error-Handling         | zentraler `setErrorHandler`: `HttpError` → sauberer Code, sonst `500` + `request.log.error`                                                                                                                                                                                                                                                                                                         | Error-Tracker (Sentry o. ä.) mit DSN in Phase 16 anschließen                                                                                 |
 | Wartungs-Jobs          | `pnpm --filter @lesify/api job <name>` (Aufbewahrung, Usage-Historie, Token-Hygiene, Abo-Änderungen, KI-Kosten-Alarm), JSON-Summary, Exit-Code                                                                                                                                                                                                                                                      | Railway-Cron `lesify-jobs` (siehe unten), Fehler → Sentry                                                                                    |
 | KI-Kosten              | `response.usage` wird je Call in `KiKosten` (Monat/Call-Typ/Modell) aggregiert (`api/src/lib/ki/kosten.ts`); Job `ki-kosten-alarm` vergleicht die Monatssumme gegen das aus `PLAN_ECONOMICS` abgeleitete Budget (aktive Sitze × geplante API-Kosten/Sitz, auf den bisherigen Monatsanteil hochgerechnet) und loggt `kiKostenAlarm`, wenn die Ist-Kosten mehr als das 1,5-fache des Budgets betragen | Anthropic-Preistabelle in `kosten.ts` ist Stand 2026-09 und **vor echten Ausgaben gegenprüfen**; Scheduler-Anbindung für den Job in Phase 16 |
-| DB-Backups             | Supabase (automatische Backups im Projekt aktivieren)                                                                                                                                                                                                                                                                                                                                               | Restore **einmal echt testen** vor Go-Live                                                                                                   |
+| DB-Backups             | Überbrückung (Supabase Free): nächtlicher Job `db-backup` → privater Bucket `lesify-backups`, 14 Tage; Abschnitt „DB-Backups"                                                                                                                                                                                                                                                                       | Restore-Probe `backup pruefen` (2026-09-28 bestanden)                                                                                        |
+
+## DB-Backups (Überbrückung bis Supabase Pro)
+
+Supabase Free hat keine abrufbaren Backups (Entscheidung 2026-09-25: Pro erst
+ab 2–3 zahlenden Kunden). Bis dahin:
+
+- **Nächtlicher Dump:** Job `db-backup` läuft im 03-Uhr-UTC-Lauf von
+  `lesify-jobs` **als erster** (vor den Lösch-Jobs). Postgres exportiert alle
+  Tabellen als JSON in einem konsistenten Snapshot, gzip, Upload in den
+  privaten Bucket `lesify-backups` (`BACKUP_BUCKET`) unter `db/…json.gz`.
+  Die 14 neuesten bleiben liegen. Railway-Log: „Job db-backup fertig (… ms):
+  {key, bytes, tabellen, zeilen, geloescht}". Kein Extra-Setup nötig — der
+  Bucket legt sich beim ersten Lauf selbst an.
+- **Neuesten Prod-Dump auf den Mac holen:** `bash scripts/prod-backup-holen.sh`
+  (fragt den `SUPABASE_SERVICE_KEY` verdeckt ab) → `api/backups/` (gitignored,
+  **enthält Personendaten** — nicht weitergeben, nach Gebrauch löschen).
+- **Restore-Probe ohne Risiko:** `pnpm --filter @lesify/api backup pruefen
+backups/<datei>` — legt in der Dev-DB (aus `api/.env`) ein Wegwerf-Schema an,
+  migriert es, spielt den Dump ein, vergleicht Zeilenzahlen **und** Inhalte,
+  löscht das Schema. Ohne Datei: frischer Dump der Dev-DB. Einmal im Monat
+  mit einem echten Prod-Dump laufen lassen.
+- **Ernstfall (Daten weg/kaputt):** neues Supabase-Projekt (oder geleertes
+  Schema) → `prisma migrate deploy` auf **denselben Migrationsstand** wie im
+  Dump (steht in der `holen`-Ausgabe) → mit der `DATABASE_URL`/`DIRECT_URL`
+  des Ziels in `api/.env`: `pnpm --filter @lesify/api backup einspielen
+backups/<datei> --wirklich` (bricht ab, wenn eine Tabelle nicht leer ist).
+  Danach Railway-Variablen aufs neue Projekt zeigen lassen.
+- **Grenzen:** nur die Datenbank — hochgeladene Dateien im Storage-Bucket sind
+  nicht im Dump. Liegt im selben Supabase-Projekt (schützt vor Fehlern/
+  versehentlichem Löschen, nicht vor Verlust des ganzen Projekts) — dafür den
+  Prod-Dump gelegentlich per Skript auf den Mac holen. Ab Supabase Pro
+  übernehmen dessen Backups; der Job kann dann bleiben oder raus.
 
 ## Wartungs-Jobs (Railway-Cron) + Migrationen beim Deploy
 
@@ -117,8 +149,8 @@ Limit anheben — wirkt ohne Neustart.
    CPU/IO. Ggf. Pooler-Limit / Plan hochsetzen.
 3. Häufige Ursache: zu viele gleichzeitige KI-Calls halten Verbindungen →
    Rate-Limit-Klasse `ki` temporär senken (`api/src/lib/ratelimit.ts`).
-4. Kein automatischer Failover — Recovery über Supabase. Danach Backup-Aktualität
-   prüfen.
+4. Kein automatischer Failover — Recovery über Supabase. Sind Daten verloren:
+   Abschnitt „DB-Backups" → Ernstfall.
 
 ### Datenschutz-Anfrage (Auskunft / Löschung)
 
@@ -139,7 +171,7 @@ Limit anheben — wirkt ohne Neustart.
 
 ## Vor Go-Live abhaken (siehe auch QS §6)
 
-- [ ] Supabase automatische Backups an + Restore einmal getestet
+- [x] Backups: Überbrückungs-Dump `db-backup` nächtlich + Restore-Probe bestanden (2026-09-28, Dev-DB); Supabase Pro nach 2–3 zahlenden Kunden
 - [ ] Externe Uptime-Prüfung auf `/health/ready`
 - [ ] Error-Tracker mit DSN verbunden, Test-Fehler kommt an
 - [ ] Log-Sink erhält Logs, PII-Schwärzung stichprobenartig geprüft

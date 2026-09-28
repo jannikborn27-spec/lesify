@@ -268,6 +268,8 @@
         return;
       }
 
+      if (window.LesifyTrack) window.LesifyTrack.event('zahlungsdaten', window.LesifyTrack.aboAuswahl());
+
       var token = sessionToken();
       if (!token) {
         message('Zum Abschließen zuerst registrieren/anmelden — die Kasse braucht ein Konto, dem sie das Abo zuordnet.', 'error');
@@ -365,4 +367,6 @@
 
   renderSummary();
   initStripe();
+  // Conversion „Kasse geöffnet" (tracking.js).
+  if (window.LesifyTrack) window.LesifyTrack.event('kasse', window.LesifyTrack.aboAuswahl());
 })();

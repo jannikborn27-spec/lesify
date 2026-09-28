@@ -192,6 +192,9 @@
             return acc;
           }, []);
           if (qs.length) ziel += '?' + qs.join('&');
+          // Conversion „Registrierung" (tracking.js) — geparkt, damit die
+          // Weiterleitung zur Kasse sie nicht abbricht.
+          if (window.LesifyTrack) window.LesifyTrack.event('registrierung', { method: 'email' }, { nachWeiterleitung: true });
           location.href = ziel;
         })
         .catch(function (err) {
@@ -311,6 +314,7 @@
       post('/kontakt', daten)
         .then(function () {
           form.reset();
+          if (window.LesifyTrack) window.LesifyTrack.event('kontakt');
           showMsg(msg, 'Danke! Deine Nachricht ist angekommen — wir melden uns per E-Mail.', 'success');
         })
         .catch(function (err) {

@@ -53,7 +53,9 @@
       { href: '/datenschutz/', label: 'Datenschutz' },
       { href: '/agb/', label: 'AGB' },
       // Kündigungsbutton nach §312k BGB — muss dauerhaft sichtbar sein
-      { href: '/kuendigen/', label: 'Verträge hier kündigen' }
+      { href: '/kuendigen/', label: 'Verträge hier kündigen' },
+      // öffnet den CookieScript-Banner erneut (Klick-Handler in tracking.js)
+      { href: '#cookie-einstellungen', label: 'Cookie-Einstellungen' }
     ]}
   ];
 

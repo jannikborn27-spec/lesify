@@ -3166,6 +3166,11 @@ Blockiert alles Weitere. Erst die offenen Produktfragen klären, dann bauen.
       Kombinationen zwischen ~320px (v1) und ~610px (breiteste
       Kombination), mobil (375px) einheitlich und unverändert über
       alle Varianten, keine Konsolenfehler.
+- [x] **Entscheidung 2026-09-28 — Werbe-Messung mit Conversion-Pixeln:**
+      Meta Pixel + Google Tag Manager (GA4/Google Ads darin) auf der
+      Marketing-Website, nur nach Einwilligung über den CookieScript-Banner
+      (Google Consent Mode v2). Die App (`/app`) und Seiten mit Token in der URL
+      tracken nie. Umsetzung: `marketing/assets/js/tracking.js`.
 - [x] **Entscheidung 2026-09-28 — Angebotspreis dauerhaft:** wer zum
       Angebotspreis abschließt, wird immer zum Angebotspreis abgerechnet, auch
       nach Tarif-/Sitz-/Intervallwechseln und wenn das Angebot für Neukunden
@@ -4589,9 +4594,12 @@ Kritisch, weil Zielgruppe minderjährig ist.
       Phase 5 (2026-09-05) vor der Cascade-Löschung eingesammelt und danach
       best effort aus dem Bucket entfernt. Tests in `dsgvo.test.ts`.
       UI-Buttons: Phase 11._
-- [x] **Cookie-/Consent-Banner** — _entfällt: kein Tracking, keine
-      nicht-essenziellen Cookies → kein Banner nötig. Bei späterem Tracking neu
-      bewerten._
+- [x] **Cookie-/Consent-Banner** — _seit 2026-09-28 nötig und umgesetzt:
+      CookieScript-Banner auf allen Marketing-Seiten (Google Consent Mode v2,
+      Kategorien Performance → GA, Targeting → Meta/Google Ads), Widerruf über
+      Footer-Link „Cookie-Einstellungen". GTM/Pixel laden erst nach
+      Einwilligung (`marketing/assets/js/tracking.js`). Die App setzt weiterhin
+      nur technisch notwendige Speicherung._
 - [x] **1-Jahres-Löschung** — _Job `inhalte-aufbewahrung` (Phase 10). Die Frist
       steht bereits sichtbar in `app/einstellungen.html` („Daten & Aufbewahrung",
       Phase 0) und muss in der Datenschutzerklärung genannt werden (siehe oben)._
@@ -4874,9 +4882,22 @@ Kritisch, weil Zielgruppe minderjährig ist.
       dauerhaft, auch bei Wechseln — umgesetzt + getestet.
 - [ ] **Stripe-Live-Aktivierung früh anstoßen** (Identität, Auszahlungskonto —
       kann Tage dauern), Umschalten selbst erst in der Schlussrunde B.
-- [ ] **Messung für die Werbung:** ohne Tracking (UTM-Links + eigene
-      Registrierungszahlen) oder mit Conversion-Pixeln (dann Consent-Banner +
-      Datenschutz-Nachtrag + Anwalt). Empfehlung: ohne starten.
+- [x] **Messung für die Werbung:** _entschieden 2026-09-28: mit Conversion-
+      Pixeln._ Umgesetzt: CookieScript-Banner, Meta Pixel `1905437307533207`,
+      GTM `GTM-TV2V88K3` (beide erst nach Einwilligung, `tracking.js`),
+      Funnel-Events Registrierung → Kasse → Zahlungsdaten → Testphase/Kauf
+      (+ Preise-Ansicht, Kontakt), Datenschutz §5/§11 nachgezogen, CSP erweitert,
+      Footer-Link „Cookie-Einstellungen".
+  - [ ] **GTM-Container einrichten (Jannik):** GA4-Tag, Google-Ads-Conversion-
+        Tags auf `start_trial`/`purchase` (+ Conversion Linker), veröffentlichen.
+  - [ ] **CookieScript-Dashboard (Jannik):** Scan laufen lassen, Cookies von
+        GA (Performance), Meta/Google Ads (Targeting) zuordnen, Banner-Texte prüfen.
+  - [ ] **Meta Events Manager (Jannik):** Domain `lesify.de` verifizieren,
+        Aggregated Event Measurement (StartTrial/Purchase priorisieren),
+        Test-Events mit `?tracking=1` prüfen.
+  - [ ] **Datenschutz-Nachtrag vom Anwalt abnehmen lassen** (§5/§11 Tracking).
+  - [ ] _Später optional:_ Meta Conversions API serverseitig (Stripe-Webhook,
+        `event_id` wird im Browser schon mitgeschickt → Deduplizierung).
 
 ### Schlussrunde vor dem Launch — ein Testdurchgang + Stripe Live (Entscheidung 2026-09-26)
 

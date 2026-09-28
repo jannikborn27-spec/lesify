@@ -29,6 +29,23 @@
     return '/checkout/?' + p.toString();
   }
 
+  /* Conversion (tracking.js): Testphase oder Sofort-Abo — einmal je Abo,
+     auch wenn die Seite neu geladen wird. Wert = erste Rechnung laut
+     Tarifauswahl in der URL (stripe-config.js). */
+  function conversionMelden(abo) {
+    if (!window.LesifyTrack) return;
+    var daten = window.LesifyTrack.aboAuswahl();
+    if (!daten) return;
+    var mitTestphase = abo ? !!abo.trialEndetAm : new URLSearchParams(location.search).get('ohne_testphase') !== '1';
+    var key = 'lesify:track:abo:' + (abo && abo.id ? abo.id : token.slice(-24));
+    try {
+      if (localStorage.getItem(key)) return;
+      localStorage.setItem(key, String(Date.now()));
+    } catch (e) { /* ohne Storage trotzdem melden */ }
+    if (abo && abo.id) daten.transactionId = abo.id;
+    window.LesifyTrack.event(mitTestphase ? 'testphase' : 'kauf', daten);
+  }
+
   fetch(API_BASE + '/abo/testphase-pruefen', { method: 'POST', headers: auth })
     .then(function (r) {
       if (r.status === 409) {
@@ -44,10 +61,14 @@
       return fetch(API_BASE + '/abo', { headers: auth })
         .then(function (res) { return res.ok ? res.json() : null; })
         .then(function (abo) {
+          conversionMelden(abo);
           if (abo && !abo.trialEndetAm) {
             $('erfolg-text').textContent = 'Dein Abo läuft ab sofort. Kündigen kannst du in den Kontoeinstellungen: monatliche Pakete monatlich, jährliche Pakete jährlich.';
           }
         });
     })
-    .catch(function () { /* Netzwerkfehler: Erfolgsseite bleibt wie sie ist, Webhook prüft nach */ });
+    .catch(function () {
+      /* Netzwerkfehler: Erfolgsseite bleibt wie sie ist, Webhook prüft nach */
+      conversionMelden(null);
+    });
 })();

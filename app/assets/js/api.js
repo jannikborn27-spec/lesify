@@ -470,6 +470,10 @@
     passwortZuruecksetzen: function (token, neuesPasswort) {
       return POST('/auth/passwort-zuruecksetzen', { token: token, neuesPasswort: neuesPasswort });
     },
+    /** Eingeloggt, mit altem Passwort (2026-09-28). Andere Geräte werden abgemeldet. */
+    passwortAendern: function (altesPasswort, neuesPasswort) {
+      return POST('/auth/passwort-aendern', { altesPasswort: altesPasswort, neuesPasswort: neuesPasswort });
+    },
 
     /* Fächer & Themen ---------------------------------------------- */
     faecher: function () {

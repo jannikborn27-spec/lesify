@@ -25,7 +25,7 @@
         <div>
           <div class="page-eyebrow">Einstellungen</div>
           <h1 class="page-title">Einstellungen</h1>
-          <p class="page-sub">Profil, Benachrichtigungen und dein Nutzungslimit im Überblick.</p>
+          <p class="page-sub">Profil, Passwort, Darstellung und dein Nutzungslimit im Überblick.</p>
         </div>
       </div>
 
@@ -42,6 +42,27 @@
             <input class="input" id="p-klasse" type="text" placeholder="z. B. 8. Klasse">
           </div>
           <button type="submit" class="btn btn-primary">Speichern</button>
+        </form>
+      </div>
+
+      <div class="card settings-card">
+        <h3>Passwort ändern</h3>
+        <p class="settings-sub">Danach wirst du auf allen anderen Geräten abgemeldet.</p>
+        <form id="passwort-form">
+          <input type="text" name="username" autocomplete="username" hidden>
+          <div class="field">
+            <label for="pw-alt">Aktuelles Passwort</label>
+            <input class="input" id="pw-alt" type="password" autocomplete="current-password" required>
+          </div>
+          <div class="field mt-0">
+            <label for="pw-neu">Neues Passwort</label>
+            <input class="input" id="pw-neu" type="password" autocomplete="new-password" minlength="8" required>
+          </div>
+          <div class="field mt-0">
+            <label for="pw-neu2">Neues Passwort wiederholen</label>
+            <input class="input" id="pw-neu2" type="password" autocomplete="new-password" minlength="8" required>
+          </div>
+          <button type="submit" class="btn btn-primary">Passwort ändern</button>
         </form>
       </div>
 
@@ -119,6 +140,8 @@
 document.addEventListener('DOMContentLoaded', async function () {
   var user = await Lesify.getUser();
   document.getElementById('p-name').value = user.name;
+  // Für Passwort-Manager: zu welchem Konto das neue Passwort gehört.
+  document.querySelector('#passwort-form [name="username"]').value = user.email || user.benutzername || '';
   // Klassenstufe gibt es nur bei Kind-/Schüler-Profilen (rolle=schueler) —
   // Eltern-Accounts haben keine (seit 2026-09-16, siehe UMSETZUNGSPLAN.md
   // „Eltern-only Signup"); Feld für sie ausblenden statt leer/"null" zu zeigen.
@@ -159,6 +182,29 @@ document.addEventListener('DOMContentLoaded', async function () {
       chip.querySelector('.profile-role').textContent = updated.klasse;
     }
     LesifyUI.toast('Profil gespeichert.');
+  });
+
+  document.getElementById('passwort-form').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var form = this;
+    var alt = document.getElementById('pw-alt');
+    var neu = document.getElementById('pw-neu');
+    var neu2 = document.getElementById('pw-neu2');
+    if (neu.value.length < 8) { LesifyUI.toast('Das neue Passwort braucht mindestens 8 Zeichen.'); neu.focus(); return; }
+    if (neu.value !== neu2.value) { LesifyUI.toast('Die beiden neuen Passwörter stimmen nicht überein.'); neu2.focus(); return; }
+    if (neu.value === alt.value) { LesifyUI.toast('Das neue Passwort ist dasselbe wie das alte.'); neu.focus(); return; }
+    var btn = form.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    try {
+      await Lesify.passwortAendern(alt.value, neu.value);
+      form.reset();
+      LesifyUI.toast('Passwort geändert. Andere Geräte sind abgemeldet.');
+    } catch (err) {
+      LesifyUI.toast(err && err.code === 'passwort_falsch' ? 'Das aktuelle Passwort stimmt nicht.' : Lesify.fehlerText(err));
+      if (err && err.code === 'passwort_falsch') alt.focus();
+    } finally {
+      btn.disabled = false;
+    }
   });
 
   document.getElementById('s-tonfall').addEventListener('change', async function () {

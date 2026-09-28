@@ -1083,6 +1083,7 @@ Query-Parameter, die `chat.html`/`thema.html` aus dem client-seitigen
 | POST | `/auth/logout` | Session invalidieren |
 | POST | `/auth/passwort-vergessen` | `{kennung}` (E-Mail oder Benutzername; `email` als Alias) → Reset-Token, per Mail verschickt (Resend, `marketing/passwort-zuruecksetzen/`; immer 200, keine Konto-Enumeration). **Kind-Profile:** der Link geht immer an die **E-Mail der Eltern** (Vorlage `kindPasswortResetMail`, Entscheidung 2026-09-25), auch wenn das Kind eine eigene E-Mail hat |
 | POST | `/auth/passwort-zuruecksetzen` | `{token, neuesPasswort}` → Passwort setzen, Token verbrauchen, **alle Sessions löschen** |
+| POST | `/auth/passwort-aendern` | **neu 2026-09-28**, eingeloggt: `{altesPasswort, neuesPasswort}` → falsches altes Passwort `400 passwort_falsch`; setzt das Passwort, **löscht alle anderen Sessions** (die aktuelle bleibt), entwertet offene Reset-Token. UI: `einstellungen.html` (Kind) + „Datenschutz & Konto" (`eltern-datenschutz.html`, Modal) |
 | POST | `/auth/email-bestaetigen` | `{token}` → `emailVerifiedAt` setzen (Einmal-Token) |
 | GET | `/auth/me` | aktuelle Sitzung → `{user}` (`requireAuth`); für das Frontend-Auth-Gate (Phase 11) |
 
@@ -1292,7 +1293,7 @@ ohne Backend (Formulare zeigen nur einen Toast). Für das echte Backend:
   pro Prozess ein `Map<tokenHash, {userId, ablaeuftAm}>`, TTL 30 s) hält
   bereits validierte Tokens kurz im Speicher — spart bei wiederholten Requests
   mit demselben Token den DB-Lookup. `logout` und
-  `passwort-zuruecksetzen` räumen betroffene Einträge sofort weg
+  `passwort-zuruecksetzen`/`passwort-aendern` räumen betroffene Einträge sofort weg
   (`sessionCache.invalidate`/`invalidateUser`). **Trade-off:** eine
   widerrufene Session kann in einem Race bis zu 30 s nach dem Widerruf noch
   als gültig gelten, falls sie kurz zuvor anderswo gecached wurde — bewusst
@@ -1301,7 +1302,8 @@ ohne Backend (Formulare zeigen nur einen Toast). Für das echte Backend:
 - **Endpunkte** (Prefix `/auth`): `POST /registrieren`, `POST /email-bestaetigen`,
   `POST /login`, `POST /logout`, `POST /passwort-vergessen`,
   `POST /passwort-zuruecksetzen`, **`GET /me`** (neu — Sitzungs-Check fürs
-  Frontend-Auth-Gate, Phase 11).
+  Frontend-Auth-Gate, Phase 11), **`POST /passwort-aendern`** (2026-09-28,
+  eingeloggt mit altem Passwort; beendet alle anderen Sessions).
 - **Registrierung:** legt `User` (+ leeren `Einstellungen`-Satz) an,
   `trialEndetAm = jetzt + 14 Tage`, **kein `Abo`**. Erzeugt `VerificationToken`
   (`email_bestaetigung`, 7 Tage). Doppelte E-Mail → `409 email_vergeben`.

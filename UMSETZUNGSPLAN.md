@@ -700,7 +700,13 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
       argon2id-Hash + SQL aus; Ausgabe mit `| pbcopy` direkt in die
       Zwischenablage, sonst kann der Terminal-Zeilenumbruch den Hash beim
       Kopieren zerstören)._
-- [ ] **Idee: „Passwort ändern" in den Einstellungen** (aufgefallen 2026-09-26):
+- [x] **„Passwort ändern" in den Einstellungen** — _erledigt 2026-09-28:
+      `POST /auth/passwort-aendern` (altes + neues Passwort, Auth-Rate-Limit,
+      beendet alle anderen Sessions, aktuelle bleibt; Test in `auth.test.ts`),
+      Formular in `einstellungen.html` (Kind-Profile) und Modal „Passwort
+      ändern" in `eltern-datenschutz.html` (Eltern werden von
+      `einstellungen.html` weggeleitet). Lokal im Browser + per API geprüft._
+      Ursprüngliche Idee (aufgefallen 2026-09-26):
       eingeloggte Nutzer können ihr Passwort bisher nur über „Passwort
       vergessen" (Mail) ändern; Kinder ohne E-Mail nur über die Eltern. Kleiner
       Endpunkt (`POST /auth/passwort-aendern`, altes + neues Passwort, andere

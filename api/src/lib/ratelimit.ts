@@ -25,6 +25,7 @@ const AUTH_PFADE = new Set([
   '/auth/registrieren',
   '/auth/passwort-vergessen',
   '/auth/passwort-zuruecksetzen',
+  '/auth/passwort-aendern',
 ]);
 
 /** Teure (später KI-)Endpunkte — Klasse „ki". */

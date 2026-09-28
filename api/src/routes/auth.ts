@@ -50,6 +50,10 @@ const passwortZuruecksetzenBody = z.object({
   token: z.string().min(1).max(500),
   neuesPasswort: passwort,
 });
+const passwortAendernBody = z.object({
+  altesPasswort: passwortLogin,
+  neuesPasswort: passwort,
+});
 
 type ParseErgebnis = { success: true } | { success: false; error: z.ZodError };
 
@@ -265,6 +269,36 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
       prisma.session.deleteMany({ where: { userId: vt.userId } }),
     ]);
     sessionCache.invalidateUser(vt.userId);
+    return { ok: true };
+  });
+
+  // ---- POST /auth/passwort-aendern (2026-09-28) --------------------------
+  // Eingeloggt, mit altem Passwort. Beendet alle ANDEREN Sessions — die
+  // aktuelle bleibt, damit man auf der Einstellungsseite angemeldet bleibt.
+  app.post('/passwort-aendern', { preHandler: app.requireAuth }, async (req, reply) => {
+    const parsed = passwortAendernBody.safeParse(req.body);
+    const bad = ungueltig(reply, parsed);
+    if (bad) return bad;
+    const body = parsed.data!;
+
+    const user = await prisma.user.findUnique({ where: { id: req.userId } });
+    if (!user) return reply.code(401).send({ fehler: 'nicht_angemeldet' });
+    if (!(await pruefePasswort(user.passwordHash, body.altesPasswort))) {
+      return reply.code(400).send({ fehler: 'passwort_falsch' });
+    }
+
+    const aktuellerHash = hashToken(req.headers.authorization!.slice('Bearer '.length).trim());
+    const passwordHash = await hashPasswort(body.neuesPasswort);
+    await prisma.$transaction([
+      prisma.user.update({ where: { id: user.id }, data: { passwordHash } }),
+      prisma.session.deleteMany({ where: { userId: user.id, tokenHash: { not: aktuellerHash } } }),
+      // offene Reset-Links sind nach der Änderung wertlos
+      prisma.verificationToken.updateMany({
+        where: { userId: user.id, typ: 'passwort_reset', eingeloestAm: null },
+        data: { eingeloestAm: new Date() },
+      }),
+    ]);
+    sessionCache.invalidateUser(user.id);
     return { ok: true };
   });
 }

@@ -223,6 +223,36 @@ describe.runIf(hatDb)('auth — kompletter Flow (Supabase)', () => {
     ).toBe(200);
   });
 
+  it('passwort-aendern: prüft altes Passwort, behält aktuelle Session, beendet andere', async () => {
+    const login = async (pw: string) =>
+      (
+        await app.inject({ method: 'POST', url: '/auth/login', payload: { email, passwort: pw } })
+      ).json().token as string;
+    const hier = await login('ganz-neues-passwort-9');
+    const anderesGeraet = await login('ganz-neues-passwort-9');
+    const aendern = (altesPasswort: string, neuesPasswort: string) =>
+      app.inject({
+        method: 'POST',
+        url: '/auth/passwort-aendern',
+        headers: { authorization: `Bearer ${hier}` },
+        payload: { altesPasswort, neuesPasswort },
+      });
+    const me = (t: string) =>
+      app.inject({ method: 'GET', url: '/auth/me', headers: { authorization: `Bearer ${t}` } });
+
+    const falsch = await aendern('stimmt-nicht', 'noch-ein-passwort-7');
+    expect(falsch.statusCode).toBe(400);
+    expect(falsch.json().fehler).toBe('passwort_falsch');
+    expect((await aendern('ganz-neues-passwort-9', 'kurz')).statusCode).toBe(400);
+
+    expect((await aendern('ganz-neues-passwort-9', 'noch-ein-passwort-7')).statusCode).toBe(200);
+    expect((await me(hier)).statusCode).toBe(200);
+    expect((await me(anderesGeraet)).statusCode).toBe(401);
+
+    // zurück aufs vorige Passwort, damit der Logout-Test unten gleich bleibt
+    expect((await aendern('noch-ein-passwort-7', 'ganz-neues-passwort-9')).statusCode).toBe(200);
+  });
+
   it('logout entwertet die Session', async () => {
     const login = await app.inject({
       method: 'POST',

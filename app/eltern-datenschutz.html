@@ -69,6 +69,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         '<div class="abo-row"><span class="lbl">Konto-E-Mail</span><span class="val">' + (user.email || '—') + '</span></div>' +
         '<div class="abo-row"><span class="lbl">Aufbewahrung</span><span class="val">Bis zur Löschung des Kontos</span></div>' +
         '<div class="kc-actions" style="margin-top:18px">' +
+          '<button class="btn btn-sm btn-ghost" data-ds="passwort">Passwort ändern</button>' +
           '<button class="btn btn-sm btn-ghost" data-ds="export">Daten exportieren</button>' +
           '<button class="btn btn-sm btn-ghost" data-ds="loeschen" style="color:var(--rot)">Familienkonto löschen</button>' +
         '</div>' +
@@ -110,6 +111,27 @@ document.addEventListener('DOMContentLoaded', async function () {
           } catch (err) {
             LesifyUI.toast('Export fehlgeschlagen — bitte erneut versuchen.');
           }
+        } else if (a === 'passwort') {
+          modal('Passwort ändern', 'Danach wirst du auf allen anderen Geräten abgemeldet.',
+            '<div class="field mt-0"><label for="m-alt">Aktuelles Passwort</label><input class="input" id="m-alt" type="password" autocomplete="current-password"></div>' +
+            '<div class="field"><label for="m-neu">Neues Passwort</label><input class="input" id="m-neu" type="password" autocomplete="new-password" minlength="8"></div>' +
+            '<div class="field mt-0"><label for="m-neu2">Neues Passwort wiederholen</label><input class="input" id="m-neu2" type="password" autocomplete="new-password" minlength="8"></div>',
+            async function (scrim) {
+              var alt = scrim.querySelector('#m-alt'), neu = scrim.querySelector('#m-neu'), neu2 = scrim.querySelector('#m-neu2');
+              if (!alt.value) { alt.focus(); return false; }
+              if (neu.value.length < 8) { LesifyUI.toast('Das neue Passwort braucht mindestens 8 Zeichen.'); neu.focus(); return false; }
+              if (neu.value !== neu2.value) { LesifyUI.toast('Die beiden neuen Passwörter stimmen nicht überein.'); neu2.focus(); return false; }
+              if (neu.value === alt.value) { LesifyUI.toast('Das neue Passwort ist dasselbe wie das alte.'); neu.focus(); return false; }
+              try {
+                await Lesify.passwortAendern(alt.value, neu.value);
+                LesifyUI.toast('Passwort geändert. Andere Geräte sind abgemeldet.');
+              } catch (err) {
+                var falsch = err && err.code === 'passwort_falsch';
+                LesifyUI.toast(falsch ? 'Das aktuelle Passwort stimmt nicht.' : Lesify.fehlerText(err));
+                if (falsch) alt.focus();
+                return false;
+              }
+            }, 'Passwort ändern');
         } else if (a === 'loeschen') {
           modal('Familienkonto löschen?', 'Unwiderruflich. Alle Kind-Profile und deren Inhalte werden gelöscht, das Abo endet sofort.',
             '<div class="field mt-0"><label for="m-pass">Zum Bestätigen dein Passwort eingeben</label><input class="input" id="m-pass" type="password" autocomplete="current-password"></div>',

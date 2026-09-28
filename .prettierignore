@@ -16,3 +16,6 @@ Konzept-texts/
 UMSETZUNGSPLAN.md
 CLAUDE.md
 README.md
+
+# Cloudflare-Konfig: Prettier würde JSONC-Trailing-Commas einfügen — nicht anfassen
+wrangler.jsonc

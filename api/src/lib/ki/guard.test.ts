@@ -77,7 +77,7 @@ describe('pruefeKiEingabe — Bündelung', () => {
 describe('MissbrauchsWaechter', () => {
   it('meldet Treffer, sperrt aber erst ab der Schwelle', () => {
     const m = new MissbrauchsWaechter();
-    let t = 0;
+    const t = 0;
     for (let i = 0; i < 4; i++) {
       m.melden('u1', 'nicht_schulrelevant', t);
       expect(() => m.pruefeGesperrt('u1', t)).not.toThrow();

@@ -7,7 +7,7 @@ import {
   datenbankSichern,
   einspielPlan,
 } from './backup.js';
-import { FakeStorageGateway } from './storage.js';
+import { FakeStorageGateway, type StorageGateway } from './storage.js';
 
 describe('einspielPlan — Reihenfolge + aufgeschobene FK-Spalten', () => {
   it('referenzierte Tabellen zuerst', () => {
@@ -54,7 +54,7 @@ describe('backupKey', () => {
 
 describe('FakeStorageGateway.auflisten', () => {
   it('liefert nur direkte Kinder des Präfixes, sortiert', async () => {
-    const s = new FakeStorageGateway();
+    const s: StorageGateway = new FakeStorageGateway();
     for (const k of ['db/b.json.gz', 'db/a.json.gz', 'db/x/tief.gz', 'andere/c.gz']) {
       await s.hochladen(k, Buffer.from('x'), 'text/plain');
     }
@@ -66,7 +66,7 @@ const hatDb = !!process.env.DATABASE_URL;
 
 describe.runIf(hatDb)('datenbankSichern — Dump + Rotation (Supabase)', () => {
   it(`lädt einen lesbaren Dump hoch und behält nur die ${BACKUP_BEHALTEN} neuesten`, async () => {
-    const ablage = new FakeStorageGateway();
+    const ablage: StorageGateway = new FakeStorageGateway();
     for (let tag = 1; tag <= 15; tag++) {
       await ablage.hochladen(
         backupKey(new Date(Date.UTC(2026, 0, tag, 3))),

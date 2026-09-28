@@ -4826,6 +4826,39 @@ Kritisch, weil Zielgruppe minderjährig ist.
       DKIM (2026-09-18), Sentry, `DIRECT_URL` gesetzt. Einzig offen: Stripe-Live-Keys
       → Schlussrunde B unten._
 
+### Schritt 1 vor der Schlussrunde — noch zu erledigen (Stand 2026-09-28)
+
+**Code (Claude):**
+
+- [ ] **Kündigungsbutton nach §312k BGB** (gefunden 2026-09-28, Launch-Blocker):
+      dauerhaft sichtbarer Link „Verträge hier kündigen" (Footer) → Seite
+      `/kuendigen/` ohne Login (Name, E-Mail/Benutzer, ordentlich/außerordentlich,
+      Zeitpunkt, Grund bei außerordentlich) → Bestätigungsseite mit Button
+      „jetzt kündigen" → Eingangsbestätigung per Mail (Datum/Uhrzeit, Inhalt).
+      Passt die E-Mail zu einem Konto: Abo automatisch zum Periodenende kündigen,
+      sonst Weiterleitung an `kontakt@`. Neuer Endpunkt → `backend-planning.md`.
+      Danach vom Anwalt kurz abnehmen lassen.
+- [ ] **WCAG-AA-Kontrast** rechnerisch prüfen (alle Token-Paare hell/dunkel,
+      Ampel, Fachfarben) + fixen — manueller Rest (VoiceOver) bleibt im Test.
+- [ ] **Mobile-Durchgang bis 360 px** (App + Website) + fixen.
+- [ ] **CSP scharf schalten** ab 2026-10-03 (Zeile oben in Phase 16).
+- [ ] **Aufräumen vor Werbestart:** `/lan2/` + `/landing-old-dev-23092026/`
+      aus dem Deploy nehmen (noindex, aber per URL erreichbar), Dev-Panel-Reste
+      in `marketing.js` prüfen.
+- [ ] **Testskript:** `docs/QS-CHECKLISTE.md` §2 auf den heutigen Stand bringen
+      (Eltern-only-Signup, Kind-Zugang per Benutzername, Lernplan-Checklisten,
+      keine Vorbereitungsnote, Kündigungsbutton, Passwort ändern) — wird die
+      Abhakliste für die Schlussrunde.
+
+**Entscheidungen / Dashboards (Jannik):**
+
+- [ ] **Preis-Entscheidung** Angebotsdauer/-bindung (blockiert Stripe Live).
+- [ ] **Stripe-Live-Aktivierung früh anstoßen** (Identität, Auszahlungskonto —
+      kann Tage dauern), Umschalten selbst erst in der Schlussrunde B.
+- [ ] **Messung für die Werbung:** ohne Tracking (UTM-Links + eigene
+      Registrierungszahlen) oder mit Conversion-Pixeln (dann Consent-Banner +
+      Datenschutz-Nachtrag + Anwalt). Empfehlung: ohne starten.
+
 ### Schlussrunde vor dem Launch — ein Testdurchgang + Stripe Live (Entscheidung 2026-09-26)
 
 > Alles Testen/Verifizieren und die Umstellung auf Stripe Live ist hier

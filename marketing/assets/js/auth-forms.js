@@ -41,6 +41,8 @@
     validierung: 'Bitte alle Felder korrekt ausfüllen.',
     kontakt_versand_fehlgeschlagen:
       'Die Nachricht konnte gerade nicht zugestellt werden. Bitte später erneut versuchen.',
+    kuendigung_versand_fehlgeschlagen:
+      'Die Kündigung konnte gerade nicht übermittelt werden. Bitte gleich noch einmal versuchen oder an kontakt@lesify.de schreiben.',
     token_ungueltig: 'Dieser Link ist ungültig oder abgelaufen. Bitte einen neuen anfordern.',
     rate_limit: 'Zu viele Versuche — bitte kurz warten und erneut probieren.',
   };
@@ -318,7 +320,93 @@
     });
   }
 
+  /* ---------- kuendigen/ (Kündigungsbutton, §312k BGB) ---------- */
+  function initKuendigen() {
+    var form = document.querySelector('.kuendigen-form');
+    var ergebnis = document.querySelector('.kuendigen-ergebnis');
+    if (!form || !ergebnis) return;
+    var msg = ensureMsgEl(form);
+    var btn = form.querySelector('button[type="submit"]');
+    var heute = new Date();
+    form.datum.min = new Date(heute.getTime() - heute.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+
+    function wert(name) {
+      var el = form.querySelector('input[name="' + name + '"]:checked');
+      return el ? el.value : '';
+    }
+    function umschalten() {
+      form.querySelector('[data-zeige="grund"]').hidden = wert('art') !== 'ausserordentlich';
+      form.querySelector('[data-zeige="datum"]').hidden = wert('zeitpunkt') !== 'datum';
+    }
+    form.addEventListener('change', umschalten);
+    umschalten();
+
+    function datumDe(iso) {
+      var t = iso.split('-');
+      return new Date(+t[0], +t[1] - 1, +t[2]).toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' });
+    }
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var daten = {
+        name: form.name.value.trim(),
+        email: form.email.value.trim(),
+        art: wert('art'),
+        zeitpunkt: wert('zeitpunkt'),
+        website: form.website.value,
+      };
+      if (daten.art === 'ausserordentlich') daten.grund = form.grund.value.trim();
+      if (daten.zeitpunkt === 'datum') daten.datum = form.datum.value;
+      var fehlt =
+        !daten.name || !daten.email || form.email.validity.typeMismatch ||
+        (daten.art === 'ausserordentlich' && !daten.grund) ||
+        (daten.zeitpunkt === 'datum' && !daten.datum);
+      if (fehlt) {
+        showMsg(msg, fehlerText('validierung'), 'error');
+        return;
+      }
+      showMsg(msg, '', '');
+      setBusy(btn, true, 'Wird übermittelt …');
+      post('/kuendigung', daten)
+        .then(function (res) {
+          var eingang = new Date(res.eingangAm);
+          ergebnis.querySelector('.kue-eingang').textContent =
+            'Eingegangen am ' + eingang.toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' }) +
+            ' um ' + eingang.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) + ' Uhr.';
+          var zeilen = [
+            ['Name', daten.name],
+            ['E-Mail', daten.email],
+            ['Vertrag', 'Lesify-Abonnement'],
+            ['Art', daten.art === 'ordentlich' ? 'Ordentliche Kündigung' : 'Außerordentliche (fristlose) Kündigung'],
+          ];
+          if (daten.grund) zeilen.push(['Grund', daten.grund]);
+          zeilen.push(['Zeitpunkt', daten.datum ? 'zum ' + datumDe(daten.datum) : 'zum nächstmöglichen Zeitpunkt']);
+          var liste = ergebnis.querySelector('.kue-liste');
+          liste.textContent = '';
+          zeilen.forEach(function (z) {
+            var dt = document.createElement('dt');
+            dt.textContent = z[0];
+            var dd = document.createElement('dd');
+            dd.textContent = z[1];
+            liste.appendChild(dt);
+            liste.appendChild(dd);
+          });
+          ergebnis.querySelector('.kue-mail').textContent = daten.email;
+          form.hidden = true;
+          ergebnis.hidden = false;
+          ergebnis.querySelector('h2').setAttribute('tabindex', '-1');
+          ergebnis.querySelector('h2').focus();
+        })
+        .catch(function (err) {
+          showMsg(msg, fehlerText(err.code), 'error');
+        })
+        .then(function () { setBusy(btn, false); });
+    });
+    ergebnis.querySelector('[data-drucken]').addEventListener('click', function () { window.print(); });
+  }
+
   var PAGE_INIT = {
+    kuendigen: initKuendigen,
     kontakt: initKontakt,
     login: initLogin,
     registrieren: initRegistrieren,

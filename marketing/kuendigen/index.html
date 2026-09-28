@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verträge hier kündigen — Lesify</title>
+<meta name="description" content="Dein Lesify-Abo kündigen — ohne Anmeldung, mit sofortiger Eingangsbestätigung per E-Mail.">
+<link rel="canonical" href="https://www.lesify.de/kuendigen/">
+<link rel="icon" href="/assets/img/logo.png">
+<link rel="stylesheet" href="/assets/css/marketing.css">
+</head>
+<body data-page="kuendigen">
+<header id="mkt-nav"></header>
+
+<main class="legal">
+  <div class="container legal__body">
+    <h1>Verträge hier kündigen</h1>
+    <p class="legal__updated">Du kannst dein Lesify-Abo hier jederzeit kündigen — ohne Anmeldung. Wir bestätigen den Eingang sofort per E-Mail.</p>
+    <p>Angemeldet geht es auch direkt in der App: Eltern-Bereich → „Abo &amp; Sitze" → „Kündigen".</p>
+
+    <form class="kuendigen-form" novalidate>
+      <h2>Deine Kündigung</h2>
+      <div class="field">
+        <label for="name">Name</label>
+        <input class="input" type="text" id="name" name="name" autocomplete="name" maxlength="120" required>
+      </div>
+      <div class="field">
+        <label for="email">E-Mail-Adresse deines Lesify-Kontos</label>
+        <input class="input" type="email" id="email" name="email" placeholder="name@beispiel.de" autocomplete="email" maxlength="320" required>
+        <span class="hint">Daran erkennen wir deinen Vertrag. An diese Adresse schicken wir die Eingangsbestätigung.</span>
+      </div>
+      <div class="field">
+        <label for="vertrag">Vertrag</label>
+        <input class="input" type="text" id="vertrag" value="Lesify-Abonnement" readonly aria-describedby="vertrag-hint">
+        <span class="hint" id="vertrag-hint">Das Abo zum Konto mit der oben angegebenen E-Mail-Adresse.</span>
+      </div>
+
+      <fieldset class="kue-gruppe">
+        <legend>Art der Kündigung</legend>
+        <div class="role-pick">
+          <label>
+            <input type="radio" name="art" value="ordentlich" checked>
+            <span class="rp-body"><b>Ordentliche Kündigung</b><span>zum Ende des laufenden Abrechnungszeitraums bzw. der Testphase</span></span>
+          </label>
+          <label>
+            <input type="radio" name="art" value="ausserordentlich">
+            <span class="rp-body"><b>Außerordentliche Kündigung</b><span>fristlos, aus wichtigem Grund</span></span>
+          </label>
+        </div>
+      </fieldset>
+      <div class="field" data-zeige="grund" hidden>
+        <label for="grund">Grund für die außerordentliche Kündigung</label>
+        <textarea class="input" id="grund" name="grund" rows="4" maxlength="2000"></textarea>
+      </div>
+
+      <fieldset class="kue-gruppe">
+        <legend>Zu welchem Zeitpunkt?</legend>
+        <div class="role-pick">
+          <label>
+            <input type="radio" name="zeitpunkt" value="naechstmoeglich" checked>
+            <span class="rp-body"><b>Zum nächstmöglichen Zeitpunkt</b><span>Empfohlen — das genaue Datum steht in der Bestätigung</span></span>
+          </label>
+          <label>
+            <input type="radio" name="zeitpunkt" value="datum">
+            <span class="rp-body"><b>Zu einem bestimmten Datum</b><span>z. B. zum Ende des Schuljahres</span></span>
+          </label>
+        </div>
+      </fieldset>
+      <div class="field" data-zeige="datum" hidden>
+        <label for="datum">Kündigen zum</label>
+        <input class="input" type="date" id="datum" name="datum">
+      </div>
+
+      <!-- Honeypot: für Menschen unsichtbar, Bots füllen es aus -->
+      <div class="visually-hidden" aria-hidden="true">
+        <label for="website">Website</label>
+        <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+      </div>
+      <button class="btn btn-primary btn-lg" type="submit">jetzt kündigen</button>
+    </form>
+
+    <section class="kuendigen-ergebnis" hidden aria-live="polite">
+      <h2>Deine Kündigung ist eingegangen</h2>
+      <p class="kue-eingang"></p>
+      <dl class="kue-liste"></dl>
+      <p>Die Eingangsbestätigung mit dem Datum, zu dem dein Vertrag endet, haben wir an <b class="kue-mail"></b> geschickt. Bitte bewahre sie als Nachweis auf. Keine E-Mail da? Schau im Spam-Ordner nach oder schreib uns über das <a href="/kontakt/">Kontaktformular</a>.</p>
+      <button class="btn btn-secondary" type="button" data-drucken>Diese Seite drucken oder als PDF speichern</button>
+    </section>
+
+    <p style="margin-top:2rem">Deine Angaben verwenden wir nur, um die Kündigung zu bearbeiten und nachzuweisen — mehr dazu in der <a href="/datenschutz/">Datenschutzerklärung</a>.</p>
+  </div>
+</main>
+
+<footer id="mkt-footer"></footer>
+<script src="/assets/js/marketing.js"></script>
+<script src="/assets/js/auth-forms.js"></script>
+</body>
+</html>

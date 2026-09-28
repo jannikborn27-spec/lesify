@@ -51,7 +51,9 @@
     { title: 'Rechtstexte', links: [
       { href: '/impressum/', label: 'Impressum' },
       { href: '/datenschutz/', label: 'Datenschutz' },
-      { href: '/agb/', label: 'AGB' }
+      { href: '/agb/', label: 'AGB' },
+      // Kündigungsbutton nach §312k BGB — muss dauerhaft sichtbar sein
+      { href: '/kuendigen/', label: 'Verträge hier kündigen' }
     ]}
   ];
 

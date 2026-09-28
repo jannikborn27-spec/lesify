@@ -226,3 +226,88 @@ export function zahlungOffenWarnungMail(input: {
     ],
   });
 }
+
+/**
+ * Kündigung über den Kündigungsbutton (§312k BGB, 2026-09-28). Die
+ * Eingangsbestätigung muss Inhalt, Datum + Uhrzeit des Eingangs und den
+ * Zeitpunkt nennen, zu dem der Vertrag endet (oder dass wir ihn noch klären).
+ */
+export interface KuendigungMailDaten {
+  name: string;
+  email: string;
+  /** „ordentlich" oder „außerordentlich" — schon lesbar formatiert */
+  artText: string;
+  grund: string | null;
+  /** z. B. „zum nächstmöglichen Zeitpunkt" oder „zum 31. Dezember 2026" */
+  zeitpunktText: string;
+  /** „28. September 2026 um 14:03 Uhr" */
+  eingangText: string;
+  /** Ergebnis in einem Satz (Enddatum bzw. „wir melden uns") */
+  ergebnisText: string;
+}
+
+function kuendigungZeilen(d: KuendigungMailDaten): [string, string][] {
+  return [
+    ['Eingegangen', d.eingangText],
+    ['Name', d.name],
+    ['E-Mail', d.email],
+    ['Vertrag', 'Lesify-Abonnement'],
+    ['Art der Kündigung', d.artText],
+    ...(d.grund ? ([['Grund', d.grund]] as [string, string][]) : []),
+    ['Gewünschter Zeitpunkt', d.zeitpunktText],
+  ];
+}
+
+export function kuendigungBestaetigungMail(
+  d: KuendigungMailDaten & { automatisch: boolean; link: string },
+): FertigeMail {
+  const zeilen = kuendigungZeilen(d);
+  const tabelle = zeilen.map(([k, v]) => `<b>${escapeHtml(k)}:</b> ${escapeHtml(v)}`).join('<br>');
+  const nichtDu =
+    'Du hast nicht gekündigt? Dann kannst du die Kündigung im Eltern-Bereich unter „Abo &amp; Sitze" mit einem Klick zurücknehmen oder uns einfach antworten.';
+  return rendern({
+    betreff: 'Eingangsbestätigung deiner Kündigung',
+    vorschau: d.ergebnisText,
+    ueberschrift: 'Deine Kündigung ist eingegangen',
+    absaetze: [
+      `Hallo ${escapeHtml(d.name)},`,
+      escapeHtml(d.ergebnisText),
+      `Das hast du uns geschickt:<br>${tabelle}`,
+      ...(d.automatisch ? [nichtDu] : []),
+    ],
+    button: d.automatisch
+      ? { text: 'Abo ansehen', link: d.link }
+      : { text: 'Kontakt aufnehmen', link: `${SITE_URL}/kontakt/` },
+    hinweis:
+      'Bitte bewahre diese E-Mail als Nachweis deiner Kündigung auf. Bei Fragen antworte einfach auf diese Nachricht oder schreib an kontakt@lesify.de.',
+    klartext: [
+      `Hallo ${d.name},`,
+      d.ergebnisText,
+      `Das hast du uns geschickt:\n${zeilen.map(([k, v]) => `${k}: ${v}`).join('\n')}`,
+      ...(d.automatisch ? [nichtDu.replace('&amp;', '&')] : []),
+    ],
+  });
+}
+
+/** Interne Kopie an KONTAKT_EMPFAENGER — Nachweis + ggf. manuelle Bearbeitung. */
+export function kuendigungInternMail(
+  d: KuendigungMailDaten & { automatisch: boolean; konto: string },
+): FertigeMail {
+  const zeilen: [string, string][] = [
+    ...kuendigungZeilen(d),
+    ['Konto/Abo', d.konto],
+    ['Ergebnis', d.ergebnisText],
+  ];
+  const html = `<!doctype html><html lang="de"><head><meta charset="utf-8"></head>
+<body style="font-family:${FONT};font-size:15px;line-height:1.6;color:#172128;">
+${d.automatisch ? '' : '<p style="margin:0 0 12px;padding:10px 14px;border-radius:8px;background:#fff4d6;"><b>Manuell bearbeiten</b> — nicht automatisch gekündigt.</p>'}
+${zeilen.map(([k, v]) => `<p style="margin:0 0 4px;"><b>${escapeHtml(k)}:</b> ${escapeHtml(v)}</p>`).join('\n')}
+<p style="margin:16px 0 0;font-size:12px;color:#6e8494;">Über „Verträge hier kündigen" auf lesify.de — „Antworten" geht direkt an die Person.</p>
+</body></html>`;
+  const text = zeilen.map(([k, v]) => `${k}: ${v}`).join('\n');
+  return {
+    subject: `[Kündigung]${d.automatisch ? '' : ' [manuell]'} ${d.name} <${d.email}>`,
+    html,
+    text,
+  };
+}

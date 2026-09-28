@@ -4,6 +4,9 @@ import {
   emailBestaetigungMail,
   kindEinladungMail,
   kontaktMail,
+  kuendigungBestaetigungMail,
+  kuendigungInternMail,
+  type KuendigungMailDaten,
   zahlungOffenWarnungMail,
   passwortResetMail,
   kindPasswortResetMail,
@@ -29,6 +32,14 @@ export interface MailGateway {
     token: string;
   }): Promise<void>;
   kontaktSenden(input: KontaktNachricht): Promise<void>;
+  /** Kündigungsbutton (§312k BGB): Eingangsbestätigung an die Person … */
+  kuendigungBestaetigungSenden(
+    input: KuendigungMailDaten & { automatisch: boolean },
+  ): Promise<void>;
+  /** … und Kopie an KONTAKT_EMPFAENGER (Nachweis/manuelle Bearbeitung). */
+  kuendigungInternSenden(
+    input: KuendigungMailDaten & { automatisch: boolean; konto: string },
+  ): Promise<void>;
   zahlungOffenWarnungSenden(input: { an: string; name: string; loeschungAm: Date }): Promise<void>;
 }
 
@@ -97,6 +108,30 @@ export class FakeMailGateway implements MailGateway {
         an: env.KONTAKT_EMPFAENGER,
         replyTo: input.email,
         thema: input.thema,
+      }),
+    );
+  }
+
+  async kuendigungBestaetigungSenden(
+    input: KuendigungMailDaten & { automatisch: boolean },
+  ): Promise<void> {
+    console.log(
+      JSON.stringify({
+        mailFake: 'kuendigung_bestaetigung',
+        an: input.email,
+        automatisch: input.automatisch,
+      }),
+    );
+  }
+
+  async kuendigungInternSenden(
+    input: KuendigungMailDaten & { automatisch: boolean; konto: string },
+  ): Promise<void> {
+    console.log(
+      JSON.stringify({
+        mailFake: 'kuendigung_intern',
+        an: env.KONTAKT_EMPFAENGER,
+        automatisch: input.automatisch,
       }),
     );
   }
@@ -180,6 +215,33 @@ export class ResendMailGateway implements MailGateway {
       ...mail,
     });
     if (error) throw new Error(`Resend-Versand fehlgeschlagen (kontakt): ${error.message}`);
+  }
+
+  async kuendigungBestaetigungSenden(
+    input: KuendigungMailDaten & { automatisch: boolean },
+  ): Promise<void> {
+    const mail = kuendigungBestaetigungMail({ ...input, link: elternAboLink() });
+    const { error } = await this.resend.emails.send({
+      from: env.EMAIL_ABSENDER,
+      to: input.email,
+      replyTo: env.KONTAKT_EMPFAENGER,
+      ...mail,
+    });
+    if (error) throw new Error(`Resend-Versand fehlgeschlagen (kuendigung): ${error.message}`);
+  }
+
+  async kuendigungInternSenden(
+    input: KuendigungMailDaten & { automatisch: boolean; konto: string },
+  ): Promise<void> {
+    const mail = kuendigungInternMail(input);
+    const { error } = await this.resend.emails.send({
+      from: env.EMAIL_ABSENDER,
+      to: env.KONTAKT_EMPFAENGER,
+      replyTo: input.email,
+      ...mail,
+    });
+    if (error)
+      throw new Error(`Resend-Versand fehlgeschlagen (kuendigung_intern): ${error.message}`);
   }
 
   async zahlungOffenWarnungSenden(input: {

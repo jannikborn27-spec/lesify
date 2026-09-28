@@ -4835,7 +4835,16 @@ Kritisch, weil Zielgruppe minderjährig ist.
 
 **Code (Claude):**
 
-- [ ] **Kündigungsbutton nach §312k BGB** (gefunden 2026-09-28, Launch-Blocker):
+- [x] **Kündigungsbutton nach §312k BGB** — _erledigt 2026-09-28: Footer-Link
+      „Verträge hier kündigen" (alle Seiten mit Footer) → `marketing/kuendigen/`
+      (ohne Login, Button „jetzt kündigen", Ergebnis-Ansicht mit Eingangszeit zum
+      Drucken/Speichern) → `POST /kuendigung` (automatisch zum Periodenende bei
+      ordentlicher Kündigung eines laufenden Abos, sonst manuell über
+      `kontakt@`; Eingangsbestätigung + interne Kopie per Resend; Tests in
+      `kuendigung.test.ts`/`mailer.test.ts`). AGB §9 + Datenschutz §3/§5
+      angepasst; dabei Datenschutz §5 „GitHub Pages" → Cloudflare korrigiert.
+      **Noch vom Anwalt abnehmen lassen** (Seite, AGB §9, Datenschutz)._
+      Ursprünglicher Auftrag (gefunden 2026-09-28, Launch-Blocker):
       dauerhaft sichtbarer Link „Verträge hier kündigen" (Footer) → Seite
       `/kuendigen/` ohne Login (Name, E-Mail/Benutzer, ordentlich/außerordentlich,
       Zeitpunkt, Grund bei außerordentlich) → Bestätigungsseite mit Button

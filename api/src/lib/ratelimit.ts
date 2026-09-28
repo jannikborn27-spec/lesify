@@ -46,7 +46,7 @@ export function regelFuer(method: string, pfad: string): RateRegel | null {
   if (AUTH_PFADE.has(pfad)) {
     return { klasse: 'auth', limit: 10, fensterSek: 60, schluessel: 'ip' };
   }
-  if (pfad === '/kontakt') {
+  if (pfad === '/kontakt' || pfad === '/kuendigung') {
     return { klasse: 'kontakt', limit: 3, fensterSek: 60, schluessel: 'ip' };
   }
   if (istKiPfad(method, pfad)) {

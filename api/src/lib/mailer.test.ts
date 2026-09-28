@@ -1,3 +1,4 @@
+import { kuendigungBestaetigungMail, kuendigungInternMail } from './mailTemplates.js';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { FakeMailGateway, type MailGateway } from './mailer.js';
 
@@ -40,5 +41,43 @@ describe('FakeMailGateway (loggt statt zu versenden, ohne RESEND_API_KEY)', () =
     expect(geloggt.mailFake).toBe('kontakt');
     expect(geloggt.an).toBe('kontakt@lesify.de');
     expect(geloggt.replyTo).toBe('a@b.de');
+  });
+});
+
+describe('Kündigungs-Mails (§312k BGB)', () => {
+  const d = {
+    name: 'Kim <Test>',
+    email: 'kim@example.de',
+    artText: 'ordentliche Kündigung',
+    grund: null,
+    zeitpunktText: 'zum nächstmöglichen Zeitpunkt',
+    eingangText: '28. September 2026 um 14:03 Uhr',
+    ergebnisText: 'Deine Kündigung ist wirksam: Dein Abo endet zum 12. Oktober 2026.',
+  };
+
+  it('Eingangsbestätigung nennt Inhalt, Eingangszeit und Vertragsende — HTML-sicher', () => {
+    const m = kuendigungBestaetigungMail({ ...d, automatisch: true, link: 'https://x.test/abo' });
+    for (const teil of [
+      '28. September 2026 um 14:03 Uhr',
+      '12. Oktober 2026',
+      'ordentliche Kündigung',
+      'Lesify-Abonnement',
+    ]) {
+      expect(m.html).toContain(teil);
+      expect(m.text).toContain(teil);
+    }
+    expect(m.html).toContain('Kim &lt;Test&gt;');
+    expect(m.html).not.toContain('Kim <Test>');
+    expect(m.text).toContain('zurücknehmen');
+  });
+
+  it('interne Kopie markiert manuelle Fälle', () => {
+    const m = kuendigungInternMail({
+      ...d,
+      automatisch: false,
+      konto: 'kein Konto/Abo zu dieser E-Mail',
+    });
+    expect(m.subject).toContain('[manuell]');
+    expect(m.html).toContain('Manuell bearbeiten');
   });
 });

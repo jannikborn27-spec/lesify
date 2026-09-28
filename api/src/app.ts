@@ -32,6 +32,7 @@ import { userRoutes } from './routes/user.js';
 import { usageRoutes } from './routes/usage.js';
 import { sucheRoutes } from './routes/suche.js';
 import { kontaktRoutes } from './routes/kontakt.js';
+import { kuendigungRoutes } from './routes/kuendigung.js';
 import { chatsRoutes } from './routes/chats.js';
 import { klausurenRoutes } from './routes/klausuren.js';
 import { lernplaeneRoutes } from './routes/lernplaene.js';
@@ -217,6 +218,7 @@ export function buildApp(opts: BuildOpts = {}): FastifyInstance {
   app.register(usageRoutes);
   app.register(sucheRoutes);
   app.register(kontaktRoutes);
+  app.register(kuendigungRoutes);
   app.register(chatsRoutes);
   app.register(klausurenRoutes);
   app.register(lernplaeneRoutes);

@@ -1260,6 +1260,7 @@ Stripe-Calls auslösen.
 | Methode | Pfad | Zweck |
 |---|---|---|
 | POST | `/kontakt` | `{name, email, thema, nachricht}` → Ticket/Weiterleitung an Support-Postfach, Spam-Schutz serverseitig, kein Login nötig. **Wieder in Benutzung seit 2026-09-25:** die Marketing-Seite `marketing/kontakt/` (2026-09-22 kurzzeitig entfernt) bedient das Formular wieder (Rate-Limit §7, Mail-Template `mailTemplates.ts`). **Zustellung seit 2026-09-23:** Resend an `KONTAKT_EMPFAENGER` (Default `kontakt@lesify.de`), Reply-To = Absender:in; Versandfehler → `503 kontakt_versand_fehlgeschlagen` (kein zweiter Weg zur Nachricht). |
+| POST | `/kuendigung` | **neu 2026-09-28, Kündigungsbutton §312k BGB** (Seite `marketing/kuendigen/`, Footer-Link „Verträge hier kündigen"), kein Login: `{name, email, art: ordentlich\|ausserordentlich, grund?, zeitpunkt: naechstmoeglich\|datum, datum?}`. Account-Inhaber:in mit laufendem Abo + ordentlich + (nächstmöglich oder Datum ≤ Periodenende) → **automatisch** wie `POST /abo/kuendigen` (`cancel_at_period_end`, Status `gekuendigt`); sonst manuell. Immer Eingangsbestätigung an die angegebene Adresse (Inhalt, Eingang Datum/Uhrzeit, Vertragsende bzw. „wir melden uns") + interne Kopie an `KONTAKT_EMPFAENGER`. Antwort `{ok, eingangAm}` für jede E-Mail gleich (keine Konto-Enumeration). Interne Kopie scheitert bei nicht-automatischem Fall → `503 kuendigung_versand_fehlgeschlagen`. Rate-Limit-Klasse `kontakt`. Kein eigenes Datenmodell — Nachweis über die beiden Mails. |
 
 ---
 
@@ -1559,7 +1560,7 @@ fehlgeschlagene Logins/Upload-Flooding weiterhin offen (§8).
   (`/auth/login|registrieren|passwort-*`), **ki** 20/min
   (`POST /chats/:id/nachrichten`, `/testklausuren*`, `/lernzettel/:id/revisionen`,
   `/themen/:id/{lernzettel,dateien}`, `/lernplaene/:id/{testklausur2,lernzettel}`),
-  **kontakt** 3/min·IP, **io** 120/min alles andere; `/health*` + `/abo/webhook`
+  **kontakt** 3/min·IP (`/kontakt`, `/kuendigung`), **io** 120/min alles andere; `/health*` + `/abo/webhook`
   ausgenommen. Überschreitung → `429 rate_limit` + `Retry-After`. Schlüssel
   aktuell IP (Hook läuft vor `requireAuth`) — User-Keying/Redis später. Das
   frühere Ad-hoc-IP-Limit in `POST /kontakt` ist entfernt.

@@ -4908,8 +4908,12 @@ Kritisch, weil Zielgruppe minderjährig ist.
       Funnel-Events Registrierung → Kasse → Zahlungsdaten → Testphase/Kauf
       (+ Preise-Ansicht, Kontakt), Datenschutz §5/§11 nachgezogen, CSP erweitert,
       Footer-Link „Cookie-Einstellungen".
+  - [x] **Testphase zählt auch als Kauf** (2026-09-28): beim Testphase-Start
+        gehen StartTrial **und** Purchase an Meta, `start_trial` **und**
+        `purchase` in den dataLayer (gleiche Abo-ID als event_id/transaction_id).
   - [ ] **GTM-Container einrichten (Jannik):** GA4-Tag, Google-Ads-Conversion-
-        Tags auf `start_trial`/`purchase` (+ Conversion Linker), veröffentlichen.
+        Tag auf `purchase` (deckt Testphase + Sofort-Abo ab, nicht zusätzlich
+        auf `start_trial` → sonst doppelt) + Conversion Linker, veröffentlichen.
   - [ ] **CookieScript-Dashboard (Jannik):** Scan laufen lassen, Cookies von
         GA (Performance), Meta/Google Ads (Targeting) zuordnen, Banner-Texte prüfen.
   - [ ] **Meta Events Manager (Jannik):** Domain `lesify.de` verifizieren,

@@ -26,6 +26,7 @@
      kasse          → Meta InitiateCheckout     · dataLayer begin_checkout
      zahlungsdaten  → Meta AddPaymentInfo       · dataLayer add_payment_info
      testphase      → Meta StartTrial           · dataLayer start_trial
+                      + zusätzlich immer „kauf" (Purchase / purchase)
      kauf           → Meta Purchase             · dataLayer purchase
      preise         → Meta ViewContent          · dataLayer view_item_list
      kontakt        → Meta Contact              · dataLayer generate_lead
@@ -197,6 +198,11 @@
     if (name === 'testphase') meta.predicted_ltv = daten.value;
     metaWarteschlange.push({ name: def.meta, daten: meta, id: id });
     metaWarteschlangeSenden();
+
+    // Entscheidung 2026-09-28: Testphase-Start zählt zusätzlich als Kauf
+    // (Meta Purchase + dataLayer purchase), damit Kampagnen auf „Purchase"
+    // optimieren können. Google Ads zählt die Conversion nur auf `purchase`.
+    if (name === 'testphase') senden('kauf', daten);
   }
 
   function event(name, daten, opt) {

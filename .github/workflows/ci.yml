@@ -10,9 +10,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Version kommt aus `packageManager` im Root-package.json (doppelt → Abbruch)
       - uses: pnpm/action-setup@v4
-        with:
-          version: 9
 
       - uses: actions/setup-node@v4
         with:
@@ -20,6 +19,9 @@ jobs:
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
+      # API importiert @lesify/shared aus dist/ und braucht den Prisma-Client
+      - run: pnpm --filter @lesify/shared build
+      - run: pnpm --filter @lesify/api db:generate
 
       - run: pnpm format:check
       - run: pnpm lint

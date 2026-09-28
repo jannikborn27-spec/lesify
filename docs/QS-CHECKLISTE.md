@@ -1,6 +1,6 @@
 # QS-Checkliste (Phase 14)
 
-Stand: 2026-09-04. Was automatisiert läuft, hakt hier ab; der Rest ist eine
+Stand: 2026-09-04, §2 neu 2026-09-28. Was automatisiert läuft, hakt hier ab; der Rest ist eine
 Vorlage für den QS-Durchlauf vor dem Launch (Phase 16).
 
 ## 1. Automatisierte Tests (`pnpm test`)
@@ -29,24 +29,98 @@ Vorlage für den QS-Durchlauf vor dem Launch (Phase 16).
       `describe.runIf(DATABASE_URL)` übersprungen → in Phase 16 eine Test-DB
       (eigenes Supabase-Projekt oder Postgres-Service im Workflow) einhängen.
 
-## 2. End-to-End-Kern-Flow (manuell gegen `staging`)
+## 2. Testdurchgang vor dem Launch (Schlussrunde, Stand 2026-09-28)
 
-- [ ] Registrierung (Rolle Schüler:in) inkl. Einwilligungs-Checkbox → 14-Tage-Trial aktiv
-- [ ] E-Mail-Bestätigung über Token
-- [ ] Fach anlegen → Farbe ändern → Thema anlegen
-- [ ] Chat: Nachricht senden, Titel entsteht, Usage-Zähler steigt
-- [ ] Datei hochladen (5 MB Grenze prüfen), Status `verarbeitung` → `bereit` per Polling
-- [ ] Lernzettel erzeugen, Revision anfragen (zählt als Chat-Nachricht)
-- [ ] Klausur anlegen → Lernplan + Testklausur 1 entstehen automatisch
-- [ ] Lernplan Tag 1–7 durchklicken, Checklisten-Haken persistieren
-- [ ] Testklausur 1 lösen (Upload) → Analyse → Vorbereitungsstand-Ampel
-- [ ] Testklausur 2 (Tag 5) nur für schwache Themen; dritter Aufruf wird abgelehnt
-- [ ] Abo abschließen (`POST /abo`) → Trial-Status → Webhook `trial_beendet` → aktiv
-- [ ] Tarif wechseln (Proration), kündigen (Zugang bis Zeitraumende), pausieren
-- [ ] Familien-Abo: Kind-Profil anlegen + einladen, Kontext-Wechsel, Zusammenfassung
-- [ ] Limit erreichen → Hard-Stop **nur** des betroffenen Features, andere laufen
-- [ ] DSGVO: Export herunterladen, Konto löschen → alles weg, Login schlägt fehl
-- [ ] Nach 12 Monaten: `inhalte-aufbewahrung`-Job löscht alte Inhalte (auf `staging` mit Backdating testen)
+Gegen **Produktion** (www.lesify.de) mit Stripe im **Test-Modus** — Staging
+kommt erst nach dem Launch (Entscheidung 2026-09-23). Neues Konto über die
+Website, echte Mail-Adresse (z. B. `deinname+test1@…`). Befund → kurz
+notieren (Seite, was passiert, Screenshot/Konsole), am Ende gesammelt fixen und
+nachtesten. KI-Kosten des Durchgangs: wenige Euro.
+
+**Stripe-Testkarten:** `4242 4242 4242 4242` (klappt) · `4000 0027 6000 3184`
+(3-D-Secure) · `4000 0000 0000 0002` (abgelehnt) · `4000 0000 0000 0341`
+(hinterlegen klappt, spätere Abbuchung scheitert). Ablauf/CVC beliebig
+(Zukunft/3 Ziffern). Testphase sofort beenden: Stripe-Dashboard (Test-Modus) →
+Abo → „Testzeitraum beenden".
+
+### A. Website & Rechtliches
+
+- [ ] Alle Seiten laden auf Desktop + Handy: Start, Preise, Über uns, FAQ, Kontakt, Login, Registrieren, Impressum, Datenschutz, AGB, 404 (`/gibtsnicht`)
+- [ ] Footer-Links überall (inkl. „Verträge hier kündigen"), keine toten Links
+- [ ] Preisrechner: Tarif/Intervall/Kinderzahl wählen → Kasse zeigt genau das
+- [ ] Kontaktformular → Mail kommt bei `kontakt@lesify.de` an, „Antworten" geht an die Absender:in
+- [ ] Kündigungsbutton: ohne Login ausfüllen → „jetzt kündigen" → Ergebnis-Seite mit Uhrzeit, Bestätigungsmail kommt, Kopie bei `kontakt@`; bei Konto mit Abo steht das Abo danach auf „gekündigt" (Eltern-Bereich)
+- [ ] Werbeaussagen auf der Startseite/Preise entsprechen der Entscheidung (keine unbelegten Zahlen/Zitate)
+
+### B. Konto
+
+- [ ] Registrieren (Eltern) mit Einwilligung → Bestätigungsmail im Posteingang (nicht Spam), Link bestätigt
+- [ ] Login mit/ohne „angemeldet bleiben", Logout
+- [ ] Falsches Passwort mehrfach → Meldung, nach ~10 Versuchen/Min. kurz gebremst
+- [ ] Passwort vergessen → Mail → neues Passwort setzen → alte Sitzungen abgemeldet
+- [ ] Passwort ändern (Eltern: „Datenschutz & Konto") → zweites Gerät/Browser ist danach abgemeldet
+
+### C. Kasse & Abo (Stripe-Test-Modus)
+
+- [ ] Abschluss mit `4242…` → Testphase aktiv, Eltern-Bereich zeigt Tarif + Enddatum (bestätigt/entkräftet Kasse-Bug 2026-09-16)
+- [ ] 3-D-Secure-Karte → Bestätigungsfenster → klappt
+- [ ] Abgelehnte Karte → verständliche Fehlermeldung, kein halbes Abo
+- [ ] Zweite Testphase mit derselben Karte (neues Konto) → wird abgelehnt, Abschluss ohne Testphase angeboten
+- [ ] PayPal (Test) einmal durchspielen
+- [ ] Tarif wechseln mit Kostenvorschau → Preis stimmt, bleibt beim Angebotspreis
+- [ ] Platz hinzufügen (sofort) / Platz entfernen (erst zum Periodenende, Hinweis sichtbar)
+- [ ] Pausieren → Kind gesperrt; Reaktivieren → Kind wieder frei
+- [ ] Kündigen in der App → „läuft bis …"; Kündigung zurücknehmen
+- [ ] Zahlungsportal öffnet (Zahlungsmethode, Belege)
+- [ ] Testphase im Stripe-Dashboard beenden → Abo wird aktiv, App zeigt es (Webhook)
+- [ ] Mit `…0341`: Abbuchung scheitert → Eltern-Banner „Zahlung offen", Kinder nur lesend; nach Zahlungsmethode ändern wieder normal
+
+### D. Familie / Kinder
+
+- [ ] Kind anlegen mit Benutzername + Passwort → Kind-Login mit Benutzername klappt
+- [ ] Kind per E-Mail einladen → Mail → Kind setzt Passwort → Login
+- [ ] Eltern-Übersicht zeigt Wochenzahlen, **nie** Chat-/Lernzettel-Inhalte
+- [ ] Kind-Passwort vergessen → Mail geht an die Eltern
+- [ ] Kind entfernen → Kind-Login schlägt fehl
+
+### E. Lernen (als Kind)
+
+- [ ] Fach anlegen, Farbe ändern, Thema anlegen
+- [ ] KI-Chat: Antwort streamt, Tonfall aus den Einstellungen wirkt, Titel entsteht; schulfremde Frage → freundliche Ablehnung
+- [ ] Datei-Upload: PDF + Handyfoto → „bereit", Vorschau; Datei > 5 MB → abgelehnt
+- [ ] Lernzettel erzeugen → Änderung anfragen → PDF herunterladen
+- [ ] Klausur anlegen → Lernplan (7 Tage) + Testklausur 1 entstehen
+- [ ] Lernplan: Checklisten-Haken (Tag 2/3/4/6/7) bleiben nach Neuladen gesetzt
+- [ ] Testklausur 1: PDF öffnen → Lösung hochladen (Foto) → Analyse → Note + Ampel pro Thema
+- [ ] Testklausur 2 (Tag 5): nur schwache/wackelige Themen
+- [ ] Klausur mit Datum in der Vergangenheit → Note eintragen, „erledigt"-Darstellung
+- [ ] Suche (Dashboard-Dropdown + Suchseite) findet Fach/Thema/Chat/Datei
+- [ ] Ladezustand: Seiten zeigen kurz Platzhalter statt weiß, alles lädt zügig
+
+### F. Limits
+
+- [ ] Auf Starter ein Kontingent aufbrauchen (z. B. 1 Klausurvorbereitung) → nur dieses Feature stoppt, Rest geht; Anzeige in den Einstellungen stimmt
+
+### G. Datenschutz
+
+- [ ] Datenexport (Kind + Eltern) lädt eine JSON-Datei
+- [ ] Kind-Konto löschen, dann Familienkonto löschen → Login schlägt fehl, Abo in Stripe beendet
+
+### H. Geräte & Barrierefreiheit
+
+- [ ] iPhone Safari, Android Chrome, Desktop Chrome/Safari/Firefox
+- [ ] Dunkles Design (Einstellungen) auf allen Seiten lesbar
+- [ ] Nur Tastatur: durch Login, Chat, Lernplan kommen (sichtbarer Fokus, Escape schließt Dialoge)
+- [ ] VoiceOver kurz: Navigation, ein Dialog, eine Meldung werden vorgelesen
+
+### I. Betrieb (mit Claude)
+
+- [ ] Railway-Log `lesify-jobs`: nächtlicher Lauf lesbar, `db-backup` fertig
+- [ ] `bash scripts/prod-backup-holen.sh` + `backup pruefen` mit dem Prod-Dump → bestanden
+- [ ] Sentry: Test-Fehler kommt an (Web + API)
+- [ ] Browser-Konsole der Kernseiten ohne CSP-/JS-Fehler
+- [ ] `GET /health` ok; `ki:kosten` nach dem Durchgang ansehen
+- [ ] Leichter Lasttest (Claude): ~10 parallele Chats + 1 Analyse, Antwortzeiten + DB-Verbindungen
 
 ## 3. Sicherheitsreview
 

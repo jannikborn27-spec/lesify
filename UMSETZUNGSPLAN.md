@@ -4888,7 +4888,10 @@ Kritisch, weil Zielgruppe minderjährig ist.
       Ursprünglich: `/lan2/` + `/landing-old-dev-23092026/`
       aus dem Deploy nehmen (noindex, aber per URL erreichbar), Dev-Panel-Reste
       in `marketing.js` prüfen.
-- [ ] **Testskript:** `docs/QS-CHECKLISTE.md` §2 auf den heutigen Stand bringen
+- [x] **Testskript** — _erledigt 2026-09-28: `docs/QS-CHECKLISTE.md` §2 neu
+      (Abschnitte A–I: Website/Recht, Konto, Kasse & Abo mit Stripe-Testkarten,
+      Familie, Lernen, Limits, Datenschutz, Geräte/A11y, Betrieb)._ Ursprünglich:
+      `docs/QS-CHECKLISTE.md` §2 auf den heutigen Stand bringen
       (Eltern-only-Signup, Kind-Zugang per Benutzername, Lernplan-Checklisten,
       keine Vorbereitungsnote, Kündigungsbutton, Passwort ändern) — wird die
       Abhakliste für die Schlussrunde.

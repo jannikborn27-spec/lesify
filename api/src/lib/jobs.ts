@@ -1,5 +1,5 @@
 import type { PrismaClient } from '@prisma/client';
-import { aboArtFuerSitze, aboPreis, monatsSchluessel } from '@lesify/shared';
+import { aboArtFuerSitze, aboPreis, bleibtImAngebot, monatsSchluessel } from '@lesify/shared';
 import { getStorageGateway, type StorageGateway } from './storage.js';
 import { getZahlungsGateway, type ZahlungsGateway } from './zahlung.js';
 import { kiKostenAlarmPruefen } from './ki/kosten.js';
@@ -146,6 +146,7 @@ export async function geplanteAboAenderungenAnwenden(
         art,
         sitze: neueSitze,
         intervall: abo.intervall,
+        mitAngebot: bleibtImAngebot(abo.angebot),
       });
       const { aktuellerZeitraumEnde } = await zahlung.subscriptionAendern(
         abo.zahlungsanbieterRef ?? abo.id,
@@ -157,7 +158,7 @@ export async function geplanteAboAenderungenAnwenden(
           sitze: neueSitze,
           geplanteSitze: null,
           art,
-          angebot: preis.angebotKey,
+          angebot: abo.angebot ?? preis.angebotKey,
           aktuellerZeitraumEnde,
         },
       });

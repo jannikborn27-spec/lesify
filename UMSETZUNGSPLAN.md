@@ -669,9 +669,10 @@ Alle fünf Entscheidungen von dir beantwortet und umgesetzt:
         Toggle zeigte schon `/ Monat`) — jetzt mit den korrekten Zahlen
         dahinter statt der `seatFactor`-Näherung. Kasse (`checkout.js`) zeigt
         bei Jahresabos zusätzlich „(entspricht X € / Monat)" im Fließtext.
-      Weiterhin offen, reine Geschäftsentscheidung: Angebotsdauer/
-      -verlängerung, ob der Rabattpreis dauerhaft an den Vertrag gebunden
-      bleibt.
+      ~~Weiterhin offen: Angebotsdauer, Bindung an den Vertrag~~ —
+      **entschieden 2026-09-28:** wer zum Angebotspreis abschließt, zahlt ihn
+      dauerhaft, auch nach Tarif-/Sitz-/Intervallwechseln (umgesetzt:
+      `aboPreis({mitAngebot})` + `bleibtImAngebot()` in `shared/src/abo.ts`).
 - [→] _(verschoben → Schlussrunde, Phase 16)_ **Stripe Live-Modus** + Rechnungsstellung + Umgang mit fehlgeschlagenen
       Zahlungen (Retry/Mahnlogik) — eigener Schritt nach dem Test-Modus oben,
       sinnvoll erst wenn die Preis-Feinheiten (siehe oben) final sind.
@@ -3165,6 +3166,10 @@ Blockiert alles Weitere. Erst die offenen Produktfragen klären, dann bauen.
       Kombinationen zwischen ~320px (v1) und ~610px (breiteste
       Kombination), mobil (375px) einheitlich und unverändert über
       alle Varianten, keine Konsolenfehler.
+- [x] **Entscheidung 2026-09-28 — Angebotspreis dauerhaft:** wer zum
+      Angebotspreis abschließt, wird immer zum Angebotspreis abgerechnet, auch
+      nach Tarif-/Sitz-/Intervallwechseln und wenn das Angebot für Neukunden
+      endet.
 - [x] **Entscheidung 2026-09-26 — Testen + Stripe Live ans Ende:** kein
       verteiltes Testen mehr zwischendurch. Alle Test-/Verifikationspunkte und
       der Stripe-Live-Wechsel sind in der „Schlussrunde vor dem Launch"
@@ -4852,7 +4857,8 @@ Kritisch, weil Zielgruppe minderjährig ist.
 
 **Entscheidungen / Dashboards (Jannik):**
 
-- [ ] **Preis-Entscheidung** Angebotsdauer/-bindung (blockiert Stripe Live).
+- [x] **Preis-Entscheidung** (2026-09-28): Angebotspreis bleibt für Abschließende
+      dauerhaft, auch bei Wechseln — umgesetzt + getestet.
 - [ ] **Stripe-Live-Aktivierung früh anstoßen** (Identität, Auszahlungskonto —
       kann Tage dauern), Umschalten selbst erst in der Schlussrunde B.
 - [ ] **Messung für die Werbung:** ohne Tracking (UTM-Links + eigene
@@ -4898,8 +4904,8 @@ Kritisch, weil Zielgruppe minderjährig ist.
 
 **B. Stripe Live**
 
-- [ ] **Preis-Entscheidung vorher:** Angebotsdauer/-verlängerung, ob der
-      Rabattpreis dauerhaft am Vertrag hängt (Abschnitt 4 oben).
+- [x] **Preis-Entscheidung vorher** — _2026-09-28: Angebotspreis dauerhaft
+      (Abschnitt 4 oben)._
 - [ ] **Stripe-Konto live schalten** (Aktivierung, Auszahlungskonto) → Live-Keys:
       `STRIPE_SECRET_KEY` bei Railway, `publishableKey` + `mode: 'live'` in
       `marketing/assets/js/stripe-config.js`; Live-Webhook auf `/abo/webhook`

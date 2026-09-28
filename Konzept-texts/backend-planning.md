@@ -1191,6 +1191,17 @@ Stripe-Calls auslösen.
 - **Preise/Regeln als Code:** `shared/src/abo.ts` spiegelt `stripe-config.js`
   (`EINZEL_PREISE`, `FAMILIE_PREISE` in Cent, `ABO_ANGEBOT`, `ABO_TRIAL_TAGE = 14`,
   `FAMILIE_SITZ_OPTIONEN = [2,3,4]`, `aboPreis()`, `aboArtFuerSitze()`).
+- **Angebotspreis dauerhaft (Entscheidung 2026-09-28):** wer zum Angebot
+  abschließt (`Abo.angebot` gesetzt), zahlt den Angebotspreis (`amount` der
+  Tabelle) für immer — auch nach Tarif-/Sitz-/Intervallwechsel (`PATCH /abo`,
+  `GET /abo/vorschau`, Job `abo-geplante-aenderungen`) und nachdem
+  `ABO_ANGEBOT.aktiv` für Neukunden auf `false` steht. `aboPreis({…,
+  mitAngebot})`: `true` → `amount`, `false` → `normal`; für Bestandsabos über
+  `bleibtImAngebot(abo.angebot)`. Angebot beenden = `ABO_ANGEBOT.aktiv =
+  false` + Anzeige in `stripe-config.js`; die Tabelle `amount` bleibt dann der
+  Preis der Bestandskunden (ein späteres, *anderes* Angebot bräuchte eine
+  eigene Tabelle). Stripe-Verlängerungen behalten den Preis ohnehin (fester
+  `price_data`-Betrag je Subscription).
 - **`GET /abo`** → `aboDTO` (`id, paket, planName, art, sitze, intervall,
   angebot, status, trialEndetAm, aktuellerZeitraumEnde, kontingente`); `404
   nicht_gefunden`, wenn der User (noch) kein Abo besitzt. Löst über
@@ -1655,7 +1666,10 @@ fehlgeschlagene Logins/Upload-Flooding weiterhin offen (§8).
 
 ### Weiterhin offen
 
-- [ ] **Preis-Feinheiten**: Angebotsdauer/-verlängerung, Jahrespreis-Rundung, Bindung des Angebotspreises an den Vertrag — reine Geschäftsentscheidungen, unabhängig von der jetzt finalen Preistabelle.
+- [x] **Preis-Feinheiten** — _2026-09-28 entschieden: der Angebotspreis bleibt
+  für jeden, der dazu abschließt, dauerhaft (auch bei Wechseln), siehe
+  „Angebotspreis dauerhaft" oben. Angebotsende für Neukunden = eigene spätere
+  Entscheidung, technisch ein Schalter._
 - [x] **Stripe-Adapter (2026-09-12):** `StripeZahlungsGateway` (Trial/Wechsel/
       Kündigung/Pause/Webhook-HMAC-Prüfung), aktiv sobald `STRIPE_SECRET_KEY`
       gesetzt ist — siehe „Umsetzungsstand" oben.

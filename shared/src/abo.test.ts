@@ -4,6 +4,7 @@ import {
   ABO_TRIAL_TAGE,
   aboArtFuerSitze,
   aboPreis,
+  bleibtImAngebot,
   istGueltigeSitzzahl,
 } from './index.js';
 
@@ -33,6 +34,22 @@ describe('aboPreis — Spiegel stripe-config.js', () => {
     const p = aboPreis({ paket: 'starter', art: 'familie', sitze: 3, intervall: 'jaehrlich' });
     expect(p.betragCent).toBe(39588);
     expect(p.normalCent).toBe(47988);
+  });
+  it('ohne Angebot: Listenpreis, kein Angebots-Key', () => {
+    const p = aboPreis({
+      paket: 'premium',
+      art: 'einzel',
+      sitze: 1,
+      intervall: 'monatlich',
+      mitAngebot: false,
+    });
+    expect(p.betragCent).toBe(2499);
+    expect(p.normalCent).toBeNull();
+    expect(p.angebotKey).toBeNull();
+  });
+  it('Bestandskunde mit Angebot bleibt beim Angebotspreis (Entscheidung 2026-09-28)', () => {
+    expect(bleibtImAngebot('schuljahresstart_-20')).toBe(true);
+    expect(bleibtImAngebot(null)).toBe(ABO_ANGEBOT.aktiv);
   });
   it('ungültige Kombination wirft', () => {
     expect(() =>

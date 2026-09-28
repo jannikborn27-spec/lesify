@@ -96,14 +96,22 @@ export interface AboPreis {
 /**
  * Löst den Preis für eine Abo-Konfiguration auf. Wirft, wenn die Kombination
  * (Paket × Art × Sitze × Intervall) nicht existiert.
+ *
+ * `mitAngebot` (Default: {@link ABO_ANGEBOT}`.aktiv`): Angebotspreis
+ * (`amount`) statt Listenpreis (`normal`). Für bestehende Abos über
+ * {@link bleibtImAngebot} setzen — wer zum Angebotspreis abgeschlossen hat,
+ * zahlt ihn dauerhaft, auch nach Tarif-/Sitz-/Intervallwechseln und nachdem
+ * das Angebot für Neukunden beendet ist (Entscheidung 2026-09-28).
  */
 export function aboPreis(opts: {
   paket: AboPaketKey;
   art: AboArtKey;
   sitze: number;
   intervall: AboIntervallKey;
+  mitAngebot?: boolean;
 }): AboPreis {
   const { paket, art, sitze, intervall } = opts;
+  const mitAngebot = opts.mitAngebot ?? ABO_ANGEBOT.aktiv;
   if (!istGueltigeSitzzahl(art, sitze)) {
     throw new Error(`ungültige Sitzzahl ${sitze} für ${art}`);
   }
@@ -111,9 +119,14 @@ export function aboPreis(opts: {
   if (!tabelle) throw new Error(`kein Preis für ${paket}/${art}/${sitze}`);
   const b = tabelle[intervall];
   return {
-    betragCent: b.amount,
-    normalCent: b.normal ?? null,
+    betragCent: mitAngebot ? b.amount : (b.normal ?? b.amount),
+    normalCent: mitAngebot ? (b.normal ?? null) : null,
     intervall,
-    angebotKey: ABO_ANGEBOT.aktiv ? ABO_ANGEBOT.key : null,
+    angebotKey: mitAngebot ? ABO_ANGEBOT.key : null,
   };
+}
+
+/** Bestehendes Abo: einmal zum Angebot abgeschlossen → bleibt beim Angebotspreis. */
+export function bleibtImAngebot(angebot: string | null | undefined): boolean {
+  return angebot != null || ABO_ANGEBOT.aktiv;
 }

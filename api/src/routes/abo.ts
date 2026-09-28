@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { aboArtFuerSitze, aboPreis, istGueltigeSitzzahl } from '@lesify/shared';
+import { aboArtFuerSitze, aboPreis, bleibtImAngebot, istGueltigeSitzzahl } from '@lesify/shared';
 import { parse } from '../lib/validate.js';
 import { oder404 } from '../lib/scope.js';
 import { HttpError } from '../lib/http.js';
@@ -237,11 +237,13 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
         });
         const abo = oder404(await eigenesAbo(req.userId));
         const z = zielZustand(abo, body);
+        const mitAngebot = bleibtImAngebot(abo.angebot);
         const alt = aboPreis({
           paket: abo.paket,
           art: aboArtFuerSitze(abo.sitze),
           sitze: abo.sitze,
           intervall: abo.intervall,
+          mitAngebot,
         });
         const imTest = abo.status === 'test';
 
@@ -258,6 +260,7 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
             art: aboArtFuerSitze(z.geplanteSitze!),
             sitze: z.geplanteSitze!,
             intervall: z.intervall,
+            mitAngebot,
           });
           return {
             wirksam: 'periodenende',
@@ -276,6 +279,7 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
           art: z.art,
           sitze: z.sitzeJetzt,
           intervall: z.intervall,
+          mitAngebot,
         });
         const v = await zahlung.aenderungVorschau(abo.zahlungsanbieterRef ?? abo.id, {
           intervall: z.intervall,
@@ -314,7 +318,13 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
       const abo = oder404(await eigenesAbo(req.userId));
       const { paket, intervall, sitzeJetzt, geplanteSitze, art } = zielZustand(abo, body);
 
-      const preis = aboPreis({ paket, art, sitze: sitzeJetzt, intervall });
+      const preis = aboPreis({
+        paket,
+        art,
+        sitze: sitzeJetzt,
+        intervall,
+        mitAngebot: bleibtImAngebot(abo.angebot),
+      });
       const { aktuellerZeitraumEnde } = await zahlung.subscriptionAendern(
         abo.zahlungsanbieterRef ?? abo.id,
         { intervall, betragCent: preis.betragCent },
@@ -328,7 +338,7 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
           sitze: sitzeJetzt,
           geplanteSitze,
           art,
-          angebot: preis.angebotKey,
+          angebot: abo.angebot ?? preis.angebotKey,
           aktuellerZeitraumEnde,
         },
       });

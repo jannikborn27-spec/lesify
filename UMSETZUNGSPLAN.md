@@ -3780,10 +3780,11 @@ bis das Thema wieder aufgemacht wird.
       Ergebnis-Zeile erschien in Railway leer (JSON ohne `message`-Feld →
       Railway zeigt strukturierte Logs ohne Text) — Runner loggt jetzt
       „Wartungslauf startet/Job … fertig/beendet" mit `message`. Offen: einen
-      Lauf mit lesbarem Log bestätigen. Folgepunkt: supabase-js warnt, dass
+      Lauf mit lesbarem Log bestätigen. ~~Folgepunkt: supabase-js warnt, dass
       Node 20 bald nicht mehr unterstützt wird → Railway-Services auf Node 22
-      heben (z. B. `engines.node` im Root-`package.json`), vor dem Launch
-      unkritisch.):
+      heben~~ — **erledigt 2026-09-28:** `.nvmrc` = 22 (daraus liest Railpack
+      die Version, gilt für API und `lesify-jobs`), `engines.node` ≥ 22, CI auf
+      Node 22.):
       `token-hygiene` stündlich, alle anderen Jobs täglich 03 Uhr UTC; Fehler →
       Exit 1 + Sentry. **Von dir:** Cron-Service `lesify-jobs` in Railway
       anlegen (Anleitung `docs/RUNBOOK.md` „Wartungs-Jobs"). War bis dahin in

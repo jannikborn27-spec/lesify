@@ -41,8 +41,9 @@ geplant`, **Cron Schedule** `0 * * * *`, Restart Policy **Never**.
 5. Prüfen: Deployments → der Lauf zur vollen Stunde zeigt „Wartungslauf
    startet: token-hygiene", „Job token-hygiene fertig (… ms): {…}" und
    „Wartungslauf beendet" (JSON-Logs mit `message`-Feld, Railway zeigt sonst
-   leere Zeilen) und endet mit Exit 0. Die Warnung „Node.js 20 and below are
-   deprecated" von supabase-js ist vorerst harmlos.
+   leere Zeilen) und endet mit Exit 0. Seit 2026-09-28 laufen alle Services auf
+   Node 22 (`.nvmrc`), die frühere supabase-js-Warnung „Node.js 20 and below
+   are deprecated" sollte nicht mehr erscheinen.
 
 **Migrationen automatisch beim Deploy** (ersetzt `scripts/prod-migrate.sh`
 vor jedem Push): im **API-Service** → Settings → Deploy → **Pre-deploy

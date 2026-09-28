@@ -24,7 +24,7 @@ HTML/CSS/Vanilla-JS wie im bisherigen Prototyp.
 
 ## Voraussetzungen
 
-- **Node** ≥ 20 (`.nvmrc` → `nvm use`)
+- **Node** ≥ 22 (`.nvmrc` → `nvm use`)
 - **pnpm** 9 (`corepack enable`)
 - **Python 3** (nur um `app/` und `marketing/` lokal statisch auszuliefern)
 

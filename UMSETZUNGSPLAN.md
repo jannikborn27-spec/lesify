@@ -4856,7 +4856,11 @@ Kritisch, weil Zielgruppe minderjährig ist.
       Ampel, Fachfarben) + fixen — manueller Rest (VoiceOver) bleibt im Test.
 - [ ] **Mobile-Durchgang bis 360 px** (App + Website) + fixen.
 - [ ] **CSP scharf schalten** ab 2026-10-03 (Zeile oben in Phase 16).
-- [ ] **Aufräumen vor Werbestart:** `/lan2/` + `/landing-old-dev-23092026/`
+- [x] **Aufräumen vor Werbestart** — _erledigt 2026-09-28: `/landing-old-dev-23092026/`
+      wird nicht mehr ausgeliefert (`scripts/build-site.sh`, bleibt im Repo als
+      Archiv); `/lan2/` bleibt als reine Weiterleitung auf `/` (fängt alte Links);
+      Dev-Panels live geprüft — auf www.lesify.de wird keins angezeigt._
+      Ursprünglich: `/lan2/` + `/landing-old-dev-23092026/`
       aus dem Deploy nehmen (noindex, aber per URL erreichbar), Dev-Panel-Reste
       in `marketing.js` prüfen.
 - [ ] **Testskript:** `docs/QS-CHECKLISTE.md` §2 auf den heutigen Stand bringen

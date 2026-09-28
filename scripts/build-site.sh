@@ -11,4 +11,7 @@ cp -r app/. _site/app/
 # Nichts ausliefern, was nicht auf die Website gehört.
 rm -rf _site/index-backup*.html _site/assets.zip _site/README.md _site/app/README.md \
   _site/assets/img/images-fin _site/assets/img/test-img*
+# Archiv der alten Startseite (noindex, nur lokal zum Nachschlagen) — seit
+# 2026-09-28 nicht mehr öffentlich ausgeliefert (vor dem Werbestart aufgeräumt).
+rm -rf _site/landing-old-dev-23092026
 echo "Site gebaut: $(find _site -type f | wc -l | tr -d ' ') Dateien in _site/"

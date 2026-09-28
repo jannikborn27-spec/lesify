@@ -58,6 +58,8 @@
         if (icon) icon.style.display = 'none';
         return;
       }
+      // Ungültige/abgelaufene Anmeldung → kein Abo zuordenbar, keine Conversion melden.
+      if (r.status === 401 || r.status === 403) return;
       return fetch(API_BASE + '/abo', { headers: auth })
         .then(function (res) { return res.ok ? res.json() : null; })
         .then(function (abo) {

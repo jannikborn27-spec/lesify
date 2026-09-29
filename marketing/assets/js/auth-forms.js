@@ -163,6 +163,14 @@
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       showMsg(msg, '', '');
+      // Das Formular ist `novalidate` — die Pflicht-Einwilligung (AGB +
+      // Datenschutz) deshalb hier prüfen, statt sie ungefragt als erteilt zu
+      // melden (gefunden im Testdurchgang 2026-09-29).
+      if (form.agb && !form.agb.checked) {
+        showMsg(msg, 'Bitte stimme den Nutzungsbedingungen zu und bestätige die Datenschutzerklärung.', 'error');
+        form.agb.focus();
+        return;
+      }
       setBusy(btn, true, 'Konto wird angelegt …');
       var email = form.email.value.trim();
       var passwort = form.pw.value;
@@ -170,7 +178,7 @@
         name: form.name.value.trim(),
         email: email,
         passwort: passwort,
-        einwilligung: true,
+        einwilligung: !!(form.agb && form.agb.checked),
       })
         .then(function () {
           // Registrierung liefert bewusst kein Token (Phase 3) — direkt

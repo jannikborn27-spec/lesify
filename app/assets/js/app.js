@@ -483,7 +483,7 @@
   }
   function fileTextPreview(d, typLabel) {
     var lead = d.zusammenfassung
-      ? '<p class="dv-doc-lead" data-dv-doclead>' + d.zusammenfassung + '</p>'
+      ? '<p class="dv-doc-lead" data-dv-doclead>' + mdEscape(mdKlartext(d.zusammenfassung)) + '</p>'
       : '<p class="dv-doc-lead is-pending" data-dv-doclead>Dieses Dokument wird noch gelesen und zusammengefasst…</p>';
     var lineW = [96, 88, 92, 70, 84, 90, 62];
     return '<div class="dv-doc dv-doc-page">' +
@@ -567,7 +567,7 @@
         if (summaryEl) summaryEl.innerHTML = zusammenfassungHtml(updated.zusammenfassung, '„' + updated.name + '" konnte nicht zusammengefasst werden.');
         var docLeadEl = qs('[data-dv-doclead]', scrim);
         if (docLeadEl && updated.zusammenfassung) {
-          docLeadEl.textContent = updated.zusammenfassung;
+          docLeadEl.textContent = mdKlartext(updated.zusammenfassung);
           docLeadEl.classList.remove('is-pending');
         }
       });
@@ -894,7 +894,7 @@
      --------------------------------------------------------- */
 
   function dateiSummarySnippet(d, n) {
-    if (d.zusammenfassung) return '<span class="datei-summary">' + truncate(d.zusammenfassung, n) + '</span>';
+    if (d.zusammenfassung) return '<span class="datei-summary">' + mdEscape(truncate(mdKlartext(d.zusammenfassung), n)) + '</span>';
     return '<span class="datei-summary is-pending"><span class="skeleton" style="width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:6px;vertical-align:middle"></span>Wird gelesen und zusammengefasst…</span>';
   }
 
@@ -1889,6 +1889,15 @@
   /* KI-Zusammenfassung einer Datei: kommt als Markdown (Testdurchgang
      2026-09-29: `**` und Zeilenumbrüche standen roh da) und stammt indirekt aus
      dem Dateiinhalt — deshalb über mdToHtml (escaped HTML), nie roh einsetzen. */
+  /** Markdown-Zeichen für kurze Einzeiler entfernen (Karten-Snippet, Dokument-Lead). */
+  function mdKlartext(text) {
+    return String(text == null ? '' : text)
+      .replace(/^#{1,6}\s+/gm, '')
+      .replace(/\*\*|__|`/g, '')
+      .replace(/^\s*[-*]\s+/gm, '')
+      .replace(/\s*\n+\s*/g, ' ')
+      .trim();
+  }
   function zusammenfassungHtml(text, ersatz) {
     return text ? mdToHtml(text, { headingShift: 3 }) : '<p>' + mdEscape(ersatz) + '</p>';
   }

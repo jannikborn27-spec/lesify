@@ -214,6 +214,10 @@ model Abo {
   // Vertragsbestätigung per E-Mail (§312f BGB, 2026-09-29) verschickt am … —
   // einmal je Abo, direkt nach dem Abschluss (`POST /abo/testphase-pruefen`).
   bestaetigungGesendetAm DateTime?
+  // Abschluss bestätigt (Zahlungsmittel beim Anbieter hinterlegt, 2026-09-29).
+  // Vorher zählt das Abo nicht: GET /abo → 404, keine Kind-Profile, Kinder
+  // gesperrt. Gesetzt über `abschlussSichern` (Kasse, Webhook, GET /abo).
+  abgeschlossenAm        DateTime?
   erstelltAm             DateTime     @default(now())
 
   owner          User   @relation("AboOwner", fields: [ownerUserId], references: [id], onDelete: Cascade)

@@ -26,6 +26,14 @@ describe('zugriffFuer — Kind-Zugriff je Abo-Status (Entscheidung 2026-09-23)',
     });
   });
 
+  it('Abschluss ohne Zahlungsmittel (abgeschlossenAm null) → gesperrt, auch in der Testphase', () => {
+    const unbestaetigt = { ...(abo('test') as object), abgeschlossenAm: null } as never;
+    expect(zugriffFuer(kind, unbestaetigt, jetzt).zugriff).toBe('gesperrt');
+    expect(zugriffFuer(eltern, unbestaetigt, jetzt).zugriff).toBe('voll');
+    const bestaetigt = { ...(abo('test') as object), abgeschlossenAm: gestern } as never;
+    expect(zugriffFuer(kind, bestaetigt, jetzt).zugriff).toBe('voll');
+  });
+
   it('pausiert → gesperrt', () => {
     expect(zugriffFuer(kind, abo('pausiert'), jetzt).grund).toBe('pausiert');
   });

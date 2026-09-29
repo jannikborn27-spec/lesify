@@ -1,4 +1,5 @@
 import type { FastifyInstance } from 'fastify';
+import type { Abo } from '@prisma/client';
 import { z } from 'zod';
 import {
   aboArtFuerSitze,
@@ -60,6 +61,72 @@ const kindBody = z.object({
 export async function aboRoutes(app: FastifyInstance): Promise<void> {
   const { prisma, zahlung } = app;
 
+  // Vertragsbestätigung (§312f BGB, Testdurchgang 2026-09-29): genau einmal
+  // je Abo, sobald der Abschluss bestätigt ist (`abschlussSichern`) — Kasse
+  // und Erfolgsseite melden beide, deshalb erst den Zeitstempel bedingt
+  // setzen, dann senden. Versandfehler blockieren den Abschluss nicht; der
+  // Stempel wird zurückgesetzt, der nächste Aufruf versucht es erneut.
+  const euro = (cent: number) =>
+    (cent / 100).toLocaleString('de-DE', { style: 'currency', currency: 'EUR' });
+  const datumDe = (d: Date) =>
+    d.toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' });
+  async function vertragsbestaetigung(aboId: string) {
+    const gesperrt = await prisma.abo.updateMany({
+      where: { id: aboId, bestaetigungGesendetAm: null },
+      data: { bestaetigungGesendetAm: new Date() },
+    });
+    if (gesperrt.count === 0) return;
+    const abo = await prisma.abo.findUnique({ where: { id: aboId }, include: { owner: true } });
+    if (!abo?.owner.email) return;
+    const preis = aboPreis({
+      paket: abo.paket,
+      art: abo.art,
+      sitze: abo.sitze,
+      intervall: abo.intervall,
+      mitAngebot: bleibtImAngebot(abo.angebot),
+    });
+    const proZeitraum = abo.intervall === 'jaehrlich' ? 'pro Jahr' : 'pro Monat';
+    try {
+      await app.mail.aboBestaetigungSenden({
+        an: abo.owner.email,
+        name: abo.owner.name,
+        tarif:
+          PLAN_NAMES[abo.paket] +
+          (abo.art === 'familie' ? ` · Familie mit ${abo.sitze} Plätzen` : ''),
+        abrechnung: abo.intervall === 'jaehrlich' ? 'jährlich im Voraus' : 'monatlich im Voraus',
+        preis: `${euro(preis.betragCent)} ${proZeitraum}`,
+        normalpreis: preis.normalCent ? `${euro(preis.normalCent)} ${proZeitraum}` : null,
+        bestelltAm: datumDe(abo.erstelltAm),
+        testphaseBis: abo.trialEndetAm ? datumDe(abo.trialEndetAm) : null,
+      });
+    } catch (err) {
+      app.log.error({ err, aboId }, 'abo_bestaetigung_fehlgeschlagen');
+      await prisma.abo.update({ where: { id: aboId }, data: { bestaetigungGesendetAm: null } });
+    }
+  }
+
+  // Ein Abo zählt erst, wenn beim Anbieter ein Zahlungsmittel hinterlegt ist
+  // (Testdurchgang 2026-09-29: `POST /abo` legt die Zeile schon VOR der
+  // Zahlungsbestätigung an — mit abgelehnter Karte oder abgebrochener Kasse gab
+  // es sonst 14 Tage vollen Zugang ohne Zahlungsmittel, beliebig wiederholbar,
+  // vorbei an „Testphase einmal je Zahlungsmittel"). Aufgerufen von der Kasse
+  // (testphase-pruefen), vom Webhook und lazy von den Abo-Routen — damit heilt
+  // ein verpasster Kassen-Aufruf von selbst. Liefert das Abo oder null.
+  async function abschlussSichern(abo: Abo): Promise<Abo | null> {
+    if (abo.abgeschlossenAm) return abo;
+    const ref = abo.zahlungsanbieterRef ?? abo.id;
+    // Anbieter nicht erreichbar → (noch) nicht bestätigt; der nächste Aufruf prüft erneut.
+    const abgebrochen = await zahlung.abschlussAbgebrochen(ref).catch(() => true);
+    if (abgebrochen) return null;
+    const neu = await prisma.abo.update({
+      where: { id: abo.id },
+      data: { abgeschlossenAm: new Date() },
+    });
+    app.zugriffCache.zuruecksetzen();
+    await vertragsbestaetigung(abo.id);
+    return neu;
+  }
+
   // ---- POST /abo/webhook — Callback vom Zahlungsanbieter, KEIN Login ----------
   app.post('/abo/webhook', async (req) => {
     // Echter Roh-Body (vom Content-Type-Parser in app.ts mitgeschnitten) —
@@ -86,6 +153,9 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
     if (abo.status === 'test' && erg.typ.startsWith('customer.subscription.')) {
       const p = await testphasePruefen(prisma, zahlung, abo);
       if (p.ergebnis === 'abgelehnt') return { ok: true, testphaseAbgelehnt: true };
+    }
+    if (!abo.abgeschlossenAm && ['test', 'aktiv'].includes(erg.neuerStatus)) {
+      await abschlussSichern(abo);
     }
     if (abo.status === erg.neuerStatus && !erg.endetAm) return { ok: true, unveraendert: true };
     const offen = erg.neuerStatus === 'zahlung_offen';
@@ -119,6 +189,13 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
       const user = await prisma.user.findUnique({ where: { id: userId }, select: { aboId: true } });
       return user?.aboId ? prisma.abo.findUnique({ where: { id: user.aboId } }) : null;
     };
+    // Wie `eigenesAbo`, aber nur ein bestätigter Abschluss zählt (siehe
+    // `abschlussSichern`). Rohes `eigenesAbo` nur für POST /abo (Aufräumen
+    // abgebrochener Abschlüsse) und testphase-pruefen.
+    const abgeschlossenesAbo = async (userId: string) => {
+      const abo = await eigenesAbo(userId);
+      return abo ? abschlussSichern(abo) : null;
+    };
 
     // Ein Abo blockiert einen Neuabschluss nur, solange es nicht endgültig
     // vorbei ist: `gekuendigt`/`pausiert` behalten bis `aktuellerZeitraumEnde`
@@ -129,7 +206,7 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
 
     // GET /abo — aktuelles Abo des Vertragsinhabers
     authed.get('/abo', async (req) => {
-      const abo = oder404(await eigenesAbo(req.userId));
+      const abo = oder404(await abgeschlossenesAbo(req.userId));
       return aboDTO(abo);
     });
 
@@ -241,7 +318,7 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
           ...(q.intervall ? { intervall: q.intervall } : {}),
           ...(q.sitze ? { sitze: Number(q.sitze) } : {}),
         });
-        const abo = oder404(await eigenesAbo(req.userId));
+        const abo = oder404(await abgeschlossenesAbo(req.userId));
         const z = zielZustand(abo, body);
         const mitAngebot = bleibtImAngebot(abo.angebot);
         const alt = aboPreis({
@@ -307,51 +384,6 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
       },
     );
 
-    // Vertragsbestätigung (§312f BGB, Testdurchgang 2026-09-29): genau einmal
-    // je Abo, sobald die Kasse den Abschluss meldet (testphase-pruefen wird von
-    // der Kasse UND von checkout-erfolg/ aufgerufen — deshalb erst den
-    // Zeitstempel bedingt setzen, dann senden). Versandfehler blockieren den
-    // Abschluss nicht; der Stempel wird zurückgesetzt, der nächste Aufruf
-    // versucht es erneut.
-    const euro = (cent: number) =>
-      (cent / 100).toLocaleString('de-DE', { style: 'currency', currency: 'EUR' });
-    const datumDe = (d: Date) =>
-      d.toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' });
-    async function vertragsbestaetigung(aboId: string) {
-      const gesperrt = await prisma.abo.updateMany({
-        where: { id: aboId, bestaetigungGesendetAm: null },
-        data: { bestaetigungGesendetAm: new Date() },
-      });
-      if (gesperrt.count === 0) return;
-      const abo = await prisma.abo.findUnique({ where: { id: aboId }, include: { owner: true } });
-      if (!abo?.owner.email) return;
-      const preis = aboPreis({
-        paket: abo.paket,
-        art: abo.art,
-        sitze: abo.sitze,
-        intervall: abo.intervall,
-        mitAngebot: bleibtImAngebot(abo.angebot),
-      });
-      const proZeitraum = abo.intervall === 'jaehrlich' ? 'pro Jahr' : 'pro Monat';
-      try {
-        await app.mail.aboBestaetigungSenden({
-          an: abo.owner.email,
-          name: abo.owner.name,
-          tarif:
-            PLAN_NAMES[abo.paket] +
-            (abo.art === 'familie' ? ` · Familie mit ${abo.sitze} Plätzen` : ''),
-          abrechnung: abo.intervall === 'jaehrlich' ? 'jährlich im Voraus' : 'monatlich im Voraus',
-          preis: `${euro(preis.betragCent)} ${proZeitraum}`,
-          normalpreis: preis.normalCent ? `${euro(preis.normalCent)} ${proZeitraum}` : null,
-          bestelltAm: datumDe(abo.erstelltAm),
-          testphaseBis: abo.trialEndetAm ? datumDe(abo.trialEndetAm) : null,
-        });
-      } catch (err) {
-        app.log.error({ err, aboId }, 'abo_bestaetigung_fehlgeschlagen');
-        await prisma.abo.update({ where: { id: aboId }, data: { bestaetigungGesendetAm: null } });
-      }
-    }
-
     // POST /abo/testphase-pruefen — direkt nach dem Hinterlegen des
     // Zahlungsmittels (Kasse bzw. checkout-erfolg/ nach PayPal-Redirect).
     // `409 testphase_bereits_genutzt` → Abo ist schon wieder entfernt,
@@ -360,14 +392,14 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
       const abo = oder404(await eigenesAbo(req.userId));
       const p = await testphasePruefen(prisma, zahlung, abo);
       if (p.ergebnis === 'abgelehnt') throw new HttpError(409, 'testphase_bereits_genutzt');
-      await vertragsbestaetigung(abo.id);
+      await abschlussSichern(abo);
       return { ok: true, geprueft: p.ergebnis === 'ok' };
     });
 
     // PATCH /abo — Tarif-/Intervall-/Sitzwechsel (Proration beim Anbieter)
     authed.patch('/abo', async (req) => {
       const body = parse(aendernBody, req.body);
-      const abo = oder404(await eigenesAbo(req.userId));
+      const abo = oder404(await abgeschlossenesAbo(req.userId));
       const { paket, intervall, sitzeJetzt, geplanteSitze, art } = zielZustand(abo, body);
 
       const preis = aboPreis({
@@ -399,7 +431,7 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
 
     // POST /abo/kuendigen — zum Zeitraumende, kein sofortiger Zugriffsverlust
     authed.post('/abo/kuendigen', async (req) => {
-      const abo = oder404(await eigenesAbo(req.userId));
+      const abo = oder404(await abgeschlossenesAbo(req.userId));
       await zahlung.subscriptionKuendigen(abo.zahlungsanbieterRef ?? abo.id);
       const neu = await prisma.abo.update({
         where: { id: abo.id },
@@ -411,7 +443,7 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
 
     // POST /abo/pausieren — Sommerpause, Inhalte bleiben
     authed.post('/abo/pausieren', async (req) => {
-      const abo = oder404(await eigenesAbo(req.userId));
+      const abo = oder404(await abgeschlossenesAbo(req.userId));
       await zahlung.subscriptionPausieren(abo.zahlungsanbieterRef ?? abo.id);
       const neu = await prisma.abo.update({
         where: { id: abo.id },
@@ -428,7 +460,7 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
     // `test` (Bug 2026-09-17 — vorher hart `aktiv` geschrieben, obwohl
     // Stripe weiterhin `trialing` meldete).
     authed.post('/abo/reaktivieren', async (req) => {
-      const abo = oder404(await eigenesAbo(req.userId));
+      const abo = oder404(await abgeschlossenesAbo(req.userId));
       if (abo.status !== 'gekuendigt' && abo.status !== 'pausiert') {
         throw new HttpError(409, 'abo_nicht_reaktivierbar', { status: abo.status });
       }
@@ -445,7 +477,7 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
     // offene Rechnung begleichen, Belege). Vor allem der Ausweg aus
     // `zahlung_offen` (2026-09-23).
     authed.post('/abo/zahlungsportal', async (req) => {
-      const abo = oder404(await eigenesAbo(req.userId));
+      const abo = oder404(await abgeschlossenesAbo(req.userId));
       const url = await zahlung.zahlungsportalUrl(
         abo.zahlungsanbieterRef ?? abo.id,
         `${env.MARKETING_URL}/app/eltern-abo.html`,
@@ -480,7 +512,7 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
     // obwohl `checkout-erfolg/` genau dorthin verlinkt).
     authed.post('/abo/kinder', async (req, reply) => {
       const body = parse(kindBody, req.body);
-      const abo = oder404(await eigenesAbo(req.userId));
+      const abo = oder404(await abgeschlossenesAbo(req.userId));
 
       const belegt = await prisma.user.count({ where: { parentUserId: req.userId } });
       if (belegt + 1 > abo.sitze) {

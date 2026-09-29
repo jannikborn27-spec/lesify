@@ -730,6 +730,62 @@ describe.runIf(hatDb)('abo — Vertragsbestätigung per Mail (§312f BGB, 2026-0
   });
 });
 
+describe.runIf(hatDb)('abo — zählt erst mit Zahlungsmittel (Testdurchgang 2026-09-29)', () => {
+  const gesendet: string[] = [];
+  class MitschnittMail extends FakeMailGateway {
+    override async aboBestaetigungSenden(input: { an: string }) {
+      gesendet.push(input.an);
+    }
+  }
+  const zahlung = new FakeZahlungsGateway();
+  const app = buildApp({ logger: false, zahlung, mail: new MitschnittMail() });
+
+  it('abgelehnte Karte / abgebrochene Kasse: kein Abo, keine Kinder, keine Mail — heilt, sobald das Zahlungsmittel da ist', async () => {
+    await app.ready();
+    const email = `unbest+${crypto.randomUUID()}@abo.lesify.test`;
+    const t = await registriereUndLogin(app, email);
+    const auth = { authorization: `Bearer ${t}` };
+    const ref = (
+      await app.inject({
+        method: 'POST',
+        url: '/abo',
+        headers: auth,
+        payload: { paket: 'premium', intervall: 'monatlich', sitze: 2 },
+      })
+    ).json().subscriptionId as string;
+    zahlung.abgebrochen.add(ref); // kein Zahlungsmittel beim Anbieter
+
+    expect((await app.inject({ method: 'GET', url: '/abo', headers: auth })).statusCode).toBe(404);
+    const kind = await app.inject({
+      method: 'POST',
+      url: '/abo/kinder',
+      headers: auth,
+      payload: { name: 'Gratis Kind', klassenstufe: '6. Klasse' },
+    });
+    expect(kind.statusCode).toBe(404);
+    // Kasse meldet trotzdem (z. B. manuell aufgerufen) → weiterhin nicht bestätigt
+    await app.inject({ method: 'POST', url: '/abo/testphase-pruefen', headers: auth });
+    expect((await app.inject({ method: 'GET', url: '/abo', headers: auth })).statusCode).toBe(404);
+    expect(gesendet.filter((g) => g === email)).toHaveLength(0);
+
+    zahlung.abgebrochen.delete(ref); // Zahlungsmittel nachträglich hinterlegt
+    const abo = await app.inject({ method: 'GET', url: '/abo', headers: auth });
+    expect(abo.statusCode).toBe(200);
+    expect(abo.json()).toMatchObject({ status: 'test', preis: { betragCent: expect.any(Number) } });
+    expect(gesendet.filter((g) => g === email)).toHaveLength(1);
+    expect(
+      (
+        await app.inject({
+          method: 'POST',
+          url: '/abo/kinder',
+          headers: auth,
+          payload: { name: 'Echtes Kind', klassenstufe: '6. Klasse' },
+        })
+      ).statusCode,
+    ).toBe(201);
+  });
+});
+
 describe.runIf(hatDb)('Kind-Zugang ohne E-Mail: Benutzername (Entscheidung 2026-09-25)', () => {
   const resets: { an: string; token: string; kindName?: string }[] = [];
   class MitschnittMail extends FakeMailGateway {

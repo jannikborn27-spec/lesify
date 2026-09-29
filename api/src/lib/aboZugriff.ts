@@ -42,12 +42,21 @@ export function loeschDatum(zahlungOffenSeit: Date): Date {
 /** Reine Ableitung — testbar ohne DB. */
 export function zugriffFuer(
   user: Pick<User, 'rolle'>,
-  abo: Pick<Abo, 'status' | 'aktuellerZeitraumEnde' | 'zahlungOffenSeit'> | null,
+  abo:
+    | (Pick<Abo, 'status' | 'aktuellerZeitraumEnde' | 'zahlungOffenSeit'> &
+        Partial<Pick<Abo, 'abgeschlossenAm'>>)
+    | null,
   jetzt = new Date(),
 ): ZugriffStand {
   // Eltern nie sperren; Konten ohne Abo (Altbestand/Trial ohne Abo) laufen
   // weiter über die bisherige Paket-Logik in usage.ts.
   if (user.rolle !== 'schueler' || !abo) return VOLL;
+  // Abschluss noch nicht bestätigt (kein Zahlungsmittel, 2026-09-29) — z. B.
+  // Neuabschluss nach Vertragsende, bei dem die Kind-Profile schon am neuen
+  // Abo hängen: erst nach dem Hinterlegen des Zahlungsmittels wieder frei.
+  if (abo.abgeschlossenAm === null) {
+    return { zugriff: 'gesperrt', grund: 'abgelaufen', loeschungAm: null };
+  }
   switch (abo.status) {
     case 'pausiert':
       return { zugriff: 'gesperrt', grund: 'pausiert', loeschungAm: null };
@@ -85,7 +94,14 @@ export class ZugriffCache {
         where: { id: userId },
         select: {
           rolle: true,
-          abo: { select: { status: true, aktuellerZeitraumEnde: true, zahlungOffenSeit: true } },
+          abo: {
+            select: {
+              status: true,
+              aktuellerZeitraumEnde: true,
+              zahlungOffenSeit: true,
+              abgeschlossenAm: true,
+            },
+          },
         },
       });
       stand = user ? zugriffFuer(user, user.abo) : VOLL;

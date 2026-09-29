@@ -5002,6 +5002,12 @@ Kritisch, weil Zielgruppe minderjährig ist.
   - [x] „Abo & Sitze“ zeigte weder Preis noch Testphase-Ende → Zeilen „Preis“
         (Angebot mit Streichpreis) und „Testphase bis / Nächste Abbuchung /
         Läuft bis“; `GET /abo` liefert dafür `preis`.
+  - [x] **Testphase ohne Zahlungsmittel möglich:** `POST /abo` legte das Abo
+        schon vor der Zahlungsbestätigung an — mit abgelehnter Karte oder
+        abgebrochener Kasse gab es 14 Tage vollen Zugang (Kinder anlegen, KI
+        nutzen), beliebig oft mit neuer E-Mail und vorbei an „Testphase einmal
+        je Zahlungsmittel“. Jetzt zählt ein Abo erst mit hinterlegtem
+        Zahlungsmittel (`Abo.abgeschlossenAm`, Migration setzt Bestandsabos).
 
 **B. Stripe Live**
 

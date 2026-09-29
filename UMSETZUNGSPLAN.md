@@ -68,8 +68,8 @@ setze ich sie um.
       um „normale persönliche Nutzung" ergänzt. Dokumente/Lernzettel/
       Testklausuren brauchen keine Extra-Grenze (bei Infinite ohnehin 100/50/15).
       Zusätzlich AGB §4 ergänzt: Testphase einmal je Konto/Zahlungsmittel,
-      Pause, Zahlungsverzug + Löschung nach 30 Tagen. **Mit der Anwaltsprüfung
-      abnehmen lassen.**
+      Pause, Zahlungsverzug + Löschung nach 30 Tagen. Vom Anwalt abgenommen
+      (laut Jannik 2026-09-29).
 
 ### 1. Damit die App überhaupt live erreichbar ist (Hosting)
 
@@ -4760,10 +4760,23 @@ Kritisch, weil Zielgruppe minderjährig ist.
       hinzufügen (ersetzt die A/CNAME-Einträge auf GitHub), Redirect-Regel apex
       → www in Cloudflare, dann GitHub Pages abschalten. Erkennbar am Erfolg:
       `strict-transport-security` im Header, kein `x-github-request-id` mehr.
-- [ ] **CSP scharf schalten** (frühestens ~2026-10-03): in `marketing/_headers`
-      `Content-Security-Policy-Report-Only` → `Content-Security-Policy`, vorher
-      Browser-Konsole der Kern-Seiten (Landing, Kasse, App inkl. PDF-Vorschau,
-      Stripe) auf CSP-Meldungen prüfen.
+- [x] **CSP scharf schalten** — _erledigt 2026-09-29 (auf Wunsch vor dem
+      2026-10-03): `marketing/_headers` → `Content-Security-Policy`. Vorher live
+      gemessen (alle geladenen Ressourcen gegen die Policy, mit und ohne
+      Einwilligung) auf Startseite, Preise, Registrieren, Login, Kontakt:
+      einziger Befund `fetch ad.doubleclick.net/ccm/s/collect` (Google Ads)
+      → in `connect-src` ergänzt, dazu vorsorglich `pagead2.googlesyndication.com`
+      (Google-CSP-Doku) und `*.js.stripe.com` (Stripe-CSP-Doku). Eingeloggte
+      App (PDF-Vorschau) und Kasse mit Stripe nur statisch geprüft (keine
+      weiteren Fremd-Domains im Code) → im Testdurchgang (Schlussrunde A,
+      `docs/QS-CHECKLISTE.md` §2 I) Konsole auf „Refused to …" achten._
+- [x] **Tracking startete erst auf der zweiten Seite (gefunden 2026-09-29 beim
+      CSP-Check, behoben):** CookieScripts `currentState()` meldet direkt nach
+      „Alle akzeptieren" noch `reject`, erst nach Neuladen `accept` → GTM/Pixel
+      luden erst auf der nächsten Seite, gclid/fbclid der Landing-URL (Ads-
+      Zuordnung) gingen verloren. `tracking.js` liest jetzt zuerst das
+      `CookieScriptConsent`-Cookie (beim Event schon richtig), `currentState()`
+      nur als Rückfall.
 - [x] **SEO-Sichtbarkeit (2026-09-23 geprüft; 2026-09-26 eingereicht: Search Console Domain-Property `lesify.de` verifiziert, Sitemap eingereicht, Indexierung für `/`, `/preise/`, `/ueber-uns/` beantragt; Bing per GSC-Import):** technisch sauber (200,
       indexierbar, Canonical, 301 apex→www, robots.txt + Sitemap ok) — Google
       kennt die Seite nur noch nicht. **Von dir:** Google Search Console
@@ -4851,7 +4864,7 @@ Kritisch, weil Zielgruppe minderjährig ist.
       `kontakt@`; Eingangsbestätigung + interne Kopie per Resend; Tests in
       `kuendigung.test.ts`/`mailer.test.ts`). AGB §9 + Datenschutz §3/§5
       angepasst; dabei Datenschutz §5 „GitHub Pages" → Cloudflare korrigiert.
-      **Noch vom Anwalt abnehmen lassen** (Seite, AGB §9, Datenschutz)._
+      Vom Anwalt abgenommen (laut Jannik 2026-09-29)._
       Ursprünglicher Auftrag (gefunden 2026-09-28, Launch-Blocker):
       dauerhaft sichtbarer Link „Verträge hier kündigen" (Footer) → Seite
       `/kuendigen/` ohne Login (Name, E-Mail/Benutzer, ordentlich/außerordentlich,
@@ -4880,7 +4893,7 @@ Kritisch, weil Zielgruppe minderjährig ist.
       breit und rechts abgeschnitten (Grid-Spalte `1fr` ließ sich von der
       Tagesleiste aufdrücken) → `minmax(0, 1fr)`. Echtes Gerät (iPhone/Android)
       bleibt im Test._
-- [ ] **CSP scharf schalten** ab 2026-10-03 (Zeile oben in Phase 16).
+- [x] **CSP scharf schalten** — _erledigt 2026-09-29 (Zeile oben in Phase 16)._
 - [x] **Aufräumen vor Werbestart** — _erledigt 2026-09-28: `/landing-old-dev-23092026/`
       wird nicht mehr ausgeliefert (`scripts/build-site.sh`, bleibt im Repo als
       Archiv); `/lan2/` bleibt als reine Weiterleitung auf `/` (fängt alte Links);
@@ -4911,15 +4924,17 @@ Kritisch, weil Zielgruppe minderjährig ist.
   - [x] **Testphase zählt auch als Kauf** (2026-09-28): beim Testphase-Start
         gehen StartTrial **und** Purchase an Meta, `start_trial` **und**
         `purchase` in den dataLayer (gleiche Abo-ID als event_id/transaction_id).
-  - [ ] **GTM-Container einrichten (Jannik):** GA4-Tag, Google-Ads-Conversion-
+  - [x] **GTM-Container einrichten (Jannik)** — _erledigt laut Jannik 2026-09-29;
+        live geprüft: GA4 `G-ZFVCFBPE1Y` + Google-Ads-Aufrufe kommen an._ GA4-Tag, Google-Ads-Conversion-
         Tag auf `purchase` (deckt Testphase + Sofort-Abo ab, nicht zusätzlich
         auf `start_trial` → sonst doppelt) + Conversion Linker, veröffentlichen.
-  - [ ] **CookieScript-Dashboard (Jannik):** Scan laufen lassen, Cookies von
+  - [x] **CookieScript-Dashboard (Jannik)** — _erledigt laut Jannik 2026-09-29._ Scan laufen lassen, Cookies von
         GA (Performance), Meta/Google Ads (Targeting) zuordnen, Banner-Texte prüfen.
-  - [ ] **Meta Events Manager (Jannik):** Domain `lesify.de` verifizieren,
+  - [x] **Meta Events Manager (Jannik)** — _erledigt laut Jannik 2026-09-29._ Domain `lesify.de` verifizieren,
         Aggregated Event Measurement (StartTrial/Purchase priorisieren),
         Test-Events mit `?tracking=1` prüfen.
-  - [ ] **Datenschutz-Nachtrag vom Anwalt abnehmen lassen** (§5/§11 Tracking).
+  - [x] **Datenschutz-Nachtrag vom Anwalt abnehmen lassen** (§5/§11 Tracking) —
+        _erledigt laut Jannik 2026-09-29._
   - [ ] _Später optional:_ Meta Conversions API serverseitig (Stripe-Webhook,
         `event_id` wird im Browser schon mitgeschickt → Deduplizierung).
 

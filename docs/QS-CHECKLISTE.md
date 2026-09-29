@@ -118,7 +118,7 @@ Abo → „Testzeitraum beenden".
 - [ ] Railway-Log `lesify-jobs`: nächtlicher Lauf lesbar, `db-backup` fertig
 - [ ] `bash scripts/prod-backup-holen.sh` + `backup pruefen` mit dem Prod-Dump → bestanden
 - [ ] Sentry: Test-Fehler kommt an (Web + API)
-- [ ] Browser-Konsole der Kernseiten ohne CSP-/JS-Fehler
+- [ ] Browser-Konsole der Kernseiten ohne CSP-/JS-Fehler (CSP ist seit 2026-09-29 scharf: eingeloggte App inkl. PDF-Vorschau + Kasse mit Stripe besonders prüfen — Meldung „Refused to …“ = Domain fehlt in `marketing/_headers`)
 - [ ] `GET /health` ok; `ki:kosten` nach dem Durchgang ansehen
 - [ ] Leichter Lasttest (Claude): ~10 parallele Chats + 1 Analyse, Antwortzeiten + DB-Verbindungen
 
@@ -138,7 +138,7 @@ Abo → „Testzeitraum beenden".
 | SQL-Injection: ausschließlich Prisma-Query-Builder, kein Roh-SQL mit Nutzereingabe | ✅                                                                                                                                                                                                                                                                                                                     |
 | CORS/Origin-Politik für die API festlegen                                          | ✅ Phase 11 (2026-09-12) — `@fastify/cors`, dev/test offen, `CORS_ORIGINS` in production (fail-closed ohne die Variable — echte Domain noch in Phase 16 zu setzen); `methods` explizit auf GET/HEAD/POST/PATCH/DELETE gesetzt (Plugin-Default erlaubte nur GET/HEAD/POST, PATCH/DELETE liefen sonst lautlos ins Leere) |
 | Security-Header API (HSTS, X-Content-Type-Options, Referrer-Policy, …)             | ✅ 2026-09-16 — `@fastify/helmet` in `api/src/app.ts` (CSP aus, reines JSON-API; `crossOriginResourcePolicy: cross-origin` für die von `app/` eingebettete Datei-Vorschau; COOP/COEP bewusst aus). Tests: `api/src/app.test.ts`                                                                                        |
-| Security-Header `app/`+`marketing/` (HSTS, CSP als HTTP-Header)                    | ⬜ Phase 16 — **blockiert von GitHub Pages** (Interim-Hosting, Phase 0): setzt keine eigenen HTTP-Response-Header, nur über den echten Hosting-Wechsel lösbar, nicht per Code hier                                                                                                                                     |
+| Security-Header `app/`+`marketing/` (HSTS, CSP als HTTP-Header)                    | ✅ 2026-09-26 Cloudflare-Worker liefert `marketing/_headers` aus (HSTS, nosniff, X-Frame-Options, Referrer-/Permissions-Policy); CSP ab 2026-09-26 Report-Only, **seit 2026-09-29 scharf** — neue Drittanbieter-Domains in `_headers` eintragen                                                                        |
 
 ## 4. Lasttest (teure Pfade)
 

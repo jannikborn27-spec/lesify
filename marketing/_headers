@@ -1,17 +1,19 @@
 # Cloudflare Pages: HTTP-Header für lesify.de (wird von GitHub Pages ignoriert).
 # Entscheidung 2026-09-23 (Hosting-Wechsel, Sicherheitsreview docs/QS-CHECKLISTE.md §3).
-# CSP läuft zuerst als *Report-Only*: Verstöße erscheinen nur in der Browser-
-# Konsole, nichts wird blockiert. Nach einer Woche ohne Meldungen auf
-# `Content-Security-Policy` umstellen.
+# CSP lief ab 2026-09-26 als *Report-Only*; seit 2026-09-29 scharf
+# (`Content-Security-Policy`) — neue Drittanbieter-Domains hier eintragen,
+# sonst blockiert der Browser sie.
 # 2026-09-28: CookieScript-Banner, Google Tag Manager/GA4/Google Ads und Meta
 # Pixel ergänzt (laden nur nach Einwilligung, siehe assets/js/tracking.js).
+# 2026-09-29: Google Ads sendet an ad.doubleclick.net/ccm (live gemessen),
+# pagead2.googlesyndication.com + *.js.stripe.com laut Google-/Stripe-CSP-Doku.
 /*
   Strict-Transport-Security: max-age=31536000; includeSubDomains
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(self "https://js.stripe.com")
-  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com https://cdnjs.cloudflare.com https://browser.sentry-cdn.com https://*.cookie-script.com https://www.googletagmanager.com https://*.google-analytics.com https://googleads.g.doubleclick.net https://www.googleadservices.com https://www.google.com https://connect.facebook.net; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: https:; connect-src 'self' https://lesify-production.up.railway.app https://api.stripe.com https://*.ingest.de.sentry.io https://*.supabase.co https://cdnjs.cloudflare.com https://*.cookie-script.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://*.g.doubleclick.net https://www.google.com https://www.google.de https://www.googleadservices.com https://www.facebook.com https://connect.facebook.net; frame-src https://js.stripe.com https://hooks.stripe.com blob: https://www.googletagmanager.com https://td.doubleclick.net https://www.facebook.com; object-src 'self' blob: https://lesify-production.up.railway.app https://*.supabase.co; worker-src 'self' blob: https://cdnjs.cloudflare.com; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com https://*.js.stripe.com https://cdnjs.cloudflare.com https://browser.sentry-cdn.com https://*.cookie-script.com https://www.googletagmanager.com https://*.google-analytics.com https://googleads.g.doubleclick.net https://www.googleadservices.com https://www.google.com https://connect.facebook.net; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: https:; connect-src 'self' https://lesify-production.up.railway.app https://api.stripe.com https://*.ingest.de.sentry.io https://*.supabase.co https://cdnjs.cloudflare.com https://*.cookie-script.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://*.g.doubleclick.net https://ad.doubleclick.net https://pagead2.googlesyndication.com https://www.google.com https://www.google.de https://www.googleadservices.com https://www.facebook.com https://connect.facebook.net; frame-src https://js.stripe.com https://*.js.stripe.com https://hooks.stripe.com blob: https://www.googletagmanager.com https://td.doubleclick.net https://www.facebook.com; object-src 'self' blob: https://lesify-production.up.railway.app https://*.supabase.co; worker-src 'self' blob: https://cdnjs.cloudflare.com; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
 
 # Eingeloggte App nie in Suchmaschinen (zusätzlich zum <meta robots> je Seite).
 /app/*

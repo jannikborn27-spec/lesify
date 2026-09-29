@@ -15,7 +15,8 @@
     window.LESIFY_API_BASE || (istProdHost ? PROD_API_BASE : 'http://localhost:3000')
   ).replace(/\/$/, '');
   var token = '';
-  try { token = localStorage.getItem('lesify:token') || ''; } catch (e) {}
+  try { token = sessionStorage.getItem('lesify:token') || ''; } catch (e) {}
+  try { token = token || localStorage.getItem('lesify:token') || ''; } catch (e) {}
   if (!token) return;
   var auth = { Authorization: 'Bearer ' + token };
   var $ = function (id) { return document.getElementById(id); };

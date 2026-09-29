@@ -25,7 +25,9 @@
     window.LESIFY_API_BASE || (istProdHost ? PROD_API_BASE : 'http://localhost:3000')
   ).replace(/\/$/, '');
   var TOKEN_KEY = 'lesify:token';
-  function sessionToken() { try { return localStorage.getItem(TOKEN_KEY) || ''; } catch (e) { return ''; } }
+  function lies(speicher) { try { return window[speicher].getItem(TOKEN_KEY) || ''; } catch (e) { return ''; } }
+  // sessionStorage = angemeldet ohne „Angemeldet bleiben" (siehe auth-forms.js)
+  function sessionToken() { return lies('sessionStorage') || lies('localStorage'); }
 
   // Ohne Konto sofort zur Registrierung (Eltern-only, siehe registrieren/) —
   // nicht erst nach dem Ausfüllen der Zahlungsdaten scheitern lassen. Die
@@ -41,7 +43,9 @@
   // im Formular. Ohne diese Zeile landete man nach früheren Tests unbemerkt im
   // alten Konto (→ „bereits ein Abo"). Veraltete Sitzung → zur Registrierung.
   function abmeldenUndNeu() {
-    try { localStorage.removeItem(TOKEN_KEY); } catch (e) { /* privater Modus */ }
+    ['localStorage', 'sessionStorage'].forEach(function (sp) {
+      try { window[sp].removeItem(TOKEN_KEY); } catch (e) { /* privater Modus */ }
+    });
     location.href = '/registrieren/' + location.search;
   }
   var kontoEmail = '';

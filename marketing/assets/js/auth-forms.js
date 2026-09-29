@@ -25,14 +25,22 @@
   ).replace(/\/$/, '');
   var TOKEN_KEY = 'lesify:token';
 
-  function getToken() {
-    try { return localStorage.getItem(TOKEN_KEY) || ''; } catch (e) { return ''; }
+  // Mit „Angemeldet bleiben" → localStorage, ohne → nur sessionStorage
+  // (abgemeldet, sobald der Browser schließt). Gleiche Logik in app/api.js.
+  function lies(speicher) {
+    try { return window[speicher].getItem(TOKEN_KEY) || ''; } catch (e) { return ''; }
   }
-  function setToken(t) {
-    try {
-      if (t) localStorage.setItem(TOKEN_KEY, t);
-      else localStorage.removeItem(TOKEN_KEY);
-    } catch (e) { /* privater Modus */ }
+  function getToken() {
+    return lies('sessionStorage') || lies('localStorage');
+  }
+  function setToken(t, merken) {
+    var ziel = merken === false ? 'sessionStorage' : 'localStorage';
+    ['localStorage', 'sessionStorage'].forEach(function (s) {
+      try {
+        if (t && s === ziel) window[s].setItem(TOKEN_KEY, t);
+        else window[s].removeItem(TOKEN_KEY);
+      } catch (e) { /* privater Modus */ }
+    });
   }
 
   var FEHLER_TEXT = {
@@ -142,7 +150,7 @@
         angemeldetBleiben: !!form.stay.checked,
       })
         .then(function (r) {
-          setToken(r.token);
+          setToken(r.token, !!form.stay.checked);
           return zielNachLogin(r.user, r.token);
         })
         .then(function (ziel) { location.href = ziel; })

@@ -14,7 +14,8 @@
 
    Konfiguration: `window.LESIFY_API_BASE` (Default: auf lesify.de/www.lesify.de
    die produktive Railway-API, sonst http://localhost:3000 für lokale Dev-Server).
-   Session-Token liegt in `localStorage['lesify:token']`.
+   Session-Token liegt in `localStorage['lesify:token']` (bzw. nur in
+   `sessionStorage` ohne „Angemeldet bleiben“, siehe getToken/setToken).
    ========================================================= */
 (function () {
   'use strict';
@@ -64,20 +65,33 @@
     );
   }
 
-  function getToken() {
+  // Token liegt in localStorage („Angemeldet bleiben") oder — ohne Haken —
+  // nur in sessionStorage: dann ist man abgemeldet, sobald der Browser
+  // schließt (wichtig auf geteilten Familien-Geräten, Testdurchgang
+  // 2026-09-29). `merken` undefined = im bisherigen Speicher bleiben.
+  function lies(speicher, key) {
     try {
-      return localStorage.getItem(TOKEN_KEY) || '';
+      return window[speicher].getItem(key) || '';
     } catch (e) {
       return '';
     }
   }
-  function setToken(t) {
-    try {
-      if (t) localStorage.setItem(TOKEN_KEY, t);
-      else localStorage.removeItem(TOKEN_KEY);
-    } catch (e) {
-      /* privater Modus */
-    }
+  function tokenSpeicher() {
+    return lies('sessionStorage', TOKEN_KEY) ? 'sessionStorage' : 'localStorage';
+  }
+  function getToken() {
+    return lies('sessionStorage', TOKEN_KEY) || lies('localStorage', TOKEN_KEY);
+  }
+  function setToken(t, merken) {
+    var ziel = merken === undefined ? tokenSpeicher() : merken ? 'localStorage' : 'sessionStorage';
+    ['localStorage', 'sessionStorage'].forEach(function (s) {
+      try {
+        if (t && s === ziel) window[s].setItem(TOKEN_KEY, t);
+        else window[s].removeItem(TOKEN_KEY);
+      } catch (e) {
+        /* privater Modus */
+      }
+    });
   }
 
   /** Normalisierter Fehler — die UI zeigt ihn als Popup/Toast (Phase 11). */
@@ -471,7 +485,7 @@
         passwort: passwort,
         angemeldetBleiben: !!angemeldetBleiben,
       }).then(function (r) {
-        if (r && r.token) setToken(r.token);
+        if (r && r.token) setToken(r.token, !!angemeldetBleiben);
         return r;
       });
     },
@@ -859,22 +873,23 @@
         (Eltern-)Token, bevor auf die Kind-Session gewechselt wird — sonst
         gäbe es keinen Weg zurück außer komplettem Neu-Login. */
     startElternModus: function (kindToken) {
-      try { localStorage.setItem('lesify:elternToken', getToken()); } catch (e) {}
+      try { window[tokenSpeicher()].setItem('lesify:elternToken', getToken()); } catch (e) {}
       setToken(kindToken);
     },
     /** Stellt das gemerkte Eltern-Token wieder her. Gibt `true` zurück, wenn
         tatsächlich ein Elternmodus aktiv war. */
     beendeElternModus: function () {
-      var t;
-      try { t = localStorage.getItem('lesify:elternToken'); } catch (e) { t = null; }
+      var t = lies('sessionStorage', 'lesify:elternToken') || lies('localStorage', 'lesify:elternToken');
       if (!t) return false;
       setToken(t);
-      try { localStorage.removeItem('lesify:elternToken'); } catch (e) {}
+      ['localStorage', 'sessionStorage'].forEach(function (s) {
+        try { window[s].removeItem('lesify:elternToken'); } catch (e) {}
+      });
       return true;
     },
     /** Sync-Check fürs Elternmodus-Banner (app.js). */
     elternModusAktiv: function () {
-      try { return !!localStorage.getItem('lesify:elternToken'); } catch (e) { return false; }
+      return !!(lies('sessionStorage', 'lesify:elternToken') || lies('localStorage', 'lesify:elternToken'));
     },
     /** Sync-Snapshot des Fächer-Caches — für geteilte Renderer wie
         `fachFilterChips()`, die (wie im data.js-Prototyp) eine synchrone

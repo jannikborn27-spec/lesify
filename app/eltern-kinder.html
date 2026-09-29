@@ -18,7 +18,7 @@
   </div>
 </div>
 
-<script src="assets/js/api.js?v=20260928laden"></script>
+<script src="assets/js/api.js?v=20260929token"></script>
 <script src="assets/js/auth-gate.js"></script>
 <script src="assets/js/app.js"></script>
 <script>
@@ -91,15 +91,25 @@ document.addEventListener('DOMContentLoaded', async function () {
     var abo = await Lesify.getAbo().catch(function () { return null; });
     var sitze = abo ? abo.sitze : kinder.length;
     var voll = kinder.length >= sitze;
+    // Konto ohne Abo (Kasse abgebrochen, Testdurchgang 2026-09-29): statt
+    // „0 von 0 Plätzen belegt — alle Plätze belegt" zum Abschluss führen.
+    var keinAbo = !abo && !kinder.length;
     main.innerHTML =
       '<div class="page-head"><div>' +
         '<div class="page-eyebrow">Eltern-Bereich</div>' +
         '<h1 class="page-title">Kinder &amp; Zugänge</h1>' +
-        '<p class="page-sub">' + kinder.length + ' von ' + sitze + ' Plätzen belegt. Jedes Kind hat ein eigenes, unabhängiges Profil.</p>' +
+        '<p class="page-sub">' + (keinAbo
+          ? 'Kinder kannst du hinzufügen, sobald du einen Tarif gewählt hast.'
+          : kinder.length + ' von ' + sitze + ' Plätzen belegt. Jedes Kind hat ein eigenes, unabhängiges Profil.') + '</p>' +
       '</div></div>' +
-      '<div id="kinder-liste">' + kinder.map(kindCard).join('') + '</div>' +
-      '<button class="btn btn-primary" id="kind-add"' + (voll ? ' disabled' : '') + '>' + I.plus + ' Kind hinzufügen</button>' +
-      (voll ? '<p class="kc-hint">Alle Plätze belegt — auf <a href="eltern-abo.html">Abo &amp; Sitze</a> kannst du einen Platz ergänzen.</p>' : '');
+      (keinAbo
+        ? '<div class="abo-hinweis abo-hinweis--gelb" role="status"><div><b>Noch kein Tarif gewählt</b>' +
+          'Wähle einen Tarif und starte die 14 Tage kostenlose Testphase. Danach legst du hier die Profile deiner Kinder an.' +
+          '<div style="margin-top:10px"><a class="btn btn-sm btn-primary" href="/preise/">Tarif wählen</a></div></div></div>'
+        : '<div id="kinder-liste">' + kinder.map(kindCard).join('') + '</div>' +
+          '<button class="btn btn-primary" id="kind-add"' + (voll ? ' disabled' : '') + '>' + I.plus + ' Kind hinzufügen</button>' +
+          (voll ? '<p class="kc-hint">Alle Plätze belegt — auf <a href="eltern-abo.html">Abo &amp; Sitze</a> kannst du einen Platz ergänzen.</p>' : ''));
+    if (keinAbo) return;
     wire();
   }
 

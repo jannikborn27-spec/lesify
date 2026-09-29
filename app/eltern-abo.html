@@ -18,7 +18,7 @@
   </div>
 </div>
 
-<script src="assets/js/api.js?v=20260928laden"></script>
+<script src="assets/js/api.js?v=20260929token"></script>
 <script src="assets/js/auth-gate.js"></script>
 <script src="assets/js/app.js"></script>
 <script>
@@ -55,8 +55,28 @@ document.addEventListener('DOMContentLoaded', async function () {
   }
 
   async function render() {
-    var geladen = await Promise.all([Lesify.getAbo(), Lesify.kinder()]);
+    var geladen = await Promise.all([
+      Lesify.getAbo().catch(function (err) {
+        if (err && err.status === 404) return null; // Konto ohne Abo (Kasse abgebrochen)
+        throw err;
+      }),
+      Lesify.kinder(),
+    ]);
     var abo = geladen[0];
+    if (!abo) {
+      main.innerHTML =
+        '<div class="page-head"><div>' +
+          '<div class="page-eyebrow">Eltern-Bereich</div>' +
+          '<h1 class="page-title">Abo &amp; Sitze</h1>' +
+          '<p class="page-sub">Tarif, Abrechnung und Familien-Plätze.</p>' +
+        '</div></div>' +
+        '<div class="card eltern-card">' +
+          '<h3>Noch kein Tarif gewählt</h3>' +
+          '<p class="eltern-sub">Wähle einen Tarif und die Zahl der Kinder. Die ersten 14 Tage sind kostenlos, kündigen kannst du jederzeit zum Ende der Testphase.</p>' +
+          '<a class="btn btn-primary" href="/preise/">Tarif wählen</a>' +
+        '</div>';
+      return;
+    }
     var belegt = geladen[1].length;
     // Vollständige Werte aus `AboStatus` (Prisma) — der Prototyp kannte nur
     // aktiv/gekuendigt/pausiert, das echte Abo kann zusätzlich `test`

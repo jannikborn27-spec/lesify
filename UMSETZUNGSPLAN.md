@@ -4999,6 +4999,9 @@ Kritisch, weil Zielgruppe minderjährig ist.
         Anhang mit?
   - [x] E-Mail-Bestätigungsseite: „Ein letzter Klick“ stimmte nicht (bestätigt
         automatisch).
+  - [x] „Abo & Sitze“ zeigte weder Preis noch Testphase-Ende → Zeilen „Preis“
+        (Angebot mit Streichpreis) und „Testphase bis / Nächste Abbuchung /
+        Läuft bis“; `GET /abo` liefert dafür `preis`.
 
 **B. Stripe Live**
 

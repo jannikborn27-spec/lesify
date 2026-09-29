@@ -1,8 +1,27 @@
 import type { Abo } from '@prisma/client';
 import { loeschDatum } from './aboZugriff.js';
-import { PLAN_LIMITS, PLAN_NAMES, type Paket } from '@lesify/shared';
+import {
+  aboPreis,
+  bleibtImAngebot,
+  istGueltigeSitzzahl,
+  PLAN_LIMITS,
+  PLAN_NAMES,
+  type Paket,
+} from '@lesify/shared';
 
 /** Antwortform für `GET /abo` & Co. — Felder wie backend-planning.md §1/§4. */
+function preisFuer(abo: Abo): { betragCent: number; normalCent: number | null } | null {
+  if (!istGueltigeSitzzahl(abo.art, abo.sitze)) return null;
+  const p = aboPreis({
+    paket: abo.paket,
+    art: abo.art,
+    sitze: abo.sitze,
+    intervall: abo.intervall,
+    mitAngebot: bleibtImAngebot(abo.angebot),
+  });
+  return { betragCent: p.betragCent, normalCent: p.normalCent };
+}
+
 export function aboDTO(abo: Abo) {
   const paket = abo.paket as Paket;
   return {
@@ -25,5 +44,8 @@ export function aboDTO(abo: Abo) {
         : null,
     /** abgeleitete Monatskontingente je Sitz */
     kontingente: PLAN_LIMITS[paket],
+    /** Preis je Abrechnungszeitraum (2026-09-29, für „Abo & Sitze“):
+     *  Angebotspreis bleibt für Abschließende (bleibtImAngebot). */
+    preis: preisFuer(abo),
   };
 }

@@ -94,6 +94,16 @@ document.addEventListener('DOMContentLoaded', async function () {
     var st = statusMap[abo.status] || statusMap.aktiv;
     var laeuft = abo.status === 'aktiv' || abo.status === 'test' || abo.status === 'zahlung_offen';
     var datum = function (iso) { return LesifyUI.Render.formatDatum(String(iso).slice(0, 10)); };
+    var euro = function (cent) { return (cent / 100).toLocaleString('de-DE', { style: 'currency', currency: 'EUR' }); };
+    // Wann passiert als Nächstes etwas mit der Abrechnung? (Testdurchgang 2026-09-29:
+    // Seite zeigte weder Preis noch Testphase-Ende.)
+    var termin = abo.status === 'test' && abo.trialEndetAm
+      ? ['Testphase bis', datum(abo.trialEndetAm) + ', danach erste Abbuchung']
+      : abo.status === 'aktiv'
+        ? ['Nächste Abbuchung', datum(abo.aktuellerZeitraumEnde)]
+        : abo.status === 'gekuendigt' && !abgelaufen
+          ? ['Läuft bis', datum(abo.aktuellerZeitraumEnde)]
+          : null;
 
     // Hinweis je Zustand (2026-09-23, Zugriffsregeln in api/src/lib/aboZugriff.ts)
     var hinweis = '';
@@ -135,6 +145,13 @@ document.addEventListener('DOMContentLoaded', async function () {
               ' — dafür noch ' + Math.max(0, belegt - abo.geplanteSitze) + ' Kind-Profil(e) entfernen.' +
             '</span></div>'
           : '') +
+        (abo.preis
+          ? '<div class="abo-row"><span class="lbl">Preis</span><span class="val">' +
+              (abo.preis.normalCent ? '<s class="text-muted">' + euro(abo.preis.normalCent) + '</s> ' : '') +
+              euro(abo.preis.betragCent) + (abo.intervall === 'jaehrlich' ? ' / Jahr' : ' / Monat') +
+            '</span></div>'
+          : '') +
+        (termin ? '<div class="abo-row"><span class="lbl">' + termin[0] + '</span><span class="val">' + termin[1] + '</span></div>' : '') +
         '<div class="abo-row"><span class="lbl">Status</span><span class="val">' +
           '<span class="ampel-chip ampel-chip-' + st[0] + '"><span class="ampel-dot ampel-' + st[0] + '"></span>' + st[1] + '</span>' +
         '</span></div>' +

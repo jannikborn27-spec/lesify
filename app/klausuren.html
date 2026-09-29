@@ -222,6 +222,10 @@ document.addEventListener('DOMContentLoaded', async function () {
       if (!themaIds.length) { LesifyUI.toast('Wähle mindestens ein Thema aus oder lege eines an.'); return; }
 
       submitBtn.disabled = true;
+      // Dauert ~20 s (KI) — sichtbar machen, sonst wirkt der graue Button
+      // eingefroren (Testdurchgang 2026-09-29).
+      var submitText = submitBtn.textContent;
+      submitBtn.textContent = 'Lernplan wird erstellt … (ca. 20 Sek.)';
       // POST /klausuren legt Klausur + Testklausur 1 + Lernplan in einem Zug
       // an (KI-Call) — anders als data.js braucht es kein separates
       // Lesify.starteLernplan() mehr.
@@ -229,6 +233,7 @@ document.addEventListener('DOMContentLoaded', async function () {
       window.location.href = 'lernplan.html?id=' + ergebnis.lernplan.id;
     } catch (err) {
       submitBtn.disabled = false;
+      if (submitText) submitBtn.textContent = submitText;
       LesifyUI.toast(Lesify.fehlerText ? Lesify.fehlerText(err) : 'Klausur konnte nicht angelegt werden.');
     }
   });

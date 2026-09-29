@@ -414,6 +414,8 @@ a.badge:active { transform: scale(0.96); }
   align-items: center;
   gap: 6px;
   height: 30px;
+  white-space: nowrap; /* feste Höhe → nie umbrechen („Heute dran" im Lernplan, 2026-09-29) */
+  flex-shrink: 0;
   padding: 0 13px;
   border-radius: var(--radius-full);
   border: 1px solid var(--line);

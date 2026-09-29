@@ -4985,7 +4985,10 @@ Kritisch, weil Zielgruppe minderjährig ist.
 
 - [x] **Preis-Entscheidung vorher** — _2026-09-28: Angebotspreis dauerhaft
       (Abschnitt 4 oben)._
-- [ ] **Stripe-Konto live schalten** (Aktivierung, Auszahlungskonto) → Live-Keys:
+- [ ] **Stripe-Konto live schalten** — _Schritt-für-Schritt-Liste seit 2026-09-29 in
+      `docs/RUNBOOK.md` „Stripe: Umstellung Test → Live" (Vorbereiten im
+      Dashboard jederzeit, Umschalten erst nach Testdurchgang A); `GET /health`
+      zeigt jetzt `zahlung.modus` (`test`/`live`/`fake`)._ (Aktivierung, Auszahlungskonto) → Live-Keys:
       `STRIPE_SECRET_KEY` bei Railway, `publishableKey` + `mode: 'live'` in
       `marketing/assets/js/stripe-config.js`; Live-Webhook auf `/abo/webhook`
       anlegen, neues `STRIPE_WEBHOOK_SECRET` bei Railway.

@@ -1567,7 +1567,9 @@ fehlgeschlagene Logins/Upload-Flooding weiterhin offen (§8).
 - **Logging:** pino-JSON mit `redact` (`authorization`/`cookie`/
   `stripe-signature` entfernt); Bodys werden nicht geloggt.
 - **Healthchecks:** `GET /health/live` (ohne DB), `GET /health` + `/health/ready`
-  (inkl. `SELECT 1`, `uptimeSek`, `zeit`).
+  (inkl. `SELECT 1`, `uptimeSek`, `zeit`, `ki.adapter`/`ki.modelle`,
+  `zahlung.modus` = `test`/`live`/`fake` aus dem Präfix von `STRIPE_SECRET_KEY`,
+  `zahlung.webhookSecret`, `sentry` — nur Typen/Flags, nie Schlüssel).
 - **KI-Vorab-Filter** (Themen-/Größen-/Spam-Guard): `api/src/lib/ki/guard.ts`
   (Phase 6), vor `POST /chats/:id/nachrichten` und
   `POST /lernzettel/:id/revisionen`. Tests: `api/src/routes/ki.test.ts`.

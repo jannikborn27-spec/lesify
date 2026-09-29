@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { PrismaClient } from '@prisma/client';
 import { buildApp } from './app.js';
+import { zahlungsModus } from './routes/health.js';
 
 describe('CORS (§4/Phase 11) — Marketing/App laufen auf anderem Origin', () => {
   const keinPrisma = {} as unknown as PrismaClient;
@@ -74,5 +75,17 @@ describe('Security-Header (@fastify/helmet, Phase 15/14 Sicherheitsreview)', () 
     const res = await app.inject({ method: 'GET', url: '/health' });
     expect(res.headers['cross-origin-opener-policy']).toBeUndefined();
     expect(res.headers['cross-origin-embedder-policy']).toBeUndefined();
+  });
+});
+
+describe('zahlungsModus (/health, Stripe-Live-Umstellung)', () => {
+  it('liest nur das Präfix des Schlüssels', () => {
+    expect(zahlungsModus(undefined)).toBe('fake');
+    expect(zahlungsModus('')).toBe('fake');
+    expect(zahlungsModus('sk_test_abc')).toBe('test');
+    expect(zahlungsModus('rk_test_abc')).toBe('test');
+    expect(zahlungsModus('sk_live_abc')).toBe('live');
+    expect(zahlungsModus('rk_live_abc')).toBe('live');
+    expect(zahlungsModus('pk_live_abc')).toBe('unbekannt');
   });
 });

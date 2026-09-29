@@ -169,6 +169,75 @@ Limit anheben — wirkt ohne Neustart.
 3. Bei Verdacht auf geteilte IP (Schule/NAT): `ki`/`io` auf User-Keying ziehen
    (Hook nach `requireAuth`).
 
+## Stripe: Umstellung Test → Live (Schlussrunde B)
+
+Der Code braucht dafür **keine** Änderung außer dem Publishable Key: Produkte
+(`lesify_starter`/`_premium`/`_infinite`) legt die API beim ersten Abo selbst
+an, Preise kommen per `price_data` aus `@lesify/shared`. Welcher Modus läuft,
+zeigt `GET /health` → `zahlung.modus` (`test`/`live`/`fake`) und
+`zahlung.webhookSecret`.
+
+**1. Vorbereiten — jederzeit, ändert nichts an der Kasse** (Dashboard mit
+Schalter „Testmodus" **aus**; Live-Einstellungen werden nicht aus dem
+Testmodus übernommen):
+
+- [ ] Konto aktivieren: Geschäftsdaten (Einzelunternehmen, Kleinunternehmer),
+      Identität, Auszahlungskonto (IBAN), 2FA.
+- [ ] Öffentliche Angaben: Name „Lesify", Abrechnungstext auf dem
+      Kontoauszug (z. B. `LESIFY.DE`), Support-E-Mail `kontakt@lesify.de`,
+      Website, AGB-/Datenschutz-Links; Branding (Logo, Farbe) für Belege + Portal.
+- [ ] **Zahlungsmethoden** (Settings → Payment methods): Karte, PayPal
+      (PayPal-Konto verknüpfen), Klarna, Amazon Pay aktivieren. Der Code
+      verlangt genau diese vier (`payment_method_types` in
+      `api/src/lib/zahlung.ts`) — fehlt eine im Live-Modus, lehnt Stripe
+      `POST /abo` ab. Link bleibt aus (Entscheidung 2026-09-18).
+- [ ] **Kundenportal** (Settings → Billing → Customer portal): Zahlungsmethode
+      ändern, Rechnungsverlauf, Rechnungsadresse **an**; Abo kündigen / Tarif
+      wechseln **aus** — Kündigung und Tarif-/Sitzwechsel laufen über die App
+      (`eltern-abo.html`, `/kuendigen/`), sonst geraten Sitze/Preise aus dem Takt.
+- [ ] **Rechnungen/Belege** (Settings → Billing → Invoices): Rechnungsnummer-
+      Präfix, Absenderadresse wie im Impressum, Fußzeile
+      „Gemäß § 19 UStG wird keine Umsatzsteuer berechnet."
+- [ ] **Kunden-E-Mails** (Settings → Customer emails): erfolgreiche Zahlungen + Erstattungen an; fehlgeschlagene Kartenzahlung + 3DS-Bestätigung an;
+      Erinnerung vor Ende der Testphase und vor Jahresverlängerung an.
+- [ ] **Fehlgeschlagene Zahlungen** (Settings → Billing → Subscriptions and
+      emails → Manage failed payments): Smart Retries (z. B. 4 Versuche in
+      2 Wochen), danach Abo **kündigen**. In der App: `past_due`/`unpaid` →
+      `zahlung_offen` (Kinder nur lesen), `canceled` → `gekuendigt`.
+- [ ] **Webhook** (Developers → Webhooks, Live): URL
+      `https://lesify-production.up.railway.app/abo/webhook`, API-Version wie
+      das SDK (`2026-08-26.dahlia`, stripe-node 22.6), Events
+      `customer.subscription.created`, `.updated`, `.deleted`, `invoice.paid`,
+      `invoice.payment_succeeded`, `invoice.payment_failed`. Signing Secret
+      (`whsec_…`) bereithalten, **noch nicht** eintragen.
+- [ ] Live-Schlüssel bereithalten: `sk_live_…` (Secret, nur Railway) und
+      `pk_live_…` (Publishable, öffentlich).
+- [ ] Alte Testdaten klären: Konten mit Abos aus dem Testmodus zeigen auf
+      Test-Subscriptions, die es live nicht gibt — Kündigen, Sitzwechsel,
+      Zahlungsportal und der Job `abo-geplante-aenderungen` schlagen für sie
+      fehl. Vor dem Umschalten löschen (Konto-Löschung) oder bewusst liegen lassen.
+
+**2. Umschalten — in einem Rutsch, ruhige Uhrzeit, ~5 Minuten.** Zwischen
+Schritt a und b schlägt die Kasse fehl (Test-Frontend gegen Live-Backend):
+
+- [ ] a) Railway: `STRIPE_SECRET_KEY` = `sk_live_…`, `STRIPE_WEBHOOK_SECRET`
+      = Live-`whsec_…` → Redeploy abwarten.
+- [ ] b) `marketing/assets/js/stripe-config.js`: `publishableKey` =
+      `pk_live_…`, `mode: 'live'` → Push (Cloudflare deployt in ~1 Min).
+- [ ] c) `GET /health` → `zahlung.modus: "live"`, `webhookSecret: true`.
+
+**3. Echte Zahlung prüfen**
+
+- [ ] Neues Konto mit eigener E-Mail → Kasse → Abo mit eigener Karte → App
+      zeigt den richtigen Status, Stripe → Webhooks zeigt 2xx-Zustellungen.
+- [ ] Im Dashboard Zahlung erstatten, Abo über `/kuendigen/` bzw. die App
+      kündigen → App zeigt gekündigt, Beleg-/Erstattungs-Mail kommt an.
+- [ ] Einmal PayPal durchspielen (Testphase-Start = 0-€-Mandat), danach kündigen.
+
+**Zurück auf Test:** beide Railway-Variablen + `stripe-config.js`
+zurücksetzen. Live-Abos aus der Zwischenzeit laufen in Stripe weiter, werden
+aber nicht mehr per Webhook abgeglichen — vorher im Live-Dashboard prüfen.
+
 ## Vor Go-Live abhaken (siehe auch QS §6)
 
 - [x] Backups: Überbrückungs-Dump `db-backup` nächtlich + Restore-Probe bestanden (2026-09-28, Dev-DB); Supabase Pro nach 2–3 zahlenden Kunden

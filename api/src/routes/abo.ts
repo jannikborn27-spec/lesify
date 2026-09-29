@@ -138,14 +138,16 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
 
     const abo = await prisma.abo.findFirst({ where: { zahlungsanbieterRef: erg.aboRef } });
     if (!abo) return { ok: true, ignoriert: 'abo_unbekannt' };
-    // „Rechnung bezahlt" heilt nur eine offene Zahlung bzw. beendet die Trial —
-    // eine laufende Kündigung/Pause darf es nicht still wieder auf `aktiv` setzen.
+    // „Rechnung bezahlt" heilt nur eine offene Zahlung — eine laufende
+    // Kündigung/Pause darf es nicht still wieder auf `aktiv` setzen, und eine
+    // Testphase auch nicht: Stripe stellt beim Trial-Start sofort eine bezahlte
+    // 0-€-Rechnung aus. Kam deren `invoice.paid` nach `subscription.created`
+    // an, stand das Abo fälschlich auf `aktiv` — dann fiel „Testphase einmal je
+    // Zahlungsmittel" weg und ein Neuversuch nach abgelehnter Karte scheiterte
+    // mit `abo_vorhanden` (Testdurchgang 2026-09-29). Das Trial-Ende meldet
+    // `customer.subscription.updated` (trialing → active).
     const nurRechnung = erg.typ.startsWith('invoice.') || erg.typ === 'zahlung_erfolgreich';
-    if (
-      nurRechnung &&
-      erg.neuerStatus === 'aktiv' &&
-      !['zahlung_offen', 'test'].includes(abo.status)
-    ) {
+    if (nurRechnung && erg.neuerStatus === 'aktiv' && abo.status !== 'zahlung_offen') {
       return { ok: true, unveraendert: true };
     }
     // Sicherheitsnetz zur Kasse: Testphase mit bereits genutztem Zahlungsmittel

@@ -5008,6 +5008,14 @@ Kritisch, weil Zielgruppe minderjährig ist.
         nutzen), beliebig oft mit neuer E-Mail und vorbei an „Testphase einmal
         je Zahlungsmittel“. Jetzt zählt ein Abo erst mit hinterlegtem
         Zahlungsmittel (`Abo.abgeschlossenAm`, Migration setzt Bestandsabos).
+  - [x] **Testphase sprang je nach Webhook-Reihenfolge auf „Aktiv“:** Stripe
+        stellt beim Trial-Start sofort eine bezahlte 0-€-Rechnung aus; kam
+        `invoice.paid` nach `subscription.created`, setzte der Webhook `test` →
+        `aktiv`. Folgen: falscher Status im Eltern-Bereich, „Testphase einmal je
+        Zahlungsmittel“ übersprungen, Neuversuch nach abgelehnter Karte →
+        „Konto hat bereits ein Abo“ (evtl. auch der Kasse-Bug vom 2026-09-16).
+        Jetzt heilt „Rechnung bezahlt“ nur noch `zahlung_offen`. Bereits falsch
+        stehende Prod-Abos korrigiert der nächste `subscription.updated`.
 
 **B. Stripe Live**
 

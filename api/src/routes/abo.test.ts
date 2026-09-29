@@ -730,6 +730,36 @@ describe.runIf(hatDb)('abo — Vertragsbestätigung per Mail (§312f BGB, 2026-0
   });
 });
 
+describe.runIf(hatDb)(
+  'abo — 0-€-Rechnung beim Trial-Start beendet die Testphase nicht (2026-09-29)',
+  () => {
+    const app = buildApp({ logger: false, zahlung: new FakeZahlungsGateway() });
+
+    it('„Rechnung bezahlt" in der Testphase → bleibt test', async () => {
+      await app.ready();
+      const t = await registriereUndLogin(app, `nullrech+${crypto.randomUUID()}@abo.lesify.test`);
+      const auth = { authorization: `Bearer ${t}` };
+      const aboRef = (
+        await app.inject({
+          method: 'POST',
+          url: '/abo',
+          headers: auth,
+          payload: { paket: 'starter', intervall: 'monatlich' },
+        })
+      ).json().subscriptionId;
+      const res = await app.inject({
+        method: 'POST',
+        url: '/abo/webhook',
+        payload: { typ: 'zahlung_erfolgreich', aboRef },
+      });
+      expect(res.json()).toEqual({ ok: true, unveraendert: true });
+      expect((await app.inject({ method: 'GET', url: '/abo', headers: auth })).json().status).toBe(
+        'test',
+      );
+    });
+  },
+);
+
 describe.runIf(hatDb)('abo — zählt erst mit Zahlungsmittel (Testdurchgang 2026-09-29)', () => {
   const gesendet: string[] = [];
   class MitschnittMail extends FakeMailGateway {

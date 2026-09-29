@@ -1,6 +1,12 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { aboArtFuerSitze, aboPreis, bleibtImAngebot, istGueltigeSitzzahl } from '@lesify/shared';
+import {
+  aboArtFuerSitze,
+  aboPreis,
+  bleibtImAngebot,
+  istGueltigeSitzzahl,
+  PLAN_NAMES,
+} from '@lesify/shared';
 import { parse } from '../lib/validate.js';
 import { oder404 } from '../lib/scope.js';
 import { HttpError } from '../lib/http.js';
@@ -301,6 +307,51 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
       },
     );
 
+    // Vertragsbestätigung (§312f BGB, Testdurchgang 2026-09-29): genau einmal
+    // je Abo, sobald die Kasse den Abschluss meldet (testphase-pruefen wird von
+    // der Kasse UND von checkout-erfolg/ aufgerufen — deshalb erst den
+    // Zeitstempel bedingt setzen, dann senden). Versandfehler blockieren den
+    // Abschluss nicht; der Stempel wird zurückgesetzt, der nächste Aufruf
+    // versucht es erneut.
+    const euro = (cent: number) =>
+      (cent / 100).toLocaleString('de-DE', { style: 'currency', currency: 'EUR' });
+    const datumDe = (d: Date) =>
+      d.toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' });
+    async function vertragsbestaetigung(aboId: string) {
+      const gesperrt = await prisma.abo.updateMany({
+        where: { id: aboId, bestaetigungGesendetAm: null },
+        data: { bestaetigungGesendetAm: new Date() },
+      });
+      if (gesperrt.count === 0) return;
+      const abo = await prisma.abo.findUnique({ where: { id: aboId }, include: { owner: true } });
+      if (!abo?.owner.email) return;
+      const preis = aboPreis({
+        paket: abo.paket,
+        art: abo.art,
+        sitze: abo.sitze,
+        intervall: abo.intervall,
+        mitAngebot: bleibtImAngebot(abo.angebot),
+      });
+      const proZeitraum = abo.intervall === 'jaehrlich' ? 'pro Jahr' : 'pro Monat';
+      try {
+        await app.mail.aboBestaetigungSenden({
+          an: abo.owner.email,
+          name: abo.owner.name,
+          tarif:
+            PLAN_NAMES[abo.paket] +
+            (abo.art === 'familie' ? ` · Familie mit ${abo.sitze} Plätzen` : ''),
+          abrechnung: abo.intervall === 'jaehrlich' ? 'jährlich im Voraus' : 'monatlich im Voraus',
+          preis: `${euro(preis.betragCent)} ${proZeitraum}`,
+          normalpreis: preis.normalCent ? `${euro(preis.normalCent)} ${proZeitraum}` : null,
+          bestelltAm: datumDe(abo.erstelltAm),
+          testphaseBis: abo.trialEndetAm ? datumDe(abo.trialEndetAm) : null,
+        });
+      } catch (err) {
+        app.log.error({ err, aboId }, 'abo_bestaetigung_fehlgeschlagen');
+        await prisma.abo.update({ where: { id: aboId }, data: { bestaetigungGesendetAm: null } });
+      }
+    }
+
     // POST /abo/testphase-pruefen — direkt nach dem Hinterlegen des
     // Zahlungsmittels (Kasse bzw. checkout-erfolg/ nach PayPal-Redirect).
     // `409 testphase_bereits_genutzt` → Abo ist schon wieder entfernt,
@@ -309,6 +360,7 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
       const abo = oder404(await eigenesAbo(req.userId));
       const p = await testphasePruefen(prisma, zahlung, abo);
       if (p.ergebnis === 'abgelehnt') throw new HttpError(409, 'testphase_bereits_genutzt');
+      await vertragsbestaetigung(abo.id);
       return { ok: true, geprueft: p.ergebnis === 'ok' };
     });
 

@@ -29,6 +29,8 @@ interface MailInhalt {
   hinweis: string;
   /** Klartext-Absätze (ohne HTML) */
   klartext: string[];
+  /** Optionaler Zusatzblock unter dem Kleingedruckten (z. B. Widerrufsbelehrung) */
+  anhang?: { ueberschrift: string; absaetze: string[]; klartext: string[] };
 }
 
 export interface FertigeMail {
@@ -38,6 +40,15 @@ export interface FertigeMail {
 }
 
 function rendern(m: MailInhalt): FertigeMail {
+  const anhang = m.anhang
+    ? `<h2 style="margin:28px 0 12px;padding-top:24px;border-top:1px solid #e2e7ea;font-size:17px;line-height:1.3;font-weight:700;color:#101214;">${escapeHtml(m.anhang.ueberschrift)}</h2>` +
+      m.anhang.absaetze
+        .map(
+          (p) =>
+            `<p style="margin:0 0 12px;font-size:14px;line-height:1.55;color:#172128;">${p}</p>`,
+        )
+        .join('')
+    : '';
   const absaetze = m.absaetze
     .map((p) => `<p style="margin:0 0 16px;font-size:16px;line-height:1.6;color:#172128;">${p}</p>`)
     .join('');
@@ -72,6 +83,7 @@ function rendern(m: MailInhalt): FertigeMail {
       <p style="margin:0 0 6px;font-size:13px;line-height:1.5;color:#516676;">Der Button funktioniert nicht? Kopiere diesen Link in deinen Browser:</p>
       <p style="margin:0 0 20px;font-size:13px;line-height:1.5;word-break:break-all;"><a href="${m.button.link}" style="color:#516676;">${escapeHtml(m.button.link)}</a></p>
       <p style="margin:0;padding-top:20px;border-top:1px solid #e2e7ea;font-size:13px;line-height:1.5;color:#516676;">${m.hinweis}</p>
+      ${anhang}
     </td></tr>
     <tr><td align="center" style="padding:24px 8px 0;font-family:${FONT};font-size:12px;line-height:1.6;color:#6e8494;">
       Lesify &middot; Lernen mit KI für Schüler:innen<br>
@@ -89,6 +101,7 @@ function rendern(m: MailInhalt): FertigeMail {
     ...m.klartext,
     `${m.button.text}:\n${m.button.link}`,
     m.hinweis.replace(/<[^>]+>/g, ''),
+    ...(m.anhang ? [m.anhang.ueberschrift.toUpperCase(), ...m.anhang.klartext] : []),
     `— Lesify\n${SITE_URL}`,
   ].join('\n\n');
 
@@ -310,4 +323,94 @@ ${zeilen.map(([k, v]) => `<p style="margin:0 0 4px;"><b>${escapeHtml(k)}:</b> ${
     html,
     text,
   };
+}
+
+/* ---------- Vertragsbestätigung nach dem Abschluss (§312f BGB) ----------
+ * Stripe schickt beim Start einer Testphase nichts (0-€-Rechnung) — ohne diese
+ * Mail hätten Kund:innen bis zur ersten Abbuchung keine Bestätigung auf einem
+ * dauerhaften Datenträger (Testdurchgang 2026-09-29). Widerrufsbelehrung und
+ * Muster-Formular wörtlich wie AGB §11 (marketing/agb/index.html) — bei
+ * Änderungen dort hier mitziehen. */
+const ANBIETER = 'Jannik Born, Lesify, Bergstraße 81, 35418 Buseck';
+const ANBIETER_TELEFON = '015170868969';
+
+export interface AboBestaetigungDaten {
+  name: string;
+  /** z. B. „Premium" bzw. „Premium · Familie mit 2 Plätzen" */
+  tarif: string;
+  /** „monatlich" | „jährlich" */
+  abrechnung: string;
+  /** z. B. „19,99 € pro Monat" */
+  preis: string;
+  /** Normalpreis bei Angebot, z. B. „24,99 € pro Monat" */
+  normalpreis: string | null;
+  bestelltAm: string;
+  /** Ende der Testphase (= erste Abbuchung) oder null ohne Testphase */
+  testphaseBis: string | null;
+  link: string;
+}
+
+const WIDERRUF_TEXT = [
+  'Schließt eine sorgeberechtigte Person als Verbraucher:in ein Abo ab, gilt das gesetzliche Widerrufsrecht:',
+  `Widerrufsrecht. Du hast das Recht, binnen vierzehn Tagen ohne Angabe von Gründen diesen Vertrag zu widerrufen. Die Widerrufsfrist beträgt vierzehn Tage ab dem Tag des Vertragsschlusses. Um dein Widerrufsrecht auszuüben, musst du uns (${ANBIETER}, Telefon: ${ANBIETER_TELEFON}, kontakt@lesify.de) mittels einer eindeutigen Erklärung (z. B. per E-Mail oder Telefon) über deinen Entschluss, diesen Vertrag zu widerrufen, informieren. Zur Wahrung der Widerrufsfrist reicht es aus, dass du die Mitteilung über die Ausübung des Widerrufsrechts vor Ablauf der Widerrufsfrist absendest.`,
+  'Folgen des Widerrufs. Wenn du diesen Vertrag widerrufst, erstatten wir dir alle Zahlungen, die wir von dir erhalten haben, unverzüglich und spätestens binnen vierzehn Tagen ab dem Tag zurück, an dem die Mitteilung über deinen Widerruf bei uns eingegangen ist. Hast du verlangt, dass die Leistung während der Widerrufsfrist beginnen soll, so hast du uns einen angemessenen Betrag zu zahlen, der dem Anteil der bis zu dem Zeitpunkt, zu dem du uns von der Ausübung des Widerrufsrechts unterrichtest, bereits erbrachten Leistung im Vergleich zum Gesamtumfang der im Vertrag vorgesehenen Leistungen entspricht.',
+  'Da jeder Tarif ohnehin mit einer 14-tägigen kostenlosen Testphase beginnt und eine Kündigung während dieser Zeit keine Kosten auslöst (siehe §4 der AGB), läuft das Widerrufsrecht in der Praxis parallel zur Testphase — ein Widerruf ist zusätzlich zur jederzeitigen Kündigung möglich.',
+  'Muster-Widerrufsformular',
+  '(Wenn du den Vertrag widerrufen willst, kannst du dieses Formular ausfüllen und an uns zurücksenden.)',
+  `An ${ANBIETER}, kontakt@lesify.de:\nHiermit widerrufe(n) ich/wir den von mir/uns abgeschlossenen Vertrag über die Nutzung von Lesify.\nBestellt am: __________\nName des/der Verbraucher(s): __________\nAnschrift des/der Verbraucher(s): __________\nDatum: __________`,
+];
+
+function widerrufHtml(t: string): string {
+  for (const fett of ['Widerrufsrecht.', 'Folgen des Widerrufs.', 'Muster-Widerrufsformular']) {
+    if (t.startsWith(fett)) return `<b>${fett}</b>${escapeHtml(t.slice(fett.length))}`;
+  }
+  return escapeHtml(t).replace(/\n/g, '<br>');
+}
+
+export function aboBestaetigungMail(d: AboBestaetigungDaten): FertigeMail {
+  const zeilen: [string, string][] = [
+    ['Tarif', d.tarif],
+    ['Abrechnung', d.abrechnung],
+    ['Preis', d.normalpreis ? `${d.preis} (Angebotspreis, regulär ${d.normalpreis})` : d.preis],
+    ['Bestellt am', d.bestelltAm],
+    [
+      'Testphase',
+      d.testphaseBis
+        ? `kostenlos bis ${d.testphaseBis}, danach erste Abbuchung`
+        : 'ohne Testphase, erste Abbuchung sofort',
+    ],
+    ['Vertragspartner', ANBIETER],
+  ];
+  const tabelle = zeilen.map(([k, v]) => `<b>${escapeHtml(k)}:</b> ${escapeHtml(v)}`).join('<br>');
+  const kuendigung = `Du kannst jederzeit zum Ende des laufenden Abrechnungszeitraums kündigen, in der Testphase zu deren Ende — im Eltern-Bereich unter „Abo & Sitze" oder ohne Anmeldung unter ${SITE_URL}/kuendigen/.`;
+  const agb = `Es gelten unsere Nutzungsbedingungen (AGB): ${SITE_URL}/agb/ — die Widerrufsbelehrung steht unten in dieser E-Mail.`;
+  return rendern({
+    betreff: `Deine Lesify-Bestellung: ${d.tarif}`,
+    vorschau: d.testphaseBis
+      ? `Testphase bis ${d.testphaseBis} — alle Vertragsdaten auf einen Blick.`
+      : 'Dein Abo läuft — alle Vertragsdaten auf einen Blick.',
+    ueberschrift: 'Danke für deine Bestellung',
+    absaetze: [
+      `Hallo ${escapeHtml(d.name)},`,
+      'hiermit bestätigen wir deinen Vertrag über die Nutzung von Lesify:',
+      tabelle,
+      escapeHtml(kuendigung),
+      escapeHtml(agb),
+    ],
+    button: { text: 'Zum Eltern-Bereich', link: d.link },
+    hinweis:
+      'Bitte bewahre diese E-Mail als Vertragsbestätigung auf. Rechnungen und Zahlungsbelege schickt dir unser Zahlungsdienstleister Stripe separat. Bei Fragen antworte einfach auf diese Nachricht.',
+    klartext: [
+      `Hallo ${d.name},`,
+      'hiermit bestätigen wir deinen Vertrag über die Nutzung von Lesify:',
+      zeilen.map(([k, v]) => `${k}: ${v}`).join('\n'),
+      kuendigung,
+      agb,
+    ],
+    anhang: {
+      ueberschrift: 'Widerrufsbelehrung',
+      absaetze: WIDERRUF_TEXT.map(widerrufHtml),
+      klartext: WIDERRUF_TEXT,
+    },
+  });
 }

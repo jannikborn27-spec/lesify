@@ -663,6 +663,73 @@ describe.runIf(hatDb)('abo — Testphase einmal je Zahlungsmittel (Supabase, 202
   });
 });
 
+describe.runIf(hatDb)('abo — Vertragsbestätigung per Mail (§312f BGB, 2026-09-29)', () => {
+  const gesendet: { an: string; tarif: string; testphaseBis: string | null }[] = [];
+  class MitschnittMail extends FakeMailGateway {
+    override async aboBestaetigungSenden(input: {
+      an: string;
+      tarif: string;
+      testphaseBis: string | null;
+    }) {
+      gesendet.push(input);
+    }
+  }
+  const zahlung = new FakeZahlungsGateway();
+  const app = buildApp({ logger: false, zahlung, mail: new MitschnittMail() });
+  const pruefen = (token: string) =>
+    app.inject({
+      method: 'POST',
+      url: '/abo/testphase-pruefen',
+      headers: { authorization: `Bearer ${token}` },
+    });
+
+  it('genau eine Mail je Abo, auch wenn Kasse und Erfolgsseite beide melden', async () => {
+    await app.ready();
+    const email = `vb+${crypto.randomUUID()}@abo.lesify.test`;
+    const t = await registriereUndLogin(app, email);
+    await app.inject({
+      method: 'POST',
+      url: '/abo',
+      headers: { authorization: `Bearer ${t}` },
+      payload: { paket: 'premium', intervall: 'jaehrlich', sitze: 2 },
+    });
+    await Promise.all([pruefen(t), pruefen(t)]);
+    await pruefen(t);
+    const meine = gesendet.filter((g) => g.an === email);
+    expect(meine).toHaveLength(1);
+    expect(meine[0]).toMatchObject({ tarif: 'Premium · Familie mit 2 Plätzen' });
+    expect(meine[0]!.testphaseBis).toBeTruthy();
+  });
+
+  it('abgelehnte Testphase → keine Bestätigung', async () => {
+    const karte = `card:fp_${crypto.randomUUID()}`;
+    const a = await registriereUndLogin(app, `vbA+${crypto.randomUUID()}@abo.lesify.test`);
+    const refA = (
+      await app.inject({
+        method: 'POST',
+        url: '/abo',
+        headers: { authorization: `Bearer ${a}` },
+        payload: { paket: 'starter', intervall: 'monatlich' },
+      })
+    ).json().subscriptionId;
+    zahlung.kennungen.set(refA, karte);
+    await pruefen(a);
+    const emailB = `vbB+${crypto.randomUUID()}@abo.lesify.test`;
+    const b = await registriereUndLogin(app, emailB);
+    const refB = (
+      await app.inject({
+        method: 'POST',
+        url: '/abo',
+        headers: { authorization: `Bearer ${b}` },
+        payload: { paket: 'starter', intervall: 'monatlich' },
+      })
+    ).json().subscriptionId;
+    zahlung.kennungen.set(refB, karte);
+    expect((await pruefen(b)).statusCode).toBe(409);
+    expect(gesendet.filter((g) => g.an === emailB)).toHaveLength(0);
+  });
+});
+
 describe.runIf(hatDb)('Kind-Zugang ohne E-Mail: Benutzername (Entscheidung 2026-09-25)', () => {
   const resets: { an: string; token: string; kindName?: string }[] = [];
   class MitschnittMail extends FakeMailGateway {

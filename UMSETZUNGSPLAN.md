@@ -4980,6 +4980,25 @@ Kritisch, weil Zielgruppe minderjährig ist.
 - [ ] **Lasttest** der teuren Pfade (leicht, gegen Prod mit echter KI; Ziele
       `docs/QS-CHECKLISTE.md` §4).
 - [ ] **Befunde fixen** + betroffene Stellen nachtesten.
+- **Vorab-Durchgang durch Claude (2026-09-29, lokal):** kompletter Stack lokal
+  (Dev-DB, Stripe-Test-Modus mit `stripe listen`, Mails nur geloggt), Website
+  prod-förmig (`/` + `/app`). Abhakliste: Artifact „Lesify Launch-Test“.
+  Gefunden + behoben:
+  - [x] Registrierung ging **ohne Einwilligungs-Haken** durch (Formular
+        `novalidate`, Handler schickte `einwilligung: true` ungeprüft).
+  - [x] „Angemeldet bleiben“ ohne Haken hielt die Anmeldung trotzdem 7 Tage
+        im Browser → jetzt nur `sessionStorage` (abgemeldet beim Schließen).
+  - [x] Eltern ohne Abo (Kasse abgebrochen): „Abo & Sitze“ leer (404-Absturz),
+        „Kinder & Zugänge“ zeigte „0 von 0 Plätzen — alle belegt“ → „Noch kein
+        Tarif gewählt“ + Link zu den Preisen.
+  - [x] **Keine Vertragsbestätigung nach dem Abschluss** (§312f BGB; Stripe
+        schickt beim Testphase-Start nichts, die Erfolgsseite versprach aber
+        eine) → neue Mail mit Vertragsdaten, Kündigungsweg, AGB-Link und
+        Widerrufsbelehrung + Muster-Formular (wörtlich AGB §11), einmal je Abo.
+        **Anwalt:** reicht der AGB-Link, oder sollen die vollständigen AGB als
+        Anhang mit?
+  - [x] E-Mail-Bestätigungsseite: „Ein letzter Klick“ stimmte nicht (bestätigt
+        automatisch).
 
 **B. Stripe Live**
 

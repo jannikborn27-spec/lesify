@@ -1,6 +1,8 @@
 import { Resend } from 'resend';
 import { env, istProd } from '../env.js';
 import {
+  aboBestaetigungMail,
+  type AboBestaetigungDaten,
   emailBestaetigungMail,
   kindEinladungMail,
   kontaktMail,
@@ -15,7 +17,9 @@ import {
 /**
  * E-Mail-Versand (Phase 10, §5): Double-Opt-in- und Passwort-Reset-Mails.
  * Dazu das Kontaktformular (`POST /kontakt` → `KONTAKT_EMPFAENGER`).
- * Zahlungs-/Abo-/Beleg-Mails bleiben bei Stripe (siehe backend-planning.md §0).
+ * Zahlungs-/Beleg-Mails bleiben bei Stripe (siehe backend-planning.md §0); die
+ * Vertragsbestätigung nach dem Abschluss kommt von uns (Stripe schickt beim
+ * Testphase-Start nichts).
  *
  * Ohne `RESEND_API_KEY` läuft ein deterministisches `FakeMailGateway` (loggt
  * statt zu versenden) — wie `FakeKiClient`/`FakeZahlungsGateway`/
@@ -41,6 +45,8 @@ export interface MailGateway {
     input: KuendigungMailDaten & { automatisch: boolean; konto: string },
   ): Promise<void>;
   zahlungOffenWarnungSenden(input: { an: string; name: string; loeschungAm: Date }): Promise<void>;
+  /** Vertragsbestätigung direkt nach dem Abschluss (§312f BGB, 2026-09-29). */
+  aboBestaetigungSenden(input: Omit<AboBestaetigungDaten, 'link'> & { an: string }): Promise<void>;
 }
 
 function elternAboLink(): string {
@@ -110,6 +116,12 @@ export class FakeMailGateway implements MailGateway {
         thema: input.thema,
       }),
     );
+  }
+
+  async aboBestaetigungSenden(
+    input: Omit<AboBestaetigungDaten, 'link'> & { an: string },
+  ): Promise<void> {
+    console.log(JSON.stringify({ mailFake: 'abo_bestaetigung', an: input.an, tarif: input.tarif }));
   }
 
   async kuendigungBestaetigungSenden(
@@ -215,6 +227,20 @@ export class ResendMailGateway implements MailGateway {
       ...mail,
     });
     if (error) throw new Error(`Resend-Versand fehlgeschlagen (kontakt): ${error.message}`);
+  }
+
+  async aboBestaetigungSenden(
+    input: Omit<AboBestaetigungDaten, 'link'> & { an: string },
+  ): Promise<void> {
+    const mail = aboBestaetigungMail({ ...input, link: elternAboLink() });
+    const { error } = await this.resend.emails.send({
+      from: env.EMAIL_ABSENDER,
+      to: input.an,
+      replyTo: env.KONTAKT_EMPFAENGER,
+      ...mail,
+    });
+    if (error)
+      throw new Error(`Resend-Versand fehlgeschlagen (abo_bestaetigung): ${error.message}`);
   }
 
   async kuendigungBestaetigungSenden(

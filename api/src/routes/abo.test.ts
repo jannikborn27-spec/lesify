@@ -753,9 +753,17 @@ describe.runIf(hatDb)(
         payload: { typ: 'zahlung_erfolgreich', aboRef },
       });
       expect(res.json()).toEqual({ ok: true, unveraendert: true });
-      expect((await app.inject({ method: 'GET', url: '/abo', headers: auth })).json().status).toBe(
-        'test',
-      );
+      const abo = (await app.inject({ method: 'GET', url: '/abo', headers: auth })).json();
+      expect(abo.status).toBe('test');
+
+      // Vorschau in der Testphase: erste echte Abbuchung am Trial-Ende, nichts anteilig
+      const v = (
+        await app.inject({ method: 'GET', url: '/abo/vorschau?paket=infinite', headers: auth })
+      ).json();
+      expect(v.imTest).toBe(true);
+      expect(v.anteiligCent).toBe(0);
+      expect(v.naechsteAbbuchung.am).toBe(abo.trialEndetAm);
+      expect(v.naechsteAbbuchung.betragCent).toBe(v.neu.betragCent);
     });
   },
 );

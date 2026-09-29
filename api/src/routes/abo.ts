@@ -373,6 +373,10 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
           zeitraumEnde: abo.aktuellerZeitraumEnde,
           imTest,
         });
+        // In der Testphase liefert Stripes Vorschau die 0-€-Trial-Rechnung von
+        // heute — für Eltern zählt die erste echte Abbuchung am Trial-Ende
+        // (Testdurchgang 2026-09-29: Dialog zeigte „heute 0,00 €“).
+        const trialEnde = imTest ? abo.trialEndetAm : null;
         return {
           wirksam: 'sofort',
           wirksamAm: new Date(),
@@ -380,8 +384,10 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
           sitze: { vorher: abo.sitze, nachher: z.sitzeJetzt },
           aktuell: { betragCent: alt.betragCent, intervall: abo.intervall },
           neu: { betragCent: neu.betragCent, intervall: z.intervall },
-          anteiligCent: v.anteiligCent,
-          naechsteAbbuchung: { am: v.naechsteAbbuchungAm, betragCent: v.naechsteAbbuchungCent },
+          anteiligCent: trialEnde ? 0 : v.anteiligCent,
+          naechsteAbbuchung: trialEnde
+            ? { am: trialEnde, betragCent: neu.betragCent }
+            : { am: v.naechsteAbbuchungAm, betragCent: v.naechsteAbbuchungCent },
         };
       },
     );

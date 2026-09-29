@@ -157,7 +157,8 @@ document.addEventListener('DOMContentLoaded', async function () {
         '</span></div>' +
         '<div class="kc-actions" style="margin-top:18px">' +
           (laeuft
-            ? '<button class="btn btn-sm btn-ghost" data-abo="pausieren">Sommerpause</button>' +
+            ? '<button class="btn btn-sm btn-ghost" data-abo="tarif">Tarif ändern</button>' +
+              '<button class="btn btn-sm btn-ghost" data-abo="pausieren">Sommerpause</button>' +
               '<button class="btn btn-sm btn-ghost" data-abo="kuendigen" style="color:var(--rot)">Kündigen</button>'
             : abgelaufen
               ? '<a class="btn btn-sm btn-primary" href="/preise/">Neu abschließen</a>'
@@ -212,6 +213,78 @@ document.addEventListener('DOMContentLoaded', async function () {
     }, mehr ? 'Zahlungspflichtig hinzufügen' : 'Platz entfernen');
   }
 
+  /* Tarif-/Intervallwechsel (Testdurchgang 2026-09-29: PATCH /abo und die
+     Vorschau konnten es, die Seite bot aber nur Sitzänderungen an). Gleiche
+     Regeln wie bei Sitzen: erst Vorschau mit Beträgen, dann Bestätigung;
+     wird es teurer → Button „Zahlungspflichtig ändern“ (§ 312j BGB). */
+  async function tarifAendern(abo) {
+    var pakete = [['starter', 'Starter'], ['premium', 'Premium'], ['infinite', 'Infinite']];
+    var opt = function (w, l, an) { return '<option value="' + w + '"' + (an ? ' selected' : '') + '>' + l + '</option>'; };
+    var d = function (iso) { return LesifyUI.Render.formatDatum(String(iso).slice(0, 10)); };
+    var zeile = function (l, w, stark) {
+      return '<div class="abo-row"><span class="lbl">' + l + '</span><span class="val"' + (stark ? ' style="font-weight:700"' : '') + '>' + w + '</span></div>';
+    };
+    var body =
+      '<div class="field mt-0"><label for="tw-paket">Tarif</label><select class="select" id="tw-paket">' +
+        pakete.map(function (p) { return opt(p[0], p[1], p[0] === abo.paket); }).join('') + '</select></div>' +
+      '<div class="field"><label for="tw-intervall">Abrechnung</label><select class="select" id="tw-intervall">' +
+        opt('monatlich', 'Monatlich', abo.intervall === 'monatlich') + opt('jaehrlich', 'Jährlich', abo.intervall === 'jaehrlich') + '</select></div>' +
+      '<div id="tw-vorschau" aria-live="polite"></div>';
+    var stand = null; // letzte Vorschau {paket, intervall, v}
+    var scrim = modal('Tarif ändern', 'Kontingente gelten je Kind; der neue Tarif greift sofort.', body, async function () {
+      if (!stand || !stand.v) return false;
+      try {
+        await Lesify.aendernAbo({ paket: stand.paket, intervall: stand.intervall });
+        LesifyUI.toast('Tarif geändert.');
+        render();
+      } catch (err) { LesifyUI.toast(Lesify.fehlerText(err)); return false; }
+    }, 'Tarif ändern');
+    var ok = scrim.querySelector('[data-ok]');
+    var feld = function (id) { return scrim.querySelector('#' + id); };
+    async function vorschau() {
+      var paket = feld('tw-paket').value, intervall = feld('tw-intervall').value;
+      var ziel = feld('tw-vorschau');
+      stand = { paket: paket, intervall: intervall, v: null };
+      if (paket === abo.paket && intervall === abo.intervall) {
+        ziel.innerHTML = '<p class="text-sm text-muted" style="margin:0">Das ist dein aktueller Tarif.</p>';
+        ok.disabled = true; ok.textContent = 'Tarif ändern';
+        return;
+      }
+      ok.disabled = true;
+      ziel.innerHTML = '<p class="text-sm text-muted" style="margin:0">Kosten werden berechnet …</p>';
+      var v;
+      try { v = await Lesify.aboVorschau({ paket: paket, intervall: intervall }); }
+      catch (err) { ziel.innerHTML = ''; LesifyUI.toast(Lesify.fehlerText(err)); return; }
+      if (feld('tw-paket').value !== paket || feld('tw-intervall').value !== intervall) return; // überholt
+      stand.v = v;
+      var teurer = v.anteiligCent > 0 || (v.imTest && v.neu.betragCent > v.aktuell.betragCent);
+      var html =
+        zeile('Bisher', euro(v.aktuell.betragCent) + proIntervall(v.aktuell.intervall)) +
+        zeile('Neu, ab sofort', euro(v.neu.betragCent) + proIntervall(v.neu.intervall), true);
+      var text;
+      if (v.imTest) {
+        text = 'Du bist noch in der kostenlosen Testphase — jetzt wird nichts abgebucht. Am ' + d(v.naechsteAbbuchung.am) +
+          ' wird erstmals ' + euro(v.naechsteAbbuchung.betragCent) + ' abgebucht.';
+      } else if (v.anteiligCent > 0) {
+        html += zeile('Anteilig bis ' + d(v.naechsteAbbuchung.am), euro(v.anteiligCent));
+        text = 'Für die restliche Zeit des laufenden Zeitraums wird der anteilige Betrag berechnet. Er wird mit der nächsten Abbuchung am ' +
+          d(v.naechsteAbbuchung.am) + ' fällig — insgesamt dann ' + euro(v.naechsteAbbuchung.betragCent) + '.';
+      } else {
+        html += zeile('Gutschrift bis ' + d(v.naechsteAbbuchung.am), euro(-v.anteiligCent));
+        text = 'Für die restliche Zeit des laufenden Zeitraums bekommst du eine Gutschrift. Sie wird mit der nächsten Abbuchung am ' +
+          d(v.naechsteAbbuchung.am) + ' verrechnet — dann fällig: ' + euro(Math.max(0, v.naechsteAbbuchung.betragCent)) + '.';
+      }
+      ziel.innerHTML = html +
+        '<p class="text-sm" style="margin:14px 0 0;color:var(--ink-700);line-height:1.6">' + text + '</p>' +
+        '<p class="text-xs text-muted" style="margin:8px 0 0">Gemäß § 19 UStG wird keine Umsatzsteuer berechnet.</p>';
+      ok.disabled = false;
+      ok.textContent = teurer ? 'Zahlungspflichtig ändern' : 'Tarif ändern';
+    }
+    feld('tw-paket').addEventListener('change', vorschau);
+    feld('tw-intervall').addEventListener('change', vorschau);
+    vorschau();
+  }
+
   function wire(abo) {
     var seatMinus = document.getElementById('seat-minus'), seatPlus = document.getElementById('seat-plus');
     if (seatPlus) seatPlus.addEventListener('click', function () { sitzAendern(abo, abo.sitze + 1); });
@@ -226,7 +299,9 @@ document.addEventListener('DOMContentLoaded', async function () {
     LesifyUI.qsa('[data-abo]').forEach(function (b) {
       b.addEventListener('click', function () {
         var a = b.getAttribute('data-abo');
-        if (a === 'kuendigen') {
+        if (a === 'tarif') {
+          tarifAendern(abo);
+        } else if (a === 'kuendigen') {
           modal('Abo kündigen?', 'Das Abo läuft bis zum Ende des bezahlten Zeitraums weiter — bis dahin bleibt alles nutzbar.',
             '<p class="text-sm" style="margin:0;color:var(--ink-700)">Wird das Konto beendet, werden die Inhalte gelöscht.</p>',
             async function () {

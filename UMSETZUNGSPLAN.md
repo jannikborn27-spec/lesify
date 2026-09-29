@@ -5021,6 +5021,13 @@ Kritisch, weil Zielgruppe minderjährig ist.
         ausgelöst“ stand fest im HTML — wäre im Live-Modus falsch gewesen. Jetzt
         folgt der Text dem Button, der Testmodus-Satz erscheint nur mit
         `pk_test_…`.
+  - [x] **Tarif-/Intervallwechsel fehlte in der Oberfläche** (API + Vorschau
+        konnten es, „Abo & Sitze“ bot nur Plätze an; im Stripe-Portal soll der
+        Wechsel aus bleiben) → Dialog „Tarif ändern“ mit Kostenvorschau
+        (anteilig/Gutschrift, Testphase), Button „Zahlungspflichtig ändern“ wenn
+        es teurer wird.
+  - [x] Kostenvorschau in der Testphase zeigte „heute 0,00 € abgebucht“
+        (Stripes Trial-Rechnung) → erste echte Abbuchung am Trial-Ende.
 
 **B. Stripe Live**
 

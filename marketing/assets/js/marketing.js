@@ -2011,7 +2011,7 @@
       '<span class="orgx-meta">Jede Datei ist automatisch einem Fach und Thema zugeordnet.</span></span></div>' +
       '<div class="orgx-drop"><span class="orgx-drop__ic">' + ORG_IC.upload + '</span>' +
         '<span class="orgx-drop__tx"><b>Datei hierher ziehen oder auswählen</b>' +
-        '<span>PDF, DOCX, PNG — wird direkt einem Fach &amp; Thema zugeordnet</span></span></div>' +
+        '<span>PDF, DOCX oder Foto — wird direkt einem Fach &amp; Thema zugeordnet</span></span></div>' +
       '<div class="orgx-filters">' + d.filters.map(function (f, i) {
         return '<span class="orgx-filter' + (i === 0 ? ' is-on' : '') + '">' + f + '</span>';
       }).join('') + '</div>' +

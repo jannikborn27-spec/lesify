@@ -136,10 +136,10 @@ document.addEventListener('DOMContentLoaded', async function () {
   function renderPresetGrid() {
     var html = Lesify.FACH_PRESETS.map(function (p) {
       var sel = p.icon === newFachIcon ? ' is-selected' : '';
-      return '<button type="button" class="fach-preset-btn' + sel + '" data-preset-icon="' + p.icon + '" data-preset-name="' + p.name + '">' +
+      return '<button type="button" class="fach-preset-btn' + sel + '" aria-pressed="' + (sel ? 'true' : 'false') + '" data-preset-icon="' + p.icon + '" data-preset-name="' + p.name + '">' +
         '<span class="spark">' + Lesify.getFachIconSvg(p.icon) + '</span><span>' + p.name + '</span></button>';
     }).join('');
-    html += '<button type="button" class="fach-preset-btn' + (newFachIcon ? '' : ' is-selected') + '" data-preset-icon="">' +
+    html += '<button type="button" class="fach-preset-btn' + (newFachIcon ? '' : ' is-selected') + '" aria-pressed="' + (newFachIcon ? 'false' : 'true') + '" data-preset-icon="">' +
       '<span class="spark">' + I.plus + '</span><span>Eigenes Fach</span></button>';
     document.getElementById('nf-preset-grid').innerHTML = html;
   }

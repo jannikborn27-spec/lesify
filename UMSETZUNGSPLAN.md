@@ -5032,6 +5032,12 @@ Kritisch, weil Zielgruppe minderjährig ist.
         Einzelplatz + 1 Kind geht und der Job den Wechsel Familie → Einzel zum
         Periodenende kann); Hinweis „Sinkt auf 1 Plätze … noch 0 Kind-Profil(e)
         entfernen“ sprachlich korrigiert.
+  - [x] Datei-Vorschau: KI-Zusammenfassung stand als rohes Markdown da (`**`,
+        keine Zeilenumbrüche) und wurde **ungefiltert als HTML** eingesetzt
+        (Inhalt stammt indirekt aus der hochgeladenen Datei) → über `mdToHtml`
+        (escaped). Dazu: Datei-Karte (Größe/Datum brach in 3 Zeilen, Badge
+        ragte aus dem Dialog), Upload-Hinweis nennt jetzt Fotos (JPG/PNG),
+        Fach-Vorlagen melden ihren Auswahlzustand (`aria-pressed`).
 
 **B. Stripe Live**
 

@@ -534,7 +534,7 @@
             '<div class="dv-meta-row"><span class="dv-meta-k">Status</span><span class="dv-meta-v" data-dv-status>' + (bereit ? 'Analysiert &amp; bereit' : 'Wird analysiert…') + '</span></div>' +
             '<div class="dv-summary">' +
               '<span class="dv-meta-k">KI-Zusammenfassung</span>' +
-              '<p data-dv-summary>' + (d.zusammenfassung || ('Sobald „' + d.name + '" fertig gelesen ist, erscheint hier die automatische Zusammenfassung.')) + '</p>' +
+              '<div class="dv-summary-md" data-dv-summary>' + zusammenfassungHtml(d.zusammenfassung, 'Sobald „' + d.name + '" fertig gelesen ist, erscheint hier die automatische Zusammenfassung.') + '</div>' +
             '</div>' +
           '</div>' +
         '</div>' +
@@ -564,7 +564,7 @@
         var statusEl = qs('[data-dv-status]', scrim);
         if (statusEl) statusEl.innerHTML = bereit ? 'Analysiert &amp; bereit' : 'Verarbeitung fehlgeschlagen';
         var summaryEl = qs('[data-dv-summary]', scrim);
-        if (summaryEl) summaryEl.textContent = updated.zusammenfassung || ('„' + updated.name + '" konnte nicht zusammengefasst werden.');
+        if (summaryEl) summaryEl.innerHTML = zusammenfassungHtml(updated.zusammenfassung, '„' + updated.name + '" konnte nicht zusammengefasst werden.');
         var docLeadEl = qs('[data-dv-doclead]', scrim);
         if (docLeadEl && updated.zusammenfassung) {
           docLeadEl.textContent = updated.zusammenfassung;
@@ -1885,6 +1885,12 @@
       .replace(/~~(?=\S)([^\n]+?)(?<=\S)~~/g, '<del>$1</del>')
       .replace(/(^|[^*\w])\*(?=[^\s*])([^*\n]+?)(?<=[^\s*])\*(?![*\w])/g, '$1<em>$2</em>');
     return t.replace(/@@MDC(\d+)@@/g, function (_, i) { return '<code>' + codes[+i] + '</code>'; });
+  }
+  /* KI-Zusammenfassung einer Datei: kommt als Markdown (Testdurchgang
+     2026-09-29: `**` und Zeilenumbrüche standen roh da) und stammt indirekt aus
+     dem Dateiinhalt — deshalb über mdToHtml (escaped HTML), nie roh einsetzen. */
+  function zusammenfassungHtml(text, ersatz) {
+    return text ? mdToHtml(text, { headingShift: 3 }) : '<p>' + mdEscape(ersatz) + '</p>';
   }
   function mdToHtml(text, opts) {
     var shift = opts && opts.headingShift != null ? opts.headingShift : 1; // Chat: # → h2; Lernzettel: 0

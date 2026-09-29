@@ -5016,6 +5016,11 @@ Kritisch, weil Zielgruppe minderjährig ist.
         „Konto hat bereits ein Abo“ (evtl. auch der Kasse-Bug vom 2026-09-16).
         Jetzt heilt „Rechnung bezahlt“ nur noch `zahlung_offen`. Bereits falsch
         stehende Prod-Abos korrigiert der nächste `subscription.updated`.
+  - [x] Kasse-Kleingedrucktes: „Mit dem Klick auf „Kostenlos testen““ auch beim
+        Abschluss ohne Testphase, und „Testmodus: Es wird keine echte Zahlung
+        ausgelöst“ stand fest im HTML — wäre im Live-Modus falsch gewesen. Jetzt
+        folgt der Text dem Button, der Testmodus-Satz erscheint nur mit
+        `pk_test_…`.
 
 **B. Stripe Live**
 

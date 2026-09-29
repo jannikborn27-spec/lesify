@@ -175,8 +175,11 @@
     if (ohneTestphase) {
       $('co-total-label').textContent = 'Heute fällig';
       $('btn-prefix').textContent = 'Zahlungspflichtig abschließen ·';
+      $('co-fine-knopf').textContent = 'Zahlungspflichtig abschließen';
       $('co-sub').textContent = 'Das Abo startet sofort ohne Testphase, der erste Betrag wird direkt abgebucht. Kündigen kannst du in den Kontoeinstellungen.';
     }
+    // Hinweis nur mit Test-Schlüssel — im Live-Modus wäre er falsch (Testdurchgang 2026-09-29).
+    $('co-testmodus').hidden = String(CFG.publishableKey || '').indexOf('pk_test_') !== 0;
     $('co-billing').textContent = trial + (interval === 'yearly'
       ? t.display + ' einmal jährlich abgebucht, jährlich kündbar.'
       : 'monatlich abgebucht, monatlich kündbar.');

@@ -133,7 +133,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         '<div class="abo-row"><span class="lbl">Abrechnung</span><span class="val">' + (abo.intervall === 'jaehrlich' ? 'Jährlich' : 'Monatlich') + '</span></div>' +
         '<div class="abo-row"><span class="lbl">Plätze</span><span class="val">' +
           '<span class="seat-step">' +
-            '<button type="button" id="seat-minus"' + (abo.sitze <= Math.max(2, belegt) ? ' disabled' : '') + '>−</button>' +
+            '<button type="button" id="seat-minus"' + (abo.sitze <= Math.max(1, belegt) ? ' disabled' : '') + '>−</button>' +
             '<span id="seat-count">' + abo.sitze + '</span>' +
             '<button type="button" id="seat-plus"' + (abo.sitze >= 4 ? ' disabled' : '') + '>+</button>' +
           '</span>' +
@@ -141,8 +141,11 @@ document.addEventListener('DOMContentLoaded', async function () {
         '</span></div>' +
         (abo.geplanteSitze != null
           ? '<div class="abo-row"><span class="lbl"></span><span class="val text-xs text-muted">' +
-              'Sinkt auf ' + abo.geplanteSitze + ' Plätze ab ' + LesifyUI.Render.formatDatum(abo.aktuellerZeitraumEnde.slice(0, 10)) +
-              ' — dafür noch ' + Math.max(0, belegt - abo.geplanteSitze) + ' Kind-Profil(e) entfernen.' +
+              'Sinkt auf ' + abo.geplanteSitze + (abo.geplanteSitze === 1 ? ' Platz' : ' Plätze') + ' ab ' +
+              LesifyUI.Render.formatDatum(abo.aktuellerZeitraumEnde.slice(0, 10)) +
+              (belegt > abo.geplanteSitze
+                ? ' — dafür vorher noch ' + (belegt - abo.geplanteSitze === 1 ? 'ein Kind-Profil' : (belegt - abo.geplanteSitze) + ' Kind-Profile') + ' entfernen.'
+                : '.') +
             '</span></div>'
           : '') +
         (abo.preis

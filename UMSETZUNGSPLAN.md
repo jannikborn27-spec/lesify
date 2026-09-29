@@ -5028,6 +5028,10 @@ Kritisch, weil Zielgruppe minderjährig ist.
         es teurer wird.
   - [x] Kostenvorschau in der Testphase zeigte „heute 0,00 € abgebucht“
         (Stripes Trial-Rechnung) → erste echte Abbuchung am Trial-Ende.
+  - [x] Plätze ließen sich nicht von 2 auf 1 senken („−“ gesperrt, obwohl
+        Einzelplatz + 1 Kind geht und der Job den Wechsel Familie → Einzel zum
+        Periodenende kann); Hinweis „Sinkt auf 1 Plätze … noch 0 Kind-Profil(e)
+        entfernen“ sprachlich korrigiert.
 
 **B. Stripe Live**
 

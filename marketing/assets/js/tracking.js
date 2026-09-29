@@ -68,10 +68,25 @@
   /* ---------- Einwilligung (CookieScript) ---------- */
   var erlaubt = { performance: false, targeting: false };
 
-  function consentLesen() {
+  // Zuerst das Consent-Cookie: CookieScripts currentState() meldet direkt nach
+  // „Alle akzeptieren" noch action 'reject' (erst nach dem Neuladen 'accept'),
+  // das Cookie steht beim Event schon richtig. Ohne das luden GTM/Pixel erst
+  // auf der zweiten Seite — gclid/fbclid der Landing-URL gingen verloren.
+  function consentStand() {
+    var m = document.cookie.match(/(?:^|;\s*)CookieScriptConsent=([^;]*)/);
+    if (m) {
+      try {
+        var c = JSON.parse(decodeURIComponent(m[1]));
+        if (c && c.action) return c;
+      } catch (e) { /* unlesbar → currentState() */ }
+    }
     var cs = window.CookieScript && window.CookieScript.instance;
-    if (!cs || typeof cs.currentState !== 'function') return;
-    var st = cs.currentState() || {};
+    return cs && typeof cs.currentState === 'function' ? cs.currentState() : null;
+  }
+
+  function consentLesen() {
+    var st = consentStand();
+    if (!st) return;
     var kat = st.action === 'accept' && st.categories ? st.categories : [];
     erlaubt.performance = kat.indexOf('performance') !== -1;
     erlaubt.targeting = kat.indexOf('targeting') !== -1;

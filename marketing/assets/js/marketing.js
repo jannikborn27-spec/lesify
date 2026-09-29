@@ -3065,7 +3065,7 @@
       { n: '24/7', l: 'erreichbar' },
       { n: 'ab 12,99 €', l: 'im Monat' }
     ],
-    chips: ['14 Tage kostenlos', 'Keine Kreditkarte', 'Server in der EU', 'Monatlich kündbar']
+    chips: ['14 Tage kostenlos', 'Server in der EU', 'Monatlich kündbar']
   };
   function tldrCta(dark) {
     var c = dark ? ' btn-on-dark' : '';
@@ -3548,7 +3548,7 @@
         '<div class="container"><div class="cta-band">' +
           '<span class="eyebrow">Loslegen</span>' +
           '<h2>' + data.h + '</h2>' +
-          '<p>14 Tage kostenlos testen, danach ab 12,99 € im Monat. Keine Kreditkarte, monatlich kündbar.</p>' +
+          '<p>14 Tage kostenlos testen, danach ab 12,99 € im Monat. Monatlich kündbar.</p>' +
           '<div class="hero__cta">' +
             '<a class="btn btn-on-dark btn-primary btn-lg" href="/preise/">Kostenlos starten</a>' +
             '<a class="btn btn-on-dark btn-secondary btn-lg" href="/preise/">Preise ansehen</a>' +

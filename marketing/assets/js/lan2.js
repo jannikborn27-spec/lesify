@@ -280,7 +280,7 @@
       '<h1>Weniger Prüfungsstress und <em>bessere Noten</em> ohne teure Nachhilfe.</h1>' +
       '<p class="lab-lead">Kein Chauffieren, kein Stundensatz, kein Streit ums Lernen. Dein Kind arbeitet selbstständig zu Hause mit festem Lernplan und einer KI, die 24/7 für Fragen bereitsteht.</p>' +
       '<div class="lab-cta"><a class="btn btn-primary btn-lg" href="/preise/">Kostenlos starten</a><a class="btn btn-secondary btn-lg" href="/login/">Anmelden</a></div>' +
-      '<ul class="lab-trust"><li>' + CHK + ' Keine Kreditkarte nötig</li><li>' + CHK + ' DSGVO-konform, Server in der EU</li><li>' + CHK + ' Monatlich kündbar</li></ul>' +
+      '<ul class="lab-trust"><li>' + CHK + ' DSGVO-konform, Server in der EU</li><li>' + CHK + ' Monatlich kündbar</li></ul>' +
       '<div class="hv9__trust"><span class="hv9__trust-row">' +
       inits.map(function (x, i) { return '<span class="hv9__trust-av" style="--t:' + tones[i] + '">' + x + '</span>'; }).join('') +
       '</span><span class="hv9__trust-txt"><b>10.000+</b> Familien lernen schon mit Lesify</span></div></div>'

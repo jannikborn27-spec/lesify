@@ -4886,6 +4886,12 @@ Kritisch, weil Zielgruppe minderjährig ist.
       „Keine Kreditkarte nötig" (Testphase verlangt ein Zahlungsmittel —
       stimmt nur, weil PayPal geht) und „Monatlich kündbar" (Jahresabo endet
       zum Jahresende). **Entscheidung Jannik:** entfernen/ersetzen.
+      _2026-09-29 Teilentscheidung: „Keine Kreditkarte (nötig)" entfernt (Hero-
+      Liste `lan2.js`, TL;DR-Chips + Feature-CTA `marketing.js`, Meta-
+      Description `/registrieren/`). „Monatlich kündbar" bleibt — AGB §4/§9
+      regeln die Kündigung zum Ende des jeweiligen Abrechnungszeitraums (auch
+      jährlich), Kasse + FAQ unterscheiden monatlich/jährlich. Offen: „10.000+
+      Familien", „+9.994", erfundene Kundenzitate._
 - [x] **Mobile-Durchgang bis 360 px** — _erledigt 2026-09-28: alle App-Seiten
       (Kind + Eltern) und Website-Seiten bei 360×740 gemessen (Elemente, die
       über den Rand ragen oder abgeschnitten werden; nur echte Scroll-Container

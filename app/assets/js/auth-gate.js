@@ -47,6 +47,8 @@
     var aufElternSeite = hier === ELTERN_SEITE || hier.indexOf('eltern-') === 0;
     if (user && user.rolle === 'elternteil') {
       if (aufElternSeite) return;
+      // Alte Links/Lesezeichen auf die Schüler-Einstellungen → Eltern-Einstellungen.
+      if (hier === 'einstellungen.html') { location.replace('eltern-einstellungen.html'); return; }
       window.Lesify.kinder().then(function (kinder) {
         var hatKinder = Array.isArray(kinder) && kinder.length > 0;
         location.replace(hatKinder ? ELTERN_SEITE : ELTERN_KINDER_SEITE);

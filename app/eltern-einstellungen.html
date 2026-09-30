@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Einstellungen · Eltern-Bereich · Lesify</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" href="assets/img/logo.png">
+<link rel="stylesheet" href="assets/css/style.css?v=20260930e">
+<script>(function(){try{if(localStorage.getItem("lesify:darkmode")==="1")document.documentElement.setAttribute("data-theme","dark");}catch(e){}})();</script>
+<style>
+  .settings-card { padding: 26px 28px; margin-bottom: var(--sp-6); max-width: 640px; }
+  .settings-card h3 { font-size: 1rem; margin-bottom: 4px; }
+  .settings-card .settings-sub { font-size: 0.82rem; color: var(--ink-500); margin-bottom: 20px; }
+</style>
+</head>
+<!--
+  Einstellungen des Elternkontos (2026-09-30). Vorher verlinkten Seitenleiste
+  und Profil-Chip der Eltern auf die Schüler-Seite einstellungen.html — die
+  Rollen-Weiche in auth-gate.js leitete von dort sofort zurück in den
+  Eltern-Bereich (Seite lud, verschwand wieder, teils leere Ansicht). Als
+  `eltern-*`-Seite gilt hier die Eltern-Navigation. Passwort, Datenexport und
+  Konto löschen liegen weiter unter „Datenschutz" (eltern-datenschutz.html).
+-->
+<body data-page="eltern-einstellungen">
+<div class="app-shell">
+  <div id="sidebar-root"></div>
+  <div class="main">
+    <div id="topbar-root"></div>
+    <main class="main-inner">
+
+      <div class="page-head">
+        <div>
+          <div class="page-eyebrow">Eltern-Bereich</div>
+          <h1 class="page-title">Einstellungen</h1>
+          <p class="page-sub">Dein Profil und die Darstellung der App.</p>
+        </div>
+      </div>
+
+      <div class="card settings-card">
+        <h3>Profil</h3>
+        <p class="settings-sub">Wird u. a. in der Seitenleiste angezeigt.</p>
+        <form id="profil-form">
+          <div class="field">
+            <label for="p-name">Name</label>
+            <input class="input" id="p-name" type="text" required>
+          </div>
+          <div class="field mt-0">
+            <label for="p-email">E-Mail-Adresse</label>
+            <input class="input" id="p-email" type="email" disabled>
+          </div>
+          <button type="submit" class="btn btn-primary">Speichern</button>
+        </form>
+      </div>
+
+      <div class="card settings-card">
+        <h3>Erscheinungsbild</h3>
+        <p class="settings-sub">Gilt nur für die App auf diesem Gerät, nicht für die öffentliche Website.</p>
+        <div class="toggle-row" style="padding-top:0">
+          <div>
+            <div class="toggle-label">Dunkles Design</div>
+            <div class="toggle-sub">Dunkler Hintergrund, heller Text — angenehmer bei wenig Licht.</div>
+          </div>
+          <label class="toggle-switch"><input type="checkbox" id="s-darkmode"><span class="track"><span class="thumb"></span></span></label>
+        </div>
+      </div>
+
+      <div class="card settings-card">
+        <h3>Passwort, Daten &amp; Konto</h3>
+        <p class="settings-sub">Passwort ändern, Daten exportieren oder das Familienkonto löschen.</p>
+        <a class="btn btn-secondary btn-sm" href="eltern-datenschutz.html">Zu Datenschutz &amp; Konto</a>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="assets/js/api.js?v=20260930e"></script>
+<script src="assets/js/auth-gate.js"></script>
+<script src="assets/js/app.js?v=20260930e"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function () {
+  var user = await Lesify.getUser();
+  document.getElementById('p-name').value = user.name || '';
+  document.getElementById('p-email').value = user.email || '';
+
+  var darkmodeAn = (function () { try { return localStorage.getItem('lesify:darkmode') === '1'; } catch (e) { return false; } })();
+  document.getElementById('s-darkmode').checked = darkmodeAn;
+  document.getElementById('s-darkmode').addEventListener('change', function () {
+    try { localStorage.setItem('lesify:darkmode', this.checked ? '1' : '0'); } catch (e) {}
+    if (this.checked) document.documentElement.setAttribute('data-theme', 'dark');
+    else document.documentElement.removeAttribute('data-theme');
+  });
+
+  document.getElementById('profil-form').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var name = document.getElementById('p-name').value.trim();
+    if (!name) return;
+    var updated;
+    try {
+      updated = await Lesify.updateUser({ name: name });
+    } catch (err) {
+      LesifyUI.toast(Lesify.fehlerText(err));
+      return;
+    }
+    var chip = document.querySelector('.profile-chip');
+    if (chip) {
+      chip.querySelector('.avatar-initials').textContent = updated.initials;
+      chip.querySelector('.profile-name').textContent = updated.name;
+    }
+    LesifyUI.toast('Profil gespeichert.');
+  });
+});
+</script>
+</body>
+</html>

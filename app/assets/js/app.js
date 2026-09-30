@@ -70,7 +70,9 @@
     { key: 'eltern-kinder', href: 'eltern-kinder.html', label: 'Kinder & Zugänge', icon: 'layers' },
     { key: 'eltern-abo', href: 'eltern-abo.html', label: 'Abo & Sitze', icon: 'docCheck' },
     { key: 'eltern-daten', href: 'eltern-datenschutz.html', label: 'Datenschutz', icon: 'lock', divider: true },
-    { key: 'einstellungen', href: 'einstellungen.html', label: 'Einstellungen', icon: 'settings' }
+    // Eigene Eltern-Seite (2026-09-30) — einstellungen.html ist die Schüler-
+    // Seite, auth-gate.js leitete Eltern von dort sofort zurück (Flackern).
+    { key: 'eltern-einstellungen', href: 'eltern-einstellungen.html', label: 'Einstellungen', icon: 'settings' }
   ];
 
   function istElternAnsicht() {
@@ -114,10 +116,11 @@
     // den Chip-Slot nachfüllen, sobald die echten Daten da sind. data.js bleibt
     // synchron und unverändert (istAsync greift dort nie).
     function profileChipHtml(user) {
-      var chipHref = user.rolle === 'elternteil' ? 'eltern.html' : 'einstellungen.html';
+      var eltern = user.rolle === 'elternteil';
+      var chipHref = eltern ? 'eltern-einstellungen.html' : 'einstellungen.html';
       return '<a href="' + chipHref + '" class="profile-chip">' +
         '<span class="avatar-initials">' + (user.initials || '') + '</span>' +
-        '<span class="profile-meta"><span class="profile-name">' + (user.name || '') + '</span><span class="profile-role">' + (user.klasse || '') + '</span></span>' +
+        '<span class="profile-meta"><span class="profile-name">' + (user.name || '') + '</span><span class="profile-role">' + (eltern ? 'Elternkonto' : (user.klasse || '')) + '</span></span>' +
       '</a>';
     }
 

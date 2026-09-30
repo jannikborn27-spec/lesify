@@ -10,7 +10,10 @@ Ordner im Projekt-Root; beim Monorepo-Umbau (2026-09-04) nach `app/` verschoben.
   `eltern-kinder.html` (Kind-Verwaltung — anlegen/einladen/entfernen/
   Benachrichtigungen), `eltern-kind.html?id=…` (Einzelansicht — Wochen-
   Kennzahlen, Fächer- und Klausur-Metadaten je Kind), `eltern-abo.html`
-  (Tarif/Sitze/Status) und `eltern-datenschutz.html` (Export/Löschung).
+  (Tarif/Sitze/Status), `eltern-datenschutz.html` (Export/Löschung) und
+  `eltern-einstellungen.html` (Profil, Dunkles Design — seit 2026-09-30; vorher
+  zeigten Eltern-Navigation und Profil-Chip auf die Schüler-Seite
+  `einstellungen.html`, von der `auth-gate.js` sofort zurückleitete).
   Ansicht im Prototyp über den Schalter „Ansicht" auf `einstellungen.html`.
 - Logik & Dummy-Daten: `assets/js/data.js`, `assets/js/app.js`
 - Design-System: `assets/css/style.css` — token-basierte „Fog Blue"-Rampe.

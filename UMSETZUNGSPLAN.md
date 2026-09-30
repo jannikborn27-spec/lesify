@@ -5100,6 +5100,11 @@ Kritisch, weil Zielgruppe minderjährig ist.
         **Usage hängt am Platz statt am Kind** (Kind entfernen + neu anlegen
         setzte das Kontingent zurück) — Eltern sehen die Nutzung je Platz auf
         „Kinder & Zugänge", Migration `20260930150000_usage_je_sitz`.
+  - [x] **Eltern-Konto: „Einstellungen"/Profil-Chip flackerten** — Seite lud,
+        verschwand, teils leere Ansicht: beide zeigten auf die Schüler-Seite
+        `einstellungen.html`, die Rollen-Weiche (`auth-gate.js`) leitete sofort
+        zurück. Neue Seite `eltern-einstellungen.html` (Profil, Dunkles Design,
+        Link zu Datenschutz & Konto); alte Links werden dorthin umgeleitet.
 
 **B. Stripe Live**
 

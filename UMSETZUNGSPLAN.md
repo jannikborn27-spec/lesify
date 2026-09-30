@@ -3171,6 +3171,11 @@ Blockiert alles Weitere. Erst die offenen Produktfragen klären, dann bauen.
       Marketing-Website, nur nach Einwilligung über den CookieScript-Banner
       (Google Consent Mode v2). Die App (`/app`) und Seiten mit Token in der URL
       tracken nie. Umsetzung: `marketing/assets/js/tracking.js`.
+- [x] **Entscheidung 2026-09-30 — Plausible zusätzlich, ohne Einwilligung:**
+      cookielose Reichweiten-/Funnel-Messung (Plausible, EU) auf der
+      Marketing-Website, auch für Besucher, die den Banner ablehnen. Gleiches
+      Gating (nur lesify.de, nie App/Token-Seiten), Funnel-Events gehen als
+      Plausible-Custom-Events mit. Umsetzung: `tracking.js`, CSP, Datenschutz §11.
 - [x] **Entscheidung 2026-09-28 — Angebotspreis dauerhaft:** wer zum
       Angebotspreis abschließt, wird immer zum Angebotspreis abgerechnet, auch
       nach Tarif-/Sitz-/Intervallwechseln und wenn das Angebot für Neukunden
@@ -4957,6 +4962,15 @@ Kritisch, weil Zielgruppe minderjährig ist.
         Test-Events mit `?tracking=1` prüfen.
   - [x] **Datenschutz-Nachtrag vom Anwalt abnehmen lassen** (§5/§11 Tracking) —
         _erledigt laut Jannik 2026-09-29._
+  - [x] **Plausible (cookielos, ohne Banner)** (2026-09-30) — Skript lädt aus
+        `tracking.js` (Seitenaufrufe), Funnel-Events als Custom-Events
+        „Registrierung", „Kasse", „Zahlungsdaten", „Testphase", „Kauf" (mit
+        Umsatz), „Preise", „Kontakt" (Props `tarif`/`intervall`/`methode`).
+        CSP (`plausible.io`) + Datenschutz §11 ergänzt.
+  - [ ] **Plausible-Dashboard (Jannik):** die 7 Event-Namen als Ziele
+        („Custom event") anlegen, für „Kauf" Umsatz-Tracking in EUR aktivieren;
+        Props `tarif`/`intervall` als Custom Properties freischalten.
+  - [ ] **Datenschutz §11 Plausible-Absatz vom Anwalt abnehmen lassen.**
   - [ ] _Später optional:_ Meta Conversions API serverseitig (Stripe-Webhook,
         `event_id` wird im Browser schon mitgeschickt → Deduplizierung).
 

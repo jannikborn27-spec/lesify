@@ -1,5 +1,6 @@
 /* =========================================================
-   Lesify — Tracking (Google Tag Manager + Meta Pixel) hinter Cookie-Banner
+   Lesify — Tracking (Google Tag Manager + Meta Pixel) hinter Cookie-Banner,
+   dazu Plausible (cookielos) ohne Banner
    ---------------------------------------------------------
    Einbindung im <head> jeder Marketing-Seite, VOR dem CookieScript-Banner:
      <script src="/assets/js/tracking.js"></script>
@@ -21,6 +22,13 @@
      aus der Adresszeile entfernt.
    - Die eingeloggte App (/app, Schüler ab Klasse 5) trackt nie.
 
+   Entscheidung 2026-09-30: Plausible Analytics (Plausible Insights OÜ,
+   EU-Hosting) läuft zusätzlich OHNE Einwilligung — es setzt keine Cookies,
+   speichert nichts im Browser und bildet keine Profile (Reichweite +
+   Funnel auch von Besuchern, die den Banner ablehnen). Rechtsgrundlage
+   berechtigtes Interesse, Datenschutz §11. Gleiches Gating wie oben: nur
+   lesify.de (bzw. ?tracking=1), nie App/Token-Seiten.
+
    Funnel-Events (Aufruf über LesifyTrack.event(name, daten)):
      registrierung  → Meta CompleteRegistration · dataLayer sign_up
      kasse          → Meta InitiateCheckout     · dataLayer begin_checkout
@@ -30,6 +38,8 @@
      kauf           → Meta Purchase             · dataLayer purchase
      preise         → Meta ViewContent          · dataLayer view_item_list
      kontakt        → Meta Contact              · dataLayer generate_lead
+   Jedes Event geht außerdem als Plausible-Custom-Event („Registrierung",
+   „Kasse", … — im Plausible-Dashboard als Ziel anlegen, sonst unsichtbar).
    Events vor einer Seiten-Weiterleitung (z. B. Registrierung → Kasse)
    mit { nachWeiterleitung: true } — sie werden in sessionStorage geparkt
    und auf der nächsten Seite gesendet, damit der Seitenwechsel sie nicht
@@ -64,6 +74,19 @@
     var qs = p.toString();
     history.replaceState(history.state, '', location.pathname + (qs ? '?' + qs : '') + location.hash);
   })();
+
+  /* ---------- Plausible (cookielos, ohne Einwilligung) ----------
+     Original-Snippet von Plausible, nur dynamisch geladen (erst NACH dem
+     Entfernen der Stripe-Parameter, damit die URL sauber ankommt). */
+  if (aktiv) {
+    window.plausible = window.plausible || function () { (plausible.q = plausible.q || []).push(arguments); };
+    plausible.init = plausible.init || function (i) { plausible.o = i || {}; };
+    plausible.init();
+    var ps = document.createElement('script');
+    ps.async = true;
+    ps.src = 'https://plausible.io/js/pa-OMZ_D5qRxMbBF5cz8U0sc.js';
+    document.head.appendChild(ps);
+  }
 
   /* ---------- Einwilligung (CookieScript) ---------- */
   var erlaubt = { performance: false, targeting: false };
@@ -144,13 +167,13 @@
 
   /* ---------- Events ---------- */
   var EVENTS = {
-    registrierung: { meta: 'CompleteRegistration', ga: 'sign_up' },
-    kasse:         { meta: 'InitiateCheckout',     ga: 'begin_checkout' },
-    zahlungsdaten: { meta: 'AddPaymentInfo',       ga: 'add_payment_info' },
-    testphase:     { meta: 'StartTrial',           ga: 'start_trial' },
-    kauf:          { meta: 'Purchase',             ga: 'purchase' },
-    preise:        { meta: 'ViewContent',          ga: 'view_item_list' },
-    kontakt:       { meta: 'Contact',              ga: 'generate_lead' }
+    registrierung: { meta: 'CompleteRegistration', ga: 'sign_up',          plausible: 'Registrierung' },
+    kasse:         { meta: 'InitiateCheckout',     ga: 'begin_checkout',   plausible: 'Kasse' },
+    zahlungsdaten: { meta: 'AddPaymentInfo',       ga: 'add_payment_info', plausible: 'Zahlungsdaten' },
+    testphase:     { meta: 'StartTrial',           ga: 'start_trial',      plausible: 'Testphase' },
+    kauf:          { meta: 'Purchase',             ga: 'purchase',         plausible: 'Kauf' },
+    preise:        { meta: 'ViewContent',          ga: 'view_item_list',   plausible: 'Preise' },
+    kontakt:       { meta: 'Contact',              ga: 'generate_lead',    plausible: 'Kontakt' }
   };
 
   // Meta-Events, bis „Targeting" erlaubt ist (Seite bleibt offen, Nutzer
@@ -213,6 +236,20 @@
     if (name === 'testphase') meta.predicted_ltv = daten.value;
     metaWarteschlange.push({ name: def.meta, daten: meta, id: id });
     metaWarteschlangeSenden();
+
+    // Plausible (ohne Einwilligung) — nur Tarif-Merkmale, keine IDs.
+    if (window.plausible) {
+      var po = { props: {} };
+      if (item) {
+        po.props.tarif = item.item_name;
+        po.props.intervall = item.item_variant;
+      }
+      if (daten.method) po.props.methode = daten.method;
+      if (name === 'kauf' && daten.value != null) {
+        po.revenue = { amount: daten.value, currency: daten.currency || 'EUR' };
+      }
+      window.plausible(def.plausible, po);
+    }
 
     // Entscheidung 2026-09-28: Testphase-Start zählt zusätzlich als Kauf
     // (Meta Purchase + dataLayer purchase), damit Kampagnen auf „Purchase"

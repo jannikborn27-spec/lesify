@@ -292,6 +292,9 @@ model Chat {
   themaId        String     @db.Uuid
   titel          String // aus erster Nutzer-Nachricht generiert (KI, §3)
   modus          ChatModus? // null = neutraler "freie Frage"-Modus
+  // false = bisher nur themenfremde Fragen (z. B. „Taylor Swift Alben“) — nicht
+  // in Listen/Suche/Zählern/KI-Kontext; wird true, sobald eine Frage Schulbezug hat.
+  schulbezug     Boolean    @default(true)
   erstelltAm     DateTime   @default(now())
   aktualisiertAm DateTime   @updatedAt
 

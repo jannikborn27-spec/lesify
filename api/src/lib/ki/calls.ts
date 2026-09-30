@@ -35,9 +35,16 @@ export interface ChatTitelKontext {
   ersteNachricht: string;
 }
 
-export async function chatTitelErzeugen(ki: KiClient, ctx: ChatTitelKontext): Promise<string> {
+export interface ChatTitel {
+  titel: string;
+  /** false = Nachricht ohne Schul-/Lernbezug → Chat wird nicht gelistet (2026-09-30). */
+  schulbezug: boolean;
+}
+
+export async function chatTitelErzeugen(ki: KiClient, ctx: ChatTitelKontext): Promise<ChatTitel> {
   const system = `Du erzeugst aus der ersten Nachricht eines Schülers/einer Schülerin in
-einem Lern-Chat einen kurzen, sprechenden Titel für die Chat-Liste.
+einem Lern-Chat einen kurzen, sprechenden Titel für die Chat-Liste und
+entscheidest, ob die Nachricht überhaupt etwas mit Schule/Lernen zu tun hat.
 
 Kontext: Fach ${ctx.fachName}, Thema ${ctx.themaName}.
 
@@ -49,10 +56,16 @@ Regeln:
 3. Kein Chat-Modus im Titel wiederholen (der wird separat angezeigt).
 4. Deutsch, außer die Nachricht selbst ist in einer Fremdsprache verfasst
    (z. B. Englisch-Übung) — dann darf der Titel diese Sprache aufgreifen.
+5. schulbezug = true, wenn die Nachricht einen erkennbaren Bezug zu einem
+   Schulfach, zu Hausaufgaben, Klausuren, Lernen oder Lernorganisation hat —
+   auch wenn sie zu einem anderen Fach als ${ctx.fachName} gehört.
+   schulbezug = false nur bei klar themenfremden Fragen ohne Lernbezug
+   (Promis, Musik-Charts, Games, Sport-Ergebnisse, Smalltalk wie „hi“,
+   private Ratschläge). Im Zweifel true.
 
 Antworte ausschließlich über das bereitgestellte Tool.`;
 
-  const { ausgabe } = await ki.toolAufruf<{ titel: string }>({
+  const { ausgabe } = await ki.toolAufruf<{ titel: string; schulbezug?: boolean }>({
     callTyp: 'chat_titel',
     system,
     messages: [{ rolle: 'user', text: ctx.ersteNachricht }],
@@ -63,15 +76,19 @@ Antworte ausschließlich über das bereitgestellte Tool.`;
         type: 'object',
         properties: {
           titel: { type: 'string', description: 'Max. 6 Wörter, ohne Satzzeichen am Ende' },
+          schulbezug: {
+            type: 'boolean',
+            description: 'Hat die Nachricht einen Bezug zu Schule/Lernen? Im Zweifel true.',
+          },
         },
-        required: ['titel'],
+        required: ['titel', 'schulbezug'],
       },
     },
     model: MODELL_GUENSTIG,
-    maxTokens: 60,
+    maxTokens: 80,
     temperature: 0.25,
   });
-  return ausgabe.titel;
+  return { titel: ausgabe.titel, schulbezug: ausgabe.schulbezug !== false };
 }
 
 // ============================================================================
@@ -709,7 +726,7 @@ export async function dateiZusammenfassungErzeugen(
     dateiInhalt: string | null;
     bild?: KiBild;
   },
-): Promise<{ vorgeschlagenerTitel: string; zusammenfassung: string }> {
+): Promise<{ vorgeschlagenerTitel: string; zusammenfassung: string; lesbar: boolean }> {
   const system = `Du bist ein Assistenzsystem für Lesify, eine Lern-App für Schülerinnen und
 Schüler ab der 5. Klasse. Deine einzige Aufgabe: den Inhalt einer
 hochgeladenen Datei kurz und präzise zusammenzufassen, damit spätere
@@ -727,7 +744,9 @@ Regeln:
 3. Die Zusammenfassung muss eigenständig verwendbar sein — konkrete
    Begriffe, Formeln, Namen, Daten statt vager Umschreibungen.
 4. Schlage einen kurzen, sprechenden Titel vor (max. 8 Wörter).
-5. Enthält die Datei kaum lesbaren/irrelevanten Inhalt: das ehrlich angeben.
+5. lesbar = false, wenn du den Inhalt nicht oder nur bruchstückhaft lesen
+   kannst (z. B. unleserliche Handschrift, unscharfes/dunkles Foto, leere
+   Seite) — dann nichts erfinden, Zusammenfassung nur ein Satz, woran es lag.
 
 Antworte ausschließlich über das bereitgestellte Tool.`;
 
@@ -736,6 +755,7 @@ Antworte ausschließlich über das bereitgestellte Tool.`;
   const { ausgabe } = await ki.toolAufruf<{
     vorgeschlagenerTitel: string;
     zusammenfassung: string;
+    lesbar?: boolean;
   }>({
     callTyp: 'datei_zusammenfassung',
     system,
@@ -749,15 +769,19 @@ Antworte ausschließlich über das bereitgestellte Tool.`;
         properties: {
           vorgeschlagenerTitel: { type: 'string' },
           zusammenfassung: { type: 'string' },
+          lesbar: {
+            type: 'boolean',
+            description: 'false, wenn der Inhalt nicht/kaum lesbar ist',
+          },
         },
-        required: ['vorgeschlagenerTitel', 'zusammenfassung'],
+        required: ['vorgeschlagenerTitel', 'zusammenfassung', 'lesbar'],
       },
     },
     model: MODELL_GUENSTIG,
     maxTokens: 600,
     temperature: 0.25,
   });
-  return ausgabe;
+  return { ...ausgabe, lesbar: ausgabe.lesbar !== false };
 }
 
 // ============================================================================

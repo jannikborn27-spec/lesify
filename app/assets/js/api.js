@@ -301,7 +301,29 @@
     { key: 'pink', name: 'Pink', base: '#b84999', ink: '#931a77', bg: '#feecf7' },
     { key: 'graphit', name: 'Graphit', base: '#516676', ink: '#101214', bg: '#edf1f3' }
   ];
+  /* Eigene Fach-Farbe (`#rrggbb`, Farbwähler 2026-09-30): ink/bg ableiten —
+     gleiche Rechnung wie `fachFarbeAusHex` in shared/src/fachFarbe.ts. */
+  var FACH_FARBE_HEX = /^#[0-9a-f]{6}$/i;
+  function fachFarbeAusHex(hex) {
+    var n = parseInt(hex.slice(1), 16);
+    var base = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+    function lum(rgb) {
+      var c = rgb.map(function (v) { v = v / 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
+      return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+    }
+    function kontrast(a, b) { var la = lum(a), lb = lum(b); return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05); }
+    function toHex(rgb) { return '#' + rgb.map(function (v) { var h = Math.round(v).toString(16); return h.length < 2 ? '0' + h : h; }).join(''); }
+    var bg = base.map(function (v) { return 255 - (255 - v) * 0.1; });
+    var ink = base;
+    for (var k = 0.15; k <= 1.0001; k += 0.05) {
+      ink = base.map(function (v) { return v * (1 - k); });
+      if (kontrast(ink, bg) >= 4.5) break;
+    }
+    var h = hex.toLowerCase();
+    return { key: h, name: 'Eigene Farbe', base: h, ink: toHex(ink), bg: toHex(bg), eigen: true };
+  }
   function getFachColor(key) {
+    if (key && FACH_FARBE_HEX.test(key)) return fachFarbeAusHex(key);
     var found = null;
     for (var i = 0; i < FACH_COLORS.length; i++) { if (FACH_COLORS[i].key === key) { found = FACH_COLORS[i]; break; } }
     return found || FACH_COLORS[FACH_COLORS.length - 1];
@@ -632,6 +654,10 @@
     /** Direkt navigierbare URL (`<a href>`/`<img src>`) — Token als `?token=`, da kein Authorization-Header möglich ist. */
     dateiInhaltUrl: function (id) {
       return BASE + '/dateien/' + id + '/inhalt?token=' + encodeURIComponent(getToken());
+    },
+    /** `DELETE /dateien/:id` — Themen-Datei samt Speicherobjekt (2026-09-30). */
+    deleteDatei: function (id) {
+      return DELETE('/dateien/' + id);
     },
     uploadDatei: function (themaId, file) {
       var fd = new FormData();

@@ -208,38 +208,44 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
         ? await prisma.user.findUnique({ where: { id: user.parentUserId } })
         : null;
     const empfaenger = user?.parentUserId ? eltern?.email : user?.email;
-    let resetToken: string | undefined;
-    if (user && empfaenger) {
-      const token = neuesToken();
-      await prisma.$transaction([
-        // frühere, ungenutzte Reset-Token entwerten
-        prisma.verificationToken.updateMany({
-          where: { userId: user.id, typ: 'passwort_reset', eingeloestAm: null },
-          data: { eingeloestAm: new Date() },
-        }),
-        prisma.verificationToken.create({
-          data: {
-            userId: user.id,
-            typ: 'passwort_reset',
-            tokenHash: token.hash,
-            ablaeuftAm: inTagen(RESET_TOKEN_TAGE),
-          },
-        }),
-      ]);
-      resetToken = token.roh;
-      try {
-        await mail.passwortResetSenden({
-          an: empfaenger,
-          token: token.roh,
-          ...(eltern ? { kindName: user.name } : {}),
-        });
-      } catch (err) {
-        app.log.error({ err }, 'passwort_reset_versand_fehlgeschlagen');
-      }
+    // Entscheidung 2026-09-30: sofort ehrlich antworten, ob es das Konto gibt
+    // (vorher immer 200 „Falls ein Konto existiert …“). Enumeration ist über
+    // `/registrieren` (`email_vergeben`) ohnehin möglich; Schutz = Rate-Limit.
+    if (!user) return reply.code(404).send({ fehler: 'konto_unbekannt' });
+    if (!empfaenger) return reply.code(422).send({ fehler: 'reset_kein_empfaenger' });
+    const token = neuesToken();
+    await prisma.$transaction([
+      // frühere, ungenutzte Reset-Token entwerten
+      prisma.verificationToken.updateMany({
+        where: { userId: user.id, typ: 'passwort_reset', eingeloestAm: null },
+        data: { eingeloestAm: new Date() },
+      }),
+      prisma.verificationToken.create({
+        data: {
+          userId: user.id,
+          typ: 'passwort_reset',
+          tokenHash: token.hash,
+          ablaeuftAm: inTagen(RESET_TOKEN_TAGE),
+        },
+      }),
+    ]);
+    try {
+      await mail.passwortResetSenden({
+        an: empfaenger,
+        token: token.roh,
+        ...(eltern ? { kindName: user.name } : {}),
+      });
+    } catch (err) {
+      app.log.error({ err }, 'passwort_reset_versand_fehlgeschlagen');
+      return reply.code(503).send({ fehler: 'reset_versand_fehlgeschlagen' });
     }
 
-    // immer 200 — keine Konto-Enumeration (§4)
-    return reply.send({ ok: true, ...(istProd || !resetToken ? {} : { resetToken }) });
+    // `anEltern`: Frontend sagt „an die E-Mail deiner Eltern“ statt „an dich“.
+    return reply.send({
+      ok: true,
+      anEltern: !!eltern,
+      ...(istProd ? {} : { resetToken: token.roh }),
+    });
   });
 
   // ---- POST /auth/passwort-zuruecksetzen ------------------------------

@@ -74,7 +74,7 @@
   </div>
 </div>
 
-<script src="assets/js/api.js?v=20260929token"></script>
+<script src="assets/js/api.js?v=20260930"></script>
 <script src="assets/js/auth-gate.js"></script>
 <script src="assets/js/app.js"></script>
 <script>
@@ -117,19 +117,13 @@ document.addEventListener('DOMContentLoaded', async function () {
   }
 
   var newFachColor = Lesify.FACH_COLORS[0].key;
+  // 8 Paletten-Farben + „Eigene Farbe“ (Farbwähler) — LesifyUI.swatchPickerHtml.
   function renderNewFachPicker() {
-    document.getElementById('nf-color-picker').innerHTML = Lesify.FACH_COLORS.map(function (c) {
-      var sel = c.key === newFachColor ? ' is-selected' : '';
-      return '<button type="button" class="swatch-btn' + sel + '" data-color-key="' + c.key + '" style="background:' + c.base + '" aria-label="' + c.name + '" title="' + c.name + '"></button>';
-    }).join('');
+    var el = document.getElementById('nf-color-picker');
+    el.innerHTML = LesifyUI.swatchPickerHtml(newFachColor);
+    LesifyUI.bindSwatchPicker(el, function (farbe) { newFachColor = farbe; });
   }
   renderNewFachPicker();
-  document.getElementById('nf-color-picker').addEventListener('click', function (e) {
-    var btn = e.target.closest('.swatch-btn');
-    if (!btn) return;
-    newFachColor = btn.getAttribute('data-color-key');
-    renderNewFachPicker();
-  });
 
   var newFachIcon = null;
   var nfNameInput = document.getElementById('nf-name');

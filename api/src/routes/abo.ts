@@ -17,6 +17,7 @@ import { inTagen, neuesToken } from '../lib/tokens.js';
 import { hashPasswort } from '../lib/password.js';
 import { benutzernameSchema } from '../lib/benutzername.js';
 import { env, istProd } from '../env.js';
+import { STANDARD_FAECHER } from '../lib/standardFaecher.js';
 
 const KIND_EINLADUNG_TAGE = 14;
 /** Platzhalter-Hash eines Kind-Profils, das noch kein Passwort hat (kein Login möglich). */
@@ -536,6 +537,7 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
           aboId: abo.id,
           passwordHash: KIND_OHNE_PASSWORT, // Passwort via Einladung oder PUT .../zugang
           einstellungen: { create: {} },
+          faecher: { create: STANDARD_FAECHER.map((f) => ({ ...f })) },
         },
       });
       return reply

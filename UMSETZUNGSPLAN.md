@@ -3181,6 +3181,11 @@ Blockiert alles Weitere. Erst die offenen Produktfragen klären, dann bauen.
       (Phase 16) gebündelt; vor dem Launch macht der Nutzer **einen**
       vollständigen Testdurchgang (gegen Produktion im Stripe-Test-Modus),
       danach Fixes → Stripe Live → Launch.
+- [x] **Entscheidung 2026-09-30 — Nutzer-Feedback Testrunde:** „Passwort
+      vergessen“ verrät, ob ein Konto existiert (bewusst, Registrierung tut das
+      ohnehin; Schutz = Rate-Limit). Themenfremde Chats werden nicht gelistet.
+      Jedes Schüler-Konto startet mit Deutsch, Mathematik, Englisch. Fach-Farben
+      sind frei wählbar (Farbwähler zusätzlich zu den 8 Palettenfarben).
 
 ---
 
@@ -5038,6 +5043,23 @@ Kritisch, weil Zielgruppe minderjährig ist.
         (escaped). Dazu: Datei-Karte (Größe/Datum brach in 3 Zeilen, Badge
         ragte aus dem Dialog), Upload-Hinweis nennt jetzt Fotos (JPG/PNG),
         Fach-Vorlagen melden ihren Auswahlzustand (`aria-pressed`).
+  - [x] **Testrunde 2026-09-30** (Nutzer-Feedback, Dev-Account):
+        Footer auf `/kuendigen/` jetzt wie auf den übrigen Rechtsseiten (dunkel);
+        alle Passwortfelder (Website + App, auch in Dialogen) mit Auge-Knopf
+        zum Anzeigen/Verbergen; „Passwort vergessen“ sagt direkt „kein Konto“
+        bzw. „E-Mail ist raus“ statt „Falls ein Konto existiert …“; themenfremde
+        KI-Chats (z. B. „Taylor Swift Alben seit 2010“ in Mathe) werden nicht mehr
+        gelistet und bekommen keinen Titel (`Chat.schulbezug`); Dateien lassen
+        sich im Datei-Dialog löschen (`DELETE /dateien/:id`); nicht lesbare
+        Dateien (Handschrift/unscharf) und abgebrochene Verarbeitungen enden mit
+        ehrlicher Fehlermeldung statt endlosem „Wird gelesen und
+        zusammengefasst …“ (vorher zeigte `status=fehler` ohne Text genau das);
+        neue Schüler-Konten starten mit Deutsch/Mathematik/Englisch (Bestands-
+        konten ohne Fach per Migration); Fach-Farbe zusätzlich frei per
+        Farbwähler (`#rrggbb`). Migrationen `20260930120000_chat_schulbezug`,
+        `20260930130000_standard_faecher` laufen beim Railway-Deploy.
+        _Offen:_ bestehender „Taylor Swift“-Chat im Dev-Account bleibt sichtbar
+        (Bestandschats = Schulbezug) — Chats löschen gibt es noch nicht.
 
 **B. Stripe Live**
 

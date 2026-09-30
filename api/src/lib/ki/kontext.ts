@@ -32,10 +32,13 @@ export async function themenMemoryBlock(prisma: PrismaClient, themaId: string): 
   const [lernzettel, dateien, chats] = await Promise.all([
     prisma.lernzettel.findMany({ where: { themaId }, select: { titel: true, content: true } }),
     prisma.datei.findMany({
-      where: { themaId, zusammenfassung: { not: null } },
+      where: { themaId, status: 'bereit', zusammenfassung: { not: null } },
       select: { name: true, zusammenfassung: true },
     }),
-    prisma.chat.findMany({ where: { themaId }, select: { titel: true, modus: true } }),
+    prisma.chat.findMany({
+      where: { themaId, schulbezug: true },
+      select: { titel: true, modus: true },
+    }),
   ]);
 
   const lzBlock = lernzettel.length
@@ -83,7 +86,7 @@ export async function themaMaterial(prisma: PrismaClient, themaId: string): Prom
     lernzettelOderChats = lz.content;
   } else {
     const chats = await prisma.chat.findMany({
-      where: { themaId },
+      where: { themaId, schulbezug: true },
       select: {
         titel: true,
         modus: true,
@@ -102,7 +105,7 @@ export async function themaMaterial(prisma: PrismaClient, themaId: string): Prom
   }
 
   const dateien = await prisma.datei.findMany({
-    where: { themaId, zusammenfassung: { not: null } },
+    where: { themaId, status: 'bereit', zusammenfassung: { not: null } },
     select: { name: true, zusammenfassung: true },
   });
   const dateiZusammenfassungen = dateien.length
@@ -120,7 +123,7 @@ export async function themaMaterial(prisma: PrismaClient, themaId: string): Prom
  */
 export async function themaChatsUndDateien(prisma: PrismaClient, themaId: string): Promise<string> {
   const chats = await prisma.chat.findMany({
-    where: { themaId },
+    where: { themaId, schulbezug: true },
     select: {
       titel: true,
       modus: true,
@@ -138,7 +141,7 @@ export async function themaChatsUndDateien(prisma: PrismaClient, themaId: string
     : '(noch keine Chats zu diesem Thema)';
 
   const dateien = await prisma.datei.findMany({
-    where: { themaId, zusammenfassung: { not: null } },
+    where: { themaId, status: 'bereit', zusammenfassung: { not: null } },
     select: { name: true, zusammenfassung: true },
   });
   const dateiBlock = dateien.length

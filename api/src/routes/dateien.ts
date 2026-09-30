@@ -7,7 +7,7 @@ import { hashToken } from '../lib/tokens.js';
 import { HttpError } from '../lib/http.js';
 import { pruefeUsageLimit, inkrementiereUsage } from '../lib/usage.js';
 import { typAusMime } from '../lib/dateiExtraktion.js';
-import { themenDateiVerarbeiten } from '../lib/dateiVerarbeitung.js';
+import { haengendeVerarbeitungBeenden, themenDateiVerarbeiten } from '../lib/dateiVerarbeitung.js';
 import { liesDateiTeil } from '../lib/upload.js';
 
 const dateiDTO = (d: {
@@ -41,6 +41,7 @@ export async function dateienRoutes(app: FastifyInstance): Promise<void> {
   // GET /dateien?themaId= — nur Themen-Dateien, keine Testklausur-Lösungen (§6).
   app.get('/dateien', async (req) => {
     const { themaId } = parse(z.object({ themaId: z.string().uuid().optional() }), req.query);
+    await haengendeVerarbeitungBeenden(prisma, req.userId);
     const dateien = await prisma.datei.findMany({
       where: { userId: req.userId, zweck: 'thema', ...(themaId ? { themaId } : {}) },
       orderBy: { erstelltAm: 'desc' },
@@ -51,6 +52,7 @@ export async function dateienRoutes(app: FastifyInstance): Promise<void> {
 
   // GET /dateien/:id
   app.get<{ Params: { id: string } }>('/dateien/:id', async (req) => {
+    await haengendeVerarbeitungBeenden(prisma, req.userId);
     const datei = oder404(
       await prisma.datei.findFirst({
         where: { id: req.params.id, userId: req.userId },
@@ -99,6 +101,25 @@ export async function dateienRoutes(app: FastifyInstance): Promise<void> {
     void themenDateiVerarbeiten(prisma, ki, storage, datei.id);
 
     return reply.code(201).send(dateiDTO(datei));
+  });
+
+  // DELETE /dateien/:id — Themen-Datei samt Speicherobjekt löschen (2026-09-30).
+  // Testklausur-Lösungen (`zweck=testklausur_loesung`) hängen an ihrer
+  // Testklausur und sind hier nicht löschbar. Upload-Zähler bleibt (zählt
+  // Uploads, nicht gespeicherte Dateien). Chat-Anhänge → `SetNull`.
+  app.delete<{ Params: { id: string } }>('/dateien/:id', async (req, reply) => {
+    const datei = oder404(
+      await prisma.datei.findFirst({
+        where: { id: req.params.id, userId: req.userId, zweck: 'thema' },
+      }),
+    );
+    await prisma.datei.delete({ where: { id: datei.id } });
+    // Speicherobjekt danach: schlägt das fehl, bleibt nur ein verwaistes
+    // Objekt (Inhalte-Aufbewahrung räumt Buckets nicht auf) — loggen, nicht 500.
+    await storage.loeschen([datei.speicherPfad]).catch((err) => {
+      app.log.error({ err, dateiId: datei.id }, 'datei_speicher_loeschen_fehlgeschlagen');
+    });
+    return reply.code(204).send();
   });
 
   // GET /dateien/:id/inhalt — Bridge s.u. (kein `requireAuth`-Hook nötig).

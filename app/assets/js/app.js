@@ -396,6 +396,41 @@
      per LesifyUI.openFachColorPicker(fachId, onSaved) öffnen kann.
      --------------------------------------------------------- */
 
+  /* Farbauswahl = die 8 Paletten-Farben + „Eigene Farbe“ (natives
+     <input type="color">, alle RGB-Farben, 2026-09-30). Gespeichert wird der
+     Schlüssel bzw. `#rrggbb`; `Lesify.getFachColor` leitet ink/bg daraus ab.
+     Genutzt von openFachColorPicker und faecher.html (neues Fach). */
+  var EIGEN_FARBE_HINTERGRUND = 'conic-gradient(from 180deg, #e5484d, #f5a524, #f7e04b, #46a758, #12a594, #0091ff, #6e56cf, #d6409f, #e5484d)';
+  function swatchPickerHtml(current) {
+    var eigen = !!(current && /^#[0-9a-f]{6}$/i.test(current));
+    return Lesify.FACH_COLORS.map(function (c) {
+      var sel = c.key === current ? ' is-selected' : '';
+      return '<button type="button" class="swatch-btn' + sel + '" data-color-key="' + c.key + '" style="background:' + c.base + '" aria-label="' + c.name + '" title="' + c.name + '"></button>';
+    }).join('') +
+      '<label class="swatch-btn swatch-custom' + (eigen ? ' is-selected' : '') + '" title="Eigene Farbe wählen" style="background:' + (eigen ? current : EIGEN_FARBE_HINTERGRUND) + '">' +
+        '<input type="color" value="' + (eigen ? current : '#3a7bd5') + '" aria-label="Eigene Farbe wählen">' +
+      '</label>';
+  }
+  function bindSwatchPicker(root, onSelect) {
+    var custom = qs('.swatch-custom', root);
+    function markieren(el) { qsa('.swatch-btn', root).forEach(function (b) { b.classList.toggle('is-selected', b === el); }); }
+    qsa('button.swatch-btn', root).forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        markieren(btn);
+        onSelect(btn.getAttribute('data-color-key'));
+      });
+    });
+    if (!custom) return;
+    var input = qs('input', custom);
+    function eigeneWaehlen() {
+      custom.style.background = input.value;
+      markieren(custom);
+      onSelect(input.value.toLowerCase());
+    }
+    input.addEventListener('input', eigeneWaehlen);
+    input.addEventListener('change', eigeneWaehlen);
+  }
+
   function openFachColorPicker(fachId, onSaved) {
     if (typeof Lesify === 'undefined') return;
     var fach = Lesify.getFach(fachId);
@@ -413,24 +448,14 @@
           '</div>' +
           '<button class="modal-close" type="button" aria-label="Schließen">' + Icons.x + '</button>' +
         '</div>' +
-        '<div class="swatch-picker">' +
-          Lesify.FACH_COLORS.map(function (c) {
-            var sel = c.key === current ? ' is-selected' : '';
-            return '<button type="button" class="swatch-btn' + sel + '" data-color-key="' + c.key + '" style="background:' + c.base + '" aria-label="' + c.name + '" title="' + c.name + '"></button>';
-          }).join('') +
-        '</div>' +
+        '<div class="swatch-picker">' + swatchPickerHtml(current) + '</div>' +
         '<div class="modal-foot"><button type="button" class="btn btn-primary btn-block" data-save>Speichern</button></div>' +
       '</div>';
     document.body.appendChild(scrim);
     requestAnimationFrame(function () { scrim.classList.add('is-open'); });
 
     var selected = current;
-    qsa('.swatch-btn', scrim).forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        selected = btn.getAttribute('data-color-key');
-        qsa('.swatch-btn', scrim).forEach(function (b) { b.classList.toggle('is-selected', b === btn); });
-      });
-    });
+    bindSwatchPicker(qs('.swatch-picker', scrim), function (farbe) { selected = farbe; });
 
     function close() {
       scrim.classList.remove('is-open');
@@ -496,6 +521,14 @@
     '</div>';
   }
 
+  function dateiStatusText(status) {
+    return status === 'bereit' ? 'Analysiert &amp; bereit' : status === 'fehler' ? 'Nicht lesbar' : 'Wird analysiert…';
+  }
+  function dateiSummaryHtml(d) {
+    if (d.status === 'fehler') return '<p class="dv-summary-error">' + mdEscape(d.zusammenfassung || DATEI_FEHLER_TEXT) + '</p>';
+    return zusammenfassungHtml(d.zusammenfassung, 'Sobald „' + d.name + '" fertig gelesen ist, erscheint hier die automatische Zusammenfassung.');
+  }
+
   function renderDateiModal(d) {
     var l = Lesify.label(d.themaId);
     var bereit = d.status === 'bereit';
@@ -519,7 +552,7 @@
       '<div class="modal dv-modal" style="' + fachColorVars(d.fachId) + '">' +
         '<div class="modal-head">' +
           '<div>' +
-            '<h3 class="modal-title">' + d.name + '</h3>' +
+            '<h3 class="modal-title">' + mdEscape(d.name) + '</h3>' +
             '<p class="modal-sub">' + typLabel + ' · ' + d.groesse + ' · hochgeladen ' + d.updated + '</p>' +
           '</div>' +
           '<button class="modal-close" type="button" aria-label="Schließen">' + Icons.x + '</button>' +
@@ -531,14 +564,22 @@
             '<div class="dv-meta-row"><span class="dv-meta-k">Dateityp</span><span class="dv-meta-v">' + typLabel + '</span></div>' +
             '<div class="dv-meta-row"><span class="dv-meta-k">Größe</span><span class="dv-meta-v">' + d.groesse + '</span></div>' +
             '<div class="dv-meta-row"><span class="dv-meta-k">Hochgeladen</span><span class="dv-meta-v">' + d.updated + '</span></div>' +
-            '<div class="dv-meta-row"><span class="dv-meta-k">Status</span><span class="dv-meta-v" data-dv-status>' + (bereit ? 'Analysiert &amp; bereit' : 'Wird analysiert…') + '</span></div>' +
+            '<div class="dv-meta-row"><span class="dv-meta-k">Status</span><span class="dv-meta-v" data-dv-status>' + dateiStatusText(d.status) + '</span></div>' +
             '<div class="dv-summary">' +
               '<span class="dv-meta-k">KI-Zusammenfassung</span>' +
-              '<div class="dv-summary-md" data-dv-summary>' + zusammenfassungHtml(d.zusammenfassung, 'Sobald „' + d.name + '" fertig gelesen ist, erscheint hier die automatische Zusammenfassung.') + '</div>' +
+              '<div class="dv-summary-md" data-dv-summary>' + dateiSummaryHtml(d) + '</div>' +
             '</div>' +
           '</div>' +
         '</div>' +
         '<div class="modal-foot">' +
+          (typeof Lesify.deleteDatei === 'function'
+            ? '<button type="button" class="btn btn-ghost dv-delete" data-dv-delete>Löschen</button>' +
+              '<span class="dv-delete-confirm" data-dv-delete-confirm hidden>' +
+                '<span class="text-sm">Wirklich löschen?</span>' +
+                '<button type="button" class="btn btn-ghost btn-sm" data-dv-delete-abbrechen>Abbrechen</button>' +
+                '<button type="button" class="btn btn-sm dv-delete-go" data-dv-delete-go>Endgültig löschen</button>' +
+              '</span>'
+            : '') +
           '<a class="btn btn-secondary" href="thema.html?id=' + d.themaId + '&tab=dateien">Im Thema öffnen</a>' +
           '<button type="button" class="btn btn-primary" data-dv-download>' + Icons.download + ' Herunterladen</button>' +
         '</div>' +
@@ -562,11 +603,11 @@
         d = updated;
         bereit = updated.status === 'bereit';
         var statusEl = qs('[data-dv-status]', scrim);
-        if (statusEl) statusEl.innerHTML = bereit ? 'Analysiert &amp; bereit' : 'Verarbeitung fehlgeschlagen';
+        if (statusEl) statusEl.innerHTML = dateiStatusText(updated.status);
         var summaryEl = qs('[data-dv-summary]', scrim);
-        if (summaryEl) summaryEl.innerHTML = zusammenfassungHtml(updated.zusammenfassung, '„' + updated.name + '" konnte nicht zusammengefasst werden.');
+        if (summaryEl) summaryEl.innerHTML = dateiSummaryHtml(updated);
         var docLeadEl = qs('[data-dv-doclead]', scrim);
-        if (docLeadEl && updated.zusammenfassung) {
+        if (docLeadEl && bereit && updated.zusammenfassung) {
           docLeadEl.textContent = mdKlartext(updated.zusammenfassung);
           docLeadEl.classList.remove('is-pending');
         }
@@ -584,6 +625,28 @@
     scrim.addEventListener('click', function (e) { if (e.target === scrim) close(); });
     document.addEventListener('keydown', onEsc);
 
+    // Löschen (2026-09-30): zweistufig im Modal-Fuß statt eigenem Dialog.
+    // Seiten hören auf `lesify:datei-geloescht` und zeichnen ihre Listen neu.
+    var delBtn = qs('[data-dv-delete]', scrim);
+    if (delBtn) {
+      var confirmEl = qs('[data-dv-delete-confirm]', scrim);
+      delBtn.addEventListener('click', function () { delBtn.hidden = true; confirmEl.hidden = false; });
+      qs('[data-dv-delete-abbrechen]', scrim).addEventListener('click', function () { confirmEl.hidden = true; delBtn.hidden = false; });
+      qs('[data-dv-delete-go]', scrim).addEventListener('click', function () {
+        var go = this;
+        go.disabled = true;
+        Lesify.deleteDatei(d.id).then(function () {
+          close();
+          toast('„' + d.name + '" wurde gelöscht.');
+          qsa('[data-datei-id="' + d.id + '"]').forEach(function (el) { el.remove(); });
+          document.dispatchEvent(new CustomEvent('lesify:datei-geloescht', { detail: { id: d.id, themaId: d.themaId } }));
+        }, function (err) {
+          go.disabled = false;
+          toast(Lesify.fehlerText ? Lesify.fehlerText(err) : 'Datei konnte nicht gelöscht werden.');
+        });
+      });
+    }
+
     qs('[data-dv-download]', scrim).addEventListener('click', function () {
       if (inhaltUrl) {
         var a2 = document.createElement('a');
@@ -599,7 +662,7 @@
         'Dateityp: ' + typLabel,
         'Größe: ' + d.groesse,
         'Hochgeladen: ' + d.updated,
-        'Status: ' + (bereit ? 'Analysiert & bereit' : 'Wird analysiert…'),
+        'Status: ' + dateiStatusText(d.status).replace('&amp;', '&'),
         '', 'KI-Zusammenfassung', '------------------',
         d.zusammenfassung || 'Noch keine Zusammenfassung verfügbar.'
       ].join('\n');
@@ -893,7 +956,11 @@
      Zeigt eine gekürzte Zusammenfassung statt Logo/Typ/„Bereit"-Pill.
      --------------------------------------------------------- */
 
+  // `status=fehler`: `zusammenfassung` trägt dann den Grund (nicht lesbar,
+  // Format, technischer Fehler) — nie mehr endloses „Wird gelesen …“.
+  var DATEI_FEHLER_TEXT = 'Diese Datei konnte nicht gelesen werden.';
   function dateiSummarySnippet(d, n) {
+    if (d.status === 'fehler') return '<span class="datei-summary is-error">' + mdEscape(truncate(d.zusammenfassung || DATEI_FEHLER_TEXT, n)) + '</span>';
     if (d.zusammenfassung) return '<span class="datei-summary">' + mdEscape(truncate(mdKlartext(d.zusammenfassung), n)) + '</span>';
     return '<span class="datei-summary is-pending"><span class="skeleton" style="width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:6px;vertical-align:middle"></span>Wird gelesen und zusammengefasst…</span>';
   }
@@ -901,7 +968,7 @@
   function dateiCard(d) {
     return '<div class="card is-hoverable has-watermark datei-card" data-datei-id="' + d.id + '" data-filter="' + d.fachId + '" tabindex="0" role="link" style="padding:20px;' + fachColorVars(d.fachId) + '">' +
       cardWatermark(d.fachId) +
-      '<div class="datei-card-name">' + d.name + '</div>' +
+      '<div class="datei-card-name">' + mdEscape(d.name) + '</div>' +
       '<p class="datei-card-sub">' + dateiSummarySnippet(d, 120) + '</p>' +
       '<div class="flex justify-between items-center datei-card-foot">' + badge(d.themaId) + '<span class="text-xs text-muted">' + d.groesse + ' · ' + d.updated + '</span></div>' +
     '</div>';
@@ -910,7 +977,7 @@
   function dateiRow(d) {
     return '<div data-datei-id="' + d.id + '" data-filter="' + d.fachId + '" tabindex="0" role="link" style="display:flex;align-items:center;gap:15px;padding:14px 20px">' +
       '<span style="flex:1;min-width:0">' +
-        '<span style="display:block;font-size:0.87rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:3px">' + d.name + '</span>' +
+        '<span style="display:block;font-size:0.87rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:3px">' + mdEscape(d.name) + '</span>' +
         '<span class="text-xs text-muted" style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + dateiSummarySnippet(d, 90) + '</span>' +
       '</span>' +
       badge(d.themaId) +
@@ -1848,6 +1915,52 @@
   }
 
   /* ---------------------------------------------------------
+     Passwort anzeigen/verbergen (2026-09-30)
+     Jedes <input type="password"> bekommt ein Augen-Icon rechts im Feld —
+     auch Felder in später geöffneten Dialogen (MutationObserver). Gleicher
+     Code in app/assets/js/app.js und marketing/assets/js/marketing.js.
+     --------------------------------------------------------- */
+  var PW_ICON_ZEIGEN = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+  var PW_ICON_VERBERGEN = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.6 5.1A10.4 10.4 0 0 1 12 5c6.4 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.1M6.6 6.6C3.8 8.4 2 12 2 12s3.6 7 10 7a9.7 9.7 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/><path d="M3 3l18 18"/></svg>';
+  function passwortToggleAnbringen(input) {
+    if (input.getAttribute('data-pw-toggle')) return;
+    input.setAttribute('data-pw-toggle', '1');
+    var wrap = document.createElement('span');
+    wrap.className = 'pw-wrap';
+    input.parentNode.insertBefore(wrap, input);
+    wrap.appendChild(input);
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'pw-toggle';
+    function setzen(sichtbar) {
+      input.type = sichtbar ? 'text' : 'password';
+      btn.innerHTML = sichtbar ? PW_ICON_VERBERGEN : PW_ICON_ZEIGEN;
+      btn.setAttribute('aria-label', sichtbar ? 'Passwort verbergen' : 'Passwort anzeigen');
+      btn.setAttribute('aria-pressed', sichtbar ? 'true' : 'false');
+    }
+    btn.addEventListener('click', function () {
+      setzen(input.type === 'password');
+      input.focus();
+    });
+    setzen(false);
+    wrap.appendChild(btn);
+    // Beim Absenden wieder verbergen, damit der Browser das Feld als Passwort speichert.
+    if (input.form) input.form.addEventListener('submit', function () { setzen(false); }, true);
+  }
+  function initPasswortToggle() {
+    function scan(root) {
+      if (!root.querySelectorAll) return;
+      if (root.matches && root.matches('input[type="password"]')) passwortToggleAnbringen(root);
+      Array.prototype.forEach.call(root.querySelectorAll('input[type="password"]'), passwortToggleAnbringen);
+    }
+    scan(document);
+    if (!window.MutationObserver) return;
+    new MutationObserver(function (muts) {
+      muts.forEach(function (m) { Array.prototype.forEach.call(m.addedNodes, scan); });
+    }).observe(document.body, { childList: true, subtree: true });
+  }
+
+  /* ---------------------------------------------------------
      Boot
      --------------------------------------------------------- */
 
@@ -1866,6 +1979,7 @@
     initFilters();
     initOptionCards();
     initUsageWidget();
+    initPasswortToggle();
   });
 
   /* =========================================================
@@ -2146,5 +2260,5 @@
     });
   }
 
-  window.LesifyUI = { fachColorVars: fachColorVars, pdfVorschau: pdfVorschau, pdfDownload: pdfDownload, mdToHtml: mdToHtml, mdEscape: mdEscape, toast: toast, openModal: openModal, closeModal: closeModal, Icons: Icons, Render: Render, searchResultsHtml: searchResultsHtml, searchDropdownHtml: searchDropdownHtml, qs: qs, qsa: qsa, openFachColorPicker: openFachColorPicker, openDateiModal: openDateiModal, setPageWatermark: setPageWatermark, kindZugangModal: kindZugangModal, kindZugangAnmeldung: kindZugangAnmeldung };
+  window.LesifyUI = { fachColorVars: fachColorVars, pdfVorschau: pdfVorschau, pdfDownload: pdfDownload, mdToHtml: mdToHtml, mdEscape: mdEscape, toast: toast, openModal: openModal, closeModal: closeModal, Icons: Icons, Render: Render, searchResultsHtml: searchResultsHtml, searchDropdownHtml: searchDropdownHtml, qs: qs, qsa: qsa, openFachColorPicker: openFachColorPicker, swatchPickerHtml: swatchPickerHtml, bindSwatchPicker: bindSwatchPicker, openDateiModal: openDateiModal, setPageWatermark: setPageWatermark, kindZugangModal: kindZugangModal, kindZugangAnmeldung: kindZugangAnmeldung };
 })();

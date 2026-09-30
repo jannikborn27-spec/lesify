@@ -53,6 +53,12 @@
       'Die Kündigung konnte gerade nicht übermittelt werden. Bitte gleich noch einmal versuchen oder an kontakt@lesify.de schreiben.',
     token_ungueltig: 'Dieser Link ist ungültig oder abgelaufen. Bitte einen neuen anfordern.',
     rate_limit: 'Zu viele Versuche — bitte kurz warten und erneut probieren.',
+    konto_unbekannt:
+      'Zu dieser E-Mail-Adresse bzw. diesem Benutzernamen gibt es kein Lesify-Konto. Bitte Schreibweise prüfen oder neu registrieren.',
+    reset_kein_empfaenger:
+      'Für dieses Konto ist keine E-Mail-Adresse hinterlegt. Bitte an kontakt@lesify.de schreiben.',
+    reset_versand_fehlgeschlagen:
+      'Die E-Mail konnte gerade nicht verschickt werden. Bitte gleich noch einmal versuchen.',
   };
   function fehlerText(code) {
     return FEHLER_TEXT[code] || 'Es ist ein Fehler aufgetreten. Bitte später erneut versuchen.';
@@ -235,9 +241,9 @@
       post('/auth/passwort-vergessen', { kennung: kennung, email: kennung })
         .then(function (r) {
           setBusy(btn, false);
-          // Aus Datenschutzgründen antwortet der Server immer gleich, egal ob
-          // die E-Mail existiert. Solange kein Mailversand angebunden ist
-          // (Phase 10, zurückgestellt), gibt Dev den Token direkt zurück.
+          // Server prüft direkt, ob das Konto existiert (unbekannt → 404
+          // `konto_unbekannt`, landet im catch). Außerhalb von production gibt
+          // er den Token zusätzlich direkt zurück (Test ohne Postfach).
           if (r && r.resetToken) {
             var link = '/passwort-zuruecksetzen/?token=' + encodeURIComponent(r.resetToken);
             msg.innerHTML =
@@ -245,7 +251,9 @@
               '<a href="' + link + '">Passwort jetzt zurücksetzen</a>';
             msg.className = 'co-message is-visible co-message--info';
           } else {
-            showMsg(msg, 'Falls ein Konto dazu existiert, wurde ein Link zum Zurücksetzen verschickt — bei Kinder-Profilen an die E-Mail-Adresse der Eltern.', 'success');
+            showMsg(msg, r && r.anEltern
+              ? 'E-Mail ist raus: Der Link zum Zurücksetzen wurde an die E-Mail-Adresse deiner Eltern geschickt.'
+              : 'E-Mail ist raus: Wir haben dir einen Link zum Zurücksetzen geschickt. Schau auch im Spam-Ordner nach.', 'success');
           }
           form.reset();
         })

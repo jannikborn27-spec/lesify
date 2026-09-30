@@ -35,6 +35,7 @@ function chatDTO(c: Chat & { fach?: Fach | null; thema?: Thema | null }) {
     fachId: c.fachId,
     themaId: c.themaId,
     titel: c.titel,
+    schulbezug: c.schulbezug,
     modus: c.modus,
     erstelltAm: c.erstelltAm,
     aktualisiertAm: c.aktualisiertAm,
@@ -57,7 +58,7 @@ export async function chatsRoutes(app: FastifyInstance): Promise<void> {
   app.get('/chats', async (req) => {
     const { fachId } = parse(z.object({ fachId: z.string().uuid().optional() }), req.query);
     const chats = await prisma.chat.findMany({
-      where: { userId: req.userId, ...(fachId ? { fachId } : {}) },
+      where: { userId: req.userId, schulbezug: true, ...(fachId ? { fachId } : {}) },
       orderBy: { aktualisiertAm: 'desc' },
       include: { fach: true, thema: true },
     });
@@ -131,7 +132,7 @@ export async function chatsRoutes(app: FastifyInstance): Promise<void> {
       const datei = oder404(
         await prisma.datei.findFirst({ where: { id: body.anhangDateiId, userId: req.userId } }),
       );
-      if (datei.zusammenfassung)
+      if (datei.status === 'bereit' && datei.zusammenfassung)
         anhang = { name: datei.name, zusammenfassung: datei.zusammenfassung };
     }
 
@@ -199,18 +200,24 @@ export async function chatsRoutes(app: FastifyInstance): Promise<void> {
         },
       });
 
-      // Titel per KI beim ersten Mal (Call 07, günstigste Modellklasse); schlägt
-      // der Call fehl, Fallback auf eine einfache Kürzung statt den Chat zu
-      // blockieren. Bei Folgenachrichten nur „zuletzt aktiv" anstoßen.
+      // Titel + Schulbezug per KI beim ersten Mal (Call 07, günstigste
+      // Modellklasse); schlägt der Call fehl, Fallback auf eine einfache
+      // Kürzung statt den Chat zu blockieren. Themenfremde Chats
+      // (`schulbezug=false`) werden nicht gelistet und bekommen keinen Titel —
+      // erst die nächste Frage mit Schulbezug gibt ihnen Titel und Sichtbarkeit.
+      // Sonst bei Folgenachrichten nur „zuletzt aktiv" anstoßen.
       let titel = chat.titel;
-      if (erste) {
-        titel = await chatTitelErzeugen(ki, {
+      let schulbezug = chat.schulbezug;
+      if (erste || !chat.schulbezug) {
+        const t = await chatTitelErzeugen(ki, {
           fachName: chat.fach.name,
           themaName: chat.thema.name,
           ersteNachricht: body.text,
-        }).catch(() => fallbackTitel(body.text));
+        }).catch(() => ({ titel: fallbackTitel(body.text), schulbezug: true }));
+        schulbezug = t.schulbezug;
+        titel = schulbezug ? t.titel : '';
       }
-      await prisma.chat.update({ where: { id: chat.id }, data: { titel } });
+      await prisma.chat.update({ where: { id: chat.id }, data: { titel, schulbezug } });
 
       await inkrementiereUsage(prisma, req.userId, 'nachrichten');
 
@@ -228,6 +235,7 @@ export async function chatsRoutes(app: FastifyInstance): Promise<void> {
 
       return {
         chatId: chat.id,
+        schulbezug,
         nachrichten: [userNachricht, aiNachricht].map((n) => ({
           id: n.id,
           rolle: n.rolle,

@@ -24,7 +24,9 @@ export async function themenRoutes(app: FastifyInstance): Promise<void> {
         orderBy: [{ fach: { name: 'asc' } }, { name: 'asc' }],
         include: {
           fach: true,
-          _count: { select: { chats: true, lernzettel: true, dateien: true } },
+          _count: {
+            select: { chats: { where: { schulbezug: true } }, lernzettel: true, dateien: true },
+          },
         },
       }),
       klausurenAnzahlProThema(prisma, req.userId),
@@ -78,7 +80,7 @@ export async function themenRoutes(app: FastifyInstance): Promise<void> {
       nTestklausuren,
     ] = await Promise.all([
       prisma.chat.findMany({
-        where: { themaId },
+        where: { themaId, schulbezug: true },
         orderBy: { aktualisiertAm: 'desc' },
         take: 5,
         select: { id: true, titel: true, modus: true, aktualisiertAm: true },
@@ -107,7 +109,7 @@ export async function themenRoutes(app: FastifyInstance): Promise<void> {
         take: 5,
         select: { id: true, titel: true, status: true },
       }),
-      prisma.chat.count({ where: { themaId } }),
+      prisma.chat.count({ where: { themaId, schulbezug: true } }),
       prisma.lernzettel.count({ where: { themaId } }),
       prisma.datei.count({ where: { themaId } }),
       prisma.klausur.count({ where: { themaIds: { has: themaId } } }),

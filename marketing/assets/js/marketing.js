@@ -276,10 +276,10 @@
   /* ---------- Footer ----------
      Identischer Footer überall (gleiches Markup, gleiche Navigation) — auf
      /preise/ und den Rechtstexten (Impressum/Datenschutz/AGB) nur mit
-     invertiertem Farbschema (schwarzer Hintergrund/heller Text statt
+     invertiertem Farbschema (auch /kontakt/ und /kuendigen/; schwarzer Hintergrund/heller Text statt
      hellem Hintergrund/dunklem Text), sonst 1:1 dasselbe Layout wie auf
      Home/Über uns. */
-  var FOOTER_DARK_PAGES = ['preise', 'impressum', 'datenschutz', 'agb', 'kontakt'];
+  var FOOTER_DARK_PAGES = ['preise', 'impressum', 'datenschutz', 'agb', 'kontakt', 'kuendigen'];
   function buildFooter() {
     var host = document.getElementById('mkt-footer');
     if (!host) return;
@@ -3734,8 +3734,55 @@
     if (location.hash) scrollToHash(location.hash, 'auto');
   });
 
+  /* ---------------------------------------------------------
+     Passwort anzeigen/verbergen (2026-09-30)
+     Jedes <input type="password"> bekommt ein Augen-Icon rechts im Feld —
+     auch Felder in später geöffneten Dialogen (MutationObserver). Gleicher
+     Code in app/assets/js/app.js und marketing/assets/js/marketing.js.
+     --------------------------------------------------------- */
+  var PW_ICON_ZEIGEN = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+  var PW_ICON_VERBERGEN = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.6 5.1A10.4 10.4 0 0 1 12 5c6.4 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.1M6.6 6.6C3.8 8.4 2 12 2 12s3.6 7 10 7a9.7 9.7 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/><path d="M3 3l18 18"/></svg>';
+  function passwortToggleAnbringen(input) {
+    if (input.getAttribute('data-pw-toggle')) return;
+    input.setAttribute('data-pw-toggle', '1');
+    var wrap = document.createElement('span');
+    wrap.className = 'pw-wrap';
+    input.parentNode.insertBefore(wrap, input);
+    wrap.appendChild(input);
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'pw-toggle';
+    function setzen(sichtbar) {
+      input.type = sichtbar ? 'text' : 'password';
+      btn.innerHTML = sichtbar ? PW_ICON_VERBERGEN : PW_ICON_ZEIGEN;
+      btn.setAttribute('aria-label', sichtbar ? 'Passwort verbergen' : 'Passwort anzeigen');
+      btn.setAttribute('aria-pressed', sichtbar ? 'true' : 'false');
+    }
+    btn.addEventListener('click', function () {
+      setzen(input.type === 'password');
+      input.focus();
+    });
+    setzen(false);
+    wrap.appendChild(btn);
+    // Beim Absenden wieder verbergen, damit der Browser das Feld als Passwort speichert.
+    if (input.form) input.form.addEventListener('submit', function () { setzen(false); }, true);
+  }
+  function initPasswortToggle() {
+    function scan(root) {
+      if (!root.querySelectorAll) return;
+      if (root.matches && root.matches('input[type="password"]')) passwortToggleAnbringen(root);
+      Array.prototype.forEach.call(root.querySelectorAll('input[type="password"]'), passwortToggleAnbringen);
+    }
+    scan(document);
+    if (!window.MutationObserver) return;
+    new MutationObserver(function (muts) {
+      muts.forEach(function (m) { Array.prototype.forEach.call(m.addedNodes, scan); });
+    }).observe(document.body, { childList: true, subtree: true });
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     buildNav();
+    initPasswortToggle();
     buildFooter();
     buildFeaturePage();
     applyHeroColor('1');

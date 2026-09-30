@@ -39,7 +39,7 @@ export async function sucheRoutes(app: FastifyInstance): Promise<void> {
           include: { fach: true },
         }),
         prisma.chat.findMany({
-          where: { userId, titel: like },
+          where: { userId, schulbezug: true, titel: like },
           take,
           orderBy: { aktualisiertAm: 'desc' },
           include: { fach: true },

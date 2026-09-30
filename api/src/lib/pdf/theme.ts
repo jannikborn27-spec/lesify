@@ -1,6 +1,7 @@
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { FACH_FARBE_HEX, fachFarbeAusHex } from '@lesify/shared';
 
 /**
  * Gemeinsame Gestaltungswerte der Lesify-PDFs (Lernzettel + Testklausur).
@@ -43,6 +44,7 @@ const FACH_FARBEN: Record<string, FachFarbe> = {
 };
 
 export function fachFarbe(key: string | null | undefined): FachFarbe {
+  if (key && FACH_FARBE_HEX.test(key)) return fachFarbeAusHex(key);
   return FACH_FARBEN[key ?? ''] ?? FACH_FARBEN.graphit!;
 }
 

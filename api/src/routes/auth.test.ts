@@ -170,7 +170,7 @@ describe.runIf(hatDb)('auth — kompletter Flow (Supabase)', () => {
     expect(wieder.statusCode).toBe(400);
   });
 
-  it('passwort-vergessen: 200 mit Token für bekannte, 200 ohne Token für unbekannte E-Mail', async () => {
+  it('passwort-vergessen: 200 mit Token für bekannte, 404 konto_unbekannt für unbekannte E-Mail', async () => {
     const bekannt = await app.inject({
       method: 'POST',
       url: '/auth/passwort-vergessen',
@@ -184,7 +184,8 @@ describe.runIf(hatDb)('auth — kompletter Flow (Supabase)', () => {
       url: '/auth/passwort-vergessen',
       payload: { email: `nope+${crypto.randomUUID()}@auth.lesify.test` },
     });
-    expect(unbekannt.statusCode).toBe(200);
+    expect(unbekannt.statusCode).toBe(404);
+    expect(unbekannt.json().fehler).toBe('konto_unbekannt');
     expect(unbekannt.json().resetToken).toBeUndefined();
   });
 

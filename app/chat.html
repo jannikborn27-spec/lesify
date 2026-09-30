@@ -469,9 +469,9 @@
   </div>
 </div>
 
-<script src="assets/js/api.js?v=20260929token"></script>
+<script src="assets/js/api.js?v=20260930"></script>
 <script src="assets/js/auth-gate.js"></script>
-<script src="assets/js/app.js?v=20260919pdf"></script>
+<script src="assets/js/app.js?v=20260930"></script>
 <script>
 document.addEventListener('DOMContentLoaded', async function () {
   var I = LesifyUI.Icons, R = LesifyUI.Render;
@@ -607,7 +607,7 @@ document.addEventListener('DOMContentLoaded', async function () {
       return '<div class="chat-history-item' + active + '" data-chat-id="' + c.id + '" tabindex="0" role="button"' + vars + '>' +
         '<span class="chi-avatar">' + avatarInner + '</span>' +
         '<span class="chi-body">' +
-          '<span class="chi-title">' + c.titel + '</span>' +
+          '<span class="chi-title">' + escSafe(c.titel || 'Neue Frage') + '</span>' +
           '<span class="chi-meta">' +
             '<span class="chi-dot"' + dotStyle + '></span>' +
             '<span class="chi-ft">' + lbl.fach + ' · ' + lbl.thema + '</span>' +

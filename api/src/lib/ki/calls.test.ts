@@ -17,12 +17,13 @@ const ki = new FakeKiClient();
 
 describe('Call-Funktionen gegen FakeKiClient (deterministisch, kein Netzwerk)', () => {
   it('chatTitelErzeugen liefert einen Titel', async () => {
-    const titel = await chatTitelErzeugen(ki, {
+    const { titel, schulbezug } = await chatTitelErzeugen(ki, {
       fachName: 'Mathematik',
       themaName: 'Bruchrechnung',
       ersteNachricht: 'Wie kürzt man 8/12?',
     });
     expect(titel).toBeTruthy();
+    expect(schulbezug).toBe(true);
   });
 
   it('chatAntwortErzeugen liefert Freitext für jeden Modus', async () => {

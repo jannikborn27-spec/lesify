@@ -449,6 +449,10 @@ a.badge:active { transform: scale(0.96); }
   transition: transform 140ms var(--ease-out);
 }
 .swatch-btn:hover { transform: scale(1.1); }
+/* „Eigene Farbe“: natives <input type="color"> unsichtbar über dem Swatch */
+.swatch-custom { cursor: pointer; display: inline-block; }
+.swatch-custom input[type="color"] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; border: 0; padding: 0; cursor: pointer; }
+.swatch-custom:has(input:focus-visible) { outline: 2px solid var(--ink-950); outline-offset: 2px; }
 .swatch-btn:active { transform: scale(0.96); }
 .swatch-btn.is-selected { box-shadow: 0 0 0 2px var(--bg-surface), 0 0 0 4px var(--ink-950); }
 .swatch-btn.is-selected::after {
@@ -862,6 +866,16 @@ textarea.input { height: auto; padding: 12px 14px; min-height: 90px; resize: ver
 .dv-summary { border-top: 1px solid var(--line); padding-top: 12px; display: flex; flex-direction: column; gap: 6px; }
 .dv-summary p, .dv-summary li { font-size: 0.82rem; line-height: 1.55; color: var(--ink-800); margin: 0; }
 .dv-summary-md { display: flex; flex-direction: column; gap: 6px; }
+.dv-summary-md .dv-summary-error { margin: 0; color: var(--rot); font-size: 0.84rem; line-height: 1.5; }
+/* Datei löschen im Modal-Fuß (2026-09-30): links, zweistufig */
+.dv-modal .modal-foot { flex-wrap: wrap; }
+.dv-modal .modal-foot .dv-delete { flex: 0 0 auto; color: var(--rot); margin-right: auto; }
+.dv-delete-confirm { display: flex; align-items: center; gap: 8px; flex: 1 1 100%; padding: 10px 12px; border-radius: var(--radius-md); background: var(--rot-bg); color: var(--rot); }
+.dv-delete-confirm[hidden], .dv-modal .modal-foot .dv-delete[hidden] { display: none; }
+.dv-delete-confirm .text-sm { margin-right: auto; font-weight: 600; }
+.modal-foot .dv-delete-confirm .btn { flex: 0 0 auto; }
+.dv-delete-go { background: var(--rot); color: #fff; border-color: var(--rot); }
+.dv-delete-go:hover { filter: brightness(0.95); }
 .dv-meta-row .badge { min-width: 0; max-width: 65%; }
 .dv-meta-row .badge .badge-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .dv-summary-md ul, .dv-summary-md ol { margin: 0; padding-left: 1.1rem; }
@@ -1157,6 +1171,7 @@ textarea.input { height: auto; padding: 12px 14px; min-height: 90px; resize: ver
 .datei-card-sub { min-height: 2.7em; margin-bottom: 16px; }
 .datei-summary { font-size: 0.82rem; color: var(--ink-600); line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .datei-summary.is-pending { color: var(--ink-500); }
+.datei-summary.is-error { color: var(--rot); }
 .datei-card-foot { padding-top: 14px; border-top: 1px solid var(--line); gap: 10px; }
 /* Größe/Datum nie umbrechen; ein langes Fach·Thema-Badge kürzt stattdessen (Testdurchgang 2026-09-29). */
 .datei-card-foot > .text-xs { white-space: nowrap; flex-shrink: 0; }
@@ -2249,3 +2264,16 @@ textarea.input { height: auto; padding: 12px 14px; min-height: 90px; resize: ver
 }
 .abo-sperre__karte h1 { font-size: 1.4rem; margin: 0 0 10px; color: var(--ink-950); }
 .abo-sperre__karte p { margin: 0 0 22px; color: var(--ink-700); line-height: 1.6; }
+
+/* Passwort anzeigen/verbergen (initPasswortToggle, 2026-09-30) */
+.pw-wrap { position: relative; display: block; width: 100%; }
+.pw-wrap .input { padding-right: 46px; }
+.pw-toggle {
+  position: absolute; top: 50%; right: 6px; transform: translateY(-50%);
+  width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center;
+  border: 0; border-radius: var(--radius-md); background: transparent; color: var(--ink-500);
+  cursor: pointer; padding: 0;
+}
+.pw-toggle:hover { color: var(--ink-900); background: var(--ink-50); }
+.pw-toggle:focus-visible { outline: 2px solid var(--ink-950); outline-offset: 1px; }
+.pw-wrap .input::-ms-reveal { display: none; }

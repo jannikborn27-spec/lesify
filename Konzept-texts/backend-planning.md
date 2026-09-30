@@ -233,6 +233,11 @@ Phase 9: angelegt/gelistet/gelöscht über `GET/POST/DELETE /abo/kinder`
 (`rolle = schueler`, `parentUserId` + `aboId` = Elternkonto,
 `passwordHash = "kind:kein-login"` bis zur echten Einladung in Phase 12).
 `DELETE` → `User`-Zeile weg → Cascade löscht alle Inhalte des Sitzes.
+**Standard-Fächer (2026-09-30):** `POST /abo/kinder` legt jedem neuen
+Schüler-Konto Deutsch, Mathematik und Englisch an (`STANDARD_FAECHER` in
+`api/src/lib/standardFaecher.ts`, Farben `rose`/`blue`/`amber`, Preset-Icons).
+Bestandskonten ohne ein einziges Fach bekommen sie per Migration
+`20260930130000_standard_faecher`; Konten mit eigenen Fächern bleiben unangetastet.
 
 ### Einstellungen
 Ein Datensatz pro User. Aktuell im Prototyp: Benachrichtigungs-Toggles,
@@ -253,7 +258,7 @@ KI-Tonfall und das App-Erscheinungsbild — Kandidat für spätere Erweiterung
 | name | string | |
 | klasse | string | optional, z. B. „8. Klasse" |
 | initial | string | 1 Zeichen, UI-Avatar-Fallback — kann im Backend auch rein clientseitig aus `name` abgeleitet werden |
-| farbe | enum | Frei wählbar aus einer festen Palette (`FACH_COLORS`, aktuell 8 kuratierte Farbschlüssel wie `blue`/`rose`/`amber`/…, definiert in `app/assets/js/data.js`); rein für Wayfinding/Unterscheidbarkeit der Fächer, keine Statusbedeutung wie das Ampel-Konzept. Kein Freitext-Colorpicker — das Frontend bietet eine feste Auswahl, damit Kontrast/Lesbarkeit garantiert bleiben |
+| farbe | string | Schlüssel aus der Palette `FACH_COLORS` (8 kuratierte Farben wie `blue`/`rose`/`amber`/…, definiert in `app/assets/js/data.js`/`api.js`) **oder** seit 2026-09-30 eine frei gewählte Farbe `#rrggbb` (Swatch „Eigene Farbe“ = natives `<input type="color">` neben den 8 Farben). Für Hex-Werte leiten `fachFarbeAusHex` (`shared/src/fachFarbe.ts`, gespiegelt in `api.js`/`data.js`, genutzt auch von den PDFs) `bg` (10 % auf Weiß) und `ink` (abgedunkelt bis ≥ 4,5:1 Kontrast auf `bg`) ab — so bleibt Text auch bei hellen Farben lesbar. Server validiert Schlüssel **oder** `^#[0-9a-f]{6}$` (lowercase gespeichert). Rein für Wayfinding, keine Statusbedeutung wie das Ampel-Konzept |
 | icon | enum (nullable) | Schlüssel aus einer kuratierten Icon-Bibliothek (`FACH_ICONS`/`FACH_PRESETS` in `app/assets/js/data.js`, aktuell 18 gängige Schulfächer wie `mathematik`/`deutsch`/`biologie`/…). Beim Anlegen wählt der Nutzer optional eine Vorlage aus dieser Liste (Name + Icon werden übernommen, bleiben editierbar) oder legt ein „eigenes Fach" ohne Vorlage an — dann bleibt `icon` `null` und die UI fällt auf den `initial`-Avatar zurück. Wird als Kartenavatar (`fach.html`/`faecher.html`) **und** als blasses Wasserzeichen auf Themen-/Klausur-/Datei-Karten verwendet (nur wenn gesetzt) |
 
 ### Thema
@@ -275,7 +280,8 @@ KI-Tonfall und das App-Erscheinungsbild — Kandidat für spätere Erweiterung
 | id | uuid | |
 | fachId | uuid (FK) | denormalisiert für schnelle Filterung, ergibt sich aus themaId |
 | themaId | uuid (FK) | Pflicht |
-| titel | string | wird aus der ersten Nutzer-Nachricht generiert (KI-Call, siehe §3) |
+| titel | string | wird aus der ersten Nutzer-Nachricht generiert (KI-Call, siehe §3); bleibt leer, solange `schulbezug = false` |
+| schulbezug | bool | Default `true`. **Neu 2026-09-30:** Call 07 stuft die erste Nachricht zusätzlich als schulbezogen oder themenfremd ein (z. B. „Taylor Swift Alben seit 2010“ in Mathe/Bruchrechnung). `false` → Chat taucht **nicht** in `GET /chats`, Suche, Themen-/Fach-Zählern und im KI-Themen-Kontext auf; Call 07 läuft bei jeder weiteren Nachricht erneut, bis eine Frage Schulbezug hat (dann Titel + sichtbar). Migration `20260930120000_chat_schulbezug`, Bestandschats bleiben `true` |
 | modus | enum (nullable) | `erklaeren` \| `hausaufgaben` \| `ueben` \| `zusammenfassen` — **optional**. Im Composer (`chat.html`) sind die Modus-Pills nicht mehr pflicht: der Nutzer kann Fach + Thema wählen und direkt senden. Ohne Modus bleibt das Feld `null`; UI und System-Prompt fallen auf einen neutralen „freie Frage"-Modus zurück (Kopfzeile „Freie Frage", generische Vorschläge/Antworten). Lernplan-Deep-Links setzen weiterhin immer einen konkreten Modus |
 | erstelltAm | timestamp | |
 | aktualisiertAm | timestamp | für „zuletzt aktiv"-Sortierung |
@@ -324,7 +330,7 @@ einzeln zählbar sind.
 | mime | string | Original-MIME (Phase 5) — unterscheidet `.docx`/Legacy-`.doc` bzw. Bild-Subtyp für Vision |
 | groesseBytes | int | Limit: 5 MB pro Datei (hart validiert, Backend UND Frontend) |
 | speicherPfad | string | siehe §6 |
-| status | enum | `verarbeitung` \| `bereit` \| `fehler` |
+| status | enum | `verarbeitung` \| `bereit` \| `fehler`. Bei `fehler` steht der für Nutzer lesbare Grund in `zusammenfassung` (`DATEI_FEHLER` in `dateiVerarbeitung.ts`: Format nicht unterstützt / nicht lesbar / technischer Fehler) — KI-Kontexte lesen nur `bereit`-Dateien. Hängt `verarbeitung` länger als 10 min (Job bei Neustart verloren), setzen `GET /dateien(/:id)` sie auf `fehler` (2026-09-30) |
 | zweck | enum | `thema` \| `testklausurLoesung` (Phase 5) — Lösungs-Uploads erscheinen nicht in der Themen-Dateiliste, zählen nicht gegen das Content-Limit |
 | zusammenfassung | text (nullable) | KI-generiert beim Upload, siehe §3 |
 | erstelltAm | timestamp | |
@@ -746,7 +752,7 @@ cachen/zusammenfassen, wenn der Kontext zu groß wird — nicht vorher optimiere
 | Datei-Upload | 1× | Datei lesen → Name + Zusammenfassung erzeugen | Einmalig bei Upload, danach nur noch die gespeicherte Zusammenfassung lesen — nie erneut die Rohdatei an die KI schicken |
 | Chat-Start | 1× (System-Prompt) | „Themen Memory" zusammenbauen: alle Lernzettel (voll) + Datei-Zusammenfassungen + Titel bisheriger Chats als Kontext-Block | Ein Call für den ganzen Kontext, keine Einzel-Extraktion pro Quelle |
 | Jede Chat-Nachricht | 1× | Antwort generieren (Modus-abhängiger System-Prompt: erklären / hausaufgaben / üben / zusammenfassen; ohne gewählten Modus ein neutraler „freie Frage"-System-Prompt) | — |
-| Chat-Titel (nur 1. Nachricht) | 1× | Kurzen `Chat.titel` aus der ersten Nutzer-Nachricht erzeugen (`prompts/07-chat-titel.md`) | Günstigste/schnellste Modellklasse, ~20 Output-Tokens; an den ersten `POST /chats/:id/nachrichten` angehängt, kein eigener Call-Roundtrip nötig |
+| Chat-Titel (nur 1. Nachricht) | 1× (+ je Folgenachricht, solange ohne Schulbezug) | Kurzen `Chat.titel` aus der ersten Nutzer-Nachricht erzeugen (`prompts/07-chat-titel.md`) **und** `schulbezug` einstufen (seit 2026-09-30; themenfremd → Chat ungelistet, kein Titel) | Günstigste/schnellste Modellklasse, ~20 Output-Tokens; an den ersten `POST /chats/:id/nachrichten` angehängt, kein eigener Call-Roundtrip nötig |
 | Lernzettel erstellen | 1× | Vollautomatisch aus allen Chats + Dateien des Themas generieren | On-demand, nicht bei jeder Chat-Nachricht neu |
 | Lernzettel-Revision | 1× pro Nachricht | Zettel gemäß Anweisung anpassen | Zählt wie eine normale Chat-Nachricht (kein Gratis-Kontingent, seit 2026-09-19) |
 | Testklausur erstellen | 1× | Pro Thema eine Aufgabe generieren (nicht Multiple-Choice), basierend auf Chat- + Datei-Content des Themas | Ein Call für alle Aufgaben der Testklausur zusammen, nicht pro Thema einzeln. **Gleicher Call für Testklausur 1 (alle Themen) und Testklausur 2 (nur die schwachen/wackeligen)** — keine neue Call-Art |
@@ -976,8 +982,8 @@ Abweichungen von den Tabellen unten:
 | Methode | Pfad | Zweck |
 |---|---|---|
 | GET | `/faecher` | Liste aller Fächer des Users |
-| POST | `/faecher` | `{name, klasse?, farbe?, icon?}` → neues Fach; `farbe` optional (Server vergibt sonst reihum eine aus `FACH_COLORS`), `icon` optional (Schlüssel aus `FACH_PRESETS`/`FACH_ICONS`; weggelassen bei „eigenes Fach" ohne Vorlage → Avatar fällt auf `initial` zurück) |
-| PATCH | `/faecher/:id` | `{farbe}` — bislang einziges nachträglich editierbare Feld; Auslöser des Farbwählers: Klick auf das Fach-Logo (Avatar) auf `fach.html` bzw. den Swatch-Button auf `faecher.html`. `icon` wird nur bei Erstellung gesetzt, es gibt aktuell keine UI, ein Icon nachträglich zu ändern |
+| POST | `/faecher` | `{name, klasse?, farbe?, icon?}` → neues Fach; `farbe` optional, Schlüssel oder `#rrggbb` (Server vergibt sonst reihum eine aus `FACH_COLORS`), `icon` optional (Schlüssel aus `FACH_PRESETS`/`FACH_ICONS`; weggelassen bei „eigenes Fach" ohne Vorlage → Avatar fällt auf `initial` zurück) |
+| PATCH | `/faecher/:id` | `{farbe}` (Schlüssel oder `#rrggbb`) — bislang einziges nachträglich editierbare Feld; Auslöser des Farbwählers: Klick auf das Fach-Logo (Avatar) auf `fach.html` bzw. den Swatch-Button auf `faecher.html`. `icon` wird nur bei Erstellung gesetzt, es gibt aktuell keine UI, ein Icon nachträglich zu ändern |
 | GET | `/faecher/:id/themen` | Themen eines Fachs, je Thema mit `anzahlChats`/`anzahlLernzettel`/`anzahlDateien`/`anzahlKlausuren` (2026-09-12, für `fach.html`s Themen-Karten) — Chats/Lernzettel/Dateien per `_count`, Klausuren über den Batch-Helfer `klausurenAnzahlProThema()` (`Klausur.themaIds` ist ein String-Array, keine echte Relation, `_count` geht dafür nicht). **Kein** `anzahlTestklausuren` (bislang von keiner Seite gebraucht) |
 | GET | `/themen` | Fächerübergreifende Aggregat-Liste aller Themen (eigene Nav-Seite `themen.html`), je Thema mit denselben vier Zählwerten wie `/faecher/:id/themen` (2026-09-12) |
 | POST | `/themen` | `{fachId, name, beschreibung?}` → neues Thema |
@@ -986,10 +992,10 @@ Abweichungen von den Tabellen unten:
 ### Chats
 | Methode | Pfad | Zweck |
 |---|---|---|
-| GET | `/chats` | Fächerübergreifende Liste aller Chats des Users, neueste zuerst — beliefert den Chat-Verlauf in der linken Spalte von `chat.html` (Claude-artiges Layout: Verlauf links mit „Neuer Chat"-Button, aktiver Chat/leerer Zustand rechts). Optionaler Query-Param `?fachId=` für den Fach-Filter im Verlauf (Prototyp filtert clientseitig; UI: Einfachauswahl „ein Fach oder Alle", Fach-Liste nur aus Fächern mit ≥1 Chat) |
+| GET | `/chats` | Fächerübergreifende Liste aller Chats des Users mit `schulbezug = true` (themenfremde Chats bleiben unsichtbar, 2026-09-30), neueste zuerst — beliefert den Chat-Verlauf in der linken Spalte von `chat.html` (Claude-artiges Layout: Verlauf links mit „Neuer Chat"-Button, aktiver Chat/leerer Zustand rechts). Optionaler Query-Param `?fachId=` für den Fach-Filter im Verlauf (Prototyp filtert clientseitig; UI: Einfachauswahl „ein Fach oder Alle", Fach-Liste nur aus Fächern mit ≥1 Chat) |
 | POST | `/chats` | `{fachId, themaId, modus?}` (`modus` darf fehlen **oder `null`** sein = freie Frage) → neuer Chat, liefert System-Prompt-Kontext-Block. `modus` ist **optional** (Composer-Pills sind nicht mehr pflicht); fehlt er, wird der Chat ohne Modus angelegt (`modus = null`) und der neutrale „freie Frage"-System-Prompt genutzt. Wird im Prototyp erst beim Senden der ersten Nachricht angelegt (nicht schon beim reinen Öffnen von `chat.html`) — gilt jetzt **auch für Lernplan-Deep-Links** (`?fach=…&thema=…&mode=…`): auch die werden erst beim ersten Absenden zum echten Chat, nicht mehr flüchtig gehalten |
 | GET | `/chats/:id` | Chat inkl. Nachrichten. Lernplan-Chips können hierher deep-linken (`chat.html?chat=<id>`), wenn `Lernplan.chatMap` den Schritt schon kennt (Fortsetzung statt Neuanlage) |
-| POST | `/chats/:id/nachrichten` | `{text, anhangDateiId?, lernplanKontext?: {lernplanId, tag}}` → Vorab-Filter (Themen-/Größen-/Spam-Guard), Usage-Limit-Check, User-Nachricht speichern, echte KI-Antwort (Calls 03–06/frei, **Phase 6 verdrahtet**) + `Chat.titel` (Call 07) generieren, Usage inkrementieren. **Streaming (seit 2026-09-23):** mit `Accept: text/event-stream` kommt die Antwort als Server-Sent Events — `data: {"typ":"delta","text"}` je Textstück, zum Schluss `{"typ":"fertig", chatId, nachrichten, chatMap?}` (identisch zur JSON-Antwort) oder `{"typ":"fehler","fehler":"ki_nicht_verfuegbar"\|"serverfehler"}`; Guards/Limits/404 laufen vor Stream-Beginn und kommen als normale JSON-Fehler. Ohne den Header unverändert JSON. Nachrichten/Usage werden erst nach vollständiger Antwort gespeichert. Bei gesetztem `lernplanKontext` zusätzlich `Lernplan.chatMap["<tag>\|<chat.modus>\|<chat.themaId>"] = chat.id` setzen (idempotent) |
+| POST | `/chats/:id/nachrichten` | `{text, anhangDateiId?, lernplanKontext?: {lernplanId, tag}}` → Vorab-Filter (Themen-/Größen-/Spam-Guard), Usage-Limit-Check, User-Nachricht speichern, echte KI-Antwort (Calls 03–06/frei, **Phase 6 verdrahtet**) + `Chat.titel` und `Chat.schulbezug` (Call 07) generieren — bei der ersten Nachricht und solange der Chat noch keinen Schulbezug hat; Antwort enthält zusätzlich `schulbezug` —, Usage inkrementieren. **Streaming (seit 2026-09-23):** mit `Accept: text/event-stream` kommt die Antwort als Server-Sent Events — `data: {"typ":"delta","text"}` je Textstück, zum Schluss `{"typ":"fertig", chatId, nachrichten, chatMap?}` (identisch zur JSON-Antwort) oder `{"typ":"fehler","fehler":"ki_nicht_verfuegbar"\|"serverfehler"}`; Guards/Limits/404 laufen vor Stream-Beginn und kommen als normale JSON-Fehler. Ohne den Header unverändert JSON. Nachrichten/Usage werden erst nach vollständiger Antwort gespeichert. Bei gesetztem `lernplanKontext` zusätzlich `Lernplan.chatMap["<tag>\|<chat.modus>\|<chat.themaId>"] = chat.id` setzen (idempotent) |
 
 ### Lernzettel
 | Methode | Pfad | Zweck |
@@ -1005,6 +1011,7 @@ Abweichungen von den Tabellen unten:
 | POST | `/themen/:id/dateien` | **Phase 5 verdrahtet.** multipart Upload (max. 5 MB, hart via `@fastify/multipart`-Limit + manueller Check), Status `verarbeitung` → async Call 01 (Text-Extraktion oder Vision bei Bildern) → Status `bereit`/`fehler`. Der Client erfährt den Wechsel per **Polling** von `GET /dateien/:id` (kurzer Backoff, Stopp bei `bereit`/`fehler` oder ~60 s Timeout) — kein Websocket/SSE (Entscheidung 2026-09-04) |
 | GET | `/dateien?themaId=` oder ohne Filter | Aggregat-Liste, nur `zweck: thema` (Testklausur-Lösungs-Uploads ausgeschlossen) |
 | GET | `/dateien/:id` | Datei-Detail (Metadaten + KI-Zusammenfassung + Status) für den **Datei-Viewer**: Klick auf eine Datei-Karte/-Zeile (`dateien.html`, `thema.html` inkl. Übersicht, Dashboard-Feed) öffnet jetzt ein Modal (`LesifyUI.openDateiModal`) mit Dokument-Ansicht statt zur Themen-Dateien-Unterseite zu navigieren. Im Prototyp aus der bereits geladenen Liste bedient |
+| DELETE | `/dateien/:id` | **Neu 2026-09-30.** Themen-Datei (`zweck: thema`) samt Speicherobjekt löschen → `204`; Testklausur-Lösungen → `404`. Upload-Zähler bleibt (zählt Uploads). Chat-Anhänge/Lösungsverweise → `SetNull`. UI: „Löschen“ im Datei-Viewer-Modal (zweistufig), Seiten hören auf `lesify:datei-geloescht` |
 | GET | `/dateien/:id/inhalt` | **Phase 5 verdrahtet.** 302-Redirect auf eine 60 s gültige signierte URL — zum Einbetten/Anzeigen im Viewer (PDF inline, Bild-Vorschau) **und** für den „Herunterladen"-Button im Viewer-Modal. Läuft **ohne** den normalen `requireAuth`-Hook (eigener Plugin-Scope), weil `dateiInhaltUrl()` direkt als `<a href>`/`<img src>` genutzt wird und keinen `Authorization`-Header mitschicken kann — Auth via Header **oder** `?token=`. Im Prototyp nicht vorhanden — das Modal zeigt eine simulierte Vorschau (Zusammenfassung + Platzhalter) und der Download liefert ersatzweise ein `.txt` mit Metadaten + KI-Zusammenfassung (`Lesify.downloadText`), keinen echten Datei-Inhalt |
 
 ### Klausuren (echter Termin)
@@ -1083,7 +1090,7 @@ Query-Parameter, die `chat.html`/`thema.html` aus dem client-seitigen
 | POST | `/auth/registrieren` | `{name, email, passwort, einwilligung: true}` → **Eltern-Konto** anlegen (`rolle` server-seitig fest `elternteil`, `klassenstufe = null` — kein Client-Input mehr seit 2026-09-16), Double-Opt-in-Token erzeugen und per Mail verschicken (Resend, `marketing/email-bestaetigen/`; ohne `RESEND_API_KEY` nur geloggt), **14-Tage-Testphase** starten (`User.trialEndetAm = createdAt + 14 Tage`). `einwilligung` (Zustimmung zu Nutzungsbedingungen/Datenschutz) ist **Pflicht** — fehlt sie → `400`; der Zeitpunkt landet als `User.einwilligungAm`. Tarif-Wahl + Zahlungsart laufen über den Checkout (`POST /abo`); Kind-Profile kommen erst danach über `POST /abo/kinder` |
 | POST | `/auth/login` | `{kennung, passwort, angemeldetBleiben?}` → Session/JWT. `kennung` = E-Mail **oder** Benutzername (Kind-Profile, 2026-09-25), Groß-/Kleinschreibung egal; `email` bleibt als Alias für `kennung` erlaubt |
 | POST | `/auth/logout` | Session invalidieren |
-| POST | `/auth/passwort-vergessen` | `{kennung}` (E-Mail oder Benutzername; `email` als Alias) → Reset-Token, per Mail verschickt (Resend, `marketing/passwort-zuruecksetzen/`; immer 200, keine Konto-Enumeration). **Kind-Profile:** der Link geht immer an die **E-Mail der Eltern** (Vorlage `kindPasswortResetMail`, Entscheidung 2026-09-25), auch wenn das Kind eine eigene E-Mail hat |
+| POST | `/auth/passwort-vergessen` | `{kennung}` (E-Mail oder Benutzername; `email` als Alias) → Reset-Token, per Mail verschickt (Resend, `marketing/passwort-zuruecksetzen/`). **Seit 2026-09-30 ehrliche Antwort statt „immer 200“:** unbekanntes Konto → `404 konto_unbekannt`, Konto ohne Empfänger-Adresse → `422 reset_kein_empfaenger`, Mailversand scheitert → `503 reset_versand_fehlgeschlagen`, sonst `200 {ok, anEltern}` → Seite sagt „E-Mail ist raus“. Enumeration ist über `/registrieren` (`email_vergeben`) ohnehin möglich; Schutz = Rate-Limit `auth`. **Kind-Profile:** der Link geht immer an die **E-Mail der Eltern** (Vorlage `kindPasswortResetMail`, Entscheidung 2026-09-25), auch wenn das Kind eine eigene E-Mail hat |
 | POST | `/auth/passwort-zuruecksetzen` | `{token, neuesPasswort}` → Passwort setzen, Token verbrauchen, **alle Sessions löschen** |
 | POST | `/auth/passwort-aendern` | **neu 2026-09-28**, eingeloggt: `{altesPasswort, neuesPasswort}` → falsches altes Passwort `400 passwort_falsch`; setzt das Passwort, **löscht alle anderen Sessions** (die aktuelle bleibt), entwertet offene Reset-Token. UI: `einstellungen.html` (Kind) + „Datenschutz & Konto" (`eltern-datenschutz.html`, Modal) |
 | POST | `/auth/email-bestaetigen` | `{token}` → `emailVerifiedAt` setzen (Einmal-Token) |
@@ -1326,12 +1333,15 @@ ohne Backend (Formulare zeigen nur einen Toast). Für das echte Backend:
   (`MailGateway`, Resend-Adapter aktiv sobald `RESEND_API_KEY` gesetzt ist,
   sonst `FakeMailGateway`, der nur loggt — wie beim KI-/Zahlungs-/Storage-
   Adapter). Mail-Fehler lassen die Requests **nicht** scheitern (Konto/Token
-  stehen schon in der DB), nur Logging (siehe `docs/RUNBOOK.md`). Zusätzlich
+  stehen schon in der DB), nur Logging — Ausnahme seit 2026-09-30:
+  `/passwort-vergessen` antwortet dann `503 reset_versand_fehlgeschlagen`, weil die
+  Seite sonst fälschlich „E-Mail ist raus“ meldet (siehe `docs/RUNBOOK.md`). Zusätzlich
   geben `/registrieren` und `/passwort-vergessen` außerhalb von `production`
   weiterhin den Roh-Token direkt in der Antwort zurück (`emailBestaetigungToken`
   / `resetToken`), damit der Flow auch ohne Mail-Postfach testbar bleibt.
-- **`/passwort-vergessen`** antwortet **immer `200`** (keine Konto-Enumeration),
-  entwertet vorher offene Reset-Token desselben Users.
+- **`/passwort-vergessen`** meldet seit 2026-09-30 direkt, ob es das Konto gibt
+  (`404 konto_unbekannt`) und ob die Mail rausging (`503` bei Versandfehler) —
+  vorher immer `200` ohne Aussage. Entwertet vorher offene Reset-Token desselben Users.
 - **`/passwort-zuruecksetzen`** setzt das neue Passwort, verbraucht den Token und
   **löscht alle Sessions** des Users (Neu-Anmeldung überall erzwungen).
 - **Timing-Angleich beim Login:** bei unbekannter E-Mail wird trotzdem gegen
@@ -1377,7 +1387,13 @@ ohne Backend (Formulare zeigen nur einen Toast). Für das echte Backend:
   extrahieren (`pdf-parse` für PDF, `mammoth` für `.docx`; legacy-`.doc` und
   unbekannte Formate → `status: fehler`) bzw. bei Bildern das Bild direkt als
   Vision-Block an Call 01 anhängen (`KiClient.bilder`, neu in `client.ts`) →
-  `Datei.status` → `bereit`/`fehler`.
+  `Datei.status` → `bereit`/`fehler`. **Seit 2026-09-30:** Call 01 liefert
+  zusätzlich `lesbar`; `false` (unleserliche Handschrift, unscharfes Foto) →
+  `status: fehler` mit ehrlichem Hinweis in `zusammenfassung` statt einer
+  erfundenen Zusammenfassung. Fehlertexte stehen immer in `zusammenfassung`,
+  das Frontend zeigt sie rot statt „Wird gelesen …“. Verlorene Jobs
+  (`verarbeitung` > 10 min) räumt `haengendeVerarbeitungBeenden()` beim Lesen
+  der Liste/Details ab.
 - **`GET /dateien` / `GET /dateien/:id`** — filtert `zweck: thema`, damit
   Testklausur-Lösungs-Dateien nicht in der Themenliste erscheinen.
 - **`GET /dateien/:id/inhalt`** — eigener Plugin-Scope **ohne** den
@@ -1668,6 +1684,19 @@ fehlgeschlagene Logins/Upload-Flooding weiterhin offen (§8).
       Link hatte kein Ziel). Zahlungs-/Abo-/Beleg-Mails bleiben bei Stripe.
       Klausur-Erinnerung + Wochenreport (Toggles in `einstellungen.html`)
       bleiben bewusst zurückgestellt — dafür wird kein Versand ausgelöst.
+
+### Entschieden am 2026-09-30
+
+- [x] **Passwort vergessen ohne Enumerationsschutz** — Seite sagt direkt
+      „kein Konto“ bzw. „E-Mail ist raus“ (Nutzerwunsch; Registrierung verrät
+      vergebene Adressen ohnehin). Schutz: Rate-Limit.
+- [x] **Themenfremde Chats werden nicht gelistet** (`Chat.schulbezug`, Call 07
+      stuft ein, im Zweifel Schulbezug).
+- [x] **Dateien löschbar** (`DELETE /dateien/:id`), **nicht lesbare Dateien**
+      enden mit ehrlicher Fehlermeldung statt endlosem „Wird gelesen …“.
+- [x] **Standard-Fächer** Deutsch/Mathematik/Englisch für jedes Schüler-Konto.
+- [x] **Freie Fach-Farben** per Farbwähler zusätzlich zu den 8 Palettenfarben
+      (`Fach.farbe` = Schlüssel oder `#rrggbb`).
 
 ### Weiterhin offen
 

@@ -84,7 +84,7 @@
   </div>
 </div>
 
-<script src="assets/js/api.js?v=20260929token"></script>
+<script src="assets/js/api.js?v=20260930"></script>
 <script src="assets/js/auth-gate.js"></script>
 <script src="assets/js/app.js"></script>
 <script>
@@ -165,6 +165,9 @@ document.addEventListener('DOMContentLoaded', async function () {
     e.target.value = '';
   });
 
+  // Datei im Modal gelöscht (app.js, renderDateiModal) → Liste neu zeichnen.
+  document.addEventListener('lesify:datei-geloescht', function () { drawFiles(); });
+
   document.getElementById('file-assign-form').addEventListener('submit', async function (e) {
     e.preventDefault();
     if (!pendingFile) return;
@@ -196,7 +199,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     LesifyUI.toast('„' + d.name + '" wird gelesen und zusammengefasst…');
     Lesify.pollDateiStatus(d.id, function () {}).then(async function (updated) {
       await drawFiles();
-      LesifyUI.toast(updated.status === 'bereit' ? '„' + updated.name + '" ist bereit.' : '„' + updated.name + '" konnte nicht verarbeitet werden.');
+      LesifyUI.toast(updated.status === 'bereit' ? '„' + updated.name + '" ist bereit.' : updated.status === 'fehler' ? '„' + updated.name + '" konnte nicht gelesen werden.' : '„' + updated.name + '" wird noch gelesen — das dauert gerade etwas länger.');
     });
   });
 });

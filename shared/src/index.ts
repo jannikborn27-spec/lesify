@@ -24,6 +24,8 @@ export const FACH_COLOR_KEYS = [
 ] as const;
 export type FachColorKey = (typeof FACH_COLOR_KEYS)[number];
 export const FACH_COLOR_DEFAULT: FachColorKey = 'graphit'; // data.js: getFachColor-Fallback
+// Eigene Farben (`#rrggbb`) statt Schlüssel — Ableitung von ink/bg:
+export * from './fachFarbe.js';
 
 // --- Fach-Vorlagen (data.js FACH_PRESETS) → gültige icon-Schlüssel ---
 export const FACH_PRESETS: readonly { name: string; icon: string }[] = [

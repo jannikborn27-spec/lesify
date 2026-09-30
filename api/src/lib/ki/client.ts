@@ -366,11 +366,12 @@ function themaIdsAus(fakeKontext: unknown): string[] {
 function fakeToolAusgabe(toolName: string, letzteNachricht: string, fakeKontext: unknown): unknown {
   switch (toolName) {
     case 'chat_titel':
-      return { titel: kuerzen(letzteNachricht, 48) || 'Neue Frage' };
+      return { titel: kuerzen(letzteNachricht, 48) || 'Neue Frage', schulbezug: true };
     case 'datei_zusammenfassung':
       return {
         vorgeschlagenerTitel: 'Zusammenfassung (Platzhalter)',
         zusammenfassung: `Platzhalter-Zusammenfassung: ${kuerzen(letzteNachricht, 200)}`,
+        lesbar: true,
       };
     case 'themen_memory_verdichtet':
       return {

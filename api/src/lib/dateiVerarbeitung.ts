@@ -4,6 +4,38 @@ import { dateiZusammenfassungErzeugen, loesungTextAusBildErzeugen } from './ki/c
 import { textAusDatei } from './dateiExtraktion.js';
 import type { StorageGateway } from './storage.js';
 
+/** Texte für `Datei.status = fehler` (stehen in `zusammenfassung`, Frontend zeigt sie). */
+export const DATEI_FEHLER = {
+  format: 'Dateiformat wird nicht unterstützt.',
+  unlesbar:
+    'Diese Datei konnte nicht gelesen werden – z. B. wegen unleserlicher Handschrift oder eines unscharfen Fotos. Lade am besten ein schärferes Foto oder eine abgetippte Version hoch.',
+  technisch:
+    'Beim Lesen der Datei ist etwas schiefgelaufen. Bitte lösche sie und lade sie noch einmal hoch.',
+} as const;
+
+/** Nach dieser Zeit gilt eine Verarbeitung als abgebrochen (z. B. Neustart mitten im Job). */
+export const VERARBEITUNG_MAX_MS = 10 * 60_000;
+
+/**
+ * Setzt hängengebliebene Verarbeitungen (`verarbeitung`, älter als
+ * {@link VERARBEITUNG_MAX_MS}) auf `fehler` — der Fire-and-forget-Job geht bei
+ * einem Neustart/Deploy verloren, die Datei stand dann ewig auf „Wird gelesen
+ * …“ (Testdurchgang 2026-09-30). Läuft beim Lesen der Dateiliste/-details.
+ */
+export async function haengendeVerarbeitungBeenden(
+  prisma: PrismaClient,
+  userId: string,
+): Promise<void> {
+  await prisma.datei.updateMany({
+    where: {
+      userId,
+      status: 'verarbeitung',
+      erstelltAm: { lt: new Date(Date.now() - VERARBEITUNG_MAX_MS) },
+    },
+    data: { status: 'fehler', zusammenfassung: DATEI_FEHLER.technisch },
+  });
+}
+
 function alsKiBild(buffer: Buffer, mime: string): KiBild {
   return { mediaType: mime as KiBild['mediaType'], base64: buffer.toString('base64') };
 }
@@ -34,18 +66,28 @@ export async function themenDateiVerarbeiten(
       // Legacy-.doc o. Ä. — nicht extrahierbar, aber kein Systemfehler.
       await prisma.datei.update({
         where: { id: dateiId },
-        data: { status: 'fehler', zusammenfassung: 'Dateiformat wird nicht unterstützt.' },
+        data: { status: 'fehler', zusammenfassung: DATEI_FEHLER.format },
       });
       return;
     }
 
-    const { vorgeschlagenerTitel, zusammenfassung } = await dateiZusammenfassungErzeugen(ki, {
-      fachName: datei.fach.name,
-      themaName: datei.thema.name,
-      dateiTyp: datei.typ,
-      dateiInhalt,
-      bild,
-    });
+    const { vorgeschlagenerTitel, zusammenfassung, lesbar } = await dateiZusammenfassungErzeugen(
+      ki,
+      {
+        fachName: datei.fach.name,
+        themaName: datei.thema.name,
+        dateiTyp: datei.typ,
+        dateiInhalt,
+        bild,
+      },
+    );
+    if (!lesbar) {
+      await prisma.datei.update({
+        where: { id: dateiId },
+        data: { status: 'fehler', zusammenfassung: DATEI_FEHLER.unlesbar },
+      });
+      return;
+    }
     await prisma.datei.update({
       where: { id: dateiId },
       data: { status: 'bereit', zusammenfassung: `${vorgeschlagenerTitel}\n\n${zusammenfassung}` },
@@ -53,7 +95,10 @@ export async function themenDateiVerarbeiten(
   } catch (err) {
     console.error(JSON.stringify({ dateiVerarbeitungFehler: true, dateiId, err: String(err) }));
     await prisma.datei
-      .update({ where: { id: dateiId }, data: { status: 'fehler' } })
+      .update({
+        where: { id: dateiId },
+        data: { status: 'fehler', zusammenfassung: DATEI_FEHLER.technisch },
+      })
       .catch(() => undefined);
   }
 }

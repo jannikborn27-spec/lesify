@@ -1,12 +1,24 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { FACH_COLOR_DEFAULT, FACH_COLOR_KEYS, FACH_ICON_KEYS } from '@lesify/shared';
+import {
+  FACH_COLOR_DEFAULT,
+  FACH_COLOR_KEYS,
+  FACH_FARBE_HEX,
+  FACH_ICON_KEYS,
+} from '@lesify/shared';
 import { parse } from '../lib/validate.js';
 import { oder404 } from '../lib/scope.js';
 import { fachDTO, themaDTO } from '../lib/dto.js';
 import { klausurenAnzahlProThema } from '../lib/themen.js';
 
-const farbeSchema = z.enum(FACH_COLOR_KEYS);
+// Paletten-Schlüssel oder frei gewählte Farbe `#rrggbb` (Farbwähler, 2026-09-30).
+const farbeSchema = z.union([
+  z.enum(FACH_COLOR_KEYS),
+  z
+    .string()
+    .regex(FACH_FARBE_HEX)
+    .transform((h) => h.toLowerCase()),
+]);
 
 const erstellen = z.object({
   name: z.string().trim().min(1).max(80),
@@ -73,7 +85,11 @@ export async function faecherRoutes(app: FastifyInstance): Promise<void> {
       prisma.thema.findMany({
         where: { fachId: req.params.id, userId: req.userId },
         orderBy: { name: 'asc' },
-        include: { _count: { select: { chats: true, lernzettel: true, dateien: true } } },
+        include: {
+          _count: {
+            select: { chats: { where: { schulbezug: true } }, lernzettel: true, dateien: true },
+          },
+        },
       }),
       klausurenAnzahlProThema(prisma, req.userId),
     ]);

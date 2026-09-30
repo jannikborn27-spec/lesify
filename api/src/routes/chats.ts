@@ -12,6 +12,7 @@ import { tonfallBaustein, type KiTonfall } from '../lib/ki/tonfall.js';
 import { chatAntwortErzeugen, chatTitelErzeugen } from '../lib/ki/calls.js';
 import type { KiNachricht } from '../lib/ki/client.js';
 import { streameSse, willStream } from '../lib/sse.js';
+import { chatMapBereinigen } from '../lib/inhalteLoeschen.js';
 
 const erstellen = z.object({
   fachId: z.string().uuid(),
@@ -83,6 +84,17 @@ export async function chatsRoutes(app: FastifyInstance): Promise<void> {
       include: { fach: true, thema: true },
     });
     return reply.code(201).send(chatDTO(chat));
+  });
+
+  // DELETE /chats/:id — samt Nachrichten; Lernplan-Verweise (chatMap) werden
+  // bereinigt (2026-09-30). Usage wird nicht gutgeschrieben.
+  app.delete<{ Params: { id: string } }>('/chats/:id', async (req, reply) => {
+    const chat = oder404(
+      await prisma.chat.findFirst({ where: { id: req.params.id, userId: req.userId } }),
+    );
+    await prisma.chat.delete({ where: { id: chat.id } });
+    await chatMapBereinigen(prisma, req.userId);
+    return reply.code(204).send();
   });
 
   // GET /chats/:id inkl. Nachrichten

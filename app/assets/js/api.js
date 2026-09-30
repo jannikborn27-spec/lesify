@@ -387,6 +387,11 @@
       target.push(item);
     });
   }
+  /** Nach DELETE: Eintrag aus dem Cache werfen (sonst tauchen gelöschte
+      Fächer/Themen weiter in Auswahllisten auf). */
+  function ausCache(target, pruefe) {
+    for (var i = target.length - 1; i >= 0; i--) if (pruefe(target[i])) target.splice(i, 1);
+  }
   function getFach(id) {
     for (var i = 0; i < _cache.faecher.length; i++) if (_cache.faecher[i].id === id) return _cache.faecher[i];
     return undefined;
@@ -553,6 +558,30 @@
     },
     updateFach: function (id, patch) {
       return PATCH('/faecher/' + id, patch);
+    },
+    /* Löschen (Einstellungen → „Meine Inhalte", 2026-09-30). Usage wird
+       serverseitig nicht gutgeschrieben. */
+    deleteFach: function (id) {
+      return DELETE('/faecher/' + id).then(function () {
+        ausCache(_cache.faecher, function (f) { return f.id === id; });
+        ausCache(_cache.themen, function (t) { return t.fachId === id; });
+      });
+    },
+    /** Liefert `{klausurenGeloescht}` — Klausuren, die nur dieses Thema hatten. */
+    deleteThema: function (id) {
+      return DELETE('/themen/' + id).then(function (r) {
+        ausCache(_cache.themen, function (t) { return t.id === id; });
+        return r;
+      });
+    },
+    deleteKlausur: function (id) {
+      return DELETE('/klausuren/' + id);
+    },
+    deleteChat: function (id) {
+      return DELETE('/chats/' + id);
+    },
+    deleteLernzettel: function (id) {
+      return DELETE('/lernzettel/' + id);
     },
     /** Scoped-Liste — hat kein `fachName`/`farbe` vom Server (kein `fach`-Include,
         siehe faecher.ts), darum hier aus dem Fächer-Cache ergänzt, bevor der

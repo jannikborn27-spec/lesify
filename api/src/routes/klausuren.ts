@@ -5,6 +5,7 @@ import { nichtGefunden } from '../lib/http.js';
 import { oder404 } from '../lib/scope.js';
 import { klausurNoteFuer } from '../lib/lernplan.js';
 import { testklausurErstellen } from '../lib/testklausur.js';
+import { klausurLoeschen } from '../lib/inhalteLoeschen.js';
 
 const erstellen = z.object({
   fachId: z.string().uuid(),
@@ -14,7 +15,7 @@ const erstellen = z.object({
 });
 
 export async function klausurenRoutes(app: FastifyInstance): Promise<void> {
-  const { prisma, ki } = app;
+  const { prisma, ki, storage } = app;
   app.addHook('preHandler', app.requireAuth);
 
   // POST /klausuren — legt Klausur + Testklausur 1 (Call 10, KI) + Lernplan an.
@@ -80,6 +81,18 @@ export async function klausurenRoutes(app: FastifyInstance): Promise<void> {
         note: await klausurNoteFuer(prisma, k.id),
       })),
     );
+  });
+
+  // DELETE /klausuren/:id — Klausur samt Lernplan und Testklausuren
+  // (2026-09-30). Usage wird nicht gutgeschrieben.
+  app.delete<{ Params: { id: string } }>('/klausuren/:id', async (req, reply) => {
+    const klausur = oder404(
+      await prisma.klausur.findFirst({ where: { id: req.params.id, userId: req.userId } }),
+    );
+    await klausurLoeschen(prisma, storage, req.userId, klausur.id, (err) =>
+      app.log.error({ err }, 'inhalt_speicher_loeschen_fehlgeschlagen'),
+    );
+    return reply.code(204).send();
   });
 
   // GET /klausuren/:id — Detail inkl. Lernplan + Testklausuren

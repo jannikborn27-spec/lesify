@@ -45,6 +45,16 @@ export async function lernzettelRoutes(app: FastifyInstance): Promise<void> {
     return liste.map(lernzettelDTO);
   });
 
+  // DELETE /lernzettel/:id — samt Revisionsverlauf (2026-09-30). Usage wird
+  // nicht gutgeschrieben.
+  app.delete<{ Params: { id: string } }>('/lernzettel/:id', async (req, reply) => {
+    const lz = oder404(
+      await prisma.lernzettel.findFirst({ where: { id: req.params.id, userId: req.userId } }),
+    );
+    await prisma.lernzettel.delete({ where: { id: lz.id } });
+    return reply.code(204).send();
+  });
+
   // GET /lernzettel/:id — Inhalt + Revisionsverlauf
   app.get<{ Params: { id: string } }>('/lernzettel/:id', async (req) => {
     const lz = oder404(

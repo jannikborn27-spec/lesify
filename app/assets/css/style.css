@@ -822,22 +822,30 @@ textarea.input { height: auto; padding: 12px 14px; min-height: 90px; resize: ver
    Öffnet eine Datei „im Fenster": links simulierte Dokument-
    vorschau, rechts Eckdaten + automatische KI-Zusammenfassung. */
 .dv-modal { max-width: 720px; }
+/* Feste Höhe (2026-09-30): die Vorschau links wächst nicht mit dem Text
+   rechts mit — wird die Zusammenfassung länger, scrollt nur die rechte Spalte. */
 .dv-grid {
+  --dv-h: min(420px, 56vh);
   display: grid;
   grid-template-columns: 1.15fr 0.85fr;
   gap: var(--sp-5);
   margin-top: var(--sp-2);
+  height: var(--dv-h);
 }
-@media (max-width: 640px) { .dv-grid { grid-template-columns: 1fr; } }
-
-.dv-preview { min-width: 0; }
+.dv-preview { min-width: 0; height: 100%; min-height: 0; }
+.dv-grid > .dv-meta { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-right: 6px; }
+@media (max-width: 640px) {
+  .dv-grid { grid-template-columns: 1fr; height: auto; }
+  .dv-preview { height: 260px; }
+  .dv-grid > .dv-meta { overflow: visible; padding-right: 0; }
+}
 .dv-doc {
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
   background: var(--bg-canvas);
   padding: 20px;
-  min-height: 260px;
   height: 100%;
+  overflow: hidden;
 }
 .dv-doc-page { display: flex; flex-direction: column; gap: 12px; }
 .dv-doc-h { font-weight: 650; font-size: 0.95rem; }
@@ -855,9 +863,9 @@ textarea.input { height: auto; padding: 12px 14px; min-height: 90px; resize: ver
 
 /* Echte Bild-/PDF-Vorschau (`dateiInhaltUrl`, signierte Storage-URL). */
 .dv-doc-imgreal { display: flex; align-items: center; justify-content: center; padding: 12px; }
-.dv-doc-img-el { max-width: 100%; max-height: 420px; border-radius: var(--radius-sm); object-fit: contain; }
+.dv-doc-img-el { max-width: 100%; max-height: 100%; border-radius: var(--radius-sm); object-fit: contain; }
 .dv-doc-pdfreal { padding: 0; overflow: hidden; }
-.dv-doc-pdf-el { display: block; width: 100%; height: 420px; border: 0; }
+.dv-doc-pdf-el { display: block; width: 100%; height: 100%; border: 0; }
 
 .dv-meta { display: flex; flex-direction: column; gap: 12px; }
 .dv-meta-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 0.82rem; }

@@ -297,6 +297,10 @@ Regeln:
 4. Nutze nur Inhalte, die tatsächlich aus den Chats/Dateien hervorgehen.
 5. Ist nur ein Teilaspekt des Themas belegt, ist das in Ordnung.
 6. Schlage einen prägnanten Titel für den Lernzettel vor.
+7. Keine Begrüßung, keine Anrede, keine Einleitung und keine Motivations-
+   oder Schlusssätze („Hallo! Hier ist dein Überblick …“, „Viel Erfolg!“) —
+   der Lernzettel beginnt direkt mit der ersten Überschrift. Der Tonfall
+   oben gilt nur für die Formulierung der Erklärungen selbst.
 
 Antworte ausschließlich über das bereitgestellte Tool.`;
 
@@ -321,7 +325,22 @@ Antworte ausschließlich über das bereitgestellte Tool.`;
     maxTokens: 4000,
     temperature: 0.35,
   });
-  return ausgabe;
+  return { titel: ausgabe.titel, content: ohneBegruessung(ausgabe.content) };
+}
+
+/**
+ * Entfernt eine Begrüßungs-/Einleitungszeile vor der ersten Überschrift
+ * („Hallo! Hier ist dein kompletter Überblick über …“, Testrunde 2026-09-30)
+ * — Sicherheitsnetz zu Regel 7 in Call 08. Nur Text vor der ersten
+ * Überschrift, der mit einer Grußformel beginnt; sonst unverändert.
+ */
+export function ohneBegruessung(content: string): string {
+  const m = /^([\s\S]*?)(^#{1,6}\s)/m.exec(content);
+  if (!m || !m[1]!.trim()) return content;
+  if (!/^\s*(hallo|hi|hey|servus|moin|guten (tag|morgen|abend)|liebe[rs]?)\b/i.test(m[1]!)) {
+    return content;
+  }
+  return content.slice(m[1]!.length);
 }
 
 // ============================================================================
@@ -373,6 +392,8 @@ Regeln:
 4. Ist die Anweisung unklar oder im Konflikt mit dem Inhalt: frag kurz
    nach, statt zu raten.
 5. Gib zusätzlich eine kurze Bestätigung, was du geändert hast.
+   Füge in den Lernzettel selbst keine Begrüßung, Anrede oder
+   Motivationssätze ein.
 6. Gib deine Änderung standardmäßig als Patch-Liste zurück (art: "patch"):
    pro Änderung ein Paar aus exakt im aktuellen Content vorkommendem
    Ausschnitt (suchen) und Ersatztext (ersetzen). "suchen" muss

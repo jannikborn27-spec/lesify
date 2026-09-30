@@ -10,6 +10,7 @@ import { parse } from '../lib/validate.js';
 import { oder404 } from '../lib/scope.js';
 import { fachDTO, themaDTO } from '../lib/dto.js';
 import { klausurenAnzahlProThema } from '../lib/themen.js';
+import { fachLoeschen } from '../lib/inhalteLoeschen.js';
 
 // Paletten-Schlüssel oder frei gewählte Farbe `#rrggbb` (Farbwähler, 2026-09-30).
 const farbeSchema = z.union([
@@ -31,7 +32,7 @@ const erstellen = z.object({
 });
 
 export async function faecherRoutes(app: FastifyInstance): Promise<void> {
-  const { prisma } = app;
+  const { prisma, storage } = app;
   app.addHook('preHandler', app.requireAuth);
 
   // GET /faecher — Liste inkl. Zählwerten
@@ -63,6 +64,18 @@ export async function faecherRoutes(app: FastifyInstance): Promise<void> {
       },
     });
     return reply.code(201).send(fachDTO(fach));
+  });
+
+  // DELETE /faecher/:id — Fach samt allen Inhalten (Einstellungen → „Meine
+  // Inhalte", 2026-09-30). Usage wird nicht gutgeschrieben.
+  app.delete<{ Params: { id: string } }>('/faecher/:id', async (req, reply) => {
+    const fach = oder404(
+      await prisma.fach.findFirst({ where: { id: req.params.id, userId: req.userId } }),
+    );
+    await fachLoeschen(prisma, storage, req.userId, fach.id, (err) =>
+      app.log.error({ err }, 'inhalt_speicher_loeschen_fehlgeschlagen'),
+    );
+    return reply.code(204).send();
   });
 
   // PATCH /faecher/:id — nur farbe

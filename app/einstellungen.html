@@ -12,6 +12,18 @@
   .settings-card { padding: 26px 28px; margin-bottom: var(--sp-6); max-width: 640px; }
   .settings-card h3 { font-size: 1rem; margin-bottom: 4px; }
   .settings-card .settings-sub { font-size: 0.82rem; color: var(--ink-500); margin-bottom: 20px; }
+  /* Meine Inhalte (2026-09-30) */
+  .inhalte-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .inhalte-tabs .chip .inhalte-n { opacity: 0.6; margin-left: 4px; font-variant-numeric: tabular-nums; }
+  .inhalte-suche { margin-bottom: 10px; }
+  .inhalte-liste { max-height: 360px; overflow-y: auto; border: 1px solid var(--line); border-radius: var(--radius-md); }
+  .inhalte-row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  .inhalte-row:last-child { border-bottom: 0; }
+  .inhalte-row-body { flex: 1; min-width: 0; }
+  .inhalte-row-titel { display: block; font-size: 0.86rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .inhalte-row-meta { display: block; font-size: 0.74rem; color: var(--ink-500); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .inhalte-row .btn { flex-shrink: 0; color: var(--rot); }
+  .inhalte-leer { padding: 18px 14px; font-size: 0.84rem; color: var(--ink-500); }
 </style>
 </head>
 <body data-page="einstellungen">
@@ -111,6 +123,14 @@
         <div id="usage-detail" data-skeleton="liste"></div>
       </div>
 
+      <div class="card settings-card" id="inhalte-card">
+        <h3>Meine Inhalte</h3>
+        <p class="settings-sub">Lösche Fächer, Themen, Klausuren, Chats, Lernzettel und Dateien. Das ist endgültig — bereits verbrauchte Kontingente (Nachrichten, Uploads, Lernzettel, Testklausuren) werden dadurch <strong>nicht</strong> zurückgesetzt.</p>
+        <div class="inhalte-tabs" id="inhalte-tabs" role="tablist" aria-label="Art der Inhalte"></div>
+        <input class="input inhalte-suche" id="inhalte-suche" type="search" placeholder="Suchen …" aria-label="Inhalte durchsuchen">
+        <div class="inhalte-liste" id="inhalte-liste" aria-live="polite"></div>
+      </div>
+
       <div class="card settings-card">
         <h3>Daten &amp; Aufbewahrung</h3>
         <p class="settings-sub">Wie lange deine Inhalte gespeichert bleiben.</p>
@@ -133,7 +153,7 @@
   </div>
 </div>
 
-<script src="assets/js/api.js?v=20260930"></script>
+<script src="assets/js/api.js?v=20260930b"></script>
 <script src="assets/js/auth-gate.js"></script>
 <script src="assets/js/app.js"></script>
 <script>
@@ -149,6 +169,8 @@ document.addEventListener('DOMContentLoaded', async function () {
   if (user.rolle === 'elternteil') {
     var klasseField = document.getElementById('p-klasse-field');
     if (klasseField) klasseField.hidden = true;
+    var inhalteCard = document.getElementById('inhalte-card');
+    if (inhalteCard) inhalteCard.hidden = true; // Elternkonten haben keine Lerninhalte
   } else {
     document.getElementById('p-klasse').value = user.klasse || '';
   }
@@ -341,6 +363,126 @@ document.addEventListener('DOMContentLoaded', async function () {
       }
     });
   });
+
+  /* ---------------------------------------------------------
+     Meine Inhalte (2026-09-30): alles einzeln löschbar. Usage wird
+     serverseitig nicht gutgeschrieben (Zähler sind eigene Felder).
+     --------------------------------------------------------- */
+  (function inhalteVerwalten() {
+    var card = document.getElementById('inhalte-card');
+    if (!card || card.hidden) return;
+    var esc = LesifyUI.mdEscape;
+    var TYPEN = [
+      { key: 'faecher', label: 'Fächer' },
+      { key: 'themen', label: 'Themen' },
+      { key: 'klausuren', label: 'Klausuren' },
+      { key: 'chats', label: 'Chats' },
+      { key: 'lernzettel', label: 'Lernzettel' },
+      { key: 'dateien', label: 'Dateien' }
+    ];
+    var aktiv = 'faecher';
+    var daten = null;
+    var tabsEl = document.getElementById('inhalte-tabs');
+    var listeEl = document.getElementById('inhalte-liste');
+    var sucheEl = document.getElementById('inhalte-suche');
+
+    function fachName(id) { var f = Lesify.getFach(id); return f ? f.name : ''; }
+    function themaMeta(themaId) { var l = Lesify.label(themaId); return l.fach + ' · ' + l.thema; }
+    function mehrzahl(n, eins, viele) { return n + ' ' + (n === 1 ? eins : viele); }
+
+    async function laden() {
+      listeEl.innerHTML = '<div class="inhalte-leer">Wird geladen …</div>';
+      var r = await Promise.all([Lesify.faecher(), Lesify.themen(), Lesify.klausuren(), Lesify.chats(), Lesify.lernzettel(), Lesify.dateien()]);
+      daten = {
+        faecher: r[0].map(function (f) {
+          return { id: f.id, titel: f.name, meta: mehrzahl(f.anzahlThemen || 0, 'Thema', 'Themen') + ' · ' + mehrzahl(f.anzahlKlausuren || 0, 'Klausur', 'Klausuren'),
+            folge: 'Alle Themen, Chats, Lernzettel, Dateien, Klausuren, Lernpläne und Testklausuren in diesem Fach werden mitgelöscht.' };
+        }),
+        themen: r[1].map(function (t) {
+          return { id: t.id, titel: t.name, meta: fachName(t.fachId),
+            folge: 'Alle Chats, Lernzettel und Dateien zu diesem Thema werden mitgelöscht. Klausuren, die nur dieses Thema abdecken, werden samt Lernplan und Testklausuren gelöscht; aus anderen Klausuren wird das Thema entfernt.' };
+        }),
+        klausuren: r[2].map(function (k) {
+          return { id: k.id, titel: k.titel, meta: fachName(k.fachId) + (k.datum ? ' · ' + LesifyUI.Render.formatDatum(k.datum) : ''),
+            folge: 'Lernplan und Testklausuren dieser Klausur werden mitgelöscht.' };
+        }),
+        chats: r[3].map(function (c) {
+          return { id: c.id, titel: c.titel || 'Neue Frage', meta: themaMeta(c.themaId) + ' · ' + c.updated,
+            folge: 'Der Chat und alle Nachrichten darin werden gelöscht.' };
+        }),
+        lernzettel: r[4].map(function (l) {
+          return { id: l.id, titel: l.titel, meta: themaMeta(l.themaId) + ' · ' + l.updated,
+            folge: 'Der Lernzettel und sein Bearbeitungsverlauf werden gelöscht.' };
+        }),
+        dateien: r[5].map(function (d) {
+          return { id: d.id, titel: d.name, meta: themaMeta(d.themaId) + ' · ' + d.groesse,
+            folge: 'Die Datei und ihre Zusammenfassung werden gelöscht.' };
+        })
+      };
+      zeichnen();
+    }
+
+    function zeichnen() {
+      tabsEl.innerHTML = TYPEN.map(function (t) {
+        var n = daten ? daten[t.key].length : '';
+        return '<button type="button" class="chip' + (t.key === aktiv ? ' is-active' : '') + '" role="tab" aria-selected="' + (t.key === aktiv) + '" data-typ="' + t.key + '">' +
+          t.label + '<span class="inhalte-n">' + n + '</span></button>';
+      }).join('');
+      if (!daten) return;
+      var q = sucheEl.value.trim().toLowerCase();
+      var eintraege = daten[aktiv].filter(function (e) { return !q || (e.titel + ' ' + e.meta).toLowerCase().indexOf(q) !== -1; });
+      listeEl.innerHTML = eintraege.map(function (e) {
+        return '<div class="inhalte-row">' +
+          '<span class="inhalte-row-body"><span class="inhalte-row-titel">' + esc(e.titel) + '</span>' +
+          '<span class="inhalte-row-meta">' + esc(e.meta) + '</span></span>' +
+          '<button type="button" class="btn btn-ghost btn-sm" data-loeschen="' + e.id + '">Löschen</button>' +
+        '</div>';
+      }).join('') || '<div class="inhalte-leer">' + (q ? 'Nichts gefunden.' : 'Keine Einträge.') + '</div>';
+    }
+
+    var LOESCHEN = {
+      faecher: Lesify.deleteFach, themen: Lesify.deleteThema, klausuren: Lesify.deleteKlausur,
+      chats: Lesify.deleteChat, lernzettel: Lesify.deleteLernzettel, dateien: Lesify.deleteDatei
+    };
+    var EINZAHL = { faecher: 'Fach', themen: 'Thema', klausuren: 'Klausur', chats: 'Chat', lernzettel: 'Lernzettel', dateien: 'Datei' };
+
+    tabsEl.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-typ]');
+      if (!b) return;
+      aktiv = b.getAttribute('data-typ');
+      zeichnen();
+    });
+    sucheEl.addEventListener('input', zeichnen);
+    listeEl.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-loeschen]');
+      if (!b) return;
+      var typ = aktiv;
+      var eintrag = daten[typ].filter(function (x) { return x.id === b.getAttribute('data-loeschen'); })[0];
+      if (!eintrag) return;
+      kontoModal(EINZAHL[typ] + ' löschen?', '„' + esc(eintrag.titel) + '"',
+        '<p class="text-sm" style="margin:0 0 8px">' + esc(eintrag.folge) + '</p>' +
+        '<p class="text-xs text-muted" style="margin:0">Das lässt sich nicht rückgängig machen. Bereits verbrauchte Kontingente werden nicht zurückgesetzt.</p>',
+        async function (scrim) {
+          var ok = scrim.querySelector('[data-ok]');
+          ok.disabled = true; ok.textContent = 'Wird gelöscht …';
+          try {
+            var r = await LOESCHEN[typ](eintrag.id);
+            var extra = r && r.klausurenGeloescht ? ' (' + mehrzahl(r.klausurenGeloescht, 'Klausur', 'Klausuren') + ' mitgelöscht)' : '';
+            LesifyUI.toast('„' + eintrag.titel + '" gelöscht' + extra + '.');
+            await laden(); // Kaskaden (Fach → Themen …) betreffen auch andere Reiter
+          } catch (err) {
+            ok.disabled = false; ok.textContent = 'Endgültig löschen';
+            LesifyUI.toast(Lesify.fehlerText(err));
+            return false;
+          }
+        }, 'Endgültig löschen', true);
+    });
+
+    zeichnen();
+    laden().catch(function () {
+      listeEl.innerHTML = '<div class="inhalte-leer">Inhalte konnten nicht geladen werden.</div>';
+    });
+  })();
 
   function usageRow(label, data) {
     var unlimited = data.limit == null;

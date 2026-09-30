@@ -4,6 +4,7 @@ import { parse } from '../lib/validate.js';
 import { oder404 } from '../lib/scope.js';
 import { themaDTO } from '../lib/dto.js';
 import { klausurenAnzahlProThema } from '../lib/themen.js';
+import { themaLoeschen } from '../lib/inhalteLoeschen.js';
 
 const erstellen = z.object({
   fachId: z.string().uuid(),
@@ -12,7 +13,7 @@ const erstellen = z.object({
 });
 
 export async function themenRoutes(app: FastifyInstance): Promise<void> {
-  const { prisma } = app;
+  const { prisma, storage } = app;
   app.addHook('preHandler', app.requireAuth);
 
   // GET /themen — fächerübergreifende Aggregat-Liste, mit Zählwerten
@@ -42,6 +43,18 @@ export async function themenRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // POST /themen
+  // DELETE /themen/:id — Thema samt Chats/Lernzettel/Dateien; Klausuren nur
+  // zu diesem Thema fallen mit weg, sonst wird das Thema aus ihnen entfernt
+  // (2026-09-30). Usage wird nicht gutgeschrieben.
+  app.delete<{ Params: { id: string } }>('/themen/:id', async (req) => {
+    const thema = oder404(
+      await prisma.thema.findFirst({ where: { id: req.params.id, userId: req.userId } }),
+    );
+    return themaLoeschen(prisma, storage, req.userId, thema.id, (err) =>
+      app.log.error({ err }, 'inhalt_speicher_loeschen_fehlgeschlagen'),
+    );
+  });
+
   app.post('/themen', async (req, reply) => {
     const body = parse(erstellen, req.body);
     oder404(await prisma.fach.findFirst({ where: { id: body.fachId, userId: req.userId } }));

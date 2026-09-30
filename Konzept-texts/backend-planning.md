@@ -984,9 +984,11 @@ Abweichungen von den Tabellen unten:
 | GET | `/faecher` | Liste aller Fächer des Users |
 | POST | `/faecher` | `{name, klasse?, farbe?, icon?}` → neues Fach; `farbe` optional, Schlüssel oder `#rrggbb` (Server vergibt sonst reihum eine aus `FACH_COLORS`), `icon` optional (Schlüssel aus `FACH_PRESETS`/`FACH_ICONS`; weggelassen bei „eigenes Fach" ohne Vorlage → Avatar fällt auf `initial` zurück) |
 | PATCH | `/faecher/:id` | `{farbe}` (Schlüssel oder `#rrggbb`) — bislang einziges nachträglich editierbare Feld; Auslöser des Farbwählers: Klick auf das Fach-Logo (Avatar) auf `fach.html` bzw. den Swatch-Button auf `faecher.html`. `icon` wird nur bei Erstellung gesetzt, es gibt aktuell keine UI, ein Icon nachträglich zu ändern |
+| DELETE | `/faecher/:id` | Fach samt allen Themen, Chats, Lernzetteln, Dateien (inkl. Speicherobjekten), Klausuren, Lernplänen und Testklausuren (FK-Kaskade + `fachLoeschen()` in `api/src/lib/inhalteLoeschen.ts`) → `204`. Einstellungen → „Meine Inhalte“ (2026-09-30); Usage wird **nicht** gutgeschrieben |
 | GET | `/faecher/:id/themen` | Themen eines Fachs, je Thema mit `anzahlChats`/`anzahlLernzettel`/`anzahlDateien`/`anzahlKlausuren` (2026-09-12, für `fach.html`s Themen-Karten) — Chats/Lernzettel/Dateien per `_count`, Klausuren über den Batch-Helfer `klausurenAnzahlProThema()` (`Klausur.themaIds` ist ein String-Array, keine echte Relation, `_count` geht dafür nicht). **Kein** `anzahlTestklausuren` (bislang von keiner Seite gebraucht) |
 | GET | `/themen` | Fächerübergreifende Aggregat-Liste aller Themen (eigene Nav-Seite `themen.html`), je Thema mit denselben vier Zählwerten wie `/faecher/:id/themen` (2026-09-12) |
 | POST | `/themen` | `{fachId, name, beschreibung?}` → neues Thema |
+| DELETE | `/themen/:id` | Thema samt Chats, Lernzetteln, Dateien, Aufgaben/Ergebnissen → `200 {klausurenGeloescht}`. `Klausur.themaIds`/`Testklausur.themaIds` haben keine FK: Klausuren **nur** zu diesem Thema werden samt Lernplan/Testklausuren gelöscht, sonst wird das Thema aus den Arrays entfernt; eine dadurch leere Testklausur 2 wird verworfen (`Lernplan.testklausur2Id = null`). `themaLoeschen()`. Einstellungen → „Meine Inhalte“ (2026-09-30); Usage wird **nicht** gutgeschrieben |
 | GET | `/themen/:id` | Thema inkl. Stats (Anzahl Chats/Lernzettel/Dateien/Klausuren/Testklausuren) |
 
 ### Chats
@@ -995,6 +997,7 @@ Abweichungen von den Tabellen unten:
 | GET | `/chats` | Fächerübergreifende Liste aller Chats des Users mit `schulbezug = true` (themenfremde Chats bleiben unsichtbar, 2026-09-30), neueste zuerst — beliefert den Chat-Verlauf in der linken Spalte von `chat.html` (Claude-artiges Layout: Verlauf links mit „Neuer Chat"-Button, aktiver Chat/leerer Zustand rechts). Optionaler Query-Param `?fachId=` für den Fach-Filter im Verlauf (Prototyp filtert clientseitig; UI: Einfachauswahl „ein Fach oder Alle", Fach-Liste nur aus Fächern mit ≥1 Chat) |
 | POST | `/chats` | `{fachId, themaId, modus?}` (`modus` darf fehlen **oder `null`** sein = freie Frage) → neuer Chat, liefert System-Prompt-Kontext-Block. `modus` ist **optional** (Composer-Pills sind nicht mehr pflicht); fehlt er, wird der Chat ohne Modus angelegt (`modus = null`) und der neutrale „freie Frage"-System-Prompt genutzt. Wird im Prototyp erst beim Senden der ersten Nachricht angelegt (nicht schon beim reinen Öffnen von `chat.html`) — gilt jetzt **auch für Lernplan-Deep-Links** (`?fach=…&thema=…&mode=…`): auch die werden erst beim ersten Absenden zum echten Chat, nicht mehr flüchtig gehalten |
 | GET | `/chats/:id` | Chat inkl. Nachrichten. Lernplan-Chips können hierher deep-linken (`chat.html?chat=<id>`), wenn `Lernplan.chatMap` den Schritt schon kennt (Fortsetzung statt Neuanlage) |
+| DELETE | `/chats/:id` | Chat samt Nachrichten → `204`; Verweise in `Lernplan.chatMap` werden bereinigt (`chatMapBereinigen()`, läuft auch nach Fach-/Thema-Löschung). Einstellungen → „Meine Inhalte“ (2026-09-30); Usage wird **nicht** gutgeschrieben |
 | POST | `/chats/:id/nachrichten` | `{text, anhangDateiId?, lernplanKontext?: {lernplanId, tag}}` → Vorab-Filter (Themen-/Größen-/Spam-Guard), Usage-Limit-Check, User-Nachricht speichern, echte KI-Antwort (Calls 03–06/frei, **Phase 6 verdrahtet**) + `Chat.titel` und `Chat.schulbezug` (Call 07) generieren — bei der ersten Nachricht und solange der Chat noch keinen Schulbezug hat; Antwort enthält zusätzlich `schulbezug` —, Usage inkrementieren. **Streaming (seit 2026-09-23):** mit `Accept: text/event-stream` kommt die Antwort als Server-Sent Events — `data: {"typ":"delta","text"}` je Textstück, zum Schluss `{"typ":"fertig", chatId, nachrichten, chatMap?}` (identisch zur JSON-Antwort) oder `{"typ":"fehler","fehler":"ki_nicht_verfuegbar"\|"serverfehler"}`; Guards/Limits/404 laufen vor Stream-Beginn und kommen als normale JSON-Fehler. Ohne den Header unverändert JSON. Nachrichten/Usage werden erst nach vollständiger Antwort gespeichert. Bei gesetztem `lernplanKontext` zusätzlich `Lernplan.chatMap["<tag>\|<chat.modus>\|<chat.themaId>"] = chat.id` setzen (idempotent) |
 
 ### Lernzettel
@@ -1003,6 +1006,7 @@ Abweichungen von den Tabellen unten:
 | GET | `/lernzettel?themaId=` oder ohne Filter | **Neu (Phase 11, 2026-09-12).** Übersichts-Liste ohne Revisionsverlauf — für Feeds/Dashboards (z. B. „Zuletzt bearbeitet"). Fehlte bis dahin (nur Einzel-Fetch über `:id`) |
 | POST | `/themen/:id/lernzettel` | Vollautomatische Erstellung (Call 08, **Phase 6 verdrahtet**), liefert fertigen Lernzettel |
 | GET | `/lernzettel/:id` | Inhalt + Revisionsverlauf |
+| DELETE | `/lernzettel/:id` | Lernzettel samt Revisionsverlauf → `204`. Einstellungen → „Meine Inhalte“ (2026-09-30); Usage wird **nicht** gutgeschrieben |
 | POST | `/lernzettel/:id/revisionen` | `{text}` → KI passt `content` an (Call 09, **Phase 6 verdrahtet**: Vorab-Filter + Such-/Ersetzen-Patches), gibt aktualisierten Lernzettel + Revisionsverlauf zurück |
 
 ### Dateien
@@ -1011,7 +1015,7 @@ Abweichungen von den Tabellen unten:
 | POST | `/themen/:id/dateien` | **Phase 5 verdrahtet.** multipart Upload (max. 5 MB, hart via `@fastify/multipart`-Limit + manueller Check), Status `verarbeitung` → async Call 01 (Text-Extraktion oder Vision bei Bildern) → Status `bereit`/`fehler`. Der Client erfährt den Wechsel per **Polling** von `GET /dateien/:id` (kurzer Backoff, Stopp bei `bereit`/`fehler` oder ~60 s Timeout) — kein Websocket/SSE (Entscheidung 2026-09-04) |
 | GET | `/dateien?themaId=` oder ohne Filter | Aggregat-Liste, nur `zweck: thema` (Testklausur-Lösungs-Uploads ausgeschlossen) |
 | GET | `/dateien/:id` | Datei-Detail (Metadaten + KI-Zusammenfassung + Status) für den **Datei-Viewer**: Klick auf eine Datei-Karte/-Zeile (`dateien.html`, `thema.html` inkl. Übersicht, Dashboard-Feed) öffnet jetzt ein Modal (`LesifyUI.openDateiModal`) mit Dokument-Ansicht statt zur Themen-Dateien-Unterseite zu navigieren. Im Prototyp aus der bereits geladenen Liste bedient |
-| DELETE | `/dateien/:id` | **Neu 2026-09-30.** Themen-Datei (`zweck: thema`) samt Speicherobjekt löschen → `204`; Testklausur-Lösungen → `404`. Upload-Zähler bleibt (zählt Uploads). Chat-Anhänge/Lösungsverweise → `SetNull`. UI: „Löschen“ im Datei-Viewer-Modal (zweistufig), Seiten hören auf `lesify:datei-geloescht` |
+| DELETE | `/dateien/:id` | **Neu 2026-09-30.** Themen-Datei (`zweck: thema`) samt Speicherobjekt löschen → `204`; Testklausur-Lösungen → `404`. Upload-Zähler bleibt (zählt Uploads). Chat-Anhänge/Lösungsverweise → `SetNull`. UI: „Löschen“ im Datei-Viewer-Modal (zweistufig, Seiten hören auf `lesify:datei-geloescht`) und in Einstellungen → „Meine Inhalte“ |
 | GET | `/dateien/:id/inhalt` | **Phase 5 verdrahtet.** 302-Redirect auf eine 60 s gültige signierte URL — zum Einbetten/Anzeigen im Viewer (PDF inline, Bild-Vorschau) **und** für den „Herunterladen"-Button im Viewer-Modal. Läuft **ohne** den normalen `requireAuth`-Hook (eigener Plugin-Scope), weil `dateiInhaltUrl()` direkt als `<a href>`/`<img src>` genutzt wird und keinen `Authorization`-Header mitschicken kann — Auth via Header **oder** `?token=`. Im Prototyp nicht vorhanden — das Modal zeigt eine simulierte Vorschau (Zusammenfassung + Platzhalter) und der Download liefert ersatzweise ein `.txt` mit Metadaten + KI-Zusammenfassung (`Lesify.downloadText`), keinen echten Datei-Inhalt |
 
 ### Klausuren (echter Termin)
@@ -1019,6 +1023,7 @@ Abweichungen von den Tabellen unten:
 |---|---|---|
 | POST | `/klausuren` | `{fachId, themaIds, titel, datum}`. **Legt Klausur + Testklausur 1 (Call 10, Phase 6 verdrahtet) + Lernplan an** (kein DB-`$transaction` über den KI-Call hinweg, siehe §3 „Umsetzung Phase 6") (siehe Lernplan-Endpunkte unten) und gibt beide mit zurück. `themaIds` ist ein Array (≥1); die Erstell-Modals wählen mehrere Themen aus (**kein** „×"-Entfernen — Ab-/Anwählen per Klick, Abbruch über den Abbrechen-Button; die Modals haben auch kein „×"-Schließen mehr) und legen neue inline an. `klausuren.html` (`#nk-form`) nutzt ein Pill-Raster mit Dev-Switcher für 5 fach-gefärbte Pill-Styles (`localStorage['lesify:themepick:pill']`: Solid/Soft/Outline/Dot/Bar), `thema.html` (`#mk-form`) eine einfache Dropdown-Variante. Der Client macht vorab N× `POST /themen` und schickt dann alle IDs; ein Batch-`{neueThemen: [{name}]}` im selben Call wäre denkbar, ist aber nicht nötig |
 | GET | `/klausuren` / `/klausuren/:id` | Liste / Detail. „Bereits geschrieben" wird client-seitig aus `datum` abgeleitet — kein Server-Filter, kein Statusfeld |
+| DELETE | `/klausuren/:id` | Klausur samt Lernplan, Testklausuren (+ Aufgaben/Ergebnisse) und deren Lösungs-Uploads (Datei-Zeilen + Speicherobjekte) → `204`. `klausurLoeschen()`. Einstellungen → „Meine Inhalte“ (2026-09-30); Usage wird **nicht** gutgeschrieben |
 
 Kein `PATCH /klausuren/:id` — eine `Klausur` hat keine editierbaren Felder (Entscheidung 2026-09-03: die erreichte Note wird nicht erfasst).
 
@@ -1697,6 +1702,12 @@ fehlgeschlagene Logins/Upload-Flooding weiterhin offen (§8).
 - [x] **Standard-Fächer** Deutsch/Mathematik/Englisch für jedes Schüler-Konto.
 - [x] **Freie Fach-Farben** per Farbwähler zusätzlich zu den 8 Palettenfarben
       (`Fach.farbe` = Schlüssel oder `#rrggbb`).
+- [x] **Alle Inhalte löschbar** über Einstellungen → „Meine Inhalte“ (Fächer,
+      Themen, Klausuren, Chats, Lernzettel, Dateien; `DELETE`-Endpunkte je Typ).
+      Gelöschtes wird **nicht** auf Usage gutgeschrieben — die Zähler sind eigene
+      Felder in `Usage`, nicht aus Zeilen gezählt.
+- [x] **Lernzettel ohne Begrüßung/Einleitung** (Call 08 Regel 7 + `ohneBegruessung()`
+      als Sicherheitsnetz; Call 09 fügt keine Begrüßung ein).
 
 ### Weiterhin offen
 

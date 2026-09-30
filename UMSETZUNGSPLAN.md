@@ -3186,6 +3186,9 @@ Blockiert alles Weitere. Erst die offenen Produktfragen klären, dann bauen.
       ohnehin; Schutz = Rate-Limit). Themenfremde Chats werden nicht gelistet.
       Jedes Schüler-Konto startet mit Deutsch, Mathematik, Englisch. Fach-Farben
       sind frei wählbar (Farbwähler zusätzlich zu den 8 Palettenfarben).
+- [x] **Entscheidung 2026-09-30 — Inhalte löschen:** alles (Fächer, Themen,
+      Klausuren, Chats, Lernzettel, Dateien) ist über die Einstellungen löschbar;
+      bereits verbrauchte Kontingente werden dadurch nicht zurückgesetzt.
 
 ---
 
@@ -5060,6 +5063,17 @@ Kritisch, weil Zielgruppe minderjährig ist.
         `20260930130000_standard_faecher` laufen beim Railway-Deploy.
         _Offen:_ bestehender „Taylor Swift“-Chat im Dev-Account bleibt sichtbar
         (Bestandschats = Schulbezug) — Chats löschen gibt es noch nicht.
+  - [x] **Testrunde 2026-09-30, zweite Runde:** Datei-Vorschau hat feste Höhe,
+        nur die rechte Spalte (Eckdaten + Zusammenfassung) scrollt; Lernzettel
+        ohne Begrüßungssatz („Hallo! Hier ist dein kompletter Überblick …“ —
+        Prompt-Regel + Filter); Lernzettel-Überarbeitung zeigt die Nachricht
+        sofort, eine „tippt“-Blase und „wird überarbeitet“ über dem PDF (vorher
+        verschwand die Nachricht bis zum Neuladen), Text bleibt bei Fehler
+        erhalten; **Einstellungen → „Meine Inhalte“**: Fächer, Themen,
+        Klausuren, Chats, Lernzettel, Dateien einzeln löschbar (neue
+        `DELETE`-Endpunkte, Kaskaden + Speicher-/`themaIds`-/`chatMap`-
+        Bereinigung in `api/src/lib/inhalteLoeschen.ts`), Usage wird nicht
+        gutgeschrieben. Damit lässt sich auch der alte „Taylor Swift“-Chat löschen.
 
 **B. Stripe Live**
 

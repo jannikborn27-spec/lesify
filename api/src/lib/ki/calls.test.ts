@@ -11,6 +11,7 @@ import {
   testklausurAnalyseErzeugen,
   testklausurAufgabenErzeugen,
   wendePatchesAn,
+  ohneBegruessung,
 } from './calls.js';
 
 const ki = new FakeKiClient();
@@ -166,5 +167,20 @@ describe('verlaufFenster', () => {
     for (const n of [31, 77, 200, 1000]) {
       expect(verlaufFenster(verlauf(n)).nachrichten.length).toBeLessThanOrEqual(VERLAUF_MAX);
     }
+  });
+});
+
+describe('ohneBegruessung', () => {
+  it('entfernt eine Grußzeile vor der ersten Überschrift', () => {
+    const roh =
+      'Hallo! Hier ist dein kompletter Überblick über Bruchrechnung. Lass dich nicht abschrecken!\n\n# Bruchrechnung\n\n- Zähler/Nenner';
+    expect(ohneBegruessung(roh)).toBe('# Bruchrechnung\n\n- Zähler/Nenner');
+  });
+
+  it('lässt sachliche Einleitungen und Inhalte ohne Überschrift unverändert', () => {
+    const sachlich = 'Ein Bruch besteht aus Zähler und Nenner.\n\n# Grundbegriffe';
+    expect(ohneBegruessung(sachlich)).toBe(sachlich);
+    expect(ohneBegruessung('Hallo Welt ohne Überschrift')).toBe('Hallo Welt ohne Überschrift');
+    expect(ohneBegruessung('# Direkt los\n\nHallo')).toBe('# Direkt los\n\nHallo');
   });
 });

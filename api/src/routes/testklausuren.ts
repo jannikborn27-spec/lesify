@@ -70,6 +70,9 @@ export async function testklausurenRoutes(app: FastifyInstance): Promise<void> {
         themaId: a.themaId,
         frage: a.frage,
         reihenfolge: a.reihenfolge,
+        minuten: a.minuten,
+        prozent: a.prozent,
+        erklaerung: a.erklaerung,
       })),
       ergebnisse: t.ergebnisse,
       vorbereitung: t.vorbereitung,
@@ -94,6 +97,7 @@ export async function testklausurenRoutes(app: FastifyInstance): Promise<void> {
       aufgaben: t.aufgaben.map((a) => ({
         themaName: themen.find((th) => th.id === a.themaId)?.name ?? 'Thema',
         frage: a.frage,
+        minuten: a.minuten,
       })),
     });
     return pdfAntwort(reply, pdf, t.titel, download === '1');
@@ -204,17 +208,35 @@ export async function testklausurenRoutes(app: FastifyInstance): Promise<void> {
       loesungsText: t.loesungsText,
     });
 
-    const zeilen = ergebnisse.map((e) => {
+    // Ergebnis je Aufgabe (per aufgabeNr, sonst Reihenfolge) → je Thema
+    // gemittelt, gewichtet nach geschätzten Minuten (2026-09-30: mehrere
+    // Aufgaben pro Thema). Note/Ampel/Lernplan rechnen weiter je Thema.
+    const proAufgabe = t.aufgaben.map((a, i) => {
+      const e =
+        ergebnisse.find((x) => x.aufgabeNr === i + 1) ??
+        (ergebnisse.every((x) => x.aufgabeNr == null) ? ergebnisse[i] : undefined);
       // Strict-Tool-Schemas erlauben kein minimum/maximum — Bereich hier absichern.
-      const prozent = Math.min(100, Math.max(0, Math.round(e.prozent)));
-      const note = prozentZuNote(prozent);
+      const prozent = e ? Math.min(100, Math.max(0, Math.round(e.prozent))) : 0;
       return {
-        themaId: e.themaId,
+        aufgabe: a,
+        nr: i + 1,
         prozent,
-        note,
-        erklaerung: e.erklaerung,
-        ampel: noteAmpel(note),
+        erklaerung: e?.erklaerung ?? 'Zu dieser Aufgabe kam keine Bewertung zurück.',
       };
+    });
+    const zeilen = t.themaIds.map((themaId) => {
+      const eigene = proAufgabe.filter((x) => x.aufgabe.themaId === themaId);
+      const gewicht = (x: (typeof eigene)[number]) => x.aufgabe.minuten ?? 1;
+      const summeG = eigene.reduce((s, x) => s + gewicht(x), 0);
+      const prozent = eigene.length
+        ? Math.round(eigene.reduce((s, x) => s + x.prozent * gewicht(x), 0) / summeG)
+        : 0;
+      const note = prozentZuNote(prozent);
+      const erklaerung =
+        eigene.length === 1
+          ? eigene[0]!.erklaerung
+          : eigene.map((x) => `Aufgabe ${x.nr}: ${x.erklaerung}`).join('\n\n');
+      return { themaId, prozent, note, erklaerung, ampel: noteAmpel(note) };
     });
 
     await prisma.$transaction([
@@ -238,6 +260,12 @@ export async function testklausurenRoutes(app: FastifyInstance): Promise<void> {
           ampel: z.ampel,
         })),
       }),
+      ...proAufgabe.map((x) =>
+        prisma.aufgabe.update({
+          where: { id: x.aufgabe.id },
+          data: { prozent: x.prozent, erklaerung: x.erklaerung },
+        }),
+      ),
       prisma.testklausur.update({ where: { id: t.id }, data: { status: 'analysiert' } }),
     ]);
 

@@ -466,10 +466,20 @@ export interface TestklausurThemaInput {
   dateiZusammenfassungen: string;
 }
 
+/** Ziel-Bearbeitungszeit einer Testklausur in Minuten (Entscheidung 2026-09-30). */
+export const TESTKLAUSUR_MINUTEN = 30;
+
+export interface TestklausurAufgabeKi {
+  themaId: string;
+  frage: string;
+  /** Geschätzte Bearbeitungszeit in Minuten. */
+  minuten?: number;
+}
+
 export async function testklausurAufgabenErzeugen(
   ki: KiClient,
   ctx: { klassenstufe: string; fachName: string; themen: TestklausurThemaInput[] },
-): Promise<{ themaId: string; frage: string }[]> {
+): Promise<TestklausurAufgabeKi[]> {
   const themenBlock = ctx.themen
     .map(
       (t) => `### Thema: ${t.themaName} (themaId: ${t.themaId})
@@ -487,31 +497,42 @@ ${t.dateiZusammenfassungen}`,
 Schülerin der ${ctx.klassenstufe} seine/ihre Klausurvorbereitung testet.
 Fach: ${ctx.fachName}.
 
-Für jedes der folgenden Themen erstellst du genau EINE Aufgabe:
+Die Testklausur soll insgesamt etwa ${TESTKLAUSUR_MINUTEN} Minuten Bearbeitungszeit
+haben (zwischen ${TESTKLAUSUR_MINUTEN - 5} und ${TESTKLAUSUR_MINUTEN + 5} Minuten) —
+wie eine kurze echte Klassenarbeit. Themen:
 
 ${themenBlock}
 
 Regeln:
-1. Pro Thema genau eine Aufgabe — keine Multiple-Choice, keine
-   Wahr/Falsch-Fragen. Die Aufgabe muss eine ausformulierte Antwort,
-   Rechnung oder Herleitung verlangen.
-2. Die Aufgabe muss ausschließlich mit dem bereitgestellten Material zu
-   diesem Thema lösbar sein.
-3. Angemessenes Niveau für ${ctx.klassenstufe}: fordernd, aber nicht über
-   den behandelten Stoff hinaus.
-4. Eindeutig und ohne Interpretationsspielraum bewertbar.
-5. Keine Lösung/Musterlösung ausgeben — nur die Aufgabenstellung selbst.
-6. Gib in themaId exakt die oben angegebene themaId zurück.
+1. Jedes Thema bekommt mindestens eine Aufgabe. Verteile die Zeit sinnvoll:
+   bei wenigen Themen mehrere Aufgaben pro Thema (auch mit Teilaufgaben
+   a), b), c)), bei vielen Themen entsprechend kürzere Aufgaben. Höchstens
+   10 Aufgaben insgesamt.
+2. Keine Multiple-Choice, keine Wahr/Falsch-Fragen. Jede Aufgabe verlangt
+   eine ausformulierte Antwort, Rechnung oder Herleitung.
+3. Jede Aufgabe muss ausschließlich mit dem bereitgestellten Material zu
+   ihrem Thema lösbar sein.
+4. Angemessenes Niveau für ${ctx.klassenstufe}: fordernd, aber nicht über
+   den behandelten Stoff hinaus. Mische leichtere und anspruchsvollere
+   Aufgaben.
+5. Eindeutig und ohne Interpretationsspielraum bewertbar.
+6. Keine Lösung/Musterlösung ausgeben — nur die Aufgabenstellung selbst.
+7. Schätze pro Aufgabe realistisch die Bearbeitungszeit in ganzen Minuten
+   (minuten) für ${ctx.klassenstufe}; die Summe liegt bei etwa
+   ${TESTKLAUSUR_MINUTEN} Minuten.
+8. Gib in themaId exakt die oben angegebene themaId zurück. Aufgaben zum
+   selben Thema stehen direkt hintereinander, Themen in der oben
+   angegebenen Reihenfolge.
 
 Antworte ausschließlich über das bereitgestellte Tool.`;
 
-  const { ausgabe } = await ki.toolAufruf<{ aufgaben: { themaId: string; frage: string }[] }>({
+  const { ausgabe } = await ki.toolAufruf<{ aufgaben: TestklausurAufgabeKi[] }>({
     callTyp: 'testklausur_aufgaben',
     system,
     messages: [{ rolle: 'user', text: 'Erstelle die Aufgaben.' }],
     tool: {
       name: 'testklausur_aufgaben',
-      beschreibung: 'Eine Aufgabe pro Thema für eine neue Testklausur',
+      beschreibung: `Aufgaben für eine neue Testklausur (ca. ${TESTKLAUSUR_MINUTEN} Minuten, jedes Thema mindestens einmal)`,
       schema: {
         type: 'object',
         properties: {
@@ -525,8 +546,12 @@ Antworte ausschließlich über das bereitgestellte Tool.`;
                   type: 'string',
                   description: 'Vollständige Aufgabenstellung, keine Lösung',
                 },
+                minuten: {
+                  type: 'integer',
+                  description: 'Geschätzte Bearbeitungszeit in Minuten',
+                },
               },
-              required: ['themaId', 'frage'],
+              required: ['themaId', 'frage', 'minuten'],
             },
           },
         },
@@ -534,7 +559,7 @@ Antworte ausschließlich über das bereitgestellte Tool.`;
       },
     },
     model: MODELL_STANDARD,
-    maxTokens: ctx.themen.length * 500 + 400,
+    maxTokens: Math.max(2400, ctx.themen.length * 500 + 400),
     temperature: 0.45,
     fakeKontext: { themaIds: ctx.themen.map((t) => t.themaId) },
   });
@@ -560,10 +585,10 @@ export async function testklausurAnalyseErzeugen(
     aufgaben: TestklausurAufgabeMitMaterial[];
     loesungsText: string;
   },
-): Promise<{ themaId: string; prozent: number; erklaerung: string }[]> {
+): Promise<{ aufgabeNr?: number; themaId?: string; prozent: number; erklaerung: string }[]> {
   const aufgabenBlock = ctx.aufgaben
     .map(
-      (a) => `### Aufgabe zu Thema „${a.themaName}" (themaId: ${a.themaId})
+      (a, i) => `### Aufgabe ${i + 1} — Thema „${a.themaName}" (themaId: ${a.themaId})
 ${a.frage}
 Verfügbares Material zu diesem Thema:
 ${a.material}`,
@@ -602,12 +627,13 @@ bewerten:
 
 Wichtig: Gib für jede Aufgabe nur die Prozentzahl zurück, nicht die daraus
 abgeleitete Schulnote oder Ampel-Stufe — die werden vom Backend nach fester
-Formel abgeleitet. Gib in themaId exakt die oben angegebene themaId zurück.
+Formel abgeleitet. Gib genau einen Eintrag pro Aufgabe zurück, mit der
+Aufgabennummer (aufgabeNr, wie oben) und exakt der angegebenen themaId.
 
 Antworte ausschließlich über das bereitgestellte Tool.`;
 
   const { ausgabe } = await ki.toolAufruf<{
-    ergebnisse: { themaId: string; prozent: number; erklaerung: string }[];
+    ergebnisse: { aufgabeNr?: number; themaId?: string; prozent: number; erklaerung: string }[];
   }>({
     callTyp: 'testklausur_analyse',
     system,
@@ -627,6 +653,7 @@ Antworte ausschließlich über das bereitgestellte Tool.`;
               // eine Lösung, die seine eigene Erklärung als falsch einstufte
               // (2026-09-23).
               properties: {
+                aufgabeNr: { type: 'integer', description: 'Nummer der Aufgabe (ab 1)' },
                 themaId: { type: 'string' },
                 pruefung: {
                   type: 'string',
@@ -636,7 +663,7 @@ Antworte ausschließlich über das bereitgestellte Tool.`;
                 prozent: { type: 'integer', minimum: 0, maximum: 100 },
                 erklaerung: { type: 'string' },
               },
-              required: ['themaId', 'pruefung', 'prozent', 'erklaerung'],
+              required: ['aufgabeNr', 'themaId', 'pruefung', 'prozent', 'erklaerung'],
             },
           },
         },

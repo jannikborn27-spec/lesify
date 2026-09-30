@@ -467,6 +467,10 @@ model Aufgabe {
   themaId       String @db.Uuid
   frage         String
   reihenfolge   Int
+  // Testklausur ≈ 30 Minuten (2026-09-30): mehrere Aufgaben pro Thema möglich.
+  minuten       Int? // geschätzte Bearbeitungszeit (Call 10)
+  prozent       Int? // Bewertung dieser Aufgabe (Call 11); je Thema gemittelt → TestklausurErgebnis
+  erklaerung    String? // Erklärung zu dieser Aufgabe (Call 11)
 
   user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   testklausur Testklausur @relation(fields: [testklausurId], references: [id], onDelete: Cascade)

@@ -1,11 +1,12 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { parse } from '../lib/validate.js';
-import { nichtGefunden } from '../lib/http.js';
+import { HttpError, nichtGefunden } from '../lib/http.js';
 import { oder404 } from '../lib/scope.js';
 import { klausurNoteFuer } from '../lib/lernplan.js';
 import { testklausurErstellen } from '../lib/testklausur.js';
 import { klausurLoeschen } from '../lib/inhalteLoeschen.js';
+import { pruefeUsageLimit } from '../lib/usage.js';
 
 const erstellen = z.object({
   fachId: z.string().uuid(),
@@ -25,6 +26,15 @@ export async function klausurenRoutes(app: FastifyInstance): Promise<void> {
     const userId = req.userId;
 
     oder404(await prisma.fach.findFirst({ where: { id: body.fachId, userId } }));
+    // Keine Klausuren in der Vergangenheit anlegen (2026-09-30) — Stichtag
+    // „heute" in deutscher Zeit, der heutige Tag selbst ist erlaubt.
+    const heute = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Berlin' });
+    if (body.datum.toISOString().slice(0, 10) < heute) {
+      throw new HttpError(400, 'klausur_datum_vergangen');
+    }
+    // Eine Klausur = eine „Klausurvorbereitung" (Usage-Zähler `testklausuren`):
+    // vor dem Anlegen prüfen, damit keine halbe Klausur entsteht.
+    await pruefeUsageLimit(prisma, userId, 'testklausuren');
     const themen = await prisma.thema.findMany({
       where: { id: { in: body.themaIds }, userId, fachId: body.fachId },
       select: { id: true },

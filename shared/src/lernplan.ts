@@ -36,7 +36,13 @@ export interface LernplanEingabe {
   checklist: Record<string, Record<string, boolean>> | null;
 }
 
-export type Intensitaet = null | 'tief' | 'normal' | 'triagiert';
+/**
+ * `festigen` (2026-09-30): Testklausur 1 ohne schwache/wackelige Themen. Früher
+ * sprang der Plan dann direkt zu Tag 7 („Kurzschluss", kein Lerninhalt) — jetzt
+ * festigen Tag 2–4 die (relativ) schwächsten Themen, Testklausur 2 + Tag 6
+ * entfallen.
+ */
+export type Intensitaet = null | 'tief' | 'normal' | 'triagiert' | 'festigen';
 
 /**
  * Gesamtnote einer Testklausur = `prozentZuNote(round(avg(prozent je Thema)))`
@@ -83,6 +89,8 @@ export interface LernplanStatus {
     fokusThemen: string[];
     kurzThemen: string[];
     intensitaet: Intensitaet;
+    /** true = alles grün nach Testklausur 1 → Festigen statt Schwachstellen. */
+    festigen: boolean;
     proThema: ProThemaVorbereitung[];
   };
   tag2: Lerntag;
@@ -134,19 +142,27 @@ export function lernplanStatus(inp: LernplanEingabe): LernplanStatus {
     })
     .map((p) => p.themaId);
 
-  const fokusThemen = schwacheThemen.slice(0, LERNPLAN_FOKUS_LIMIT);
-  const kurzThemen = schwacheThemen.slice(LERNPLAN_FOKUS_LIMIT);
+  // Alles grün → festigen: die relativ schwächsten Themen (niedrigste Prozent)
+  // bekommen trotzdem Lerntage 2–4.
+  const festigen = tk1Analysiert && schwacheThemen.length === 0;
+  const lernThemen = festigen
+    ? proThema1
+        .slice()
+        .sort((a, b) => a.prozent - b.prozent || b.note - a.note)
+        .map((p) => p.themaId)
+    : schwacheThemen;
+  const fokusThemen = lernThemen.slice(0, LERNPLAN_FOKUS_LIMIT);
+  const kurzThemen = lernThemen.slice(LERNPLAN_FOKUS_LIMIT);
 
-  const intensitaet: Intensitaet =
-    schwacheThemen.length === 0
+  const intensitaet: Intensitaet = festigen
+    ? 'festigen'
+    : schwacheThemen.length === 0
       ? null
       : schwacheThemen.length === 1
         ? 'tief'
         : schwacheThemen.length <= LERNPLAN_FOKUS_LIMIT
           ? 'normal'
           : 'triagiert';
-
-  const kurzschluss = tk1Analysiert && schwacheThemen.length === 0;
 
   const tk2Analysiert = !!(
     testklausur2 &&
@@ -162,8 +178,8 @@ export function lernplanStatus(inp: LernplanEingabe): LernplanStatus {
     }
   }
   const tag6NichtsZuTun =
-    kurzschluss || (tk2Analysiert && stubborn.length === 0 && aufgefrischt.length === 0);
-  const ankerThema7 = schwacheThemen[0] ?? klausurThemen[0] ?? null;
+    festigen || (tk2Analysiert && stubborn.length === 0 && aufgefrischt.length === 0);
+  const ankerThema7 = fokusThemen[0] ?? klausurThemen[0] ?? null;
   const fachId7 = testklausur1?.fachId ?? inp.klausurFachId ?? null;
 
   const aufgabenKeys = (n: number): string[] => {
@@ -213,10 +229,11 @@ export function lernplanStatus(inp: LernplanEingabe): LernplanStatus {
     fokusThemen,
     kurzThemen,
     intensitaet,
+    festigen,
     proThema: proThema1,
   };
   const lerntag = (tag: number): Lerntag => ({
-    erledigt: kurzschluss || aufgabenErledigt(tag),
+    erledigt: aufgabenErledigt(tag),
     fokusThemen: fokusThemen.slice(),
     kurzThemen: tag === 4 ? [] : kurzThemen.slice(),
     relevantThemen: fokusThemen.slice(),
@@ -228,7 +245,7 @@ export function lernplanStatus(inp: LernplanEingabe): LernplanStatus {
   const tag4 = lerntag(4);
 
   const tag5 = {
-    erledigt: tk2Analysiert || kurzschluss,
+    erledigt: tk2Analysiert || festigen,
     noetig: tk1Analysiert && schwacheThemen.length > 0,
     verfuegbar: tk1Analysiert,
   };
@@ -248,12 +265,10 @@ export function lernplanStatus(inp: LernplanEingabe): LernplanStatus {
   let aktuellerTag: number | 'fertig';
   if (!tk1Analysiert) {
     aktuellerTag = 1;
-  } else if (kurzschluss) {
-    aktuellerTag = tag7.erledigt ? 'fertig' : 7;
   } else {
-    const offeneLerntage = [2, 3, 4].filter((tag) => !(kurzschluss || aufgabenErledigt(tag)));
+    const offeneLerntage = [2, 3, 4].filter((tag) => !aufgabenErledigt(tag));
     if (!tk2Analysiert && offeneLerntage.length > 0) aktuellerTag = offeneLerntage[0]!;
-    else if (!tk2Analysiert) aktuellerTag = 5;
+    else if (!tag5.erledigt) aktuellerTag = 5;
     else if (!tag6.erledigt) aktuellerTag = 6;
     else if (!tag7.erledigt) aktuellerTag = 7;
     else aktuellerTag = 'fertig';

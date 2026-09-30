@@ -47,6 +47,8 @@ export async function lernzettelPdf(d: LernzettelPdfDaten): Promise<Buffer> {
 export interface TestklausurPdfAufgabe {
   themaName: string;
   frage: string;
+  /** Geschätzte Bearbeitungszeit (seit 2026-09-30, ältere Aufgaben ohne). */
+  minuten?: number | null;
 }
 
 export interface TestklausurPdfDaten {
@@ -62,13 +64,16 @@ const ANTWORT_ZEILEN = 8;
 const ZEILE_ABSTAND = 21;
 
 export async function testklausurPdf(d: TestklausurPdfDaten): Promise<Buffer> {
+  const gesamtMinuten = d.aufgaben.every((a) => a.minuten)
+    ? d.aufgaben.reduce((s, a) => s + (a.minuten ?? 0), 0)
+    : 0;
   const v = new LesifyVorlage({
     dokumentTyp: 'Testklausur',
     titel: d.titel,
     fachName: d.fachName,
     fachFarbeKey: d.fachFarbe,
     klasse: d.klasse,
-    meta: `${d.aufgaben.length} ${d.aufgaben.length === 1 ? 'Aufgabe' : 'Aufgaben'}  ·  Erstellt am ${DATUM.format(d.erstelltAm)}`,
+    meta: `${d.aufgaben.length} ${d.aufgaben.length === 1 ? 'Aufgabe' : 'Aufgaben'}${gesamtMinuten ? `  ·  ca. ${gesamtMinuten} Minuten` : ''}  ·  Erstellt am ${DATUM.format(d.erstelltAm)}`,
   });
   const { doc } = v;
 
@@ -100,6 +105,9 @@ export async function testklausurPdf(d: TestklausurPdfDaten): Promise<Buffer> {
 
   // Hinweisbox
   const hinweise = [
+    ...(gesamtMinuten
+      ? [`Plane etwa ${gesamtMinuten} Minuten ein — die Zeitangabe steht bei jeder Aufgabe.`]
+      : []),
     'Löse die Aufgaben allein und ohne Lernzettel, Chat oder andere Hilfsmittel — so zeigt dir das Ergebnis ehrlich, wo du stehst.',
     'Schreibe deine Lösung in die Felder oder auf ein extra Blatt und lade sie danach als Foto oder PDF bei Lesify hoch.',
   ];
@@ -151,6 +159,12 @@ export async function testklausurPdf(d: TestklausurPdfDaten): Promise<Buffer> {
     const cx = v.links + 34 + wt + 10;
     doc.roundedRect(cx, y + 5, cw, 15, 7.5).fill(v.farbe.bg);
     doc.fillColor(v.farbe.ink).text(thema, cx + 8, y + 9.2, { lineBreak: false });
+    if (a.minuten) {
+      v.schrift('body', 8.5);
+      doc
+        .fillColor(INK[500])
+        .text(`ca. ${a.minuten} Min.`, cx + cw + 8, y + 9.2, { lineBreak: false });
+    }
 
     v.schrift('body', 10.5);
     doc.fillColor(INK[800]);

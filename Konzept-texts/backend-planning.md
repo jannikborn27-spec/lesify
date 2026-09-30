@@ -390,8 +390,14 @@ Key-Liste je Tag berechnet `lernplanStatus` deterministisch aus `fokusThemen`/`k
 `intensitaet` bzw. (Tag 6) `stubborn`/`aufgefrischt`. **Ein Tag gilt als erledigt, sobald
 alle seine Punkte gehakt sind** — Abwählen öffnet ihn wieder (`aktuellerTag` folgt).
 Der „Tag abschließen"-Button setzt alle Punkte auf einmal. Tag 1/5 bleiben Testklausur-
-gesteuert, der „nichts zu tun"-Kurzschluss (Tag 2–4/6 bei komplett starker Testklausur 1)
-gilt weiter.
+gesteuert. **Festigen statt Kurzschluss (seit 2026-09-30):** Ist Testklausur 1 überall
+grün, sprang der Plan früher direkt zu Tag 7 ohne jeden Lerninhalt (Testdurchgang: Note
+1,3). Jetzt gilt `tag1.festigen = true` / `intensitaet = 'festigen'`: `fokusThemen`/
+`kurzThemen` = **alle** Themen nach Prozent aufsteigend (die relativ schwächsten zuerst),
+Tag 2–4 bekommen ihre normalen Checklisten-Keys (Texte in `app.js` auf „Vertiefen /
+auf Klausurniveau üben / festigen" umgestellt, `LP_TAGE_FESTIGEN`), Testklausur 2 +
+Tag 6 entfallen (`tag5.noetig = false`, `tag5.erledigt`/`tag6.erledigt = true`), danach
+Tag 7. `schwacheThemen` bleibt leer.
 
 **Adaptive Lastverteilung (Tag 2–4):** `Lesify.lernplanStatus` sortiert `schwacheThemen`
 nach Ampel-Schwere (rot vor gelb, dann schlechtere Note zuerst) und teilt sie ab
@@ -424,7 +430,7 @@ Gleiches Seed+Store+Override-Muster wie `Klausur`/`fachOverrides` im Prototyp
 (`store.lernplaene` + `store.lernplanOverrides`, `Lesify.lernplaene()`,
 `Lesify.getLernplan(id)`, `Lesify.getLernplanFuerKlausur(klausurId)`). Der gesamte
 abgeleitete Zustand (aktueller Tag, welche Themen schwach sind, ob Testklausur 2
-nötig ist, Tag-1↔Tag-5-Vergleich, „nichts zu tun"-Kurzschluss bei komplett starker
+nötig ist, Tag-1↔Tag-5-Vergleich, Festigen-Modus bei komplett starker
 Testklausur 1) wird in **einer** Funktion `Lesify.lernplanStatus(lernplanId)`
 berechnet — Seiten rendern nur. Alle Tagesübergänge sind **weich** (kein
 Zugriffs-Gate): der Schüler kann Tage in beliebiger Reihenfolge abschließen und
@@ -469,7 +475,10 @@ einer Note. `Lesify.klausurNote(klausurId)` kapselt diese Auswahl und gibt
 | erstelltAm | timestamp | |
 
 ### Aufgabe
-Eine pro Thema innerhalb einer Testklausur. Nicht Multiple-Choice.
+**Seit 2026-09-30 nicht mehr fest eine pro Thema:** die Testklausur ist auf ca.
+**30 Minuten** Bearbeitungszeit ausgelegt (`TESTKLAUSUR_MINUTEN`), jedes Thema bekommt
+mindestens eine Aufgabe, bei wenigen Themen mehrere (bzw. mit Teilaufgaben), höchstens
+10 insgesamt. Nach Themen gruppiert gespeichert. Nicht Multiple-Choice.
 
 | Feld | Typ | Hinweis |
 |---|---|---|
@@ -478,6 +487,11 @@ Eine pro Thema innerhalb einer Testklausur. Nicht Multiple-Choice.
 | themaId | uuid (FK) | |
 | frage | text | KI-generiert aus Chat- + Datei-Content des Themas |
 | reihenfolge | int | |
+| minuten | int (nullable) | geschätzte Bearbeitungszeit (Call 10); App + PDF zeigen „ca. N Min." und die Summe. Ältere Aufgaben: `null` |
+| prozent | int (nullable) | Bewertung **dieser** Aufgabe (Call 11). `TestklausurErgebnis`/`Vorbereitungsstand` bleiben **je Thema** = nach Minuten gewichteter Mittelwert der Aufgaben des Themas |
+| erklaerung | text (nullable) | Erklärung zu dieser Aufgabe (Call 11); die Themen-Erklärung fasst mehrere als „Aufgabe N: …" zusammen |
+
+Migration `20260930140000_aufgabe_minuten`.
 
 ### TestklausurErgebnis (eingefroren)
 Ein Eintrag pro Aufgabe, entsteht bei der Analyse und wird danach **nie mehr verändert** — das ist die „Testklausurnote".
@@ -577,7 +591,7 @@ Frontend-Spiegel: `Lesify.PLAN_LIMITS` in `app/assets/js/data.js`,
 
 **Monatskontingente je Sitz (maßgeblich: `marketing/assets/js/stripe-config.js` → `limits`; Design-Platzhalter):**
 
-| Tarif | Fächer | Content-Aufnahmen/Monat | KI-Nachrichten/Monat | Lernzettel | Testklausuren/Monat |
+| Tarif | Fächer | Content-Aufnahmen/Monat | KI-Nachrichten/Monat | Lernzettel | Klausurvorbereitungen/Monat (`testklausuren`) |
 |---|---|---|---|---|---|
 | Starter | alle | 20 | 100 | 5 | 1 |
 | Premium (Bestseller) | alle | 50 | 250 | 15 | 5 |
@@ -598,9 +612,13 @@ Interne Planungswerte (nicht in der Schüler-UI): API-Kosten/Monat und LTV je
 Sitz — Starter 1,57 € / 110 €, Premium 4,13 € / 130 €, Infinite 11,28 € / 180 €
 (`stripe-config.js` → `economics`, `data.js` → `Lesify.PLAN_ECONOMICS`).
 
-Ein Lernplan enthält zwei Testklausuren (Tag 1 + Tag 5); bei **Starter**
-(1 Testklausur/Monat) reicht das Kontingent für einen Lernplan-Durchlauf pro
-Monat ohne Testklausur 2.
+**Limitiert werden Klausurvorbereitungen, nicht Testklausuren (seit 2026-09-30):**
+der Zähler heißt technisch weiter `testklausuren`, zählt aber **eine Einheit pro
+Klausur** — geprüft in `POST /klausuren` vor dem Anlegen, verbucht mit Testklausur 1.
+Testklausur 2 derselben Klausur ist frei (`testklausurErstellen`: nur die erste
+Testklausur einer `klausurId` prüft/inkrementiert). Starter (1/Monat) = ein kompletter
+Lernplan inkl. Testklausur 2. UI-Label überall „Klausurvorbereitungen" (auch das
+Nutzungs-Popover in `chat.html`), `limit_erreicht` nennt die betroffene Quote.
 
 Der Ampel-Ring in `chat.html`/`einstellungen.html` zeigt das Maximum aller vier
 Quoten; ein `null`-Limit (unbegrenzte Nachrichten bei `infinite`) zählt als 0.
@@ -721,7 +739,7 @@ Backend gleich nutzbar):
 - **`shared/src/lernplan.ts`** — `lernplanStatus(eingabe)` (reine Funktion:
   aktueller Tag, `schwacheThemen` sortiert rot→gelb dann schlechtere Note,
   `fokusThemen`/`kurzThemen` ab `LERNPLAN_FOKUS_LIMIT` = 3, `intensitaet`
-  null/tief/normal/triagiert, „nichts zu tun"-Kurzschluss, `stubborn`/
+  null/tief/normal/triagiert/festigen, Festigen-Modus statt Kurzschluss, `stubborn`/
   `aufgefrischt` aus Testklausur 2, `aufgabenKeys` je Lerntag — **identische
   Keys wie `lpTagAufgaben()` in `app.js`**, `letzteTestNote`/`letzteTestNr`),
   `klausurNote(tks)`, `testklausurGesamtNote(prozente)` (=
@@ -755,7 +773,7 @@ cachen/zusammenfassen, wenn der Kontext zu groß wird — nicht vorher optimiere
 | Chat-Titel (nur 1. Nachricht) | 1× (+ je Folgenachricht, solange ohne Schulbezug) | Kurzen `Chat.titel` aus der ersten Nutzer-Nachricht erzeugen (`prompts/07-chat-titel.md`) **und** `schulbezug` einstufen (seit 2026-09-30; themenfremd → Chat ungelistet, kein Titel) | Günstigste/schnellste Modellklasse, ~20 Output-Tokens; an den ersten `POST /chats/:id/nachrichten` angehängt, kein eigener Call-Roundtrip nötig |
 | Lernzettel erstellen | 1× | Vollautomatisch aus allen Chats + Dateien des Themas generieren | On-demand, nicht bei jeder Chat-Nachricht neu |
 | Lernzettel-Revision | 1× pro Nachricht | Zettel gemäß Anweisung anpassen | Zählt wie eine normale Chat-Nachricht (kein Gratis-Kontingent, seit 2026-09-19) |
-| Testklausur erstellen | 1× | Pro Thema eine Aufgabe generieren (nicht Multiple-Choice), basierend auf Chat- + Datei-Content des Themas | Ein Call für alle Aufgaben der Testklausur zusammen, nicht pro Thema einzeln. **Gleicher Call für Testklausur 1 (alle Themen) und Testklausur 2 (nur die schwachen/wackeligen)** — keine neue Call-Art |
+| Testklausur erstellen | 1× | Aufgaben für ca. 30 Minuten generieren — jedes Thema mindestens einmal, mehrere Aufgaben je Thema erlaubt, je Aufgabe `minuten` (seit 2026-09-30; vorher fest eine pro Thema); nicht Multiple-Choice, basierend auf Chat- + Datei-Content des Themas. Call 11 bewertet danach je Aufgabe (`aufgabeNr`), das Backend mittelt je Thema | Ein Call für alle Aufgaben der Testklausur zusammen, nicht pro Thema einzeln. **Gleicher Call für Testklausur 1 (alle Themen) und Testklausur 2 (nur die schwachen/wackeligen)** — keine neue Call-Art |
 | Testklausur-Analyse | 1× | Hochgeladene Lösung auswerten: Punktzahl/Note + Aufgabe-für-Aufgabe-Erklärung. Daraus leitet das Backend deterministisch `Vorbereitungsstand` + dreistufige Ampel ab | Ein Call pro Analyse. Kein Nachtest-Pool mehr — das strukturierte Lernen übernimmt der 7-Tage-Lernplan (Lerntage + verlinkte Chat-Prompts), nicht ein Vor-Generierungs-Call |
 | Testklausur 2 (Tag 5) | 1× Erstellung + 1× Analyse | Re-Diagnose, auf die an Tag 1 schwachen/wackeligen Themen beschränkt | **Wiederverwendung** der beiden Testklausur-Calls oben, nur kleinerer `themaIds`-Umfang — keine neue Call-Art |
 | Lernzettel-Aktualisierung (Tag 3/4/6) | 1× pro Aktualisierung | Kurzes „wichtigste Dinge zum Merken"-Markdown je Thema erzeugen und **anhängen** statt neu schreiben | Kleiner, usage-sparsamer Call, gleiche Klasse wie Lernzettel-Erstellung; kurzer Output. Diff-/Anhäng-Prinzip wie bei der Lernzettel-Revision (`09-lernzettel-revision.md`) |
@@ -1021,7 +1039,7 @@ Abweichungen von den Tabellen unten:
 ### Klausuren (echter Termin)
 | Methode | Pfad | Zweck |
 |---|---|---|
-| POST | `/klausuren` | `{fachId, themaIds, titel, datum}`. **Legt Klausur + Testklausur 1 (Call 10, Phase 6 verdrahtet) + Lernplan an** (kein DB-`$transaction` über den KI-Call hinweg, siehe §3 „Umsetzung Phase 6") (siehe Lernplan-Endpunkte unten) und gibt beide mit zurück. `themaIds` ist ein Array (≥1); die Erstell-Modals wählen mehrere Themen aus (**kein** „×"-Entfernen — Ab-/Anwählen per Klick, Abbruch über den Abbrechen-Button; die Modals haben auch kein „×"-Schließen mehr) und legen neue inline an. `klausuren.html` (`#nk-form`) nutzt ein Pill-Raster mit Dev-Switcher für 5 fach-gefärbte Pill-Styles (`localStorage['lesify:themepick:pill']`: Solid/Soft/Outline/Dot/Bar), `thema.html` (`#mk-form`) eine einfache Dropdown-Variante. Der Client macht vorab N× `POST /themen` und schickt dann alle IDs; ein Batch-`{neueThemen: [{name}]}` im selben Call wäre denkbar, ist aber nicht nötig |
+| POST | `/klausuren` | `{fachId, themaIds, titel, datum}`. **`datum` darf nicht in der Vergangenheit liegen** (Stichtag heute, Europe/Berlin; sonst `400 klausur_datum_vergangen`, 2026-09-30 — Datumsfelder haben `min` = heute). Prüft das Klausurvorbereitungs-Kontingent vor dem Anlegen (`403 limit_erreicht`, `zaehler: testklausuren`). **Legt Klausur + Testklausur 1 (Call 10, Phase 6 verdrahtet) + Lernplan an** (kein DB-`$transaction` über den KI-Call hinweg, siehe §3 „Umsetzung Phase 6") (siehe Lernplan-Endpunkte unten) und gibt beide mit zurück. `themaIds` ist ein Array (≥1); die Erstell-Modals wählen mehrere Themen aus (**kein** „×"-Entfernen — Ab-/Anwählen per Klick, Abbruch über den Abbrechen-Button; die Modals haben auch kein „×"-Schließen mehr) und legen neue inline an. `klausuren.html` (`#nk-form`) nutzt ein Pill-Raster mit Dev-Switcher für 5 fach-gefärbte Pill-Styles (`localStorage['lesify:themepick:pill']`: Solid/Soft/Outline/Dot/Bar), `thema.html` (`#mk-form`) eine einfache Dropdown-Variante. Der Client macht vorab N× `POST /themen` und schickt dann alle IDs; ein Batch-`{neueThemen: [{name}]}` im selben Call wäre denkbar, ist aber nicht nötig |
 | GET | `/klausuren` / `/klausuren/:id` | Liste / Detail. „Bereits geschrieben" wird client-seitig aus `datum` abgeleitet — kein Server-Filter, kein Statusfeld |
 | DELETE | `/klausuren/:id` | Klausur samt Lernplan, Testklausuren (+ Aufgaben/Ergebnisse) und deren Lösungs-Uploads (Datei-Zeilen + Speicherobjekte) → `204`. `klausurLoeschen()`. Einstellungen → „Meine Inhalte“ (2026-09-30); Usage wird **nicht** gutgeschrieben |
 
@@ -1706,6 +1724,14 @@ fehlgeschlagene Logins/Upload-Flooding weiterhin offen (§8).
       Themen, Klausuren, Chats, Lernzettel, Dateien; `DELETE`-Endpunkte je Typ).
       Gelöschtes wird **nicht** auf Usage gutgeschrieben — die Zähler sind eigene
       Felder in `Usage`, nicht aus Zeilen gezählt.
+- [x] **Gute Testklausur 1 → Festigen statt Überspringen** (Tag 2–4 mit den relativ
+      schwächsten Themen, TK2/Tag 6 entfallen).
+- [x] **Testklausur ≈ 30 Minuten** statt fest einer Aufgabe pro Thema; Bewertung je
+      Aufgabe, Note/Ampel weiter je Thema.
+- [x] **Usage zählt Klausurvorbereitungen** (eine pro Klausur, TK2 frei), Label überall
+      „Klausurvorbereitungen".
+- [x] **Keine Klausuren in der Vergangenheit.**
+- [x] **Abmelden-Button** in der Seitenleiste über dem Profil-Chip (reine UI).
 - [x] **Lernzettel ohne Begrüßung/Einleitung** (Call 08 Regel 7 + `ohneBegruessung()`
       als Sicherheitsnetz; Call 09 fügt keine Begrüßung ein).
 

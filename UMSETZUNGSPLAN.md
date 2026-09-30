@@ -3189,6 +3189,11 @@ Blockiert alles Weitere. Erst die offenen Produktfragen klären, dann bauen.
 - [x] **Entscheidung 2026-09-30 — Inhalte löschen:** alles (Fächer, Themen,
       Klausuren, Chats, Lernzettel, Dateien) ist über die Einstellungen löschbar;
       bereits verbrauchte Kontingente werden dadurch nicht zurückgesetzt.
+- [x] **Entscheidung 2026-09-30 — Lernplan/Testklausur/Usage:** auch bei
+      durchweg guter Testklausur 1 wird gelernt (Festigen, Tag 2–4); eine
+      Testklausur dauert ca. 30 Minuten (mehrere Aufgaben pro Thema möglich);
+      das Monatskontingent zählt Klausurvorbereitungen (= Klausuren), nicht
+      einzelne Testklausuren.
 
 ---
 
@@ -5074,6 +5079,16 @@ Kritisch, weil Zielgruppe minderjährig ist.
         `DELETE`-Endpunkte, Kaskaden + Speicher-/`themaIds`-/`chatMap`-
         Bereinigung in `api/src/lib/inhalteLoeschen.ts`), Usage wird nicht
         gutgeschrieben. Damit lässt sich auch der alte „Taylor Swift“-Chat löschen.
+  - [x] **Testrunde 2026-09-30, dritte Runde:** Lernplan bei sehr guter
+        Testklausur 1 (Note 1,3 → sprang direkt zu Tag 7 ohne Lerninhalt) jetzt
+        mit **Festigen-Modus**: Tag 2–4 vertiefen die relativ schwächsten Themen,
+        Testklausur 2/Tag 6 entfallen; **Testklausur ≈ 30 Minuten** statt fest
+        einer Aufgabe pro Thema (Zeitangabe je Aufgabe in App + PDF, Bewertung je
+        Aufgabe, Migration `20260930140000_aufgabe_minuten`); Usage zählt
+        **Klausurvorbereitungen** (eine pro Klausur, Testklausur 2 frei), Label im
+        Chat-Nutzungs-Popover korrigiert; **keine Klausur in der Vergangenheit**
+        (Datumsfeld `min` + `400 klausur_datum_vergangen`); **Abmelden** in der
+        Seitenleiste über dem Profil.
 
 **B. Stripe Live**
 

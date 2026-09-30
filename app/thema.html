@@ -109,7 +109,7 @@
       </div>
       <div class="field mt-0">
         <label for="mk-datum">Klausurdatum</label>
-        <input class="input" id="mk-datum" type="date" required>
+        <input class="input" id="mk-datum" type="date" required data-min-heute>
       </div>
       <div class="field mt-0">
         <label for="mk-thema-dd">Weitere Themen <span class="tp-label-hint">— optional, das aktuelle Thema ist immer dabei</span></label>
@@ -128,7 +128,7 @@
   </div>
 </div>
 
-<script src="assets/js/api.js?v=20260930b"></script>
+<script src="assets/js/api.js?v=20260930c"></script>
 <script src="assets/js/auth-gate.js"></script>
 <script src="assets/js/app.js"></script>
 <script>
@@ -387,6 +387,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     var titel = document.getElementById('mk-titel').value.trim();
     var datum = document.getElementById('mk-datum').value;
     if (!titel || !datum) return;
+    if (datum < LesifyUI.heuteIso()) { LesifyUI.toast('Das Datum liegt in der Vergangenheit — wähl heute oder einen späteren Tag.'); document.getElementById('mk-datum').focus(); return; }
     var submitBtn = this.querySelector('button[type="submit"]');
     try {
       var themaIds = [themaId].concat(mkSelectedIds);

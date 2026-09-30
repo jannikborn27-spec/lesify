@@ -108,6 +108,7 @@
   var FEHLER_TEXT = {
     nicht_angemeldet: 'Bitte melde dich neu an.',
     limit_erreicht: 'Dein Monatskontingent für diese Funktion ist aufgebraucht.',
+    klausur_datum_vergangen: 'Das Datum liegt in der Vergangenheit — eine Klausur kannst du nur für heute oder später anlegen.',
     validierung: 'Die Eingabe ist unvollständig oder ungültig.',
     nicht_gefunden: 'Nicht gefunden.',
     abo_vorhanden: 'Es besteht bereits ein Abo.',
@@ -130,7 +131,11 @@
     abo_gesperrt: 'Dein Zugang ist gerade pausiert — sprich mit deinen Eltern.',
     zahlung_offen: 'Gerade kannst du nichts Neues anlegen: Beim Abo ist eine Zahlung offen. Sag deinen Eltern Bescheid.',
   };
+  var LIMIT_NAMEN = { nachrichten: 'KI-Nachrichten', dateien: 'Content-Aufnahmen', lernzettel: 'Lernzettel', testklausuren: 'Klausurvorbereitungen' };
   function fehlerText(err) {
+    if (err && err.code === 'limit_erreicht' && err.details && LIMIT_NAMEN[err.details.zaehler]) {
+      return 'Dein Monatskontingent für ' + LIMIT_NAMEN[err.details.zaehler] + ' ist aufgebraucht.';
+    }
     return (err && FEHLER_TEXT[err.code]) || 'Es ist ein Fehler aufgetreten.';
   }
 

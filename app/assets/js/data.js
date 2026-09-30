@@ -1067,16 +1067,23 @@
         return b.note - a.note; // schlechtere Note zuerst
       })
       .map(function (p) { return p.themaId; });
-    var fokusThemen = schwacheThemen.slice(0, LERNPLAN_FOKUS_LIMIT);
-    var kurzThemen = schwacheThemen.slice(LERNPLAN_FOKUS_LIMIT);
+    // Festigen (2026-09-30): Testklausur 1 komplett stark → statt direkt zu Tag 7
+    // zu springen („Kurzschluss", kein Lerninhalt) festigen Tag 2–4 die relativ
+    // schwächsten Themen (niedrigste Prozent zuerst); TK2 + Tag 6 entfallen.
+    var festigen = tk1Analysiert && schwacheThemen.length === 0;
+    var lernThemen = festigen
+      ? proThema1.slice().sort(function (a, b) { return (a.prozent - b.prozent) || (b.note - a.note); })
+          .map(function (p) { return p.themaId; })
+      : schwacheThemen;
+    var fokusThemen = lernThemen.slice(0, LERNPLAN_FOKUS_LIMIT);
+    var kurzThemen = lernThemen.slice(LERNPLAN_FOKUS_LIMIT);
     // Behandlungstiefe: 1 Thema → 'tief' (Tag 3 mehr Aufgaben, Tag 4 Transferaufgabe),
-    // 2–3 → 'normal', 4+ → 'triagiert' (Fokus/Kurz-Aufteilung greift).
-    var intensitaet = schwacheThemen.length === 0 ? null
+    // 2–3 → 'normal', 4+ → 'triagiert' (Fokus/Kurz-Aufteilung greift), alles grün → 'festigen'.
+    var intensitaet = festigen ? 'festigen'
+      : schwacheThemen.length === 0 ? null
       : schwacheThemen.length === 1 ? 'tief'
       : schwacheThemen.length <= LERNPLAN_FOKUS_LIMIT ? 'normal'
       : 'triagiert';
-    // Kurzschluss: Testklausur 1 komplett stark → in 2–4/6 ist nichts zu tun.
-    var kurzschluss = tk1Analysiert && schwacheThemen.length === 0;
 
     var tk2Analysiert = !!(testklausur2 && testklausur2.status === 'analysiert' && testklausur2.vorbereitung);
     var stubborn = [], aufgefrischt = [];
@@ -1086,8 +1093,8 @@
         else if (schwacheThemen.indexOf(p.themaId) !== -1) aufgefrischt.push(p.themaId);
       });
     }
-    var tag6NichtsZuTun = kurzschluss || (tk2Analysiert && stubborn.length === 0 && aufgefrischt.length === 0);
-    var ankerThema7 = schwacheThemen[0] || klausurThemen[0] || null;
+    var tag6NichtsZuTun = festigen || (tk2Analysiert && stubborn.length === 0 && aufgefrischt.length === 0);
+    var ankerThema7 = fokusThemen[0] || klausurThemen[0] || null;
     var fachId7 = (testklausur1 && testklausur1.fachId) || (klausur && klausur.fachId) || null;
 
     // Feste Aufgaben-Reihenfolge je Lerntag als stabile Schlüssel — Grundlage für
@@ -1137,10 +1144,10 @@
     }
 
     var tag1 = { erledigt: tk1Analysiert, schwacheThemen: schwacheThemen, fokusThemen: fokusThemen,
-                 kurzThemen: kurzThemen, intensitaet: intensitaet, proThema: proThema1 };
+                 kurzThemen: kurzThemen, intensitaet: intensitaet, festigen: festigen, proThema: proThema1 };
     function lerntag(tag) {
       return {
-        erledigt: kurzschluss || aufgabenErledigt(tag),
+        erledigt: aufgabenErledigt(tag),
         fokusThemen: fokusThemen.slice(),
         kurzThemen: (tag === 4) ? [] : kurzThemen.slice(), // Tag 4 zeigt keine eigene Kurz-Karte
         relevantThemen: fokusThemen.slice(), // Rückwärtskompat-Alias
@@ -1151,7 +1158,7 @@
     var tag2 = lerntag(2), tag3 = lerntag(3), tag4 = lerntag(4);
 
     var tag5 = {
-      erledigt: tk2Analysiert || kurzschluss,
+      erledigt: tk2Analysiert || festigen,
       noetig: tk1Analysiert && schwacheThemen.length > 0,
       verfuegbar: tk1Analysiert
     };
@@ -1169,12 +1176,10 @@
     var aktuellerTag;
     if (!tk1Analysiert) {
       aktuellerTag = 1;
-    } else if (kurzschluss) {
-      aktuellerTag = tag7.erledigt ? 'fertig' : 7;
     } else {
-      var offeneLerntage = [2, 3, 4].filter(function (tag) { return !(kurzschluss || aufgabenErledigt(tag)); });
+      var offeneLerntage = [2, 3, 4].filter(function (tag) { return !aufgabenErledigt(tag); });
       if (!tk2Analysiert && offeneLerntage.length > 0) aktuellerTag = offeneLerntage[0];
-      else if (!tk2Analysiert) aktuellerTag = 5;
+      else if (!tag5.erledigt) aktuellerTag = 5;
       else if (!tag6.erledigt) aktuellerTag = 6;
       else if (!tag7.erledigt) aktuellerTag = 7;
       else aktuellerTag = 'fertig';

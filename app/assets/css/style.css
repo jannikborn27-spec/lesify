@@ -237,6 +237,14 @@ svg { display: block; }
   padding-top: 16px;
   border-top: 1px solid var(--line);
 }
+.nav-logout {
+  width: 100%; margin-bottom: 6px;
+  background: none; border: 0; cursor: pointer; text-align: left; font: inherit;
+  font-size: 0.9rem; font-weight: 500; color: var(--ink-600);
+}
+.nav-logout:hover { background: var(--ink-50); color: var(--ink-900); }
+.nav-logout:focus-visible { outline: 2px solid var(--ink-950); outline-offset: 1px; }
+.nav-logout:disabled { opacity: 0.6; cursor: default; }
 .profile-chip {
   display: flex;
   align-items: center;

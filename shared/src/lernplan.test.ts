@@ -118,18 +118,35 @@ describe('lernplanStatus', () => {
     expect(s.letzteTestNote).toBe(3.2);
   });
 
-  it('lp5 — Testklausur 1 komplett stark → Kurzschluss, Tag 7 offen', () => {
+  it('lp5 — Testklausur 1 komplett stark → Festigen (Tag 2–4 mit Inhalt), kein TK2', () => {
     const s = lernplanStatus(
       basis({ klausurThemaIds: t5.themaIds, klausurFachId: 'biologie', testklausur1: t5 }),
     );
     expect(s.tag1.schwacheThemen).toEqual([]);
-    expect(s.tag1.intensitaet).toBeNull();
-    expect(s.tag2.erledigt).toBe(true); // Kurzschluss
+    expect(s.tag1.festigen).toBe(true);
+    expect(s.tag1.intensitaet).toBe('festigen');
+    // niedrigste Prozent zuerst (genetik 82 % vor zellbiologie 88 %)
+    expect(s.tag2.fokusThemen).toEqual(['genetik-vererbung', 'zellbiologie']);
+    expect(s.tag2.aufgaben).toContain('fehler:genetik-vererbung');
+    expect(s.tag2.erledigt).toBe(false);
     expect(s.tag5.erledigt).toBe(true);
     expect(s.tag5.noetig).toBe(false);
+    expect(s.tag6.erledigt).toBe(true);
     expect(s.tag7.aufgaben).toEqual(['selbsttest']);
-    expect(s.aktuellerTag).toBe(7);
+    expect(s.aktuellerTag).toBe(2);
     expect(s.letzteTestNote).toBe(1.8);
+  });
+
+  it('lp5b — Festigen: nach Tag 2–4 direkt Tag 7 (TK2 + Tag 6 entfallen)', () => {
+    const s = lernplanStatus(
+      basis({
+        klausurThemaIds: t5.themaIds,
+        klausurFachId: 'biologie',
+        testklausur1: t5,
+        tageErledigt: [2, 3, 4],
+      }),
+    );
+    expect(s.aktuellerTag).toBe(7);
   });
 
   it('lp6 — beide Testklausuren analysiert, alle Tage erledigt → fertig', () => {

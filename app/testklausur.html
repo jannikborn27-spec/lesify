@@ -6,7 +6,7 @@
 <title>Testklausur · Lesify</title>
 <meta name="robots" content="noindex,nofollow">
 <link rel="icon" href="assets/img/logo.png">
-<link rel="stylesheet" href="assets/css/style.css?v=20260930b">
+<link rel="stylesheet" href="assets/css/style.css?v=20260930c">
 <script>(function(){try{if(localStorage.getItem("lesify:darkmode")==="1")document.documentElement.setAttribute("data-theme","dark");}catch(e){}})();</script>
 <style>
   /* =========================================================
@@ -111,9 +111,9 @@
   </div>
 </div>
 
-<script src="assets/js/api.js?v=20260930b"></script>
+<script src="assets/js/api.js?v=20260930c"></script>
 <script src="assets/js/auth-gate.js"></script>
-<script src="assets/js/app.js?v=20260930b"></script>
+<script src="assets/js/app.js?v=20260930c"></script>
 <script>
 document.addEventListener('DOMContentLoaded', async function () {
   var R = LesifyUI.Render, I = LesifyUI.Icons;
@@ -200,10 +200,21 @@ document.addEventListener('DOMContentLoaded', async function () {
       .catch(function (err) { LesifyUI.toast(Lesify.fehlerText(err)); });
   }
 
+  // Summe der geschätzten Bearbeitungszeiten (Call 10, seit 2026-09-30) —
+  // 0, wenn ältere Aufgaben keine Schätzung haben.
+  function gesamtMinuten() {
+    var a = t.aufgaben || [];
+    return a.length && a.every(function (x) { return x.minuten; })
+      ? a.reduce(function (s, x) { return s + x.minuten; }, 0) : 0;
+  }
+
   function drawErstelltPanel() {
+    var min = gesamtMinuten();
+    var n = (t.aufgaben || []).length;
     return '<div>' +
       '<h3 style="font-size:1.05rem;margin-bottom:6px;color:var(--fach-ink,var(--ink-950))">Aufgaben bereit</h3>' +
-      '<p class="text-sm text-muted" style="max-width:60ch;margin-bottom:18px">Jedes Thema hat eine Aufgabe bekommen. Lade die Testklausur herunter, löse sie eigenständig und lade deine Lösung anschließend als Dokument hoch.</p>' +
+      '<p class="text-sm text-muted" style="max-width:60ch;margin-bottom:18px">' + n + (n === 1 ? ' Aufgabe' : ' Aufgaben') +
+        (min ? ', ca. ' + min + ' Minuten Bearbeitungszeit' : '') + ' — jedes Thema ist dabei. Lade die Testklausur herunter, löse sie eigenständig und lade deine Lösung anschließend als Dokument hoch.</p>' +
       '<div class="pdf-slot is-boxed" id="tk-pdf-slot"></div>' +
       '<div class="flex gap-3" style="flex-wrap:wrap">' +
         '<button class="btn btn-secondary" id="download-btn" style="border-color:color-mix(in srgb,var(--fach-color) 45%,var(--line-strong))">' + I.download + ' Als PDF herunterladen</button>' +
@@ -295,17 +306,23 @@ document.addEventListener('DOMContentLoaded', async function () {
       '<p class="text-xs text-muted" style="margin:8px 0 0">KI-Einschätzung — keine offizielle Leistungsbewertung durch die Schule.</p>';
 
     var aufgabenHtml = '<div class="section-head"><span class="section-title">Aufgabe für Aufgabe</span></div>' +
-      t.aufgaben.map(function (a) {
+      t.aufgaben.map(function (a, i) {
         var pt = erg.proThema.find(function (p) { return p.themaId === a.themaId; });
+        // Seit 2026-09-30 Bewertung je Aufgabe (mehrere pro Thema möglich);
+        // ältere Testklausuren haben nur die Bewertung je Thema.
+        var note = a.prozent != null ? Lesify.prozentZuNote(a.prozent) : pt.note;
+        var erkl = a.erklaerung || pt.erklaerung;
         var label = Lesify.label(a.themaId);
-        var ampel = Lesify.noteAmpel(pt.note);
+        var ampel = Lesify.noteAmpel(note);
+        var esc = LesifyUI.mdEscape;
         return '<div class="card aufgabe-card has-watermark" style="--apc-color:var(--' + ampel + ')">' +
           R.cardWatermark(t.fachId) +
           '<div class="flex justify-between items-center" style="margin-bottom:10px">' +
-            '<span class="text-sm fw-600">' + label.thema + '</span>' + R.noteChip(pt.note) +
+            '<span class="text-sm fw-600">Aufgabe ' + (i + 1) + ' · ' + label.thema +
+              (a.minuten ? ' <span class="text-xs text-muted" style="font-weight:400">· ca. ' + a.minuten + ' Min.</span>' : '') + '</span>' + R.noteChip(note) +
           '</div>' +
-          '<p class="text-sm text-muted" style="margin-bottom:10px">' + a.frage + '</p>' +
-          '<p class="text-sm" style="padding-top:10px;border-top:1px solid var(--line)">' + pt.erklaerung + '</p>' +
+          '<p class="text-sm text-muted" style="margin-bottom:10px">' + esc(a.frage) + '</p>' +
+          '<p class="text-sm" style="padding-top:10px;border-top:1px solid var(--line)">' + esc(erkl).replace(/\n/g, '<br>') + '</p>' +
         '</div>';
       }).join('') + '<div style="margin-bottom:var(--sp-10)"></div>';
 

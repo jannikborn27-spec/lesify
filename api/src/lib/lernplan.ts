@@ -124,7 +124,13 @@ export async function testklausurFuerLernplanUI(prisma: PrismaClient, tkId: stri
     themaIds: tk.themaIds,
     titel: tk.titel,
     status: tk.status,
-    aufgaben: tk.aufgaben.map((a) => ({ themaId: a.themaId, frage: a.frage })),
+    aufgaben: tk.aufgaben.map((a) => ({
+      themaId: a.themaId,
+      frage: a.frage,
+      minuten: a.minuten,
+      prozent: a.prozent,
+      erklaerung: a.erklaerung,
+    })),
     ergebnis:
       tk.ergebnisse.length && note !== null
         ? {

@@ -65,7 +65,7 @@
       </div>
       <div class="field mt-0">
         <label for="nk-datum">Klausurdatum</label>
-        <input class="input" id="nk-datum" type="date" required>
+        <input class="input" id="nk-datum" type="date" required data-min-heute>
       </div>
       <div class="modal-foot">
         <button type="button" class="btn btn-secondary" data-modal-close>Abbrechen</button>
@@ -75,7 +75,7 @@
   </div>
 </div>
 
-<script src="assets/js/api.js?v=20260930b"></script>
+<script src="assets/js/api.js?v=20260930c"></script>
 <script src="assets/js/auth-gate.js"></script>
 <script src="assets/js/app.js"></script>
 <script>
@@ -203,6 +203,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     var titel = document.getElementById('nk-titel').value.trim();
     var datum = document.getElementById('nk-datum').value;
     if (!titel || !datum) return;
+    if (datum < LesifyUI.heuteIso()) { LesifyUI.toast('Das Datum liegt in der Vergangenheit — wähl heute oder einen späteren Tag.'); document.getElementById('nk-datum').focus(); return; }
 
     var submitBtn = this.querySelector('button[type="submit"]');
     try {

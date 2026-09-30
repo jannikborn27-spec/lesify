@@ -394,13 +394,15 @@ function fakeToolAusgabe(toolName: string, letzteNachricht: string, fakeKontext:
         aufgaben: ids.map((themaId) => ({
           themaId,
           frage: `Platzhalter-Aufgabe zu diesem Thema (Testklausur-Erstellung ohne ANTHROPIC_API_KEY).`,
+          minuten: Math.max(3, Math.round(30 / Math.max(1, ids.length))),
         })),
       };
     }
     case 'testklausur_analyse': {
       const ids = themaIdsAus(fakeKontext);
       return {
-        ergebnisse: ids.map((themaId) => ({
+        ergebnisse: ids.map((themaId, i) => ({
+          aufgabeNr: i + 1,
           themaId,
           prozent: 70,
           erklaerung: 'Platzhalter-Bewertung (echte Analyse läuft nur mit ANTHROPIC_API_KEY).',

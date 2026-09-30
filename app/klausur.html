@@ -96,7 +96,7 @@
   </div>
 </div>
 
-<script src="assets/js/api.js?v=20260930b"></script>
+<script src="assets/js/api.js?v=20260930c"></script>
 <script src="assets/js/auth-gate.js"></script>
 <script src="assets/js/app.js"></script>
 <script>
@@ -245,7 +245,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   // Anklickbarer, beschrifteter Step-Button — schaltet den Tag im Panel um.
   function fmStep(s, act, m) {
     var st = fmState(s, m);
-    var meta = R.lernplanTagMeta(m);
+    var meta = R.lernplanTagMeta(m, s);
     var num = st === 'erledigt' ? I.check : m;
     return '<button type="button" class="lp-nav-step lp-nav-' + st + (act === m ? ' is-active' : '') + '" ' +
       'data-lp-focus="' + m + '" title="Tag ' + m + ' · ' + meta.titel + '">' +

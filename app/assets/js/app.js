@@ -18,6 +18,7 @@
     docCheck: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a1.5 1.5 0 0 0-1.5 1.5v15A1.5 1.5 0 0 0 7 21h10a1.5 1.5 0 0 0 1.5-1.5V8L14 3Z"/><path d="M14 3v4.5A1.5 1.5 0 0 0 15.5 9H20"/><path d="m9 14 2 2 4-4"/></svg>',
     folder: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 6.5A1.5 1.5 0 0 1 5 5h4l2 2h8a1.5 1.5 0 0 1 1.5 1.5v9A1.5 1.5 0 0 1 19 19H5a1.5 1.5 0 0 1-1.5-1.5v-11Z"/></svg>',
     menu: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>',
+    logout: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>',
     arrowRight: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>',
     chevronLeft: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>',
     plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
@@ -137,8 +138,23 @@
         '<aside class="sidebar">' +
           '<a href="' + homeHref + '" class="brand"><img src="assets/img/logo.png" alt="Lesify Logo"><span class="brand-word">Lesify</span></a>' +
           '<nav class="nav-group">' + navHtml + '</nav>' +
-          '<div class="sidebar-foot" data-profile-chip-slot>' + (istAsync ? '' : profileChipHtml(userResult)) + '</div>' +
+          '<div class="sidebar-foot">' +
+            // Abmelden direkt über dem Profil-Chip (2026-09-30) — gleiche
+            // Struktur wie ein Nav-Eintrag, damit es im eingeklappten Streifen
+            // als reines Icon erscheint.
+            '<button type="button" class="nav-item nav-logout" data-logout>' +
+              '<span class="spark" style="width:18px;height:18px">' + Icons.logout + '</span><span>Abmelden</span></button>' +
+            '<div data-profile-chip-slot>' + (istAsync ? '' : profileChipHtml(userResult)) + '</div>' +
+          '</div>' +
         '</aside>';
+
+      var logoutBtn = document.querySelector('[data-logout]');
+      if (logoutBtn) logoutBtn.addEventListener('click', function () {
+        logoutBtn.disabled = true;
+        var weg = function () { window.location.replace('/login/'); };
+        if (typeof Lesify !== 'undefined' && typeof Lesify.logout === 'function') Lesify.logout().then(weg, weg);
+        else weg();
+      });
 
       if (istAsync) {
         userResult.then(function (user) {
@@ -1110,6 +1126,17 @@
     { titel: 'Fokus auf die Lücken aus Testklausur 2', beschreibung: 'Hartnäckige Lücken gezielt angehen + die ursprünglichen Schwachstellen auffrischen.' },
     { titel: 'Selbsttest mit dem Lernzettel', beschreibung: 'Nur noch testen, was sitzt — mit dem Lernzettel. Leicht, kein neuer Stoff.' }
   ];
+  /* Festigen-Modus (2026-09-30): Testklausur 1 war überall stark → Tag 2–4
+     vertiefen die relativ schwächsten Themen statt Schwachstellen zu reparieren. */
+  var LP_TAGE_FESTIGEN = {
+    2: { titel: 'Themen vertiefen', beschreibung: 'Anspruchsvollere Aspekte und typische Stolperfallen deiner Themen — damit sie in der Klausur sicher sitzen.' },
+    3: { titel: 'Auf Klausurniveau üben', beschreibung: 'Anspruchsvolle Aufgaben selbstständig lösen, Lösungen checken. Der Lernzettel startet.' },
+    4: { titel: 'Wissen festigen', beschreibung: 'Feynman-Prinzip: den Stoff selbst erklären. Der Lernzettel wächst.' }
+  };
+  function lpMeta(s, n) {
+    if (s && s.tag1 && s.tag1.festigen && LP_TAGE_FESTIGEN[n]) return LP_TAGE_FESTIGEN[n];
+    return LP_TAGE[n - 1] || { titel: 'Tag ' + n, beschreibung: '' };
+  }
 
   /* --- KI-Chat-Deep-Link: öffnet chat.html im richtigen Fach/Thema/Modus mit
          vorbelegtem, NICHT gesendetem Prompt. --- */
@@ -1190,9 +1217,17 @@
          fehlt es (sollte nicht vorkommen), kommt {frage:null, erklaerung:null} zurück. --- */
   function lpAufgabeUndErklaerung(s, themaId) {
     var tk = s.testklausur1 || {};
-    var aufgabe = (tk.aufgaben || []).find(function (a) { return a.themaId === themaId; });
+    // Mehrere Aufgaben je Thema (seit 2026-09-30): die am schlechtesten gelöste
+    // nehmen — mit ihrer eigenen Erklärung, sonst der des Themas.
+    var eigene = (tk.aufgaben || []).filter(function (a) { return a.themaId === themaId; });
+    var aufgabe = eigene.slice().sort(function (a, b) {
+      return (a.prozent == null ? 101 : a.prozent) - (b.prozent == null ? 101 : b.prozent);
+    })[0];
     var erg = tk.ergebnis ? tk.ergebnis.proThema.find(function (p) { return p.themaId === themaId; }) : null;
-    return { frage: aufgabe ? aufgabe.frage : null, erklaerung: erg ? erg.erklaerung : null };
+    return {
+      frage: aufgabe ? aufgabe.frage : null,
+      erklaerung: (aufgabe && aufgabe.erklaerung) || (erg ? erg.erklaerung : null)
+    };
   }
 
   /* --- Aufgabenliste eines Lerntags: geordnete [{key,label,mode,prompt,themaId,fachId}].
@@ -1205,7 +1240,21 @@
     var kurz = tag.kurzThemen || [];
     var niv = lpNiveau(s);
     var items = [];
-    if (n === 2) {
+    var festigen = !!(s.tag1 && s.tag1.festigen);
+    if (n === 2 && festigen) {
+      fokus.forEach(function (id) {
+        var ae = lpAufgabeUndErklaerung(s, id);
+        items.push({ key: 'fehler:' + id, themaId: id, mode: 'erklaeren', label: 'Vertiefen: ' + themaName(id),
+          prompt: 'In Testklausur 1 lief ' + themaName(id) + ' schon gut' + (ae.frage ? ' (Aufgabe: „' + ae.frage + '")' : '') + '. ' +
+            'Geh mit mir die anspruchsvolleren Aspekte und typischen Stolperfallen dazu durch, damit es in der Klausur sicher sitzt. Ich darf danach Nachfragen stellen.' + niv });
+        items.push({ key: 'beispiel:' + id, themaId: id, mode: 'erklaeren', label: 'Schwierigeres Beispiel: ' + themaName(id),
+          prompt: 'Zeig mir ein anspruchsvolleres Beispiel zu ' + themaName(id) + ', wie es in einer Klausur als schwierigere Aufgabe vorkommen könnte, und erklär den Lösungsweg.' + niv });
+        items.push({ key: 'check:' + id, themaId: id, mode: 'ueben', label: 'Knifflige Fragen: ' + themaName(id),
+          prompt: 'Stell mir 3 knifflige Verständnisfragen zu ' + themaName(id) + ' auf Klausurniveau — eher schwer als leicht.' + niv });
+      });
+      if (kurz.length) items.push({ key: 'kurz', themaId: kurz[0], mode: 'erklaeren', label: 'Kurz auffrischen: ' + themaListe(kurz),
+        prompt: 'Frisch diese Themen kurz auf, für jedes die wichtigste Regel plus eine typische Stolperfalle: ' + themaListe(kurz) + '.' + niv });
+    } else if (n === 2) {
       fokus.forEach(function (id) {
         var ae = lpAufgabeUndErklaerung(s, id);
         var fehlerText = ae.frage
@@ -1223,9 +1272,10 @@
         prompt: 'Geh diese Themen kurz durch, für jedes reicht die wichtigste Regel plus ein Beispiel: ' + themaListe(kurz) + '.' + niv });
     } else if (n === 3) {
       var anzahl = s.tag1.intensitaet === 'tief' ? 5 : 3;
+      var niveau3 = festigen ? ' anspruchsvolle Übungsaufgaben auf Klausurniveau' : ' Übungsaufgaben';
       fokus.forEach(function (id) {
         items.push({ key: 'abfragen:' + id, themaId: id, mode: 'ueben', label: 'Abfragen: ' + themaName(id),
-          prompt: 'Gib mir ' + anzahl + ' Übungsaufgaben zu ' + themaName(id) + ', erst ohne Lösung. Danach frag mich die Lösungswege mündlich ab und sag mir nach jeder Antwort, ob sie stimmt.' + niv });
+          prompt: 'Gib mir ' + anzahl + niveau3 + ' zu ' + themaName(id) + ', erst ohne Lösung. Danach frag mich die Lösungswege mündlich ab und sag mir nach jeder Antwort, ob sie stimmt.' + niv });
       });
       if (fokus.length >= 2) items.push({ key: 'gemischt', themaId: fokus[0], mode: 'ueben', label: 'Gemischt abfragen',
         prompt: 'Frag mich abwechselnd, gemischt, Fragen zu ' + themaListe(fokus) + ' — nicht der Reihe nach, sondern bunt durcheinander.' + niv });
@@ -1252,7 +1302,7 @@
           prompt: 'Frag mich kurz ein paar Fragen zu ' + themaName(id) + ' zum Auffrischen — das saß schon mal, soll aber nicht wieder abrutschen.' + niv });
       });
     } else if (n === 7) {
-      var anker = s.tag1.schwacheThemen[0] || (s.klausur && s.klausur.themaIds[0]) || (s.testklausur1 && s.testklausur1.themaIds[0]);
+      var anker = (s.tag1.fokusThemen || [])[0] || s.tag1.schwacheThemen[0] || (s.klausur && s.klausur.themaIds[0]) || (s.testklausur1 && s.testklausur1.themaIds[0]);
       var f7 = (s.testklausur1 && s.testklausur1.fachId) || (s.klausur && s.klausur.fachId);
       if (anker && f7) items.push({ key: 'selbsttest', themaId: anker, fachId: f7, mode: 'ueben', label: 'Selbsttest mit dem Lernzettel',
         prompt: 'Frag mich anhand meines Lernzettels ab — kurz und gemischt, kein neuer Stoff.' + niv });
@@ -1323,7 +1373,7 @@
       return '<div class="ap-topic ap-topic-' + p.ampel + '">' +
         '<div class="ap-topic-h">' + badge(p.themaId) + tierChip(p.ampel) + noteChip(p.note) +
           '<span class="ap-topic-pct">' + p.prozent + '%</span></div>' +
-        '<p class="ap-topic-verdict">' + (p.ampel === 'gruen' ? 'Sitzt — nichts weiter zu tun.' : lpVerdict(tk1, p.themaId)) + '</p>' +
+        '<p class="ap-topic-verdict">' + (p.ampel === 'gruen' ? (s.tag1.festigen ? 'Sitzt — wird an Tag 2–4 noch vertieft.' : 'Sitzt — nichts weiter zu tun.') : lpVerdict(tk1, p.themaId)) + '</p>' +
       '</div>';
     }).join('');
     return '<p class="ap-topic-verdict">Ausgewertet — deine Themen sind in stark / wackelig / schwach sortiert.</p>' +
@@ -1338,6 +1388,11 @@
   function lpTag2Body(s) {
     if (!s.tag1.erledigt) return lpWartetAufTk1();
     if (!s.tag2.fokusThemen.length && !s.tag2.kurzThemen.length) return lpNichtsZuTun('nach Testklausur 1 saß schon alles.');
+    if (s.tag1.festigen) {
+      return '<p class="ap-topic-verdict">Testklausur 1 lief überall gut — jetzt vertiefst du deine Themen, damit sie in der Klausur sicher sitzen. Hak jeden Schritt ab, wenn du ihn im Chat erledigt hast.</p>' +
+        lpChecklist(s, 2, lpTagAufgaben(s, 2)) +
+        lpDayFooter(s, 2);
+    }
     return '<p class="ap-topic-verdict">Bau das Verständnis der schwächsten Themen neu auf — ausgehend von deinem tatsächlichen Fehler in Testklausur 1. Hak jeden Schritt ab, wenn du ihn im Chat erledigt hast.</p>' +
       lpChecklist(s, 2, lpTagAufgaben(s, 2)) +
       lpDayFooter(s, 2);
@@ -1353,7 +1408,7 @@
     var spickBtn = s.lernplan.lernzettel
       ? '<span class="chip">Lernzettel läuft schon</span>'
       : '<button type="button" class="btn btn-secondary btn-sm" data-lp-lernzettel="' + spickThemen.join(',') + '">Lernzettel starten</button>';
-    return '<p class="ap-topic-verdict">Beispielaufgaben selbstständig lösen, dann die Lösungswege checken lassen. Danach startet dein Lernzettel.</p>' +
+    return '<p class="ap-topic-verdict">' + (s.tag1.festigen ? 'Anspruchsvolle Aufgaben auf Klausurniveau' : 'Beispielaufgaben') + ' selbstständig lösen, dann die Lösungswege checken lassen. Danach startet dein Lernzettel.</p>' +
       lpChecklist(s, 3, lpTagAufgaben(s, 3)) +
       lpDayFooter(s, 3, spickBtn);
   }
@@ -1373,7 +1428,7 @@
   /* --- Tag 5: Testklausur 2 (Re-Diagnose) --- */
   function lpTag5Body(s) {
     if (!s.tag1.erledigt) return '<p class="ap-nt-none">Erst nach Testklausur 1 — dann zeigt sich, ob eine Re-Diagnose nötig ist.</p>';
-    if (!s.tag5.noetig) return lpNichtsZuTun('alle Themen saßen schon nach Testklausur 1.');
+    if (!s.tag5.noetig) return lpNichtsZuTun('alle Themen saßen schon nach Testklausur 1, darum entfällt Testklausur 2. Du hast sie an Tag 2–4 gefestigt.');
     var k = s.klausur;
     var hint = (k && k.datum) ? apCountdownText(apTageBis(k.datum)) : '';
     if (!s.testklausur2) {
@@ -1406,7 +1461,7 @@
   /* --- Tag 6: Fokus auf die Lücken aus Testklausur 2 --- */
   function lpTag6Body(s) {
     if (!s.tag1.erledigt) return '<p class="ap-nt-none">Erst nach Testklausur 1.</p>';
-    if (!s.tag5.noetig) return lpNichtsZuTun('ohne Testklausur 2 gibt es hier nichts.');
+    if (!s.tag5.noetig) return lpNichtsZuTun('ohne Testklausur 2 gibt es hier keine Lücken zu schließen.');
     if (!s.testklausur2 || s.testklausur2.status !== 'analysiert') {
       return '<p class="ap-nt-none">Erst verfügbar, wenn Testklausur 2 ausgewertet ist.</p>';
     }
@@ -1483,7 +1538,7 @@
      exakt wie auf lernplan.html. Wird auf klausur.html mit einer eigenen
      horizontalen Kopfleiste kombiniert (R.lernplanSplitMain). */
   function lpSplitMain(s, n, lernplanId) {
-    var meta = LP_TAGE[n - 1] || { titel: 'Tag ' + n, beschreibung: '' };
+    var meta = lpMeta(s, n);
     return '<div class="lp-split-main" id="lp-tag-' + n + '">' +
       '<div class="lp-split-mhead">' +
         '<span class="lp-focus-day">Tag ' + n + ' · ' + meta.titel + '</span>' + lpDayStatusChip(lpDayState(s, n)) +
@@ -1524,7 +1579,7 @@
       var st = lpDayState(s, m);
       navSteps += '<button type="button" class="lp-nav-step lp-nav-' + st + (m === n ? ' is-active' : '') + '" data-lp-focus="' + m + '">' +
         '<span class="lp-nav-num">' + (st === 'erledigt' ? Icons.check : m) + '</span>' +
-        '<span class="lp-nav-txt"><span class="lp-nav-t">Tag ' + m + '</span><span class="lp-nav-d">' + LP_TAGE[m - 1].titel + '</span></span>' +
+        '<span class="lp-nav-txt"><span class="lp-nav-t">Tag ' + m + '</span><span class="lp-nav-d">' + lpMeta(s, m).titel + '</span></span>' +
       '</button>';
     }
     var aside = '<aside class="lp-split-nav">' +
@@ -1557,7 +1612,7 @@
     var s = Lesify.lernplanStatus(lernplanId);
     if (!s) return '';
     var fertig = s.aktuellerTag === 'fertig';
-    var meta = fertig ? null : LP_TAGE[s.aktuellerTag - 1];
+    var meta = fertig ? null : lpMeta(s, s.aktuellerTag);
     var k = s.klausur;
     var cd = (k && k.datum) ? apTageBis(k.datum) : null;
     var weak = s.tag1.schwacheThemen.length;
@@ -1578,7 +1633,7 @@
 
   /* Titel + Kurzbeschreibung eines Lerntags (1–7) — für kompakte Lernplan-
      Ansichten außerhalb von lernplan.html (z. B. klausur.html). */
-  function lernplanTagMeta(n) { return LP_TAGE[n - 1] || { titel: 'Tag ' + n, beschreibung: '' }; }
+  function lernplanTagMeta(n, s) { return lpMeta(s, n); }
 
   /* Nächste konkrete Aufgabe des Lernplans — für Shortcut-/Teaser-Buttons auf
      klausur.html. Liefert {tag, titel, label, href, art} oder null (Plan fertig).
@@ -1587,7 +1642,7 @@
     var s = Lesify.lernplanStatus(lernplanId);
     if (!s || s.aktuellerTag === 'fertig') return null;
     var tag = s.aktuellerTag;
-    var meta = LP_TAGE[tag - 1] || { titel: 'Tag ' + tag };
+    var meta = lpMeta(s, tag);
     if (tag === 1 || tag === 5) {
       var tk = tag === 1 ? s.testklausur1 : s.testklausur2;
       var href = tk ? ('testklausur.html?id=' + tk.id) : ('lernplan.html?id=' + lernplanId);
@@ -1947,6 +2002,16 @@
     // Beim Absenden wieder verbergen, damit der Browser das Feld als Passwort speichert.
     if (input.form) input.form.addEventListener('submit', function () { setzen(false); }, true);
   }
+  /* Datumsfelder mit `data-min-heute` (Klausur anlegen): keine Tage in der
+     Vergangenheit wählbar (2026-09-30). Lokales Datum, nicht UTC. */
+  function heuteIso() {
+    var d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  function initMinHeute() {
+    qsa('input[type="date"][data-min-heute]').forEach(function (el) { el.min = heuteIso(); });
+  }
+
   function initPasswortToggle() {
     function scan(root) {
       if (!root.querySelectorAll) return;
@@ -1980,6 +2045,7 @@
     initOptionCards();
     initUsageWidget();
     initPasswortToggle();
+    initMinHeute();
   });
 
   /* =========================================================
@@ -2260,5 +2326,5 @@
     });
   }
 
-  window.LesifyUI = { fachColorVars: fachColorVars, pdfVorschau: pdfVorschau, pdfDownload: pdfDownload, mdToHtml: mdToHtml, mdEscape: mdEscape, toast: toast, openModal: openModal, closeModal: closeModal, Icons: Icons, Render: Render, searchResultsHtml: searchResultsHtml, searchDropdownHtml: searchDropdownHtml, qs: qs, qsa: qsa, openFachColorPicker: openFachColorPicker, swatchPickerHtml: swatchPickerHtml, bindSwatchPicker: bindSwatchPicker, openDateiModal: openDateiModal, setPageWatermark: setPageWatermark, kindZugangModal: kindZugangModal, kindZugangAnmeldung: kindZugangAnmeldung };
+  window.LesifyUI = { fachColorVars: fachColorVars, pdfVorschau: pdfVorschau, pdfDownload: pdfDownload, mdToHtml: mdToHtml, mdEscape: mdEscape, toast: toast, openModal: openModal, closeModal: closeModal, Icons: Icons, Render: Render, searchResultsHtml: searchResultsHtml, searchDropdownHtml: searchDropdownHtml, qs: qs, qsa: qsa, openFachColorPicker: openFachColorPicker, heuteIso: heuteIso, swatchPickerHtml: swatchPickerHtml, bindSwatchPicker: bindSwatchPicker, openDateiModal: openDateiModal, setPageWatermark: setPageWatermark, kindZugangModal: kindZugangModal, kindZugangAnmeldung: kindZugangAnmeldung };
 })();

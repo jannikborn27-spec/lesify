@@ -1009,3 +1009,81 @@ describe.runIf(hatDb)('abo — abgebrochener Abschluss blockiert nicht (Bug 2026
     expect(dritter.json().fehler).toBe('abo_vorhanden');
   });
 });
+
+describe.runIf(hatDb)('abo — Usage je Platz + Abo nur für Eltern (2026-09-30)', () => {
+  const app = buildApp({ logger: false, zahlung: new FakeZahlungsGateway() });
+  const prisma = getPrisma();
+  const elternEmail = `sitz+${crypto.randomUUID()}@abo.lesify.test`;
+  let token = '';
+  const auth = () => ({ authorization: `Bearer ${token}` });
+  const kindAnlegen = async (name: string) =>
+    (
+      await app.inject({
+        method: 'POST',
+        url: '/abo/kinder',
+        headers: auth(),
+        payload: { name, klassenstufe: '7. Klasse' },
+      })
+    ).json().id as string;
+  const kindToken = async (kindId: string) =>
+    (
+      await app.inject({ method: 'POST', url: `/abo/kinder/${kindId}/sitzung`, headers: auth() })
+    ).json().token as string;
+
+  beforeAll(async () => {
+    await app.ready();
+    token = await registriereUndLogin(app, elternEmail);
+    await app.inject({
+      method: 'POST',
+      url: '/abo',
+      headers: auth(),
+      payload: { paket: 'starter', intervall: 'monatlich', sitze: 2 },
+    });
+  });
+
+  it('Kind entfernen + neu anlegen setzt die Nutzung nicht zurück', async () => {
+    const erstes = await kindAnlegen('Platz Eins');
+    const user = await prisma.user.findUniqueOrThrow({ where: { id: erstes } });
+    expect(user.sitzNr).toBe(1);
+    const { inkrementiereUsage } = await import('../lib/usage.js');
+    await inkrementiereUsage(prisma, erstes, 'dateien', 3);
+
+    await app.inject({ method: 'DELETE', url: `/abo/kinder/${erstes}`, headers: auth() });
+    const zweites = await kindAnlegen('Platz Eins Neu');
+
+    const t = await kindToken(zweites);
+    const usage = await app.inject({
+      method: 'GET',
+      url: '/usage',
+      headers: { authorization: `Bearer ${t}` },
+    });
+    expect(usage.json().dateien.used).toBe(3);
+
+    const sitze = await app.inject({ method: 'GET', url: '/abo/sitze', headers: auth() });
+    expect(sitze.statusCode).toBe(200);
+    const s1 = sitze.json().sitze.find((s: { sitzNr: number }) => s.sitzNr === 1);
+    expect(s1.kind.id).toBe(zweites);
+    expect(s1.usage.dateien.used).toBe(3);
+  });
+
+  it('Kind-Konto darf den Tarif nicht ändern → 403 nur_eltern', async () => {
+    const kinder = (
+      await app.inject({ method: 'GET', url: '/abo/kinder', headers: auth() })
+    ).json() as { id: string }[];
+    const t = await kindToken(kinder[0]!.id);
+    const res = await app.inject({
+      method: 'PATCH',
+      url: '/abo',
+      headers: { authorization: `Bearer ${t}` },
+      payload: { paket: 'infinite' },
+    });
+    expect(res.statusCode).toBe(403);
+    expect(res.json().fehler).toBe('nur_eltern');
+    const lesen = await app.inject({
+      method: 'GET',
+      url: '/abo',
+      headers: { authorization: `Bearer ${t}` },
+    });
+    expect(lesen.statusCode).toBe(200);
+  });
+});

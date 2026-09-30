@@ -3194,6 +3194,9 @@ Blockiert alles Weitere. Erst die offenen Produktfragen klären, dann bauen.
       Testklausur dauert ca. 30 Minuten (mehrere Aufgaben pro Thema möglich);
       das Monatskontingent zählt Klausurvorbereitungen (= Klausuren), nicht
       einzelne Testklausuren.
+- [x] **Entscheidung 2026-09-30 — Usage je Platz:** Kontingente gehören zum
+      Platz im Eltern-Abo, nicht zum Kind-Konto; ein neues Kind übernimmt den
+      Monatsverbrauch des Platzes. Tarif ändern nur im Eltern-Bereich.
 
 ---
 
@@ -5089,6 +5092,14 @@ Kritisch, weil Zielgruppe minderjährig ist.
         Chat-Nutzungs-Popover korrigiert; **keine Klausur in der Vergangenheit**
         (Datumsfeld `min` + `400 klausur_datum_vergangen`); **Abmelden** in der
         Seitenleiste über dem Profil.
+  - [x] **Testrunde 2026-09-30, vierte Runde:** helles Logo im dunklen Design;
+        **Kind-Konto konnte den Tarif der Eltern sofort ändern** (Einstellungen →
+        Tarif-Auswahl, ohne Kostenvorschau) → Auswahl entfernt, serverseitig
+        `403 nur_eltern` für alle schreibenden `/abo*`-Routen; Klassenstufe als
+        Dropdown (1.–13. Klasse); Umschalter im Dialog „Zugang für …" gestylt;
+        **Usage hängt am Platz statt am Kind** (Kind entfernen + neu anlegen
+        setzte das Kontingent zurück) — Eltern sehen die Nutzung je Platz auf
+        „Kinder & Zugänge", Migration `20260930150000_usage_je_sitz`.
 
 **B. Stripe Live**
 

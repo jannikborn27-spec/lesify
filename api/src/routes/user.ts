@@ -84,7 +84,8 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
         where: { userId: uid },
         include: { aufgaben: true, ergebnisse: true, vorbereitung: true },
       }),
-      prisma.usage.findMany({ where: { userId: uid } }),
+      // Eltern: inkl. der Nutzung je Platz ihrer Kinder (Usage je Sitz, 2026-09-30).
+      prisma.usage.findMany({ where: { OR: [{ userId: uid }, { elternId: uid }] } }),
     ]);
 
     const kinder =

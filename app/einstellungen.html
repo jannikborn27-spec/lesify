@@ -51,7 +51,7 @@
           </div>
           <div class="field mt-0" id="p-klasse-field">
             <label for="p-klasse">Klassenstufe</label>
-            <input class="input" id="p-klasse" type="text" placeholder="z. B. 8. Klasse">
+            <select class="select" id="p-klasse" data-klassen></select>
           </div>
           <button type="submit" class="btn btn-primary">Speichern</button>
         </form>
@@ -105,16 +105,14 @@
 
       <div class="card settings-card">
         <h3>Tarif</h3>
-        <p class="settings-sub">Steuert alle Monats-Kontingente. Im Prototyp frei umschaltbar zum Testen.</p>
-        <div class="field mt-0">
-          <label for="s-paket">Aktiver Tarif</label>
-          <select class="select" id="s-paket">
-            <option value="starter">Starter</option>
-            <option value="premium">Premium (Bestseller)</option>
-            <option value="infinite">Infinite</option>
-          </select>
+        <p class="settings-sub">Steuert alle Monats-Kontingente. Den Tarif ändern deine Eltern in ihrem Eltern-Bereich — dort sehen sie vorher auch die Kosten.</p>
+        <div class="toggle-row" style="padding-top:0">
+          <div>
+            <div class="toggle-label">Aktiver Tarif</div>
+            <div class="toggle-sub" id="paket-info"></div>
+          </div>
+          <span class="chip is-active" id="s-paket-name"></span>
         </div>
-        <p class="text-xs text-muted" id="paket-info" style="margin-top:10px"></p>
       </div>
 
       <div class="card settings-card">
@@ -153,7 +151,7 @@
   </div>
 </div>
 
-<script src="assets/js/api.js?v=20260930c"></script>
+<script src="assets/js/api.js?v=20260930d"></script>
 <script src="assets/js/auth-gate.js"></script>
 <script src="assets/js/app.js"></script>
 <script>
@@ -172,7 +170,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     var inhalteCard = document.getElementById('inhalte-card');
     if (inhalteCard) inhalteCard.hidden = true; // Elternkonten haben keine Lerninhalte
   } else {
-    document.getElementById('p-klasse').value = user.klasse || '';
+    document.getElementById('p-klasse').innerHTML = LesifyUI.klassenOptionenHtml(user.klasse || '', false);
   }
 
   var settings = geladen[1];
@@ -190,7 +188,8 @@ document.addEventListener('DOMContentLoaded', async function () {
     // haben keine — leerer String würde die Backend-Validierung sonst
     // ablehnen, siehe api/src/routes/user.ts).
     var patch = { name: name };
-    if (user.rolle !== 'elternteil') patch.klasse = document.getElementById('p-klasse').value.trim();
+    var klasseWert = document.getElementById('p-klasse').value.trim();
+    if (user.rolle !== 'elternteil' && klasseWert) patch.klasse = klasseWert;
     var updated;
     try {
       updated = await Lesify.updateUser(patch);
@@ -242,9 +241,12 @@ document.addEventListener('DOMContentLoaded', async function () {
     else document.documentElement.removeAttribute('data-theme');
   });
 
-  var paketSel = document.getElementById('s-paket');
+  // Nur Anzeige (2026-09-30): Kind-Konten konnten hier den Tarif der Eltern
+  // sofort und ohne Kostenvorschau umstellen — Ändern nur im Eltern-Bereich
+  // (eltern-abo.html), serverseitig `403 nur_eltern`.
+  var paketName = document.getElementById('s-paket-name');
   var paketInfo = document.getElementById('paket-info');
-  var paketCard = paketSel.closest('.settings-card');
+  var paketCard = paketName.closest('.settings-card');
 
   async function renderPlan() {
     var abo;
@@ -255,13 +257,13 @@ document.addEventListener('DOMContentLoaded', async function () {
       return;
     }
     paketCard.style.display = '';
-    paketSel.value = abo.paket;
+    paketName.textContent = abo.planName;
     var k = abo.kontingente;
     var fam = abo.art === 'familie' ? (' · Familien-Paket, ' + abo.sitze + ' Kinder (volles Kontingent je Kind)') : '';
-    paketInfo.textContent = 'Kontingent im ' + abo.planName + ': ' +
+    paketInfo.textContent = 'Kontingent pro Monat: ' +
       k.dateien + ' Content-Aufnahmen · ' +
       (k.nachrichten == null ? 'unbegrenzt' : k.nachrichten) + ' Nachrichten · ' +
-      k.lernzettel + ' Lernzettel · ' + k.testklausuren + ' Klausurvorbereitungen pro Monat' + fam + '.';
+      k.lernzettel + ' Lernzettel · ' + k.testklausuren + ' Klausurvorbereitungen' + fam + '.';
   }
 
   async function renderUsage() {
@@ -273,18 +275,6 @@ document.addEventListener('DOMContentLoaded', async function () {
       usageRow('Klausurvorbereitungen', u.testklausuren) +
       '<p class="text-xs text-muted" style="margin-top:14px">Setzt sich zurück am ' + LesifyUI.Render.formatDatum(u.resetDatum) + '.</p>';
   }
-
-  paketSel.addEventListener('change', async function () {
-    var neuesPaket = this.value;
-    try {
-      var abo = await Lesify.aendernAbo({ paket: neuesPaket });
-      await renderPlan();
-      await renderUsage();
-      LesifyUI.toast('Tarif auf ' + abo.planName + ' gesetzt.');
-    } catch (err) {
-      LesifyUI.toast(Lesify.fehlerText(err));
-    }
-  });
 
   await Promise.all([renderPlan(), renderUsage()]);
 

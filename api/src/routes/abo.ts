@@ -18,6 +18,7 @@ import { hashPasswort } from '../lib/password.js';
 import { benutzernameSchema } from '../lib/benutzername.js';
 import { env, istProd } from '../env.js';
 import { STANDARD_FAECHER } from '../lib/standardFaecher.js';
+import { usageStandFuer } from '../lib/usage.js';
 
 const KIND_EINLADUNG_TAGE = 14;
 /** Platzhalter-Hash eines Kind-Profils, das noch kein Passwort hat (kein Login möglich). */
@@ -180,6 +181,20 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
   // ---- alles Weitere in eigenem Kontext mit Login-Zwang --------------------
   app.register(async (authed) => {
     authed.addHook('preHandler', app.requireAuth);
+    // Nur Elternkonten dürfen am Abo etwas ändern (2026-09-30): Kind-Konten
+    // hängen über `User.aboId` am selben Abo und konnten per `PATCH /abo` den
+    // Tarif der Eltern sofort und ohne Kostenvorschau umstellen (Testdurchgang
+    // im Dev-Kinderkonto), ebenso kündigen/pausieren oder Kinder anlegen.
+    // Lesen (`GET /abo`, Vorschau) bleibt erlaubt — die Einstellungen zeigen
+    // den Tarif an.
+    authed.addHook('preHandler', async (req) => {
+      if (req.method === 'GET') return;
+      const u = await prisma.user.findUnique({
+        where: { id: req.userId },
+        select: { rolle: true },
+      });
+      if (u?.rolle === 'schueler') throw new HttpError(403, 'nur_eltern');
+    });
 
     // Liefert das AKTUELLE Abo des Users — über `User.aboId` (Relation
     // `UserAktivesAbo`), nicht per `Abo.ownerUserId`-Suche. Ein User kann
@@ -523,10 +538,19 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
       const body = parse(kindBody, req.body);
       const abo = oder404(await abgeschlossenesAbo(req.userId));
 
-      const belegt = await prisma.user.count({ where: { parentUserId: req.userId } });
+      const belegteKinder = await prisma.user.findMany({
+        where: { parentUserId: req.userId },
+        select: { sitzNr: true },
+      });
+      const belegt = belegteKinder.length;
       if (belegt + 1 > abo.sitze) {
         throw new HttpError(409, 'sitze_ausgeschoepft', { sitze: abo.sitze, belegt });
       }
+      // Niedrigster freie Platz — das neue Kind übernimmt dessen Monats-
+      // verbrauch (Usage je Platz, 2026-09-30).
+      const vergeben = new Set(belegteKinder.map((k) => k.sitzNr));
+      let sitzNr = 1;
+      while (vergeben.has(sitzNr)) sitzNr++;
 
       const kind = await prisma.user.create({
         data: {
@@ -534,6 +558,7 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
           klassenstufe: body.klassenstufe,
           rolle: 'schueler',
           parentUserId: req.userId,
+          sitzNr,
           aboId: abo.id,
           passwordHash: KIND_OHNE_PASSWORT, // Passwort via Einladung oder PUT .../zugang
           einstellungen: { create: {} },
@@ -545,11 +570,41 @@ export async function aboRoutes(app: FastifyInstance): Promise<void> {
         .send({ id: kind.id, name: kind.name, klassenstufe: kind.klassenstufe });
     });
 
+    // GET /abo/sitze — Nutzung je Platz (2026-09-30): das Kontingent hängt am
+    // Platz, nicht am Kind; freie Plätze behalten ihren Monatsverbrauch.
+    authed.get('/abo/sitze', async (req) => {
+      const abo = oder404(await abgeschlossenesAbo(req.userId));
+      const kinder = await prisma.user.findMany({
+        where: { parentUserId: req.userId },
+        select: { id: true, name: true, sitzNr: true },
+      });
+      const anzahl = Math.max(abo.sitze, ...kinder.map((k) => k.sitzNr ?? 0));
+      const sitze = [];
+      for (let nr = 1; nr <= anzahl; nr++) {
+        const kind = kinder.find((k) => k.sitzNr === nr) ?? null;
+        const stand = await usageStandFuer(prisma, abo.paket, { elternId: req.userId, sitzNr: nr });
+        sitze.push({
+          sitzNr: nr,
+          kind: kind ? { id: kind.id, name: kind.name } : null,
+          usage: {
+            nachrichten: stand.nachrichten,
+            dateien: stand.dateien,
+            lernzettel: stand.lernzettel,
+            testklausuren: stand.testklausuren,
+            resetDatum: stand.resetDatum,
+          },
+        });
+      }
+      return { planName: PLAN_NAMES[abo.paket], sitze };
+    });
+
     authed.delete<{ Params: { id: string } }>('/abo/kinder/:id', async (req) => {
       const kind = oder404(
         await prisma.user.findFirst({ where: { id: req.params.id, parentUserId: req.userId } }),
       );
-      // Cascade löscht alle Inhalte des Sitzes (Phase-0-Entscheidung).
+      // Cascade löscht alle Inhalte des Kindes (Phase-0-Entscheidung) — die
+      // Nutzung bleibt am Platz (`Usage.elternId/sitzNr`) und geht aufs
+      // nächste Kind über (2026-09-30).
       await prisma.user.delete({ where: { id: kind.id } });
       return { ok: true };
     });

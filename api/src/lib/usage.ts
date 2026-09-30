@@ -71,11 +71,50 @@ export interface UsageStand {
  * bleiben stehen (§7). Der Monats-Reset ist implizit: ein neuer Monat = neuer
  * `Usage.monat`-Schlüssel = frische Zähler, kein Übertrag.
  */
+/**
+ * Wem die Nutzung gehört: Kind-Profile zählen auf ihren **Platz** im Abo der
+ * Eltern (`elternId` + `sitzNr`), alle anderen Konten auf sich selbst
+ * (Entscheidung 2026-09-30 — Kind entfernen + neu anlegen setzte das
+ * Kontingent sonst zurück; das neue Kind übernimmt den Platz samt Verbrauch).
+ */
+export type UsageSchluessel = { userId: string } | { elternId: string; sitzNr: number };
+
+export async function usageSchluessel(
+  prisma: PrismaClient,
+  userId: string,
+): Promise<UsageSchluessel> {
+  const u = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { parentUserId: true, sitzNr: true },
+  });
+  return u?.parentUserId && u.sitzNr != null
+    ? { elternId: u.parentUserId, sitzNr: u.sitzNr }
+    : { userId };
+}
+
+function zeileWhere(key: UsageSchluessel, monat: string) {
+  return 'userId' in key
+    ? { userId_monat: { userId: key.userId, monat } }
+    : { elternId_sitzNr_monat: { elternId: key.elternId, sitzNr: key.sitzNr, monat } };
+}
+
 export async function usageStand(prisma: PrismaClient, userId: string): Promise<UsageStand> {
-  const paket = await paketFuerUser(prisma, userId);
+  const [paket, key] = await Promise.all([
+    paketFuerUser(prisma, userId),
+    usageSchluessel(prisma, userId),
+  ]);
+  return usageStandFuer(prisma, paket, key);
+}
+
+/** Usage eines Platzes/Kontos mit gegebenem Paket — auch für die Eltern-Ansicht je Platz. */
+export async function usageStandFuer(
+  prisma: PrismaClient,
+  paket: Paket,
+  key: UsageSchluessel,
+): Promise<UsageStand> {
   const limits = PLAN_LIMITS[paket];
   const monat = monatsSchluessel();
-  const row = await prisma.usage.findUnique({ where: { userId_monat: { userId, monat } } });
+  const row = await prisma.usage.findUnique({ where: zeileWhere(key, monat) });
   const resetDatum = naechsterMonatsErster();
 
   const quote = (art: UsageZaehler): UsageQuote => ({
@@ -148,12 +187,15 @@ export async function inkrementiereUsage(
   betrag = 1,
 ): Promise<void> {
   const monat = monatsSchluessel();
-  const paket = await paketFuerUser(prisma, userId);
+  const [paket, key] = await Promise.all([
+    paketFuerUser(prisma, userId),
+    usageSchluessel(prisma, userId),
+  ]);
   const spalten = limitSpalten(paket);
   const usedFeld = USED_FELD[art];
   await prisma.usage.upsert({
-    where: { userId_monat: { userId, monat } },
+    where: zeileWhere(key, monat),
     update: { ...spalten, [usedFeld]: { increment: betrag } },
-    create: { userId, monat, ...spalten, [usedFeld]: betrag },
+    create: { ...key, monat, ...spalten, [usedFeld]: betrag },
   });
 }

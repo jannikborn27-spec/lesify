@@ -122,6 +122,10 @@ model User {
   benutzername    String?   @unique
   rolle           Rolle
   parentUserId    String?   @db.Uuid
+  // Platz im Abo der Eltern (1 … Abo.sitze), nur Kind-Profile. Usage hängt am
+  // Platz (Eltern + sitzNr), nicht am Kind — Kind entfernen + neu anlegen
+  // setzte sonst das Kontingent zurück (Entscheidung 2026-09-30).
+  sitzNr          Int?
   aboId           String?   @db.Uuid
   trialEndetAm    DateTime? // createdAt + 14 Tage
   passwordHash    String
@@ -149,10 +153,12 @@ model User {
   aufgaben            Aufgabe[]
   testklausurErgeb    TestklausurErgebnis[]
   vorbereitungsstand  Vorbereitungsstand[]
-  usages              Usage[]
+  usages              Usage[]               @relation("UsageNutzer")
+  sitzUsages          Usage[]               @relation("UsageSitz")
   sessions            Session[]
   verificationTokens  VerificationToken[]
 
+  @@unique([parentUserId, sitzNr])
   @@index([parentUserId])
   @@index([aboId])
 }
@@ -461,10 +467,10 @@ model Testklausur {
 }
 
 model Aufgabe {
-  id            String @id @default(uuid()) @db.Uuid
-  userId        String @db.Uuid
-  testklausurId String @db.Uuid
-  themaId       String @db.Uuid
+  id            String  @id @default(uuid()) @db.Uuid
+  userId        String  @db.Uuid
+  testklausurId String  @db.Uuid
+  themaId       String  @db.Uuid
   frage         String
   reihenfolge   Int
   // Testklausur ≈ 30 Minuten (2026-09-30): mehrere Aufgaben pro Thema möglich.
@@ -521,21 +527,28 @@ model Vorbereitungsstand {
 }
 
 model Usage {
-  id                 String @id @default(uuid()) @db.Uuid
-  userId             String @db.Uuid
+  id                 String  @id @default(uuid()) @db.Uuid
+  // Entweder ein eigenes Konto (`userId`) ODER ein Platz im Eltern-Abo
+  // (`elternId` + `sitzNr`, Kind-Profile, seit 2026-09-30) — Platz-Zeilen
+  // überleben das Entfernen des Kindes und gehen aufs nächste Kind über.
+  userId             String? @db.Uuid
+  elternId           String? @db.Uuid
+  sitzNr             Int?
   monat              String // YYYY-MM
-  nachrichtenUsed    Int    @default(0)
+  nachrichtenUsed    Int     @default(0)
   nachrichtenLimit   Int? // null = unbegrenzt (nur infinite)
-  dateienUsed        Int    @default(0)
+  dateienUsed        Int     @default(0)
   dateienLimit       Int
-  lernzettelUsed     Int    @default(0)
+  lernzettelUsed     Int     @default(0)
   lernzettelLimit    Int
-  testklausurenUsed  Int    @default(0)
+  testklausurenUsed  Int     @default(0)
   testklausurenLimit Int
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User? @relation("UsageNutzer", fields: [userId], references: [id], onDelete: Cascade)
+  eltern User? @relation("UsageSitz", fields: [elternId], references: [id], onDelete: Cascade)
 
   @@unique([userId, monat])
+  @@unique([elternId, sitzNr, monat])
   @@index([userId])
 }
 

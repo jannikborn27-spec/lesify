@@ -18,7 +18,7 @@
   </div>
 </div>
 
-<script src="assets/js/api.js?v=20260930c"></script>
+<script src="assets/js/api.js?v=20260930d"></script>
 <script src="assets/js/auth-gate.js"></script>
 <script src="assets/js/app.js"></script>
 <script>
@@ -26,7 +26,39 @@ document.addEventListener('DOMContentLoaded', async function () {
   var R = LesifyUI.Render, I = LesifyUI.Icons, main = document.getElementById('eltern-main');
 
   var kinder = []; // lokaler Sync-Cache, siehe loadKinder()
-  async function loadKinder() { kinder = await Lesify.kinder(); }
+  var plaetze = []; // Nutzung je Platz (GET /abo/sitze) — hängt am Platz, nicht am Kind
+  async function loadKinder() {
+    var r = await Promise.all([
+      Lesify.kinder(),
+      Lesify.sitze ? Lesify.sitze().catch(function () { return null; }) : null
+    ]);
+    kinder = r[0];
+    plaetze = (r[1] && r[1].sitze) || [];
+  }
+  function sitzVon(kindId) {
+    for (var i = 0; i < plaetze.length; i++) if (plaetze[i].kind && plaetze[i].kind.id === kindId) return plaetze[i];
+    return null;
+  }
+  function usageZeile(u) {
+    if (!u) return '';
+    function q(label, x) { return label + ' ' + x.used + (x.limit == null ? '' : '/' + x.limit); }
+    return '<div class="kc-usage">' +
+      '<span class="kc-usage-cap">Diesen Monat</span>' +
+      [q('Nachrichten', u.nachrichten), q('Content-Aufnahmen', u.dateien), q('Lernzettel', u.lernzettel), q('Klausurvorbereitungen', u.testklausuren)]
+        .map(function (t) { return '<span>' + t + '</span>'; }).join('') +
+    '</div>';
+  }
+  function freierPlatzCard(sitz) {
+    var u = sitz.usage;
+    var benutzt = u && (u.nachrichten.used + u.dateien.used + u.lernzettel.used + u.testklausuren.used) > 0;
+    return '<div class="card kind-card kind-card--frei" style="padding:16px 20px">' +
+      '<span class="kc-meta"><span class="kc-name">Platz ' + sitz.sitzNr + ' · frei</span>' +
+      '<span class="kc-sub">' + (benutzt
+        ? 'Der Verbrauch dieses Monats bleibt am Platz und gilt für das nächste Kind weiter.'
+        : 'Noch nichts verbraucht.') + '</span></span>' +
+      (benutzt ? usageZeile(u) : '') +
+    '</div>';
+  }
   function findKind(id) {
     for (var i = 0; i < kinder.length; i++) if (kinder[i].id === id) return kinder[i];
     return null;
@@ -74,6 +106,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         '<span class="kc-meta"><span class="kc-name">' + kind.name + '</span><span class="kc-sub">' + sub + '</span></span>' +
         '<a class="btn btn-sm btn-ghost" href="eltern-kind.html?id=' + kind.id + '">Details' + I.arrowRight + '</a>' +
       '</div>' +
+      (sitzVon(kind.id) ? '<div style="padding:0 20px 14px">' + usageZeile(sitzVon(kind.id).usage) + '</div>' : '') +
       '<div class="kc-body" style="border-top:1px solid var(--line)">' +
         '<div class="kc-actions" style="margin-top:0">' +
           (kind.eingeladen
@@ -106,7 +139,8 @@ document.addEventListener('DOMContentLoaded', async function () {
         ? '<div class="abo-hinweis abo-hinweis--gelb" role="status"><div><b>Noch kein Tarif gewählt</b>' +
           'Wähle einen Tarif und starte die 14 Tage kostenlose Testphase. Danach legst du hier die Profile deiner Kinder an.' +
           '<div style="margin-top:10px"><a class="btn btn-sm btn-primary" href="/preise/">Tarif wählen</a></div></div></div>'
-        : '<div id="kinder-liste">' + kinder.map(kindCard).join('') + '</div>' +
+        : '<div id="kinder-liste">' + kinder.map(kindCard).join('') +
+            plaetze.filter(function (s) { return !s.kind; }).map(freierPlatzCard).join('') + '</div>' +
           '<button class="btn btn-primary" id="kind-add"' + (voll ? ' disabled' : '') + '>' + I.plus + ' Kind hinzufügen</button>' +
           (voll ? '<p class="kc-hint">Alle Plätze belegt — auf <a href="eltern-abo.html">Abo &amp; Sitze</a> kannst du einen Platz ergänzen.</p>' : ''));
     if (keinAbo) return;
@@ -131,7 +165,7 @@ document.addEventListener('DOMContentLoaded', async function () {
           window.location.href = 'dashboard.html';
         }).catch(function (err) { LesifyUI.toast(Lesify.fehlerText(err)); });
       } else if (act === 'entfernen') {
-        modal('„' + kind.name + '" entfernen?', 'Alle Fächer, Chats, Lernzettel, Dateien und Klausuren dieses Kindes werden unwiderruflich gelöscht. Der Platz wird wieder frei.',
+        modal('„' + kind.name + '" entfernen?', 'Alle Fächer, Chats, Lernzettel, Dateien und Klausuren dieses Kindes werden unwiderruflich gelöscht. Der Platz wird wieder frei — der Verbrauch dieses Monats bleibt aber am Platz und gilt für ein neues Kind weiter.',
           '<p class="text-sm" id="m-confirm-hint" style="margin:0;color:var(--ink-700)">Zum Bestätigen bitte den Vornamen <strong>' + kind.name.split(' ')[0] + '</strong> eingeben.</p>' +
           '<div class="field mt-0" style="margin-top:10px"><input class="input" id="m-confirm" type="text" autocomplete="off" aria-labelledby="m-confirm-hint"></div>',
           async function (scrim) {
@@ -152,11 +186,12 @@ document.addEventListener('DOMContentLoaded', async function () {
     if (addBtn && !addBtn.disabled) addBtn.addEventListener('click', function () {
       modal('Kind hinzufügen', 'Legt ein neues Profil an. Den Zugang (Benutzername oder E-Mail-Einladung) richtest du danach ein.',
         '<div class="field"><label for="m-name">Name</label><input class="input" id="m-name" type="text" placeholder="Vor- und Nachname"></div>' +
-        '<div class="field mt-0"><label for="m-klasse">Klassenstufe</label><input class="input" id="m-klasse" type="text" placeholder="z. B. 7. Klasse"></div>',
+        '<div class="field mt-0"><label for="m-klasse">Klassenstufe</label><select class="select" id="m-klasse">' + LesifyUI.klassenOptionenHtml('', false) + '</select></div>',
         async function (scrim) {
           var name = scrim.querySelector('#m-name').value.trim();
           var klasse = scrim.querySelector('#m-klasse').value.trim();
-          if (!name || !klasse) { scrim.querySelector('#m-name').focus(); return false; }
+          if (!name) { scrim.querySelector('#m-name').focus(); return false; }
+          if (!klasse) { scrim.querySelector('#m-klasse').focus(); return false; }
           try {
             await Lesify.addKind({ name: name, klassenstufe: klasse });
             LesifyUI.toast(name + ' hinzugefügt.');

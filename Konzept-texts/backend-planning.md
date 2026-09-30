@@ -573,7 +573,7 @@ Backend-seitig ist `chatMap` ein Teilaspekt von `PATCH /lernplaene/:id` (Overrid
 Muster) bzw. fällt beim Anlegen einer Chat-Nachricht mit Lernplan-Kontext an.
 
 ### Usage / Limits
-Pro User (= pro Sitz), monatlich, resettet am 1. jedes Monats (aktuell fix,
+**Pro Sitz**, monatlich, resettet am 1. jedes Monats (aktuell fix,
 siehe §8). **Nichts wird in den Folgemonat übertragen.** Die konkreten
 `*Limit`-Werte hängen am `Abo.paket` und gelten pro Sitz identisch — ein
 Familien-Paket vervielfacht nur die Sitze, nicht die Quote je Kind.
@@ -582,7 +582,8 @@ Frontend-Spiegel: `Lesify.PLAN_LIMITS` in `app/assets/js/data.js`,
 
 | Feld | Typ | Hinweis |
 |---|---|---|
-| userId | uuid (FK) | ein Zähler-Satz je Sitz |
+| userId | uuid (FK, nullable) | eigene Konten (Eltern-/Einzelkonten ohne Kind-Platz) |
+| elternId + sitzNr | uuid (FK) + int, nullable | **Kind-Profile (seit 2026-09-30):** Zähler hängen am **Platz** im Eltern-Abo, nicht am Kind — Kind entfernen + neu anlegen setzte sonst das Kontingent zurück (Missbrauch). Das nächste Kind auf dem Platz übernimmt den Monatsverbrauch. `User.sitzNr` (1 … `Abo.sitze`, `@@unique([parentUserId, sitzNr])`) vergibt `POST /abo/kinder` (niedrigster freier Platz); Platz = Elternkonto statt Abo-Zeile, damit auch ein Neuabschluss nicht zurücksetzt. `usageSchluessel()` in `lib/usage.ts`. Migration `20260930150000_usage_je_sitz` (Bestandskinder bekommen Plätze nach Anlagedatum, ihre Zeilen werden umgehängt) |
 | monat | string (YYYY-MM) | |
 | nachrichtenUsed / nachrichtenLimit | int / int·nullable | `null` = unbegrenzt (nur `infinite`) |
 | dateienUsed / dateienLimit | int / int | „Content-Aufnahmen" — Datei- & Chat-Uploads, siehe unten |
@@ -1125,6 +1126,8 @@ Query-Parameter, die `chat.html`/`thema.html` aus dem client-seitigen
 | GET | `/abo` | Aktueller `paket`, `art`, `sitze`, `intervall`, `status`, `angebot`, `trialEndetAm`, `aktuellerZeitraumEnde` + abgeleitete Monatskontingente je Sitz + `preis: {betragCent, normalCent}` je Abrechnungszeitraum (2026-09-29; Angebotspreis bleibt nach `bleibtImAngebot`) — `eltern-abo.html` zeigt damit Preis und „Testphase bis / Nächste Abbuchung / Läuft bis“ |
 | POST | `/abo` | `{paket, intervall, sitze?, ohneTestphase?}` (`ohneTestphase` seit 2026-09-23: sofort kostenpflichtig, Stripe ohne `trial_period_days`, Frontend bestätigt einen PaymentIntent; Stripe-Status `incomplete` → `zahlung_offen` bis zur ersten Zahlung) → Checkout-Abschluss bei der Registrierung (Tarif + Intervall wählen, Zahlungsart hinterlegen). `paket` ∈ `starter\|premium\|infinite`; `sitze` 1 (Einzel) oder 2–4 (Familie); `intervall` ∈ `monatlich\|jaehrlich`. Legt bei Stripe Customer + Subscription mit **`trial_period_days: 14`** an (`Abo.status = test`), fixiert das aktive `angebot`. Nach 14 Tagen bucht Stripe automatisch ab → `status = aktiv`. **MwSt. nicht ausweisen** (Kleinunternehmer, nicht auf der Website nennen). Besteht schon ein Abo → `409 abo_vorhanden` — **außer** es ist ein abgebrochener Abschluss (`test`/`zahlung_offen`, Stripe-Subscription `trialing`/`incomplete` ohne jedes Zahlungsmittel, `ZahlungsGateway.abschlussAbgebrochen`): dann wird die alte Subscription beendet, die Zeile gelöscht und neu angelegt (Bug 2026-09-25 — die Abo-Zeile entsteht vor der Kartenbestätigung, ein Fehlversuch blockierte sonst jeden weiteren). Abgeschlossen wird immer für das Konto der Sitzung; die Kasse zeigt es an („Abschluss für das Konto … · Anderes Konto verwenden") |
 | GET | `/abo/vorschau` | **Neu 2026-09-23.** `?sitze=&paket=&intervall=` → was eine Änderung kostet, **bevor** sie ausgeführt wird: `{wirksam: 'sofort'\|'periodenende', wirksamAm, imTest, sitze:{vorher,nachher}, aktuell:{betragCent,intervall}, neu:{betragCent,intervall}, anteiligCent, naechsteAbbuchung:{am,betragCent}}`. Sofortige Änderungen über Stripe `invoices.createPreview` (Proration-Zeilen), reine Sitzverringerung ohne Anbieter-Call. `eltern-abo.html` zeigt das vor jeder Sitzänderung als Bestätigung („Zahlungspflichtig hinzufügen", § 312j BGB) **2026-09-29:** in der Testphase `anteiligCent = 0` und `naechsteAbbuchung = {am: trialEndetAm, betragCent: neuer Preis}` statt Stripes 0-€-Trial-Rechnung. Genutzt von den Dialogen „Platz hinzufügen/entfernen“ und „Tarif ändern“ in `eltern-abo.html` |
+| — | alle schreibenden `/abo*`-Routen | **Nur Elternkonten (seit 2026-09-30):** Kind-Konten hängen über `User.aboId` am Eltern-Abo und konnten per `PATCH /abo` den Tarif sofort und ohne Kostenvorschau umstellen (bzw. kündigen, pausieren, Kinder anlegen) → jetzt `403 nur_eltern` für `rolle = schueler`. Lesen (`GET /abo`) bleibt; `einstellungen.html` zeigt den Tarif nur noch an |
+| GET | `/abo/sitze` | **Neu 2026-09-30.** Nutzung je Platz: `{planName, sitze: [{sitzNr, kind: {id,name}\|null, usage: {nachrichten, dateien, lernzettel, testklausuren, resetDatum}}]}` — `eltern-kinder.html` zeigt sie je Kind und für freie Plätze mit Verbrauch |
 | PATCH | `/abo` | `{paket?, intervall?, sitze?}` → Tarif-/Intervall-/Sitzwechsel (Up-/Downgrade, Proration). Sitzverringerung erst zum `aktuellerZeitraumEnde`. Zielzustand-Berechnung mit `/abo/vorschau` geteilt (`zielZustand`) |
 | POST | `/abo/testphase-pruefen` | **Neu 2026-09-23 (Testphase einmal je Zahlungsmittel).** Direkt nach dem Hinterlegen des Zahlungsmittels (Kasse nach `confirmSetup` mit `redirect: 'if_required'`; nach Redirect-Zahlungsarten `checkout-erfolg/`). Kennung `card:<fingerprint>` / `paypal:<payerId>` → SHA-256 in `TrialZahlungsmittel`. Schon für ein anderes Abo genutzt → Stripe-Subscription sofort beenden (nichts abgebucht), Abo-Zeile löschen, `409 testphase_bereits_genutzt`; Kasse bietet `?ohne_testphase=1` an. Klarna/Amazon Pay haben keine Kennung → `{geprueft:false}`, Testphase bleibt. Zusätzlich als Sicherheitsnetz im Webhook (`customer.subscription.*` bei `status = test`). **Seit 2026-09-29:** nicht abgelehnt → einmalige **Vertragsbestätigung** an die Konto-E-Mail (Tarif, Plätze, Abrechnung, Preis inkl. Normalpreis beim Angebot, Bestelldatum, Testphase-Ende, Kündigungsweg, AGB-Link, Widerrufsbelehrung + Muster-Formular wörtlich wie AGB §11) — Stripe schickt beim Testphase-Start nichts. Doppelte Aufrufe (Kasse + Erfolgsseite) senden nicht doppelt (`Abo.bestaetigungGesendetAm` bedingt gesetzt); Versandfehler blockieren den Abschluss nicht, der nächste Aufruf versucht es erneut. Mail und `abgeschlossenAm` nur, wenn beim Anbieter wirklich ein Zahlungsmittel hängt (`abschlussAbgebrochen(ref) = false`) |
 | POST | `/abo/zahlungsportal` | **Neu 2026-09-23.** → `{url}` einer Stripe-Billing-Portal-Sitzung (Zahlungsmethode ändern, offene Rechnung zahlen, Belege), Rückkehr auf `eltern-abo.html`. Braucht einmalig eine gespeicherte Portal-Konfiguration im Stripe-Dashboard |
@@ -1732,6 +1735,10 @@ fehlgeschlagene Logins/Upload-Flooding weiterhin offen (§8).
       „Klausurvorbereitungen".
 - [x] **Keine Klausuren in der Vergangenheit.**
 - [x] **Abmelden-Button** in der Seitenleiste über dem Profil-Chip (reine UI).
+- [x] **Usage je Platz statt je Kind** (Kind entfernen/neu anlegen setzt nicht mehr
+      zurück), Eltern sehen die Nutzung je Platz.
+- [x] **Abo-Änderungen nur durch Eltern** (`403 nur_eltern` für Kind-Konten).
+- [x] **Klassenstufe als Auswahl** „1. Klasse" … „13. Klasse" (gleiches Speicherformat).
 - [x] **Lernzettel ohne Begrüßung/Einleitung** (Call 08 Regel 7 + `ohneBegruessung()`
       als Sicherheitsnetz; Call 09 fügt keine Begrüßung ein).
 

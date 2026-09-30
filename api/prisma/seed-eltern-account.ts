@@ -48,7 +48,10 @@ async function main() {
   const alt = await prisma.user.findUnique({ where: { email: ELTERN_EMAIL } });
   if (alt) {
     await prisma.user.deleteMany({ where: { parentUserId: alt.id, email: null } });
-    await prisma.user.update({ where: { id: dev.id }, data: { parentUserId: null, aboId: null } });
+    await prisma.user.update({
+      where: { id: dev.id },
+      data: { parentUserId: null, sitzNr: null, aboId: null },
+    });
     await prisma.user.delete({ where: { id: alt.id } }); // Cascade: Abo, Einstellungen, Sessions
   }
 
@@ -94,7 +97,10 @@ async function main() {
     where: { ownerUserId: dev.id },
     select: { id: true },
   });
-  await prisma.user.update({ where: { id: dev.id }, data: { parentUserId: elternId, aboId } });
+  await prisma.user.update({
+    where: { id: dev.id },
+    data: { parentUserId: elternId, sitzNr: 1, aboId },
+  });
   if (eigenesAboVonLena.length) {
     await prisma.abo.deleteMany({ where: { id: { in: eigenesAboVonLena.map((a) => a.id) } } });
   }
@@ -108,6 +114,7 @@ async function main() {
       klassenstufe: '6. Klasse',
       rolle: Rolle.schueler,
       parentUserId: elternId,
+      sitzNr: 2,
       aboId,
       passwordHash: 'kind:kein-login',
       createdAt: daysAgo(40),

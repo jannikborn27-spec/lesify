@@ -945,6 +945,7 @@ textarea.input { height: auto; padding: 12px 14px; min-height: 90px; resize: ver
   margin-bottom: var(--sp-8); overflow-x: auto;
 }
 .tab-btn {
+  border: 0; background: transparent; /* <button> ohne globalen Reset (2026-09-30) */
   padding: 9px 16px;
   border-radius: var(--radius-md);
   font-size: 0.85rem; font-weight: 600; color: var(--ink-600);
@@ -960,6 +961,10 @@ textarea.input { height: auto; padding: 12px 14px; min-height: 90px; resize: ver
 .tab-btn.is-active { background: var(--bg-surface); color: var(--ink-950); box-shadow: var(--shadow-sm); }
 .tab-btn.is-active .tcount { background: var(--ink-950); color: var(--paper); }
 .tab-btn:hover:not(.is-active) { color: var(--ink-900); }
+.tab-btn:focus-visible { outline: 2px solid var(--ink-950); outline-offset: 1px; }
+/* Zwei-Wege-Umschalter im Dialog „Zugang für …" (kindZugangModal) */
+.tabs.tabs--block { display: flex; width: 100%; margin-bottom: 16px; }
+.tabs.tabs--block .tab-btn { flex: 1 1 0; justify-content: center; }
 .tab-panel { display: none; }
 .tab-panel.is-active { display: block; animation: fade-up 320ms var(--ease-out); }
 
@@ -2004,6 +2009,9 @@ textarea.input { height: auto; padding: 12px 14px; min-height: 90px; resize: ver
 
 /* Kind-Karten (ausklappbar) */
 .kind-card { padding: 0; overflow: hidden; margin-bottom: var(--sp-4); }
+.kc-usage { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 0.76rem; color: var(--ink-600); }
+.kc-usage-cap { font-weight: 600; color: var(--ink-800); }
+.kind-card--frei { border-style: dashed; display: flex; flex-direction: column; gap: 10px; background: transparent; }
 .kind-card > summary {
   list-style: none; cursor: pointer;
   display: flex; align-items: center; gap: 14px;
@@ -2136,6 +2144,10 @@ textarea.input { height: auto; padding: 12px 14px; min-height: 90px; resize: ver
 
 /* Rules mit hartkodierten Hell-Werten für dunklen Grund nachziehen */
 :root[data-theme="dark"] .topbar-mobile { background: rgba(19, 23, 26, 0.9); }
+/* Helles Logo im dunklen Design (2026-09-30) — wie im Website-Header auf
+   dunklem Grund: heller Rahmen, dunkles Zeichen (logo.png invertiert). */
+:root[data-theme="dark"] .brand img,
+:root[data-theme="dark"] .mobile-brand img { filter: invert(1); box-shadow: none; }
 :root[data-theme="dark"] .sidebar-scrim { background: rgba(0, 0, 0, 0.55); }
 
 :root[data-theme="dark"] .input:focus,

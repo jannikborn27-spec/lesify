@@ -2008,6 +2008,23 @@
     var d = new Date();
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   }
+  /* Klassenstufen-Auswahl (2026-09-30) statt Freitext: „1. Klasse" … „13. Klasse"
+     — gleiches Format wie bisher gespeichert (`User.klassenstufe`, `Fach.klasse`).
+     Ein abweichender Altwert bleibt als eigene Option erhalten. */
+  function klassenOptionenHtml(current, optional) {
+    var werte = [];
+    for (var n = 1; n <= 13; n++) werte.push(n + '. Klasse');
+    var opts = optional ? ['<option value="">Keine Angabe</option>'] : ['<option value="" disabled' + (current ? '' : ' selected') + '>Klasse wählen …</option>'];
+    if (current && werte.indexOf(current) === -1) opts.push('<option value="' + mdEscape(current) + '" selected>' + mdEscape(current) + '</option>');
+    werte.forEach(function (w) { opts.push('<option value="' + w + '"' + (w === current ? ' selected' : '') + '>' + w + '</option>'); });
+    return opts.join('');
+  }
+  function initKlassenSelect() {
+    qsa('select[data-klassen]').forEach(function (el) {
+      if (!el.options.length) el.innerHTML = klassenOptionenHtml(el.getAttribute('data-wert') || '', el.hasAttribute('data-optional'));
+    });
+  }
+
   function initMinHeute() {
     qsa('input[type="date"][data-min-heute]').forEach(function (el) { el.min = heuteIso(); });
   }
@@ -2046,6 +2063,7 @@
     initUsageWidget();
     initPasswortToggle();
     initMinHeute();
+    initKlassenSelect();
   });
 
   /* =========================================================
@@ -2255,7 +2273,7 @@
           '<p class="modal-sub">Wie soll sich ' + vorname + ' anmelden?</p>' +
         '</div><button class="modal-close" type="button" aria-label="Schließen">' + Icons.x + '</button></div>' +
         '<div class="modal-body">' +
-          '<div class="tabs" role="tablist" style="margin-bottom:16px">' +
+          '<div class="tabs tabs--block" role="tablist" aria-label="Anmeldeart">' +
             '<button type="button" class="tab-btn" role="tab" data-modus="benutzername">Benutzername</button>' +
             '<button type="button" class="tab-btn" role="tab" data-modus="email">Per E-Mail einladen</button>' +
           '</div>' +
@@ -2326,5 +2344,5 @@
     });
   }
 
-  window.LesifyUI = { fachColorVars: fachColorVars, pdfVorschau: pdfVorschau, pdfDownload: pdfDownload, mdToHtml: mdToHtml, mdEscape: mdEscape, toast: toast, openModal: openModal, closeModal: closeModal, Icons: Icons, Render: Render, searchResultsHtml: searchResultsHtml, searchDropdownHtml: searchDropdownHtml, qs: qs, qsa: qsa, openFachColorPicker: openFachColorPicker, heuteIso: heuteIso, swatchPickerHtml: swatchPickerHtml, bindSwatchPicker: bindSwatchPicker, openDateiModal: openDateiModal, setPageWatermark: setPageWatermark, kindZugangModal: kindZugangModal, kindZugangAnmeldung: kindZugangAnmeldung };
+  window.LesifyUI = { fachColorVars: fachColorVars, pdfVorschau: pdfVorschau, pdfDownload: pdfDownload, mdToHtml: mdToHtml, mdEscape: mdEscape, toast: toast, openModal: openModal, closeModal: closeModal, Icons: Icons, Render: Render, searchResultsHtml: searchResultsHtml, searchDropdownHtml: searchDropdownHtml, qs: qs, qsa: qsa, openFachColorPicker: openFachColorPicker, heuteIso: heuteIso, klassenOptionenHtml: klassenOptionenHtml, swatchPickerHtml: swatchPickerHtml, bindSwatchPicker: bindSwatchPicker, openDateiModal: openDateiModal, setPageWatermark: setPageWatermark, kindZugangModal: kindZugangModal, kindZugangAnmeldung: kindZugangAnmeldung };
 })();

@@ -108,6 +108,7 @@
   var FEHLER_TEXT = {
     nicht_angemeldet: 'Bitte melde dich neu an.',
     limit_erreicht: 'Dein Monatskontingent für diese Funktion ist aufgebraucht.',
+    nur_eltern: 'Das können nur deine Eltern in ihrem Eltern-Bereich ändern.',
     klausur_datum_vergangen: 'Das Datum liegt in der Vergangenheit — eine Klausur kannst du nur für heute oder später anlegen.',
     validierung: 'Die Eingabe ist unvollständig oder ungültig.',
     nicht_gefunden: 'Nicht gefunden.',
@@ -840,6 +841,10 @@
     },
     kinder: function () {
       return GET('/abo/kinder');
+    },
+    /** Nutzung je Platz im Abo (2026-09-30) — `{planName, sitze: [{sitzNr, kind|null, usage}]}`. */
+    sitze: function () {
+      return GET('/abo/sitze');
     },
     addKind: function (d) {
       return POST('/abo/kinder', d);

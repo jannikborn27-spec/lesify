@@ -353,6 +353,25 @@
     if (!scrim) return;
     scrim.classList.remove('is-open');
     document.body.style.overflow = '';
+    fokusZurueck();
+  }
+
+  // Nach dem Schließen eines Dialogs den Fokus zurück auf das auslösende
+  // Element setzen — sonst landet man mit der Tastatur wieder am Seitenanfang
+  // (Testdurchgang 2026-09-30). Gilt auch für zur Laufzeit erzeugte Dialoge,
+  // die sich selbst entfernen (siehe MutationObserver in initModals).
+  var fokusVorModal = null;
+  document.addEventListener('focusin', function (e) {
+    if (!e.target.closest || !e.target.closest('.modal-scrim')) fokusVorModal = e.target;
+  });
+  function fokusZurueck() {
+    setTimeout(function () {
+      if (qs('.modal-scrim.is-open')) return; // anderer Dialog noch offen
+      var ae = document.activeElement;
+      var verloren = !ae || ae === document.body || !document.body.contains(ae) ||
+        (ae.closest && ae.closest('.modal-scrim'));
+      if (verloren && fokusVorModal && document.body.contains(fokusVorModal)) fokusVorModal.focus();
+    }, 0);
   }
 
   // Dialog-Semantik + Anfangsfokus für JEDES `.modal-scrim` — egal ob als
@@ -404,6 +423,10 @@
               modalA11yHerstellen(node);
               modalFokusHinein(node);
             }
+          }
+          for (var j = 0; j < mut.removedNodes.length; j++) {
+            var weg = mut.removedNodes[j];
+            if (weg.nodeType === 1 && weg.classList && weg.classList.contains('modal-scrim')) fokusZurueck();
           }
         });
       }).observe(document.body, { childList: true });
@@ -2049,7 +2072,22 @@
      Boot
      --------------------------------------------------------- */
 
+  /* „Zum Inhalt springen“ als erstes Tab-Ziel — sonst muss man sich auf jeder
+     Seite erst durch die ganze Seitenleiste tabben (Testdurchgang 2026-09-30). */
+  function initSkipLink() {
+    var main = document.querySelector('main');
+    if (!main || document.querySelector('.skip-link')) return;
+    if (!main.id) main.id = 'inhalt';
+    if (!main.hasAttribute('tabindex')) main.setAttribute('tabindex', '-1');
+    var link = document.createElement('a');
+    link.className = 'skip-link';
+    link.href = '#' + main.id;
+    link.textContent = 'Zum Inhalt springen';
+    document.body.insertBefore(link, document.body.firstChild);
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
+    initSkipLink();
     applyTheme();
     initNavCompact();
     renderChrome();

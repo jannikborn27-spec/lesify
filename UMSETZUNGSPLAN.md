@@ -5113,6 +5113,11 @@ Kritisch, weil Zielgruppe minderjährig ist.
         beim nächsten Schreiben übertragen.
   - [x] Klausur-Anlage: Button zeigte ~20 s nur grau → „Lernplan wird
         erstellt …“; Chip „Heute dran“ brach um.
+  - [x] Tastatur (2026-09-30): Seitenleisten-Links hatten nur den dünnen
+        Browser-Standardrahmen → einheitlicher Fokusrahmen für alle Links/Buttons,
+        „Zum Inhalt springen“ als erstes Tab-Ziel, Fokus kehrt nach dem Schließen
+        eines Dialogs zum auslösenden Button zurück. Hinweis: Safari springt mit
+        Tab standardmäßig nicht zu Links (Einstellung, kein App-Fehler).
 
 **B. Stripe Live**
 

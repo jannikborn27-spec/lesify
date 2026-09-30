@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import type { Lernplan, PrismaClient } from '@prisma/client';
 import { z } from 'zod';
+import type { LernplanStatus } from '@lesify/shared';
 import { parse } from '../lib/validate.js';
 import { oder404 } from '../lib/scope.js';
 import { lernzettelPdf } from '../lib/pdf/dokumente.js';
@@ -33,6 +34,24 @@ const chatMapPatch = z.object({
 });
 
 const lernzettelBody = z.object({ themaIds: z.array(z.string().uuid()).min(1).max(20) });
+
+/** Checklisten-Punkte eines Lerntags (2/3/4/6/7) laut berechnetem Status. */
+function aufgabenFuerTag(s: LernplanStatus, tag: number): string[] {
+  switch (tag) {
+    case 2:
+      return s.tag2.aufgaben;
+    case 3:
+      return s.tag3.aufgaben;
+    case 4:
+      return s.tag4.aufgaben;
+    case 6:
+      return s.tag6.aufgaben;
+    case 7:
+      return s.tag7.aufgaben;
+    default:
+      return [];
+  }
+}
 
 /** Bevorzugt das Feedback aus Testklausur 2 (aktueller), sonst Testklausur 1. */
 async function fehlerHinweisFuer(
@@ -121,24 +140,34 @@ export async function lernplaeneRoutes(app: FastifyInstance): Promise<void> {
     const patch = parse(checklistPatch, req.body);
     const lp = await laden(req.userId, req.params.id);
 
-    if ('key' in patch) {
-      const cl = { ...((lp.checklist as Record<string, Record<string, boolean>> | null) ?? {}) };
-      cl[patch.tag] = { ...(cl[patch.tag] ?? {}), [patch.key]: patch.checked };
+    // Einzelpunkte UND „Tag abschließen“ schreiben in `checklist` — die liest
+    // `lernplanStatus`. Vorher setzte „Tag abschließen“ nur den Legacy-Marker
+    // `tageErledigt`, den der Status ignoriert, sobald auch nur ein Punkt des
+    // Tages einzeln gesetzt war: Toast „Tag 2 abgeschlossen.“, Tag blieb offen
+    // (Testdurchgang 2026-09-29). Ein vorhandener Marker wird beim Schreiben in
+    // die Checkliste übertragen (wie im data.js-Prototyp), damit „Abwählen
+    // öffnet den Tag wieder“ auch danach gilt.
+    const keys = aufgabenFuerTag(await berechneLernplanStatus(prisma, lp), patch.tag);
+    if (!keys.length && !('key' in patch)) {
+      // Tag ohne Checklisten-Punkte (z. B. Tag 1/5) → nur der Marker.
+      const set = new Set(lp.tageErledigt);
+      if (patch.checked) set.add(patch.tag);
+      else set.delete(patch.tag);
       const updated = await prisma.lernplan.update({
         where: { id: lp.id },
-        data: { checklist: cl },
+        data: { tageErledigt: [...set].sort((a, b) => a - b) },
       });
       return lernplanDTO(updated);
     }
-
-    // „Tag abschließen" / wieder öffnen — bis Phase 7 (Key-Liste je Tag) über den
-    // Legacy-Marker `tageErledigt`.
-    const set = new Set(lp.tageErledigt);
-    if (patch.checked) set.add(patch.tag);
-    else set.delete(patch.tag);
+    const cl = { ...((lp.checklist as Record<string, Record<string, boolean>> | null) ?? {}) };
+    const tagChecks = { ...(cl[patch.tag] ?? {}) };
+    if (lp.tageErledigt.includes(patch.tag)) for (const k of keys) tagChecks[k] = true;
+    if ('key' in patch) tagChecks[patch.key] = patch.checked;
+    else for (const k of keys) tagChecks[k] = patch.checked;
+    cl[patch.tag] = tagChecks;
     const updated = await prisma.lernplan.update({
       where: { id: lp.id },
-      data: { tageErledigt: [...set].sort((a, b) => a - b) },
+      data: { checklist: cl, tageErledigt: lp.tageErledigt.filter((t) => t !== patch.tag) },
     });
     return lernplanDTO(updated);
   });

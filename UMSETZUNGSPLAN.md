@@ -5105,6 +5105,14 @@ Kritisch, weil Zielgruppe minderjährig ist.
         `einstellungen.html`, die Rollen-Weiche (`auth-gate.js`) leitete sofort
         zurück. Neue Seite `eltern-einstellungen.html` (Profil, Dunkles Design,
         Link zu Datenschutz & Konto); alte Links werden dorthin umgeleitet.
+  - [x] **„Tag abschließen“ im Lernplan wirkungslos**, sobald ein Punkt des
+        Tages einzeln abgehakt war: Toast „Tag 2 abgeschlossen.“, der Tag blieb
+        offen (Server setzte nur den Legacy-Marker `tageErledigt`, den
+        `lernplanStatus` bei vorhandenen Einzelhaken ignoriert). Jetzt schreiben
+        Einzelhaken und „Tag abschließen“ in `checklist`; ein alter Marker wird
+        beim nächsten Schreiben übertragen.
+  - [x] Klausur-Anlage: Button zeigte ~20 s nur grau → „Lernplan wird
+        erstellt …“; Chip „Heute dran“ brach um.
 
 **B. Stripe Live**
 

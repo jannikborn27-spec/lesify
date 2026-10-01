@@ -9,6 +9,7 @@ Keyword-Liste, eine Ausschlussliste** (Entscheidung 2026-10-01).
 | Datei                   | Inhalt                                                            | Wohin                                                                                         |
 | ----------------------- | ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
 | `keywords.csv`          | 190 Keywords, nur genau passend `[…]` + Wortgruppe `"…"`           | Kampagne „Lesify \| Suche" → Anzeigengruppe → Keywords → einfügen                             |
+| `anzeigentexte.md`      | 15 Titel + 4 Beschreibungen (RSA), Pins | Anzeigengruppe → Anzeigen → Responsive Suchanzeige |
 | `negative-keywords.csv` | Ausschlüsse (Jobs, Gratis, falsche Zielgruppe, Präsenz-Nachhilfe…) | Gemeinsam genutzte Bibliothek → Ausschlusslisten → der Kampagne zuweisen (oder direkt in die Kampagne) |
 
 Beide Dateien folgen Googles Keyword-Planer-Vorlage

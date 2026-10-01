@@ -4997,8 +4997,8 @@ Kritisch, weil Zielgruppe minderjährig ist.
 - [~] **Google-Ads-Keywords** (2026-10-01): Keyword-Plan in
       `Konzept-texts/google-ads/` — **eine Kampagne „Lesify | Suche", eine
       Keyword-Liste, eine Ausschlussliste** (Entscheidung Jannik 2026-10-01):
-      `keywords.txt` (190 Keywords, nur genau + Wortgruppe, ohne
-      Konkurrenz-Marken), `negative-keywords.txt`, `README.md` (Einstellungen,
+      `keywords.csv` (190 Keywords, nur genau + Wortgruppe, ohne
+      Konkurrenz-Marken), `negative-keywords.csv`, `README.md` (Einstellungen,
       Startbudget, Pflege).
   - [ ] **Jannik:** Liste im Keyword-Planer auf Suchvolumen/CPC prüfen, Kampagnen
         im Google Ads Editor importieren, Ausschlussliste zuweisen, Anzeigen texten.

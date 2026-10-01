@@ -8,13 +8,14 @@ Keyword-Liste, eine Ausschlussliste** (Entscheidung 2026-10-01).
 
 | Datei                   | Inhalt                                                            | Wohin                                                                                         |
 | ----------------------- | ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `keywords.txt`          | 190 Keywords, nur genau passend `[…]` + Wortgruppe `"…"`           | Kampagne „Lesify \| Suche" → Anzeigengruppe → Keywords → einfügen                             |
-| `negative-keywords.txt` | Ausschlüsse (Jobs, Gratis, falsche Zielgruppe, Präsenz-Nachhilfe…) | Gemeinsam genutzte Bibliothek → Ausschlusslisten → der Kampagne zuweisen (oder direkt in die Kampagne) |
+| `keywords.csv`          | 190 Keywords, nur genau passend `[…]` + Wortgruppe `"…"`           | Kampagne „Lesify \| Suche" → Anzeigengruppe → Keywords → einfügen                             |
+| `negative-keywords.csv` | Ausschlüsse (Jobs, Gratis, falsche Zielgruppe, Präsenz-Nachhilfe…) | Gemeinsam genutzte Bibliothek → Ausschlusslisten → der Kampagne zuweisen (oder direkt in die Kampagne) |
 
-Beide Dateien enthalten nur Keyword + Match-Type, eine Zeile pro Keyword —
-direkt einfügbar. Syntax: `[…]` = genau passend, `"…"` = Wortgruppe, ohne Zeichen
-= weitgehend passend (nur in der Ausschlussliste: blockt jede Suche, die das Wort
-enthält).
+Beide Dateien folgen Googles Keyword-Planer-Vorlage
+(`keywords-template.csv`: eine Spalte `Keyword`, eine Zeile pro Keyword). Der
+Match-Type steckt in der Schreibweise: `[…]` = genau passend, `"…"` = Wortgruppe
+(in der CSV korrekt als `"""…"""` maskiert), ohne Zeichen = weitgehend passend
+(nur in der Ausschlussliste: blockt jede Suche, die das Wort enthält).
 
 ## Kampagnen-Einstellungen
 
@@ -40,8 +41,8 @@ enthält).
 ## Laufende Pflege
 
 - Wöchentlich den **Suchbegriffe-Bericht** lesen: Irrelevantes in
-  `negative-keywords.txt` ergänzen, gute neue Begriffe als genau passend in
-  `keywords.txt` übernehmen.
+  `negative-keywords.csv` ergänzen, gute neue Begriffe als genau passend in
+  `keywords.csv` übernehmen.
 - Städtenamen („nachhilfe köln") nicht pauschal ausschließen — erst im
   Suchbegriffe-Bericht schauen, ob sie überhaupt Klicks ziehen.
 - „kostenlos/gratis" ist bewusst ausgeschlossen (Testphase braucht Zahlungsdaten).

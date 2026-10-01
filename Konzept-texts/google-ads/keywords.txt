@@ -1,8 +1,3 @@
-# Lesify — Keyword-Liste (eine Kampagne „Lesify | Suche“, eine Anzeigengruppe)
-# Einfügen: Anzeigengruppe → Keywords → + → alles hier einfügen (Zeilen mit # vorher entfernen).
-# [ ] = genau passend, " " = Wortgruppe.
-
-# --- Brand ---
 [lesify]
 "lesify"
 [lesify app]
@@ -11,8 +6,6 @@
 "lesify erfahrungen"
 [lesify lernapp]
 [lesify ki]
-
-# --- Online-Nachhilfe ---
 [online nachhilfe]
 "online nachhilfe"
 [nachhilfe online]
@@ -50,8 +43,6 @@
 "nachhilfe 9. klasse"
 "nachhilfe 10. klasse"
 "nachhilfe oberstufe online"
-
-# --- Nachhilfe nach Fach ---
 [mathe nachhilfe online]
 "mathe nachhilfe online"
 [nachhilfe mathe online]
@@ -77,8 +68,6 @@
 "biologie nachhilfe online"
 "mathe nachhilfe app"
 "mathe nachhilfe ki"
-
-# --- Eltern – Noten & Sorgen ---
 "kind schlechte noten"
 "mein kind hat schlechte noten"
 "kind schlecht in mathe"
@@ -95,8 +84,6 @@
 "mathe note verbessern"
 "blauer brief schule"
 "lernen ohne streit"
-
-# --- KI für Schüler ---
 [ki lernapp]
 "ki lernapp"
 [lern app mit ki]
@@ -118,8 +105,6 @@
 "chatgpt alternative für schüler"
 "ki zum lernen"
 "künstliche intelligenz lernen schule"
-
-# --- Lernapp Schule ---
 [lernapp schule]
 "lernapp schule"
 [lern app schule]
@@ -140,8 +125,6 @@
 "lernplattform schüler"
 "lernprogramm schule"
 "lernsoftware schule"
-
-# --- Hausaufgabenhilfe ---
 [hausaufgabenhilfe online]
 "hausaufgabenhilfe online"
 [hausaufgaben hilfe online]
@@ -156,8 +139,6 @@
 "hausaufgabenhilfe mathe"
 "hausaufgaben erklärt bekommen"
 "hilfe bei hausaufgaben"
-
-# --- Klassenarbeit & Klausur ---
 [klausurvorbereitung]
 "klausurvorbereitung"
 [klausurvorbereitung app]
@@ -179,8 +160,6 @@
 "testklausur"
 [probearbeit]
 "klausur simulieren"
-
-# --- Lernplan & Lernzettel ---
 [lernplan erstellen]
 "lernplan erstellen"
 [lernplan klassenarbeit]
@@ -200,8 +179,6 @@
 "lernzettel ki"
 "lernzettel erstellen lassen"
 "zusammenfassung erstellen ki"
-
-# --- Abitur ---
 [abiturvorbereitung online]
 "abiturvorbereitung online"
 "abi vorbereitung online"

@@ -11,9 +11,10 @@ Keyword-Liste, eine Ausschlussliste** (Entscheidung 2026-10-01).
 | `keywords.txt`          | 190 Keywords, nur genau passend `[…]` + Wortgruppe `"…"`           | Kampagne „Lesify \| Suche" → Anzeigengruppe → Keywords → einfügen                             |
 | `negative-keywords.txt` | Ausschlüsse (Jobs, Gratis, falsche Zielgruppe, Präsenz-Nachhilfe…) | Gemeinsam genutzte Bibliothek → Ausschlusslisten → der Kampagne zuweisen (oder direkt in die Kampagne) |
 
-Die `# ---`-Überschriften in `keywords.txt` sind nur zur Orientierung (Brand,
-Online-Nachhilfe, Fach, Eltern, KI, Lernapp, Hausaufgaben, Klausur, Lernplan,
-Abitur) — vor dem Einfügen die `#`-Zeilen entfernen.
+Beide Dateien enthalten nur Keyword + Match-Type, eine Zeile pro Keyword —
+direkt einfügbar. Syntax: `[…]` = genau passend, `"…"` = Wortgruppe, ohne Zeichen
+= weitgehend passend (nur in der Ausschlussliste: blockt jede Suche, die das Wort
+enthält).
 
 ## Kampagnen-Einstellungen
 
@@ -41,6 +42,8 @@ Abitur) — vor dem Einfügen die `#`-Zeilen entfernen.
 - Wöchentlich den **Suchbegriffe-Bericht** lesen: Irrelevantes in
   `negative-keywords.txt` ergänzen, gute neue Begriffe als genau passend in
   `keywords.txt` übernehmen.
+- Städtenamen („nachhilfe köln") nicht pauschal ausschließen — erst im
+  Suchbegriffe-Bericht schauen, ob sie überhaupt Klicks ziehen.
 - „kostenlos/gratis" ist bewusst ausgeschlossen (Testphase braucht Zahlungsdaten).
   Nach 2–3 Wochen prüfen, ob das zu viel abschneidet.
 - **Saison:** Budget hoch Ende Okt–Mitte Dez, Jan (vor Halbjahreszeugnis),

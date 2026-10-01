@@ -1,0 +1,96 @@
+# Lesify — gemeinsame Negativ-Keyword-Liste (Google Ads)
+# Einfügen unter: Tools → Gemeinsam genutzte Bibliothek → Listen mit auszuschließenden
+# Keywords → neue Liste „Lesify Basis-Ausschlüsse" → allen Suchkampagnen zuweisen.
+# Syntax: Wort = weitgehend passend (Suchanfrage enthält das Wort), "…" = Wortgruppe, […] = genau.
+# Zeilen mit # vor dem Einfügen entfernen.
+
+# --- Jobs / Nachhilfe GEBEN statt nehmen ---
+job
+jobs
+nebenjob
+minijob
+studentenjob
+stellenangebote
+stellenangebot
+gehalt
+verdienen
+bewerbung
+karriere
+"nachhilfe geben"
+"nachhilfelehrer werden"
+"als nachhilfelehrer"
+"nachhilfe anbieten"
+"tutor werden"
+
+# --- Gratis-Material / Lösungen abschreiben ---
+pdf
+arbeitsblatt
+arbeitsblätter
+lösungen
+lösungsheft
+lösungsbuch
+"zum ausdrucken"
+download
+kostenlos
+gratis
+free
+# kostenlos/gratis: Testphase braucht Zahlungsdaten → Gratis-Sucher brechen fast immer ab.
+# Nach 2–3 Wochen im Suchbegriffe-Bericht prüfen, ob das zu viel abschneidet.
+
+# --- Falsche Zielgruppe (zu jung / zu alt / anderes Lernen) ---
+grundschule
+"1. klasse"
+"2. klasse"
+"3. klasse"
+"4. klasse"
+kindergarten
+kita
+vorschule
+studium
+uni
+universität
+studenten
+student
+ausbildung
+berufsschule
+erwachsene
+führerschein
+integrationskurs
+"deutsch als fremdsprache"
+"deutsch lernen für"
+sprachkurs
+duolingo
+babbel
+
+# --- Lokale Präsenz-Nachhilfe (Lesify ist nur online) ---
+"in der nähe"
+"near me"
+"vor ort"
+"nachhilfe zuhause"
+hausbesuch
+# Städtenamen (z. B. „nachhilfe köln") nicht pauschal ausschließen — erst im
+# Suchbegriffe-Bericht schauen, ob sie überhaupt Klicks ziehen.
+
+# --- Lehrer / Schulen als Kunde ---
+lehrer
+lehrerin
+unterrichtsmaterial
+"unterricht vorbereiten"
+referendariat
+
+# --- Förder-/Zuschuss-Suchen (Lesify ist nicht BuT-abrechenbar) ---
+"bildung und teilhabe"
+jobcenter
+zuschuss
+förderung
+"steuerlich absetzen"
+
+# --- Konkurrenz-Navigation / Bestandskunden ---
+login
+anmelden
+einloggen
+kündigen
+kündigung
+aktie
+"chatgpt login"
+"chatgpt download"

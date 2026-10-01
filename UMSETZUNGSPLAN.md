@@ -4994,6 +4994,13 @@ Kritisch, weil Zielgruppe minderjährig ist.
   - [ ] **Datenschutz §11 Plausible-Absatz vom Anwalt abnehmen lassen.**
   - [ ] _Später optional:_ Meta Conversions API serverseitig (Stripe-Webhook,
         `event_id` wird im Browser schon mitgeschickt → Deduplizierung).
+- [~] **Google-Ads-Keywords** (2026-10-01): Keyword-Plan in
+      `Konzept-texts/google-ads/` — `keywords.csv` (214 Zeilen, Kampagnen Brand /
+      Nachhilfe-Alternative / KI-Lernapp / Klausurvorbereitung / Konkurrenz
+      optional, nur genau + Wortgruppe), `negative-keywords.txt` (gemeinsame
+      Ausschlussliste), `README.md` (Prioritäten, Startbudget, Pflege).
+  - [ ] **Jannik:** Liste im Keyword-Planer auf Suchvolumen/CPC prüfen, Kampagnen
+        im Google Ads Editor importieren, Ausschlussliste zuweisen, Anzeigen texten.
 
 ### Schlussrunde vor dem Launch — ein Testdurchgang + Stripe Live (Entscheidung 2026-09-26)
 

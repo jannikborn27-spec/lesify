@@ -511,6 +511,17 @@
 /* Eltern-Zugang: Mockup statt Mini-Demo (Platzhalter), Section bleibt an ihrer Position */
 .l2-parent { overflow-x: clip; } /* Sicherheitsrand für das überstehende Mockup unten, wie .l2-inner bei den anderen Sections */
 .l2-parent .pt-2col { align-items: center; }
+/* Gleiches Raster wie .l2-2 (Klausur/Chat/Lernzettel/Orga): 1240px-Container, minmax(0, …)-Spalten. Mit den
+   alten 0.85fr/1.15fr-Spalten (ohne minmax) beanspruchte das Mockup mit seiner festen Pixelbreite die volle
+   Breite, und die Textspalte schrumpfte auf großen Bildschirmen auf ~190px. Jetzt blutet das Mockup wie bei
+   den anderen Sections nach außen (.l2-parent schneidet an der Viewport-Kante ab). */
+@media (min-width: 901px) {
+  .l2-parent .container.pt-2col { max-width: 1240px; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(1.5rem, 3vw, 3rem); }
+  .l2-parent .pt-2col__demo { justify-self: start; }
+}
+/* Überschrift + Lead wie .l2-h/.l2-lead der Mockup-Sections, damit der Abschnitt nicht kleiner wirkt */
+.l2-parent .pt-2col__text .lab-head h2 { font-size: clamp(1.9rem, 1.2rem + 2.6vw, 3.3rem); line-height: 1.06; letter-spacing: -0.025em; text-wrap: balance; }
+.l2-parent .pt-2col__text .lab-head p { font-size: clamp(1rem, 0.95rem + 0.3vw, 1.15rem); line-height: 1.6; text-wrap: pretty; }
 .l2-parent .pt-2col__demo { display: block; transform: none; }
 .l2-pm { --l2-a: var(--fach-violet); isolation: isolate; width: 100%; }
 .l2-pm::before { content: ""; position: absolute; z-index: -1; inset: -4% -8%; background: radial-gradient(closest-side, color-mix(in srgb, var(--l2-a) 62%, transparent), transparent 100%); opacity: 0.5; }

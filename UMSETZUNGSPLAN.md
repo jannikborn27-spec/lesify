@@ -4961,7 +4961,7 @@ Kritisch, weil Zielgruppe minderjährig ist.
 
 - [x] **Preis-Entscheidung** (2026-09-28): Angebotspreis bleibt für Abschließende
       dauerhaft, auch bei Wechseln — umgesetzt + getestet.
-- [ ] **Stripe-Live-Aktivierung früh anstoßen** (Identität, Auszahlungskonto —
+- [x] **Stripe-Live-Aktivierung früh anstoßen** (Identität, Auszahlungskonto —
       kann Tage dauern), Umschalten selbst erst in der Schlussrunde B.
 - [x] **Messung für die Werbung:** _entschieden 2026-09-28: mit Conversion-
       Pixeln._ Umgesetzt: CookieScript-Banner, Meta Pixel `1905437307533207`,
@@ -5158,16 +5158,16 @@ Kritisch, weil Zielgruppe minderjährig ist.
 
 - [x] **Preis-Entscheidung vorher** — _2026-09-28: Angebotspreis dauerhaft
       (Abschnitt 4 oben)._
-- [ ] **Stripe-Konto live schalten** — _Schritt-für-Schritt-Liste seit 2026-09-29 in
+- [x] **Stripe-Konto live schalten** — _**Live seit 2026-10-01:** Dashboard-Einstellungen (Zahlungsmethoden, Kundenportal, Rechnungen, Mails, Retries, Branding) + Live-Webhook von Jannik eingerichtet, `sk_live_…`/Live-`whsec_…` bei Railway, `pk_live_…` + `mode: 'live'` in `stripe-config.js`; `/health` → `zahlung.modus: "live"`, `webhookSecret: true`. Produkte/Preise wurden nicht aus der Sandbox kopiert — die API legt `lesify_starter/_premium/_infinite` beim ersten Live-Abo selbst an, Preise per `price_data`. Offen: alte Test-Abos in der Prod-DB (RUNBOOK „Alte Testdaten klären")._ _Schritt-für-Schritt-Liste seit 2026-09-29 in
       `docs/RUNBOOK.md` „Stripe: Umstellung Test → Live" (Vorbereiten im
       Dashboard jederzeit, Umschalten erst nach Testdurchgang A); `GET /health`
       zeigt jetzt `zahlung.modus` (`test`/`live`/`fake`)._ (Aktivierung, Auszahlungskonto) → Live-Keys:
       `STRIPE_SECRET_KEY` bei Railway, `publishableKey` + `mode: 'live'` in
       `marketing/assets/js/stripe-config.js`; Live-Webhook auf `/abo/webhook`
       anlegen, neues `STRIPE_WEBHOOK_SECRET` bei Railway.
-- [ ] **Rechnungsstellung + fehlgeschlagene Zahlungen:** Stripe-Retry-/
+- [x] **Rechnungsstellung + fehlgeschlagene Zahlungen:** _(Live-Dashboard eingerichtet 2026-10-01)_ Stripe-Retry-/
       Mahn-Einstellungen (Zugriffssperre bei `zahlung_offen` ist gebaut).
-- [ ] **Stripe-Mails** (Beleg/Zahlung/Kündigung) im Dashboard aktivieren,
+- [x] **Stripe-Mails** (Beleg/Zahlung/Kündigung) _(Live-Dashboard eingerichtet 2026-10-01)_ im Dashboard aktivieren,
       Wording prüfen.
 - [ ] **Eine echte Live-Zahlung** mit eigener Karte, danach erstatten/kündigen;
       Webhook-Sync + Abo-Status in der App prüfen.

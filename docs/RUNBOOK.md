@@ -181,36 +181,36 @@ zeigt `GET /health` → `zahlung.modus` (`test`/`live`/`fake`) und
 Schalter „Testmodus" **aus**; Live-Einstellungen werden nicht aus dem
 Testmodus übernommen):
 
-- [ ] Konto aktivieren: Geschäftsdaten (Einzelunternehmen, Kleinunternehmer),
+- [x] Konto aktivieren: Geschäftsdaten (Einzelunternehmen, Kleinunternehmer),
       Identität, Auszahlungskonto (IBAN), 2FA.
-- [ ] Öffentliche Angaben: Name „Lesify", Abrechnungstext auf dem
+- [x] Öffentliche Angaben: Name „Lesify", Abrechnungstext auf dem
       Kontoauszug (z. B. `LESIFY.DE`), Support-E-Mail `kontakt@lesify.de`,
       Website, AGB-/Datenschutz-Links; Branding (Logo, Farbe) für Belege + Portal.
-- [ ] **Zahlungsmethoden** (Settings → Payment methods): Karte, PayPal
+- [x] **Zahlungsmethoden** (Settings → Payment methods): Karte, PayPal
       (PayPal-Konto verknüpfen), Klarna, Amazon Pay aktivieren. Der Code
       verlangt genau diese vier (`payment_method_types` in
       `api/src/lib/zahlung.ts`) — fehlt eine im Live-Modus, lehnt Stripe
       `POST /abo` ab. Link bleibt aus (Entscheidung 2026-09-18).
-- [ ] **Kundenportal** (Settings → Billing → Customer portal): Zahlungsmethode
+- [x] **Kundenportal** (Settings → Billing → Customer portal): Zahlungsmethode
       ändern, Rechnungsverlauf, Rechnungsadresse **an**; Abo kündigen / Tarif
       wechseln **aus** — Kündigung und Tarif-/Sitzwechsel laufen über die App
       (`eltern-abo.html`, `/kuendigen/`), sonst geraten Sitze/Preise aus dem Takt.
-- [ ] **Rechnungen/Belege** (Settings → Billing → Invoices): Rechnungsnummer-
+- [x] **Rechnungen/Belege** (Settings → Billing → Invoices): Rechnungsnummer-
       Präfix, Absenderadresse wie im Impressum, Fußzeile
       „Gemäß § 19 UStG wird keine Umsatzsteuer berechnet."
-- [ ] **Kunden-E-Mails** (Settings → Customer emails): erfolgreiche Zahlungen + Erstattungen an; fehlgeschlagene Kartenzahlung + 3DS-Bestätigung an;
+- [x] **Kunden-E-Mails** (Settings → Customer emails): erfolgreiche Zahlungen + Erstattungen an; fehlgeschlagene Kartenzahlung + 3DS-Bestätigung an;
       Erinnerung vor Ende der Testphase und vor Jahresverlängerung an.
-- [ ] **Fehlgeschlagene Zahlungen** (Settings → Billing → Subscriptions and
+- [x] **Fehlgeschlagene Zahlungen** (Settings → Billing → Subscriptions and
       emails → Manage failed payments): Smart Retries (z. B. 4 Versuche in
       2 Wochen), danach Abo **kündigen**. In der App: `past_due`/`unpaid` →
       `zahlung_offen` (Kinder nur lesen), `canceled` → `gekuendigt`.
-- [ ] **Webhook** (Developers → Webhooks, Live): URL
+- [x] **Webhook** (Developers → Webhooks, Live): URL
       `https://lesify-production.up.railway.app/abo/webhook`, API-Version wie
       das SDK (`2026-08-26.dahlia`, stripe-node 22.6), Events
       `customer.subscription.created`, `.updated`, `.deleted`, `invoice.paid`,
       `invoice.payment_succeeded`, `invoice.payment_failed`. Signing Secret
       (`whsec_…`) bereithalten, **noch nicht** eintragen.
-- [ ] Live-Schlüssel bereithalten: `sk_live_…` (Secret, nur Railway) und
+- [x] Live-Schlüssel bereithalten: `sk_live_…` (Secret, nur Railway) und
       `pk_live_…` (Publishable, öffentlich).
 - [ ] Alte Testdaten klären: Konten mit Abos aus dem Testmodus zeigen auf
       Test-Subscriptions, die es live nicht gibt — Kündigen, Sitzwechsel,
@@ -220,11 +220,11 @@ Testmodus übernommen):
 **2. Umschalten — in einem Rutsch, ruhige Uhrzeit, ~5 Minuten.** Zwischen
 Schritt a und b schlägt die Kasse fehl (Test-Frontend gegen Live-Backend):
 
-- [ ] a) Railway: `STRIPE_SECRET_KEY` = `sk_live_…`, `STRIPE_WEBHOOK_SECRET`
+- [x] a) Railway: `STRIPE_SECRET_KEY` = `sk_live_…`, `STRIPE_WEBHOOK_SECRET`
       = Live-`whsec_…` → Redeploy abwarten.
-- [ ] b) `marketing/assets/js/stripe-config.js`: `publishableKey` =
+- [x] b) `marketing/assets/js/stripe-config.js`: `publishableKey` =
       `pk_live_…`, `mode: 'live'` → Push (Cloudflare deployt in ~1 Min).
-- [ ] c) `GET /health` → `zahlung.modus: "live"`, `webhookSecret: true`.
+- [x] c) `GET /health` → `zahlung.modus: "live"`, `webhookSecret: true`. _(erledigt 2026-10-01: live umgeschaltet, `/health` bestätigt.)_
 
 **3. Echte Zahlung prüfen**
 

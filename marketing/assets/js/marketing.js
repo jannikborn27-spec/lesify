@@ -1246,13 +1246,13 @@
     { k: 'Kennt den Stoff', a: 'liest Lernzettel & Dateien des Themas', b: 'kennt nur das Eingetippte' },
     { k: 'Sagt nicht vor', a: 'erklärt den Weg, fragt zurück', b: 'liefert oft die fertige Lösung' },
     { k: 'Eltern-Einblick', a: 'Wochenübersicht im Elternbereich', b: 'keiner' },
-    { k: 'Datenschutz', a: 'Server in der EU, DSGVO-konform', b: 'unklar' }
+    { k: 'Datenschutz', a: 'Daten in der EU gespeichert, DSGVO-konform', b: 'unklar' }
   ];
   var CHAT_GUARD = [
     { t: 'Themen-Riegel', d: 'Jeder Chat ist an ein Fach und ein Thema gebunden. Fragen daneben führt die KI freundlich zum Stoff zurück.' },
     { t: 'Niveau der Jahrgangsstufe', d: 'Wortwahl, Beispiele und Aufgabentiefe sind auf die jeweilige Klassenstufe (ab Klasse 5) eingestellt — nicht auf Uni-Niveau.' },
     { t: 'Kein Lösungs-Automat', d: 'Im Hausaufgaben-Modus wird der Lösungsweg erklärt und mit Rückfragen geprüft, statt nur das Ergebnis auszugeben.' },
-    { t: 'EU & DSGVO', d: 'Verarbeitung auf Servern in der EU. Jede Familie sieht nur die eigenen Inhalte, den Wortlaut sieht nur das Kind.' }
+    { t: 'EU & DSGVO', d: 'Lern- und Kontodaten liegen auf Servern in der EU. Jede Familie sieht nur die eigenen Inhalte, den Wortlaut sieht nur das Kind.' }
   ];
   var CHAT_QUOTE = {
     t: 'Zum ersten Mal hat meine Tochter abends von selbst den Chat aufgemacht, weil sie eine Matheaufgabe knacken wollte — nicht, weil ich sie erinnert habe.',
@@ -2656,21 +2656,9 @@
   }
   function priceCard(p, cls) {
     return '<article class="price-card' + (p.feat ? ' is-feat' : '') + (cls ? ' ' + cls : '') + '">' +
-      (p.feat ? '<span class="price-card__tag"><span class="price-card__dot"></span>Bestseller</span>' : '') +
+      (p.feat ? '<span class="price-card__tag"><span class="price-card__dot"></span>Empfohlen</span>' : '') +
       '<h3>' + p.name + '</h3><p class="price-card__desc">' + p.desc + '</p>' + priceAmount(p) + priceFeats(p) +
       '<a class="btn btn-primary btn-block" data-cta-plan="' + p.name.toLowerCase() + '" href="' + priceCheckoutHref(p.name, 'm', 1) + '">' + p.name + ' testen</a></article>';
-  }
-  /* Stimmen von Familien — direkt unter den Preisen. Fest gewählt
-     (frühere v1): Avatar-Reihe + „+9.994" + ein hervorgehobenes Zitat,
-     ohne Überschrift. */
-  function pvAv(t, i) { return '<span class="price-voice__av" style="--t:' + TEST_TONES[i % TEST_TONES.length] + '">' + testInitials(t.who) + '</span>'; }
-  function priceVoices() {
-    var t = TEST.items[0];
-    return '<div class="price-voices">' +
-      '<div class="price-voices__avrow">' + TEST.items.map(function (x, i) { return pvAv(x, i); }).join('') +
-      '<span class="price-voices__more">+9.994</span></div>' +
-      '<blockquote class="price-voices__lead">' + t.q + '</blockquote>' +
-      '<cite class="price-voices__cite">' + t.who + ' · ' + t.role + '</cite></div>';
   }
   function renderPrice(v) {
     var head = lh(PRICE.eb, PRICE.h, PRICE.lead), headC = lh(PRICE.eb, PRICE.h, PRICE.lead, true);
@@ -2683,18 +2671,18 @@
 
     if (v === '2') return lw('price', v, '<div class="container">' + headC + priceControls() +
       '<div class="price-grid price-grid--raise">' + cards + '</div></div>');
-    if (v === '3') { // Spotlight: Bestseller groß in der Mitte
+    if (v === '3') { // Spotlight: empfohlener Tarif groß in der Mitte
       return lw('price', v, '<div class="container">' + headC + priceControls() +
         '<div class="price-grid price-grid--spot">' + priceCard(PRICE.plans[0]) + priceCard(PRICE.plans[1], 'price-card--spot') + priceCard(PRICE.plans[2]) + '</div></div>');
     }
     if (v === '4') return lw('price', v, '<div class="container">' + headC + priceControls() +
-      '<div class="price-grid price-grid--darkfeat">' + cards + '</div>' + priceVoices() + '</div>');
+      '<div class="price-grid price-grid--darkfeat">' + cards + '</div></div>');
     if (v === '5') return lw('price', v, '<div class="container">' + headC + priceControls() +
       '<div class="price-grid price-grid--glow">' + cards + '</div></div>');
     if (v === '6') return lw('price', v, '<div class="container">' + headC + priceControls() +
       '<div class="price-strip">' + PRICE.plans.map(function (p) {
         return '<div class="price-strip__cell' + (p.feat ? ' is-feat' : '') + '">' +
-          (p.feat ? '<span class="price-card__tag"><span class="price-card__dot"></span>Bestseller</span>' : '') +
+          (p.feat ? '<span class="price-card__tag"><span class="price-card__dot"></span>Empfohlen</span>' : '') +
           '<b>' + p.name + '</b><span class="price-strip__desc">' + p.desc + '</span>' + priceAmount(p) +
           '<a class="btn ' + (p.feat ? 'btn-primary' : 'btn-secondary') + ' btn-block" data-cta-plan="' + p.name.toLowerCase() + '" href="' + priceCheckoutHref(p.name, 'm', 1) + '">Testen</a></div>';
       }).join('') + '</div></div>');
@@ -2759,99 +2747,6 @@
     apply();
   }
 
-  /* ---------- Testimonials (test) — Video-Wall im Hintergrund ---------- */
-  var TEST = {
-    eb: 'Stimmen',
-    h: 'Tausende Familien lernen mit Lesify.',
-    lead: 'Demo-Inhalte — im Prototyp laufen hier später echte Video-Stimmen von Schüler:innen und Eltern.',
-    stat: { n: '10.000+', l: 'Schüler:innen und Eltern' },
-    items: [
-      { q: 'Zum ersten Mal konnte mir mein Sohn vor einer Mathearbeit sagen, welche zwei Themen noch wackeln. Die Arbeit wurde eine 2 minus.', who: 'Sandra B.', role: 'Mutter, 9. Klasse Gymnasium' },
-      { q: 'Keine Fahrerei mehr am Dienstagabend. Meine Tochter setzt sich hin, wenn sie eine Frage hat — nicht erst beim nächsten Termin.', who: 'Markus T.', role: 'Vater, 8. Klasse Realschule' },
-      { q: 'Der Lernplan hat den Stress rausgenommen. Wir wussten drei Tage vorher, dass es reicht.', who: 'Familie K.', role: 'Gesamtschule, 9. Klasse' },
-      { q: 'Ich mag, dass die KI nicht einfach die Lösung sagt, sondern nachfragt. Nervt manchmal — aber ich kann es danach.', who: 'Jonas, 14', role: 'Schüler, 8. Klasse' }
-    ]
-  };
-  var TEST_TONES = ['var(--fach-blue)', 'var(--fach-amber)', 'var(--fach-teal)', 'var(--fach-violet)', 'var(--fach-rose)'];
-  var TEST_WALL = ['Mia · 9. Kl.', 'Ben · 8. Kl.', 'Lea · 9. Kl.', 'Jonas · 8. Kl.', 'Emma · 9. Kl.', 'Noah · 8. Kl.', 'Sophie · 9. Kl.', 'Elias · 8. Kl.', 'Lina · 9. Kl.', 'Paul · 8. Kl.', 'Marie · 9. Kl.', 'Finn · 8. Kl.'];
-  var TEST_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"></path></svg>';
-  function testInitials(w) { return w.replace(/[^A-Za-zÄÖÜ. ]/g, '').split(/[ .]/).filter(Boolean).slice(0, 2).map(function (x) { return x[0]; }).join(''); }
-  function testVid(label, i, cls) {
-    return '<div class="test-vid ' + (cls || '') + '" style="--t:' + TEST_TONES[i % TEST_TONES.length] + '">' +
-      '<span class="test-vid__play">' + TEST_PLAY + '</span><span class="test-vid__name">' + label + '</span></div>';
-  }
-  function testWall(cols) {
-    cols = cols || 4;
-    var per = Math.ceil(TEST_WALL.length / cols), out = '';
-    for (var c = 0; c < cols; c++) {
-      var slice = TEST_WALL.slice(c * per, c * per + per);
-      var col = slice.map(function (l, i) { return testVid(l, c + i); }).join('');
-      out += '<div class="test-wall__col">' + col + col + '</div>';
-    }
-    return '<div class="test-wall" aria-hidden="true">' + out + '</div>';
-  }
-  function testCard(t, cls) {
-    return '<figure class="test-card ' + (cls || '') + '"><blockquote>' + t.q + '</blockquote>' +
-      '<figcaption><span class="test-av">' + testInitials(t.who) + '</span><span><b>' + t.who + '</b><em>' + t.role + '</em></span></figcaption></figure>';
-  }
-  function testStat() { return '<div class="test-stat"><b>' + TEST.stat.n + '</b><span>' + TEST.stat.l + '</span></div>'; }
-  function renderTest(v) {
-    var head = lh(TEST.eb, TEST.h, ''), headC = lh(TEST.eb, TEST.h, '', true);
-
-    /* 1 · Hero — Video-Wall driftet dahinter, 2 Zitat-Karten davor */
-    if (v === '1') return lw('test', v, '<div class="test-hero">' + testWall(5) +
-      '<div class="container test-hero__in">' + headC + testStat() +
-      '<div class="test-hero__cards">' + testCard(TEST.items[0]) + testCard(TEST.items[3]) + '</div></div></div>');
-    /* 2 · Split — Zitate links, großes Video-Mock rechts */
-    if (v === '2') return lw('test', v, '<div class="container test-split">' +
-      '<div>' + head + '<div class="test-split__cards">' + TEST.items.slice(0, 2).map(function (t) { return testCard(t); }).join('') + '</div></div>' +
-      '<div class="test-phone"><div class="test-phone__scr">' + testVid('Lea · 9. Kl.', 2, 'test-vid--big') + '</div></div></div>');
-    /* 3 · Wall — Video-Grid mit Zitat-Overlay */
-    if (v === '3') return lw('test', v, '<div class="container">' + headC +
-      '<div class="test-grid3">' + TEST_WALL.slice(0, 8).map(function (l, i) {
-        var q = TEST.items[i % TEST.items.length];
-        return '<div class="test-vid test-vid--tile" style="--t:' + TEST_TONES[i % TEST_TONES.length] + '"><span class="test-vid__play">' + TEST_PLAY + '</span>' +
-          '<span class="test-vid__q">' + q.q.split('. ')[0] + '.</span><span class="test-vid__name">' + l + '</span></div>';
-      }).join('') + '</div></div>');
-    /* 4 · Marquee — eine driftende Reihe + Zitate darunter */
-    if (v === '4') return lw('test', v, '<div class="container">' + headC + '</div>' +
-      '<div class="test-mrow" aria-hidden="true"><div class="test-mrow__track">' +
-      TEST_WALL.concat(TEST_WALL).map(function (l, i) { return testVid(l, i, 'test-vid--row'); }).join('') + '</div></div>' +
-      '<div class="container"><div class="test-grid2">' + TEST.items.slice(0, 2).map(function (t) { return testCard(t); }).join('') + '</div></div>');
-    /* 5 · Dark — dunkle Section, glühende Video-Wall, große Zahl */
-    if (v === '5') return lw('test', v, '<div class="test-dark">' + testWall(6) +
-      '<div class="container test-dark__in"><div class="test-bignum"><b>' + TEST.stat.n + '</b><span>' + TEST.stat.l + ' lernen mit Lesify</span></div>' +
-      '<div class="test-dark__q">' + testCard(TEST.items[2]) + '</div></div></div>');
-    /* 6 · Thumbs — Zitat-Karten je mit Video-Thumbnail */
-    if (v === '6') return lw('test', v, '<div class="container">' + headC +
-      '<div class="test-grid2">' + TEST.items.map(function (t, i) {
-        return '<figure class="test-thumb">' + testVid(t.who, i, 'test-vid--thumb') +
-          '<div><blockquote>' + t.q + '</blockquote><figcaption>' + t.who + ' · ' + t.role + '</figcaption></div></figure>';
-      }).join('') + '</div></div>');
-    /* 7 · Spotlight — ein großes Video + Thumb-Strip + Zitat */
-    if (v === '7') return lw('test', v, '<div class="container test-spot">' +
-      '<div class="test-spot__main">' + testVid('Mia · 9. Kl.', 0, 'test-vid--big') +
-      '<div class="test-spot__strip">' + TEST_WALL.slice(1, 6).map(function (l, i) { return testVid(l, i + 1, 'test-vid--sm'); }).join('') + '</div></div>' +
-      '<div class="test-spot__q">' + headC + '<blockquote>' + TEST.items[0].q + '</blockquote><cite>' + TEST.items[0].who + ' · ' + TEST.items[0].role + '</cite></div></div>');
-    /* 8 · Bento — Mix aus Zitat- und Video-Karten */
-    if (v === '8') return lw('test', v, '<div class="container">' + headC +
-      '<div class="test-bento">' + testCard(TEST.items[0], 'test-bento__q') + testVid('Ben · 8. Kl.', 1) +
-      testVid('Lea · 9. Kl.', 2) + testCard(TEST.items[1], 'test-bento__q') +
-      testVid('Emma · 9. Kl.', 4) + testCard(TEST.items[3], 'test-bento__q') + '</div></div>');
-    /* 9 · Masonry — Video-Wall mit Namen */
-    if (v === '9') return lw('test', v, '<div class="container">' + headC +
-      '<div class="test-masonry">' + TEST_WALL.map(function (l, i) { return testVid(l, i, 'test-vid--mason'); }).join('') + '</div></div>');
-    /* 10 · Circles — Headline + runde Video-Avatare + Zahl + Zitat */
-    if (v === '10') return lw('test', v, '<div class="container container--narrow test-circ">' + headC +
-      '<div class="test-circ__row">' + TEST_WALL.slice(0, 6).map(function (l, i) {
-        return '<span class="test-circ__av" style="--t:' + TEST_TONES[i % TEST_TONES.length] + '">' + TEST_PLAY + '</span>';
-      }).join('') + '<span class="test-circ__more">+9.994</span></div>' +
-      '<blockquote class="test-circ__q">' + TEST.items[0].q + '</blockquote><cite>' + TEST.items[0].who + ' · ' + TEST.items[0].role + '</cite></div>');
-
-    return lw('test', v, '<div class="test-hero">' + testWall(5) +
-      '<div class="container test-hero__in">' + headC + testStat() + '</div></div>');
-  }
-
   /* ---------- Eltern-Zugang (parent) — Nachbau des echten app/eltern.html ----------
      Feste Seiten-Struktur (Text + Argumente links, Demo rechts) und nur
      noch EINE Demo (kein Dev-Panel mehr, LAB_SECTIONS: parent → fixed
@@ -2877,7 +2772,7 @@
     ],
     cards: [
       { t: 'Ein Konto, mehrere Kinder', d: 'Familien-Paket mit 2 bis 4 Plätzen. Jedes Kind mit vollem eigenem Kontingent und getrenntem Lernbereich.' },
-      { t: 'Datenschutz von Haus aus', d: 'Server in der EU, jede Familie sieht nur die eigenen Inhalte, Datei-Links laufen nach 60 Sekunden ab.' }
+      { t: 'Datenschutz von Haus aus', d: 'Daten in der EU gespeichert, jede Familie sieht nur die eigenen Inhalte, Datei-Links laufen nach 60 Sekunden ab.' }
     ],
     /* 1:1 aus SEED.familie.kinder (app/assets/js/data.js) — inkl. der
        echten Ampel-Regel (nachrichtenDieWoche: ≥30 grün, ≥8 gelb, sonst
@@ -2966,7 +2861,7 @@
       { q: 'Ersetzt Lesify die Nachhilfe komplett?', a: 'Für Verständnisfragen und Klausurvorbereitung in der Regel ja. Bei tiefen, über Jahre gewachsenen Lücken oder wenn dein Kind die Verbindlichkeit eines festen Termins braucht, bleibt persönliche Förderung sinnvoll.' },
       { q: 'Für welche Klassenstufen ist Lesify geeignet?', a: 'Lesify ist für alle Klassenstufen ab dem 5. Schuljahr geeignet. Die KI passt sich dabei automatisch der Klassenstufe an.' },
       { q: 'Macht die KI die Hausaufgaben einfach fertig?', a: 'Nein. Der Hausaufgaben-Modus erklärt den Lösungsweg und stellt Rückfragen, statt nur ein Ergebnis auszugeben.' },
-      { q: 'Wie steht es um den Datenschutz?', a: 'Daten werden auf Servern in der EU verarbeitet, jede Familie sieht nur die eigenen Inhalte, hochgeladene Dateien sind nur über kurz gültige Links erreichbar.' },
+      { q: 'Wie steht es um den Datenschutz?', a: 'Konto- und Lerndaten werden auf Servern in der EU gespeichert. Für die KI-Antworten gehen nur die jeweils nötigen Inhalte an unseren KI-Anbieter Anthropic (USA) — Details in der Datenschutzerklärung. Jede Familie sieht nur die eigenen Inhalte, hochgeladene Dateien sind nur über kurz gültige Links erreichbar.' },
       { q: 'Was kostet Lesify nach der Testphase?', a: 'Nach 14 Tagen wählst du einen Tarif: Starter, Premium oder Infinite. Im Angebot ab 12,99 € im Monat. Monatliche Pakete sind monatlich kündbar, jährliche jährlich. Familien-Pakete für 2 bis 4 Kinder.' }
     ]
   };
@@ -3065,7 +2960,7 @@
       { n: '24/7', l: 'erreichbar' },
       { n: 'ab 12,99 €', l: 'im Monat' }
     ],
-    chips: ['14 Tage kostenlos', 'Server in der EU', 'Monatlich kündbar']
+    chips: ['14 Tage kostenlos', 'Daten in der EU', 'Monatlich kündbar']
   };
   function tldrCta(dark) {
     var c = dark ? ' btn-on-dark' : '';
@@ -3214,7 +3109,8 @@
   /* Finales Layout: alle Sections fest gewählt, kein Dev-Panel mehr.
      tldr bleibt als eigener Abschnitt (v16 Split Dark, direkt hinter dem
      Hero). subj/test entfallen als eigene Sections (subj-Inhalt steckt in
-     org, test-Inhalt in price). */
+     org; die Testimonials mit erfundenen Zitaten sind seit 2026-10-01
+     ganz entfernt — erst mit echten Kundenstimmen wieder einbauen). */
   var LAB_SECTIONS = [
     { key: 'tldr', render: renderTldr, fixed: '16' },
     { key: 'kv', render: renderKv, init: kvlInit, fixed: '5' },
@@ -3234,7 +3130,6 @@
     cmp: [['1', 'Cards'], ['2', 'Empfohlen'], ['3', 'Gleichung'], ['4', 'Tabelle'], ['5', 'Dark'], ['6', 'Lead-in'], ['7', 'Punktestand'], ['8', 'Pills'], ['9', 'Preisschild'], ['10', 'Bento'], ['11', 'Aktuell']],
     subj: [['1', 'Grid'], ['2', 'Big'], ['3', 'Bento'], ['4', 'Scroll'], ['5', 'Split']],
     price: [['1', 'Cards'], ['2', 'Raised'], ['3', 'Spotlight'], ['4', 'Dark-Feat'], ['5', 'Glow'], ['6', 'Strip']],
-    test: [['1', 'Hero'], ['2', 'Split'], ['3', 'Wall'], ['4', 'Marquee'], ['5', 'Dark'], ['6', 'Thumbs'], ['7', 'Spotlight'], ['8', 'Bento'], ['9', 'Masonry'], ['10', 'Circles']],
     parent: [['1', 'Kinder']], /* final gewählt (Nachbau app/eltern.html), kein Dev-Panel mehr */
     faq: [['1', 'Bold'], ['2', '2-Col'], ['3', 'Index'], ['4', 'Plus'], ['5', 'Cards'], ['6', 'Dark'], ['7', 'Numbered'], ['8', 'Divided'], ['9', 'Centered'], ['10', 'Ask']],
     cta: [['1', 'Band'], ['2', 'Split'], ['3', 'Bleed'], ['4', 'Minimal'], ['5', 'Big-Type'], ['6', 'Box'], ['7', 'Mesh'], ['8', 'Stack'], ['9', 'Strip'], ['10', 'Badge']]
@@ -3418,7 +3313,7 @@
           t: 'Das Elternkonto bekommt einen ruhigen Wochenüberblick zu Fortschritt und offenen Themen. Den Wortlaut der Chats sieht nur das Kind.',
           demo: parentReport },
         { eb: 'Sicher', h: 'Beim Fach, beim Thema, beim Stoff',
-          t: 'Ein fester Themen-Riegel hält jeden Chat beim Schulstoff. Verarbeitung DSGVO-konform auf Servern in der EU.',
+          t: 'Ein fester Themen-Riegel hält jeden Chat beim Schulstoff. Chats werden DSGVO-konform in der EU gespeichert.',
           demo: chatPerkChecks }
       ]
     },
@@ -3585,26 +3480,6 @@
   function applyHeroTextVariant(v) {
     var s = document.querySelector('.hv9');
     if (s) s.setAttribute('data-hero-text', v);
-  }
-
-  /* Trust-Leiste (inspiriert von test-circ__row der Testimonial-Section):
-     überlappende Avatar-Kreise + Zähler. Wird einmal in .hv9__text
-     eingehängt; CSS zeigt sie für die feste Text-Variante 1.3 inline. */
-  function ensureHeroTrust() {
-    var text = document.querySelector('.hv9 .hv9__text');
-    if (!text || text.querySelector('.hv9__trust')) return;
-    var inits = ['SB', 'MT', 'LK', 'JW', 'FK'];
-    var tones = ['var(--fach-blue)', 'var(--fach-amber)', 'var(--fach-teal)', 'var(--fach-violet)', 'var(--fach-rose)'];
-    var avatars = inits.map(function (x, i) {
-      return '<span class="hv9__trust-av" style="--t:' + tones[i % tones.length] + '">' + x + '</span>';
-    }).join('');
-    var el = document.createElement('div');
-    el.className = 'hv9__trust';
-    el.innerHTML = '<span class="hv9__trust-row">' + avatars + '</span>' +
-      '<span class="hv9__trust-txt"><b>10.000+</b> Familien lernen schon mit Lesify</span>';
-    var trust = text.querySelector('.lab-trust');
-    if (trust && trust.nextSibling) text.insertBefore(el, trust.nextSibling);
-    else text.appendChild(el);
   }
 
   function devRow(label, key, list, active) {
@@ -3786,7 +3661,6 @@
     buildFooter();
     buildFeaturePage();
     applyHeroColor('1');
-    ensureHeroTrust();
     applyHeroTextVariant('1.3');
     autoStagger();
     applyRevealAttr('6'); /* final gewählt (Zoom), kein Dev-Panel mehr */

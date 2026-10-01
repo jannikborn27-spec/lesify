@@ -33,7 +33,7 @@
 > der Registrierung** gewählt und eine Zahlungsart hinterlegt; nach 14 Tagen
 > bucht Stripe **automatisch** den Monats-/Jahresbetrag ab, sofern nicht vorher
 > gekündigt (echter Stripe-Trial → Subscription, kein separater „jetzt bezahlen"-
-> Schritt). Drei Einzelplatz-Tarife **Starter · Premium (Bestseller) ·
+> Schritt). Drei Einzelplatz-Tarife **Starter · Premium (Empfohlen) ·
 > Infinite** und **Familien-Pakete** (Tarif × 2/3/4 Sitzplätze, jeder Sitz mit
 > dem vollen Monatskontingent seines Tarifs — Nutzung wird **nicht** zwischen
 > Sitzen geteilt oder in den Folgemonat übertragen). Aktuelles Angebot **−20 %
@@ -595,7 +595,7 @@ Frontend-Spiegel: `Lesify.PLAN_LIMITS` in `app/assets/js/data.js`,
 | Tarif | Fächer | Content-Aufnahmen/Monat | KI-Nachrichten/Monat | Lernzettel | Klausurvorbereitungen/Monat (`testklausuren`) |
 |---|---|---|---|---|---|
 | Starter | alle | 20 | 100 | 5 | 1 |
-| Premium (Bestseller) | alle | 50 | 250 | 15 | 5 |
+| Premium (Empfohlen) | alle | 50 | 250 | 15 | 5 |
 | Infinite | alle | 100 | unbegrenzt¹ | 50 | 15 |
 | Familie · <Tarif> · N Kinder | alle | Tarifwert **je Kind** | Tarifwert **je Kind** | Tarifwert **je Kind** | Tarifwert **je Kind** |
 

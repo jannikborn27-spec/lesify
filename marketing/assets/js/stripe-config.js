@@ -15,7 +15,7 @@
    Preis-Modell (Design-Platzhalter, nicht final — die Werte
    spiegeln die Pricing-Tabelle in backend-planning.md §1/§7):
 
-   - Drei Einzelplatz-Tarife: Starter · Premium (Bestseller) · Infinite.
+   - Drei Einzelplatz-Tarife: Starter · Premium (Empfohlen) · Infinite.
      Kein dauerhaft kostenloser Tarif mehr — stattdessen 14 Tage
      kostenlos testen. Tarif + Zahlungsart werden bei der
      Registrierung gewählt; nach 14 Tagen bucht Stripe automatisch
@@ -59,7 +59,7 @@ window.LESIFY_PAYMENTS = {
     },
     premium: {
       name: 'Premium',
-      badge: 'Bestseller',
+      badge: 'Empfohlen',
       desc: 'Alles für ein Schuljahr mit Plan.',
       monthly: { amount: 1999,  display: '19,99 €',  normal: '24,99 €' },
       yearly:  { amount: 19188, display: '191,88 €', normal: '299,88 €', perMonth: '15,99 €', normalPerMonth: '24,99 €' }

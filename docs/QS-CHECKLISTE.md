@@ -162,8 +162,9 @@ Abo → „Testzeitraum beenden".
       Text-Regeln von `--ink-400`/`--ink-300` auf `--ink-500`, neue
       `--gruen-ink`/`--rot-ink` für Ampel-Text (Flächen unverändert), aktiver
       Lernplan-Tag auf `--fach-ink` (alle 8 Fachfarben ≥ 5:1). Ergebnis: 0
-      Befunde außer den Avatar-Initialen der Testimonial-Elemente (hängen an
-      der Inhalts-Entscheidung, siehe UMSETZUNGSPLAN). Ursprünglicher Punkt:
+      Befunde außer den Avatar-Initialen der Testimonial-Elemente — diese
+      Elemente sind seit 2026-10-01 komplett entfernt (erfundene Stimmen/
+      Nutzerzahlen, siehe UMSETZUNGSPLAN), damit 0 Befunde. Ursprünglicher Punkt:
       Kontrastwerte (Fog-Blue-Palette, Ampel-Farben) gegen WCAG AA prüfen —
       _der Dark-Mode-Lesbarkeitsdurchlauf (Phase 0, 2026-09-08) hat einen
       Kontrast-Audit gemacht, aber nicht formal gegen WCAG-AA-Werte

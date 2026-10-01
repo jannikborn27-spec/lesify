@@ -4898,7 +4898,7 @@ Kritisch, weil Zielgruppe minderjährig ist.
       Kind + Eltern, Website) im Browser gemessen und gefixt, Details
       `docs/QS-CHECKLISTE.md` §5. Offen nur die Avatar-Initialen der
       Testimonial-Elemente (siehe nächster Punkt). VoiceOver bleibt im Test._
-- [ ] **Werbeaussagen ohne Beleg (gefunden 2026-09-28, vor Werbestart klären):**
+- [x] **Werbeaussagen ohne Beleg (gefunden 2026-09-28, vor Werbestart klären):**
       Startseite/Preise zeigen „10.000+ Familien lernen schon mit Lesify",
       „+9.994" und erfundene Kundenzitate (Sandra B., Markus T., Familie K.,
       Jonas — `TEST.items` in `marketing.js`, Hero-Trust in `lan2.js`/
@@ -4911,8 +4911,29 @@ Kritisch, weil Zielgruppe minderjährig ist.
       Liste `lan2.js`, TL;DR-Chips + Feature-CTA `marketing.js`, Meta-
       Description `/registrieren/`). „Monatlich kündbar" bleibt — AGB §4/§9
       regeln die Kündigung zum Ende des jeweiligen Abrechnungszeitraums (auch
-      jährlich), Kasse + FAQ unterscheiden monatlich/jährlich. Offen: „10.000+
-      Familien", „+9.994", erfundene Kundenzitate._
+      jährlich), Kasse + FAQ unterscheiden monatlich/jährlich._
+      _2026-10-01 erledigt (Entscheidung Jannik: alle Platzhalter-Trust-Claims
+      entfernen):_ Hero-Avatarzeile „10.000+ Familien lernen schon mit Lesify"
+      (`lan2.js` `hText`, `ensureHeroTrust` in `marketing.js` gelöscht) →
+      stattdessen die belegbare Häkchen-Zeile „14 Tage kostenlos testen ·
+      Daten in der EU gespeichert · Monatlich kündbar"; Kasse: Avatare +
+      „10.000+ Eltern vertrauen auf Lesify" raus; `/preise/`: Avatarreihe
+      „+9.994" + Zitat „Sandra B." raus; der ganze tote Testimonial-Block
+      (`TEST`, `renderTest`, Video-Wall-Namen, Zitate Sandra B./Markus T./
+      Familie K./Jonas) gelöscht, CSS dazu entfernt. Badge „Bestseller"
+      (ohne Verkaufszahlen nicht belegbar) → „Empfohlen". Außerdem korrigiert:
+      „Verarbeitung auf Servern in der EU" (Startseite, FAQ inkl. JSON-LD,
+      Login, Vergleich, Chat-Feature) stimmte nicht — gespeichert wird in der
+      EU (Supabase Frankfurt), API (Railway) und KI (Anthropic) laufen in den
+      USA → jetzt „Daten in der EU gespeichert", FAQ nennt Anthropic (USA).
+      Echte Kundenstimmen/Zahlen erst nach dem Launch mit Einwilligung der
+      Personen wieder einbauen (Phase 17).
+  - [ ] **Streichpreise prüfen lassen (Anwalt, gefunden 2026-10-01):** Karten
+        zeigen „24,99 € → 19,99 €" und „Aktuell −20 % zum Schuljahresstart",
+        der Angebotspreis gilt aber dauerhaft (Entscheidung 2026-09-28) und der
+        Normalpreis wurde nie verlangt. Risiko „Mondpreis"/Scheinrabatt (§5
+        UWG, §11 PAngV). Klären: Streichpreis behalten, umformulieren oder
+        entfernen.
 - [x] **Mobile-Durchgang bis 360 px** — _erledigt 2026-09-28: alle App-Seiten
       (Kind + Eltern) und Website-Seiten bei 360×740 gemessen (Elemente, die
       über den Rand ragen oder abgeschnitten werden; nur echte Scroll-Container
@@ -5169,6 +5190,9 @@ Kritisch, weil Zielgruppe minderjährig ist.
       Mechanik (Proration/Einladung), manueller Lernplan-Neustart. (Double-Opt-in-/Reset-Mail-Versand ist seit
       2026-09-17 erledigt, siehe Phase 10.)
 - [ ] **Feedback-Schleife** mit Schüler:innen/Eltern; Backlog priorisieren.
+- [ ] **Echte Kundenstimmen/Zahlen** (seit 2026-10-01 keine Platzhalter mehr auf
+      der Website): erst mit realen Nutzer:innen + schriftlicher Einwilligung
+      (Name/Kürzel, Zitat) wieder einbauen; Nutzerzahlen nur, wenn belegbar.
 - [ ] **`backend-planning.md` bleibt das lebende Dokument** — bei jeder Änderung an
       Datenmodell, Notenlogik, Limits oder Endpunkten zuerst dort einpflegen.
 

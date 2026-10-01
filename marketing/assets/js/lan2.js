@@ -271,19 +271,14 @@
   var CHEV_L = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>';
   var CHEV_R = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>';
   /* Linke Seite 1:1 wie die Startseite: gleiche Klassen/Struktur (.hv9__text …), damit das Original-CSS greift.
-     .lab-trust ist dort per CSS ausgeblendet; sichtbar ist nur die Avatar-Zeile (.hv9__trust). */
+     Unter den CTAs nur belegbare Fakten (.lab-trust) — keine Nutzerzahlen/Avatare, solange es keine echten gibt. */
   function hText() {
-    var inits = ['SB', 'MT', 'LK', 'JW', 'FK'],
-      tones = ['var(--fach-blue)', 'var(--fach-amber)', 'var(--fach-teal)', 'var(--fach-violet)', 'var(--fach-rose)'];
     return (
       '<div class="hv9__text"><span class="eyebrow">Für Schüler:innen ab Klassenstufe 5 geeignet</span>' +
       '<h1>Weniger Prüfungsstress und <em>bessere Noten</em> ohne teure Nachhilfe.</h1>' +
       '<p class="lab-lead">Kein Chauffieren, kein Stundensatz, kein Streit ums Lernen. Dein Kind arbeitet selbstständig zu Hause mit festem Lernplan und einer KI, die 24/7 für Fragen bereitsteht.</p>' +
       '<div class="lab-cta"><a class="btn btn-primary btn-lg" href="/preise/">Kostenlos starten</a><a class="btn btn-secondary btn-lg" href="/login/">Anmelden</a></div>' +
-      '<ul class="lab-trust"><li>' + CHK + ' DSGVO-konform, Server in der EU</li><li>' + CHK + ' Monatlich kündbar</li></ul>' +
-      '<div class="hv9__trust"><span class="hv9__trust-row">' +
-      inits.map(function (x, i) { return '<span class="hv9__trust-av" style="--t:' + tones[i] + '">' + x + '</span>'; }).join('') +
-      '</span><span class="hv9__trust-txt"><b>10.000+</b> Familien lernen schon mit Lesify</span></div></div>'
+      '<ul class="lab-trust"><li>' + CHK + ' 14 Tage kostenlos testen</li><li>' + CHK + ' Daten in der EU gespeichert</li><li>' + CHK + ' Monatlich kündbar</li></ul></div>'
     );
   }
   function hStage() {

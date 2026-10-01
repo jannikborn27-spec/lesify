@@ -619,24 +619,11 @@ body[data-header="2"] .hv9[data-hero-bg="9"] .hv9__panel::after {
 }
 
 /* =========================================================
-   Hero-Text — fest auf Variante 1.3 (Trust · Inline): kompakte
-   Vertrauensleiste (angelehnt an test-circ__row der Testimonial-
-   Section) direkt unter den CTAs, ersetzt die Häkchen-Zeile.
-   Kein Umschalter mehr. Markup via ensureHeroTrust() in marketing.js.
+   Hero-Text — fest auf Variante 1.3: Häkchen-Zeile (.lab-trust) direkt
+   unter den CTAs. Die frühere Avatar-Leiste „10.000+ Familien" ist seit
+   2026-10-01 entfernt (keine belegbare Zahl, §5 UWG).
    ========================================================= */
-.hv9__trust { display: flex; align-items: center; gap: 10px; margin-top: 1rem; }
-.hv9__trust-row { display: inline-flex; align-items: center; }
-.hv9__trust-av {
-  width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
-  margin-left: -8px; border: 2px solid var(--bg-canvas);
-  background: var(--t, var(--ink-700)); color: #fff;
-  display: inline-flex; align-items: center; justify-content: center;
-  font-size: 0.6rem; font-weight: 700; letter-spacing: 0.02em;
-}
-.hv9__trust-av:first-child { margin-left: 0; }
-.hv9__trust-txt { font-size: 0.8rem; color: var(--ink-500); line-height: 1.35; }
-.hv9__trust-txt b { color: var(--ink-950); font-weight: 700; }
-.hv9 .hv9__text .lab-trust { display: none; }
+.hv9 .hv9__text .lab-trust { margin-top: 1rem; }
 
 /* =========================================================
    Hero-Farbe (Prototyp) — Dev-Panel-Achse data-hero-color auf
@@ -2252,7 +2239,7 @@ body[data-page="ueber-uns"] .site-footer::before {
 
 /* /preise/-Seite: dieselbe v4-Sektion, aber auf dunklem Seiten-
    Hintergrund (siehe marketing.css .pricepage) statt dem hellen
-   Startseiten-Abschnitt. Kopfzeile/Stimmen-Sektion-Behandlung gilt für
+   Startseiten-Abschnitt. Kopfzeilen-Behandlung gilt für
    alle Farb-Varianten gleich (siehe unten), deshalb hier ungescoped;
    nur Umschalter + Karten unterscheiden sich je `[data-price-color]`
    ("Preise-Farben"-Dev-Switch, siehe mountPriceColorDev in
@@ -2264,14 +2251,6 @@ body[data-page="preise"] #price-section .eyebrow { color: rgba(255,255,255,0.6);
 body[data-page="preise"] #price-section .eyebrow::before { background: rgba(255,255,255,0.4); }
 body[data-page="preise"] #price-section h1, body[data-page="preise"] #price-section h2 { color: var(--paper); }
 body[data-page="preise"] #price-section .lab-head p { color: rgba(255,255,255,0.7); }
-/* Stimmen-Sektion (Avatar-Reihe + Zitat) jetzt auch hier sichtbar (bis
-   2026-09-17 ausgeblendet, um die Viewport-Höhe zu sparen — siehe
-   Sicherheitsnetz .pricepage{overflow-y:auto} in marketing.css, das
-   inzwischen ein moderates internes Scrollen statt Abschneiden erlaubt).
-   Nur der weiße Schnittring der Avatare muss auf den dunklen
-   Seiten-Hintergrund angepasst werden (v7/Hell bekommt unten den
-   originalen hellen Ring zurück). */
-body[data-page="preise"] #price-section .price-voices__avrow .price-voice__av { border-color: var(--ink-950); }
 
 /* v1 · Weiß (Default/Baseline) — Umschalter als helle Halbtransparenz-
    Pille, Karten unverändert (siehe .sv--price4 oben: 2 helle Karten +
@@ -2458,7 +2437,6 @@ body[data-page="preise"][data-price-color="7"] #price-section .price-seats__cap 
 body[data-page="preise"][data-price-color="7"] #price-section .price-seats__segrow button { color: var(--ink-600); }
 body[data-page="preise"][data-price-color="7"] #price-section .price-seats__segrow button.is-on { background: var(--bg-surface); color: var(--ink-950); }
 body[data-page="preise"][data-price-color="7"] #price-section .price-seatnote { color: var(--ink-500); }
-body[data-page="preise"][data-price-color="7"] #price-section .price-voices__avrow .price-voice__av { border-color: var(--bg-canvas); }
 
 /* v5 · Glow */
 .sv--price5 .price-grid--glow .price-card { transition: opacity 200ms var(--ease-out); }
@@ -3736,22 +3714,10 @@ body[data-page="preise"][data-price-color="7"] #price-section .price-voices__avr
 
 /* =========================================================
    Finales Layout — Zusatz-Bausteine der zusammengeführten Sections
-   (Stimmen unter den Preisen, Fächer in der Struktur-Section,
+   (Fächer in der Struktur-Section,
    Eltern-Zugang-Nachbau). Bewusst am Dateiende, damit die
    Dark-Overrides in Quellreihenfolge gewinnen.
    ========================================================= */
-
-/* ---- Stimmen unter den Preisen (#price, weißer Abschnitt) ---- */
-.sv--price4 .price-voices { margin-top: clamp(2.6rem, 1.6rem + 4vw, 4.4rem); text-align: center; }
-.sv--price4 .price-voices__h { text-align: center; font-family: var(--font-display); font-size: clamp(1.2rem, 1rem + 1vw, 1.6rem); letter-spacing: -0.02em; margin-bottom: clamp(1.4rem, 1rem + 1.5vw, 2.2rem); }
-.sv--price4 .price-voices__grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; max-width: 900px; margin-inline: auto; }
-.sv--price4 .price-voice { margin: 0; border: 1px solid var(--line); border-radius: var(--radius-xl); background: var(--bg-surface); padding: 22px 24px; display: flex; flex-direction: column; gap: 16px; }
-.sv--price4 .price-voice blockquote { margin: 0; font-size: 0.95rem; line-height: 1.6; color: var(--ink-800); }
-.sv--price4 .price-voice figcaption { display: flex; align-items: center; gap: 12px; }
-.sv--price4 .price-voice__av { flex-shrink: 0; width: 36px; height: 36px; border-radius: 50%; background: color-mix(in srgb, var(--t, var(--ink-400)) 16%, var(--bg-surface)); color: var(--t, var(--ink-700)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; }
-.sv--price4 .price-voice figcaption b { display: block; font-size: 0.88rem; }
-.sv--price4 .price-voice figcaption em { font-style: normal; font-size: 0.8rem; color: var(--ink-500); }
-@media (max-width: 720px) { .price-voices__grid { grid-template-columns: 1fr; } }
 
 /* ---- Fächer-Übersicht in der Struktur-Section (#org, weißer Abschnitt) ---- */
 .org-faecher { margin-top: clamp(2.4rem, 1.6rem + 3vw, 4rem); }
@@ -3955,13 +3921,7 @@ body[data-page="preise"][data-price-color="7"] #price-section .price-voices__avr
 .sv--price4 .price-seats--seg.is-family .price-seats__cap { color: var(--ink-500); }
 .sv--price4 .price-seats--seg.is-family .price-seats__segrow button.is-on { color: var(--ink-950); }
 
-/* ---- Stimmen: Avatar-Reihe + hervorgehobenes Zitat ---- */
-.sv--price4 .price-voices__avrow { display: flex; align-items: center; justify-content: center; margin-bottom: 18px; }
-.sv--price4 .price-voices__avrow .price-voice__av { width: 44px; height: 44px; margin-left: -10px; border: 2px solid var(--bg-canvas); }
-.sv--price4 .price-voices__avrow .price-voice__av:first-child { margin-left: 0; }
-.sv--price4 .price-voices__more { margin-left: 12px; font-size: 0.85rem; font-weight: 700; color: var(--ink-500); }
-.sv--price4 .price-voices__lead { max-width: 62ch; margin: 0 auto; text-align: center; font-family: var(--font-display); font-size: clamp(1.1rem, 1rem + 1vw, 1.55rem); line-height: 1.5; letter-spacing: -0.01em; }
-.sv--price4 .price-voices__cite { display: block; margin-top: 12px; text-align: center; font-style: normal; font-size: 0.85rem; color: var(--ink-500); }
+/* ---- Preis-Umschalter auf schmalen Screens ---- */
 @media (max-width: 620px) {
   .price-ctrl--v1 { flex-wrap: wrap; gap: 12px 24px; }
 }

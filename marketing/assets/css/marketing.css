@@ -1923,27 +1923,6 @@ select.input {
 .co-total span { font-size: 0.9rem; color: rgba(255,255,255,0.7); }
 .co-total b { font-family: var(--font-display); font-size: 1.9rem; font-weight: 700; letter-spacing: -0.03em; }
 
-/* Kompakte Fassung der Stimmen-Sektion von /preise/ (Avatar-Reihe,
-   siehe priceVoices() in marketing.js und .price-voices in
-   landing-lab.css) — ganz unten in der Zusammenfassung, nach den
-   Stripe/EU-Vertrauenspunkten. Statisch in dieser Seite (kein
-   marketing.js hier geladen). Statt Zitat + Quelle (zu viel Platz für
-   diese Position) nur Avatare + eine kurze Vertrauens-Zeile in einer
-   Reihe. */
-.co-voices { margin-top: 1.2rem; padding-top: 1.2rem; border-top: 1px solid rgba(255,255,255,0.12); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.co-voices__avrow { display: inline-flex; align-items: center; }
-.co-voices__av {
-  width: 26px; height: 26px; flex-shrink: 0; margin-left: -8px;
-  border-radius: 50%; border: 2px solid var(--ink-950);
-  background: color-mix(in srgb, var(--t, var(--ink-400)) 30%, var(--ink-900));
-  color: var(--t, var(--paper));
-  display: flex; align-items: center; justify-content: center;
-  font-family: var(--font-display); font-weight: 700; font-size: 0.6rem;
-}
-.co-voices__av:first-child { margin-left: 0; }
-.co-voices__txt { font-size: 0.82rem; color: rgba(255,255,255,0.7); }
-.co-voices__txt b { font-family: var(--font-display); font-weight: 700; color: var(--paper); }
-
 .co-trust { margin-top: 0.9rem; display: flex; flex-direction: column; gap: 8px; }
 .co-trust li { display: flex; align-items: center; gap: 10px; font-size: 0.82rem; color: rgba(255,255,255,0.6); }
 .co-trust svg { width: 16px; height: 16px; flex-shrink: 0; }
@@ -2009,7 +1988,7 @@ select.input {
    Viewport-Höhe fixiert (kein Scroll), nur die Formular-Spalte rechts
    scrollt für sich. Nur ab der Breite, ab der beide Spalten
    nebeneinander stehen (siehe max-width:900px unten). overflow-y statt
-   hidden (2026-09-17, seit .co-voices dazukam): auf kurzen Bildschirmen
+   hidden (2026-09-17): auf kurzen Bildschirmen
    darf die Spalte lieber selbst leicht scrollen, statt Inhalt unten
    abzuschneiden (gleiches Muster wie .pricepage in dieser Datei). */
 @media (min-width: 901px) {

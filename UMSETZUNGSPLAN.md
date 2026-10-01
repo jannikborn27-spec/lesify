@@ -5169,7 +5169,7 @@ Kritisch, weil Zielgruppe minderjährig ist.
       Mahn-Einstellungen (Zugriffssperre bei `zahlung_offen` ist gebaut).
 - [x] **Stripe-Mails** (Beleg/Zahlung/Kündigung) _(Live-Dashboard eingerichtet 2026-10-01)_ im Dashboard aktivieren,
       Wording prüfen.
-- [ ] **Eine echte Live-Zahlung** mit eigener Karte, danach erstatten/kündigen;
+- [x] **Eine echte Live-Zahlung** _(2026-10-01, Jannik: Starter abgeschlossen → Kunde + Zahlungsmittel, Subscription „Lesify Starter“ 15,99 €, Webhook-Zustellungen 200, „Abo & Sitze“ + Vertragsbestätigung korrekt; Kündigung → Stripe „Cancels on …“, App + Bestätigungsmail korrekt. PayPal-Durchlauf live noch offen)_ mit eigener Karte, danach erstatten/kündigen;
       Webhook-Sync + Abo-Status in der App prüfen.
 - [ ] **Launch-Checkliste:** Impressum/Datenschutz/AGB live, Kontaktweg
       funktioniert, Reminder-Cron läuft, Backups laufen, Monitoring grün,

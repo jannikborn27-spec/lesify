@@ -228,9 +228,9 @@ Schritt a und b schlägt die Kasse fehl (Test-Frontend gegen Live-Backend):
 
 **3. Echte Zahlung prüfen**
 
-- [ ] Neues Konto mit eigener E-Mail → Kasse → Abo mit eigener Karte → App
+- [x] Neues Konto mit eigener E-Mail → Kasse → Abo mit eigener Karte → App
       zeigt den richtigen Status, Stripe → Webhooks zeigt 2xx-Zustellungen.
-- [ ] Im Dashboard Zahlung erstatten, Abo über `/kuendigen/` bzw. die App
+- [x] Im Dashboard Zahlung erstatten, Abo über `/kuendigen/` bzw. die App
       kündigen → App zeigt gekündigt, Beleg-/Erstattungs-Mail kommt an.
 - [ ] Einmal PayPal durchspielen (Testphase-Start = 0-€-Mandat), danach kündigen.
 

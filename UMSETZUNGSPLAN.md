@@ -4995,10 +4995,11 @@ Kritisch, weil Zielgruppe minderjährig ist.
   - [ ] _Später optional:_ Meta Conversions API serverseitig (Stripe-Webhook,
         `event_id` wird im Browser schon mitgeschickt → Deduplizierung).
 - [~] **Google-Ads-Keywords** (2026-10-01): Keyword-Plan in
-      `Konzept-texts/google-ads/` — `keywords.csv` (214 Zeilen, Kampagnen Brand /
-      Nachhilfe-Alternative / KI-Lernapp / Klausurvorbereitung / Konkurrenz
-      optional, nur genau + Wortgruppe), `negative-keywords.txt` (gemeinsame
-      Ausschlussliste), `README.md` (Prioritäten, Startbudget, Pflege).
+      `Konzept-texts/google-ads/` — **eine Kampagne „Lesify | Suche", eine
+      Keyword-Liste, eine Ausschlussliste** (Entscheidung Jannik 2026-10-01):
+      `keywords.txt` (190 Keywords, nur genau + Wortgruppe, ohne
+      Konkurrenz-Marken), `negative-keywords.txt`, `README.md` (Einstellungen,
+      Startbudget, Pflege).
   - [ ] **Jannik:** Liste im Keyword-Planer auf Suchvolumen/CPC prüfen, Kampagnen
         im Google Ads Editor importieren, Ausschlussliste zuweisen, Anzeigen texten.
 

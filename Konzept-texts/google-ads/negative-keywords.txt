@@ -1,6 +1,6 @@
 # Lesify — gemeinsame Negativ-Keyword-Liste (Google Ads)
-# Einfügen unter: Tools → Gemeinsam genutzte Bibliothek → Listen mit auszuschließenden
-# Keywords → neue Liste „Lesify Basis-Ausschlüsse" → allen Suchkampagnen zuweisen.
+# Einfügen: Gemeinsam genutzte Bibliothek → Listen mit auszuschließenden Keywords
+# → „Lesify Ausschlüsse" → der Kampagne „Lesify | Suche" zuweisen.
 # Syntax: Wort = weitgehend passend (Suchanfrage enthält das Wort), "…" = Wortgruppe, […] = genau.
 # Zeilen mit # vor dem Einfügen entfernen.
 

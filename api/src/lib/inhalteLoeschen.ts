@@ -154,3 +154,35 @@ export async function themaLoeschen(
   await speicherLoeschen(storage, pfade, log);
   return { klausurenGeloescht: nurDiesesThema.length };
 }
+
+/**
+ * Konto hart löschen (DSGVO Art. 17): das Konto, seine Kind-Profile und per
+ * FK-Kaskade alle Inhalte, Sessions, Einstellungen und eigenen Abos; danach die
+ * Speicherobjekte (best effort, außerhalb der Transaktion). Genutzt von
+ * `POST /user/loeschen` und `tools/konten-loeschen.ts`.
+ */
+export async function kontoLoeschen(
+  prisma: PrismaClient,
+  storage: StorageGateway,
+  userId: string,
+  log: (err: unknown) => void,
+): Promise<{ kindProfileGeloescht: number }> {
+  const kinder = await prisma.user.findMany({
+    where: { parentUserId: userId },
+    select: { id: true },
+  });
+  const betroffeneUserIds = [userId, ...kinder.map((k) => k.id)];
+  const dateiKeys = (
+    await prisma.datei.findMany({
+      where: { userId: { in: betroffeneUserIds } },
+      select: { speicherPfad: true },
+    })
+  ).map((d) => d.speicherPfad);
+
+  await prisma.$transaction([
+    ...kinder.map((k) => prisma.user.delete({ where: { id: k.id } })),
+    prisma.user.delete({ where: { id: userId } }),
+  ]);
+  await speicherLoeschen(storage, dateiKeys, log);
+  return { kindProfileGeloescht: kinder.length };
+}

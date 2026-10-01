@@ -19,6 +19,7 @@
     "ki:kosten": "tsx src/lib/ki/kostenbericht.ts",
     "passwort:sql": "tsx src/tools/passwort-sql.ts",
     "backup": "tsx src/tools/backup.ts",
+    "konten:loeschen": "tsx src/tools/konten-loeschen.ts",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run --passWithNoTests",
     "db:generate": "prisma generate",

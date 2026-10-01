@@ -212,7 +212,7 @@ Testmodus übernommen):
       (`whsec_…`) bereithalten, **noch nicht** eintragen.
 - [x] Live-Schlüssel bereithalten: `sk_live_…` (Secret, nur Railway) und
       `pk_live_…` (Publishable, öffentlich).
-- [ ] Alte Testdaten klären: Konten mit Abos aus dem Testmodus zeigen auf
+- [ ] Alte Testdaten klären _(Werkzeug seit 2026-10-01: `bash scripts/prod-konten-loeschen.sh <email> … [--wirklich]` — zeigt ohne `--wirklich` nur an, was gelöscht würde; löscht Konto + Kind-Profile + Inhalte + Dateien wie „Konto löschen“ in der App, Stripe bleibt unberührt)_: Konten mit Abos aus dem Testmodus zeigen auf
       Test-Subscriptions, die es live nicht gibt — Kündigen, Sitzwechsel,
       Zahlungsportal und der Job `abo-geplante-aenderungen` schlagen für sie
       fehl. Vor dem Umschalten löschen (Konto-Löschung) oder bewusst liegen lassen.

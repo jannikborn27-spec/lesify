@@ -2,7 +2,7 @@
    Lesify — Stripe-Konfiguration (Frontend)
    ---------------------------------------------------------
    Der Publishable Key ist bewusst öffentlich — er darf im
-   Client-Code stehen. Der Secret Key (`sk_test_…`) gehört
+   Client-Code stehen. Der Secret Key (`sk_live_…`) gehört
    NIEMALS ins Frontend; er lebt nur im späteren Backend
    (siehe Konzept-texts/backend-planning.md §7a).
 
@@ -32,9 +32,9 @@
      Dashboard gezogen, nicht im Client gebraucht.
    ========================================================= */
 window.LESIFY_PAYMENTS = {
-  publishableKey: 'pk_test_51UAoE2IW4ucZsEH2zDkqHECbDOhvEeZzO1sDn83pore6Ce08nvTse86CMNDcJtjDiixaDrNdd5dcVdl80OXJCzkw00zHB5Sbs8',
+  publishableKey: 'pk_live_51UAoE2IW4ucZsEH2SGKw8YNvPggE2e4e8wEL5EXC2hyJHXmywk5a9yWeqfy6IdVxpSzvRlGuv2ACLXeCoaG2fjFw00B3WrIW4h',
   currency: 'eur',
-  mode: 'test',
+  mode: 'live',
 
   /* Kostenlose Testphase statt kostenlosem Tarif. Danach automatische
      Abbuchung des gewählten Tarifs (Stripe Trial → Subscription). */

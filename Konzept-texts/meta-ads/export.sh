@@ -14,7 +14,7 @@ CHROME="${CHROME:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}"
 PORT=4331
 
 # Creative-ID:Anzahl Karten — bei Änderungen in creatives.html mitpflegen
-SLIDES="E1:1 E2:1 E3:1 E4:1 E5:1 K1:5 K2:5 K3:5 K4:5 K5:4"
+SLIDES="K1:5 K2:5 K3:5 K4:5 K5:4 K6:5 K7:5 K8:5 K9:5 K10:5"
 
 mkdir -p "$OUT"
 python3 -m http.server "$PORT" --directory "$ROOT" >/dev/null 2>&1 &

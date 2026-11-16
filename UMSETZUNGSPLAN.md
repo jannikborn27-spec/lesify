@@ -5002,8 +5002,10 @@ Kritisch, weil Zielgruppe minderjährig ist.
       Startbudget, Pflege).
   - [ ] **Jannik:** Liste im Keyword-Planer auf Suchvolumen/CPC prüfen, Kampagnen
         im Google Ads Editor importieren, Ausschlussliste zuweisen, Anzeigen texten.
-- [~] **Meta-Anzeigen (Facebook/Instagram)** (2026-11-16): 10 Creatives 1:1 in
-      `Konzept-texts/meta-ads/` — 5 Einzelbilder (E1–E5) + 5 Karussells (K1–K5),
+- [~] **Meta-Anzeigen (Facebook/Instagram)** (2026-11-16): 10 Karussells 1:1 in
+      `Konzept-texts/meta-ads/` — K1–K10 mit je 4–5 Karten (Entscheidung Jannik
+      2026-11-16: nur Karussells, um möglichst viel zu erklären; Einzelbilder
+      verworfen),
       als HTML-Vorschau (`creatives.html`, Feed-Ansicht mit Primärtext/
       Überschrift/Button) und per `export.sh` als 1080×1080-PNGs exportierbar.
   - [ ] **Jannik:** Motive + Texte freigeben, PNGs exportieren, im

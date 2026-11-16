@@ -194,13 +194,13 @@ body.export #exportRoot .lbl { font:500 18px/1 var(--font-mono); color:#fff; mar
 /* Lernzettel-Dokument */
 .doc { background:#fff; border-radius:28px; border:2px solid var(--ink-150); box-shadow:0 44px 90px -40px rgba(16,18,20,.35); padding:44px 48px; color:var(--ink-950); }
 .doc .tag { display:inline-flex; gap:10px; align-items:center; font:600 21px/1 var(--font-body); color:color-mix(in oklab, var(--fach-blue) 78%, black); background:color-mix(in oklab, var(--fach-blue) 10%, white); padding:10px 16px; border-radius:999px; }
-.doc h4 { font:600 42px/1.1 var(--font-display); letter-spacing:-.025em; margin:20px 0 26px; }
-.doc h5 { font:500 19px/1 var(--font-mono); letter-spacing:.12em; text-transform:uppercase; color:var(--ink-500); margin:26px 0 12px; }
+.doc .dh4 { font:600 42px/1.1 var(--font-display); letter-spacing:-.025em; margin:20px 0 26px; }
+.doc .dh5 { font:500 19px/1 var(--font-mono); letter-spacing:.12em; text-transform:uppercase; color:var(--ink-500); margin:26px 0 12px; }
 .doc .f { font:500 30px/1.35 var(--font-body); background:var(--ink-50); border-radius:14px; padding:14px 20px; margin-bottom:10px; }
 .doc .f i { font-style:normal; color:var(--ink-500); font-size:24px; display:block; margin-bottom:2px; }
 .doc p { font-size:27px; line-height:1.45; color:var(--ink-700); }
 .doc .new { margin-top:22px; border-radius:18px; background:var(--gruen-bg); border:2px dashed color-mix(in oklab, var(--gruen) 45%, white); padding:20px 24px; }
-.doc .new h5 { margin-top:0; color:var(--gruen-ink); }
+.doc .new .dh5 { margin-top:0; color:var(--gruen-ink); }
 
 /* Papierstapel „vorher" */
 .sheet { position:absolute; width:340px; background:#fff; border-radius:18px; border:2px solid var(--ink-150); box-shadow:0 30px 60px -30px rgba(16,18,20,.35); padding:26px 28px 30px; }
@@ -522,13 +522,13 @@ body.export #exportRoot .lbl { font:500 18px/1 var(--font-mono); color:#fff; mar
   <h2 class="h abs" style="left:72px;top:138px;font-size:92px">Ein Lernzettel. <span class="hl">Alles drin.</span></h2>
   <div class="doc abs" style="left:150px;right:150px;top:310px;height:860px">
     <span class="tag">Mathematik · Zinsrechnung</span>
-    <h4>Lernzettel: Zinsen &amp; Zinseszins</h4>
-    <h5>Formeln</h5>
+    <div class="dh4">Lernzettel: Zinsen &amp; Zinseszins</div>
+    <div class="dh5">Formeln</div>
     <div class="f"><i>Jahreszinsen</i>Z = K · p / 100</div>
     <div class="f"><i>Zinseszins nach n Jahren</i>Kₙ = K₀ · (1 + p/100)ⁿ</div>
-    <h5>Beispiel</h5>
+    <div class="dh5">Beispiel</div>
     <div class="f">500 € zu 2 % → Z = 500 · 2 / 100 = <b>10 €</b></div>
-    <h5>Typischer Fehler</h5>
+    <div class="dh5">Typischer Fehler</div>
     <p>p ist der Zinssatz in Prozent – erst durch 100 teilen.</p>
   </div>
 </div>
@@ -536,10 +536,10 @@ body.export #exportRoot .lbl { font:500 18px/1 var(--font-mono); color:#fff; mar
   <div class="eyebrow abs" style="left:72px;top:84px">Wächst mit</div>
   <h2 class="h abs" style="left:72px;top:138px;width:940px;font-size:80px">Jeder Lerntag ergänzt, <span class="hl">was noch wackelt.</span></h2>
   <div class="doc abs" style="left:150px;right:150px;top:360px;height:800px">
-    <h5 style="margin-top:0">Formeln</h5>
+    <div class="dh5" style="margin-top:0">Formeln</div>
     <div class="f"><i>Jahreszinsen</i>Z = K · p / 100</div>
     <div class="new">
-      <h5>+ Neu aus Tag 4</h5>
+      <div class="dh5">+ Neu aus Tag 4</div>
       <div class="f" style="background:#fff"><i>Tageszinsen</i>Z = K · p · t / (100 · 360)</div>
       <p>t = Anzahl der Tage. Ein Bankjahr hat 360 Tage.</p>
     </div>

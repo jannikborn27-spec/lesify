@@ -1,0 +1,732 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesify Meta-Creatives</title>
+<!--
+  Lesify — 10 Facebook-/Instagram-Anzeigenmotive (1:1), Entwurf 2026-11-16.
+  5 Einzelbilder (E1–E5) + 5 Karussells (K1–K5).
+
+  Jedes Motiv ist ein natives 1080×1080-px-Element (.ad[data-id]) und wird für
+  die Vorschau nur herunterskaliert. Ansichten:
+    creatives.html              Feed-Vorschau (wie im Facebook-Feed)
+    creatives.html?view=motive  alle Motive groß nebeneinander
+    creatives.html?export       alle Motive unskaliert untereinander (für den
+                                späteren PNG-Export: jedes .ad = 1 Datei,
+                                Dateiname steht in data-file)
+    creatives.html?export=K1    nur ein Creative exportieren
+    creatives.html?export=K1&n=3  genau eine Karte, randlos bei 0/0 —
+                                Screenshot mit Fenster 1080×1080 = fertiges PNG
+                                (siehe export.sh)
+  Bilder/Fonts kommen direkt aus marketing/assets — Datei im Repo lassen,
+  sonst brechen die relativen Pfade.
+-->
+<link rel="stylesheet" href="../../marketing/assets/fonts/fonts.css">
+<style>
+:root {
+  --ink-950:#101214; --ink-900:#172128; --ink-800:#25343f; --ink-700:#384a57;
+  --ink-600:#516676; --ink-500:#5b7080; --ink-400:#889ba9; --ink-300:#aab8c3;
+  --ink-200:#cbd4db; --ink-150:#d8dee3; --ink-100:#e2e7ea; --ink-50:#edf1f3;
+  --paper:#f8fafb; --white:#fff;
+  --gruen:#2f8f5b; --gruen-ink:#246f47; --gruen-bg:#eef6f1;
+  --gelb:#e8b923;  --gelb-ink:#8a6a12;  --gelb-bg:#fbf4df;
+  --rot:#c1443c;   --rot-bg:#fbeeed;
+  --fach-blue:#007dae; --fach-rose:#c4334f; --fach-amber:#c26f00; --fach-teal:#009176;
+  --fach-terracotta:#985535; --fach-violet:#654db6; --fach-pink:#b84999; --fach-graphit:#516676;
+  --font-display:'Outfit','Hanken Grotesk',system-ui,sans-serif;
+  --font-body:'Hanken Grotesk','Outfit',system-ui,sans-serif;
+  --font-mono:'SF Mono','JetBrains Mono',ui-monospace,monospace;
+  --img:'../../marketing/assets/img/';
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+body { background:#e9edf0; color:var(--ink-950); font-family:var(--font-body); -webkit-font-smoothing:antialiased; }
+
+/* ================================================================
+   Preview-Seite (nicht Teil der Motive)
+   ================================================================ */
+.page-head { max-width:1180px; margin:0 auto; padding:48px 24px 8px; }
+.page-head h1 { font:600 34px/1.1 var(--font-display); letter-spacing:-.03em; }
+.page-head p { color:var(--ink-600); margin-top:10px; max-width:720px; line-height:1.5; }
+.toolbar { display:flex; flex-wrap:wrap; gap:8px; margin-top:22px; }
+.toolbar button { font:600 14px/1 var(--font-body); padding:10px 16px; border-radius:999px; background:#fff; border:1px solid var(--ink-150); color:var(--ink-700); cursor:pointer; }
+.toolbar button[aria-pressed="true"] { background:var(--ink-950); color:#fff; border-color:var(--ink-950); }
+.toolbar .sep { width:1px; background:var(--ink-200); margin:0 6px; }
+
+.feed { max-width:1180px; margin:0 auto; padding:24px 24px 80px; display:grid; grid-template-columns:repeat(auto-fill,minmax(440px,1fr)); gap:28px; align-items:start; }
+.post-wrap .tag { font:500 12px/1 var(--font-mono); letter-spacing:.08em; text-transform:uppercase; color:var(--ink-500); margin:0 4px 10px; display:flex; justify-content:space-between; gap:12px; }
+.post { background:#fff; border-radius:12px; box-shadow:0 1px 2px rgba(0,0,0,.08), 0 8px 24px -12px rgba(0,0,0,.15); overflow:hidden; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif; color:#050505; }
+.post-h { display:flex; gap:10px; align-items:center; padding:12px 16px 8px; }
+.post-h .av { width:40px; height:40px; border-radius:50%; background:var(--ink-950); display:grid; place-items:center; flex:none; }
+.post-h .av img { width:24px; filter:invert(1); }
+.post-h b { font-size:15px; display:block; }
+.post-h small { font-size:13px; color:#65676b; }
+.post-h .dots { margin-left:auto; color:#65676b; font-size:20px; letter-spacing:1px; }
+.post-t { padding:0 16px 12px; font-size:15px; line-height:1.34; white-space:pre-line; }
+.post-f { display:flex; align-items:center; gap:12px; padding:12px 16px; background:#f0f2f5; }
+.post-f .meta { min-width:0; flex:1; }
+.post-f .dom { font-size:12px; color:#65676b; text-transform:uppercase; }
+.post-f .hd { font-size:16px; font-weight:600; line-height:1.25; margin-top:2px; }
+.post-f .ds { font-size:14px; color:#65676b; margin-top:2px; }
+.fb-btn { flex:none; background:#e4e6eb; color:#050505; font-weight:600; font-size:15px; padding:9px 14px; border-radius:6px; border:0; }
+.post-r { display:flex; justify-content:space-around; padding:6px 8px; border-top:1px solid #e4e6eb; color:#65676b; font-size:15px; font-weight:600; }
+.post-r span { padding:8px; }
+
+.car { position:relative; }
+.car-track { display:flex; gap:10px; overflow-x:auto; scroll-snap-type:x mandatory; padding:0 16px 14px; scrollbar-width:none; }
+.car-track::-webkit-scrollbar { display:none; }
+.car-card { flex:0 0 82%; scroll-snap-align:start; scroll-margin-left:16px; border:1px solid #dadde1; border-radius:8px; overflow:hidden; background:#fff; }
+.car-card .post-f { background:#fff; border-top:1px solid #dadde1; align-items:flex-start; flex-direction:column; gap:8px; }
+.car-card .post-f .hd { font-size:15px; }
+.car-card .fb-btn { width:100%; text-align:center; }
+.car-nav { position:absolute; top:calc(50% - 60px); width:40px; height:40px; border-radius:50%; background:#fff; border:0; box-shadow:0 2px 8px rgba(0,0,0,.25); font-size:20px; cursor:pointer; z-index:2; }
+.car-nav.prev { left:8px; } .car-nav.next { right:8px; }
+
+/* Motiv-Ansicht */
+.grid { max-width:1640px; margin:0 auto; padding:24px 24px 80px; }
+.grid section { margin-bottom:48px; }
+.grid h2 { font:600 22px/1.2 var(--font-display); letter-spacing:-.02em; margin-bottom:4px; }
+.grid h2 + p { color:var(--ink-600); font-size:14px; margin-bottom:14px; }
+.grid .row { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; }
+.grid .cell small { display:block; font:500 12px/1 var(--font-mono); color:var(--ink-500); margin-top:8px; }
+
+/* Skalierung: .ad ist immer 1080×1080, JS setzt --k = Breite/1080 */
+.ad-wrap { position:relative; width:100%; aspect-ratio:1/1; overflow:hidden; background:var(--paper); }
+.ad-wrap > .ad { position:absolute; left:0; top:0; transform:scale(var(--k,.4)); transform-origin:0 0; }
+.grid .ad-wrap { border-radius:6px; box-shadow:0 1px 2px rgba(0,0,0,.08); }
+
+/* Export-Ansicht */
+body.export { background:#888; }
+body.export .page-head, body.export .feed, body.export .grid { display:none; }
+#exportRoot { display:none; }
+body.export #exportRoot { display:flex; flex-direction:column; gap:40px; padding:40px; align-items:flex-start; }
+body.export #exportRoot .ad { position:relative; transform:none; }
+body.export.single, body.export.single #exportRoot { padding:0; margin:0; background:var(--paper); overflow:hidden; }
+body.export #exportRoot .lbl { font:500 18px/1 var(--font-mono); color:#fff; margin-bottom:-28px; }
+#src { display:none; }
+
+/* ================================================================
+   MOTIVE — alles in nativen Pixeln (1080 × 1080)
+   ================================================================ */
+.ad { --hl:var(--fach-teal); position:relative; width:1080px; height:1080px; overflow:hidden; background:var(--paper); color:var(--ink-950); font-family:var(--font-body); }
+.ad.dark { background:var(--ink-950); color:#fff; }
+.ad .abs { position:absolute; }
+.ad img { display:block; }
+
+.brand { position:absolute; display:flex; align-items:center; gap:18px; font:600 40px/1 var(--font-display); letter-spacing:-.025em; }
+.brand i { width:68px; height:68px; border-radius:20px; background:var(--ink-950); display:grid; place-items:center; }
+.brand i img { width:42px; height:42px; filter:invert(1); }
+.dark .brand i, .brand.inv i { background:#fff; }
+.dark .brand i img, .brand.inv i img { filter:none; }
+.brand.inv { color:#fff; }
+
+.eyebrow { font:500 23px/1 var(--font-mono); letter-spacing:.14em; text-transform:uppercase; color:var(--ink-500); }
+.dark .eyebrow { color:var(--ink-400); }
+.h { font-family:var(--font-display); font-weight:600; letter-spacing:-.035em; line-height:1.03; }
+.sub { font-size:34px; line-height:1.4; color:var(--ink-600); }
+.dark .sub { color:var(--ink-300); }
+.hl { background:linear-gradient(to bottom, transparent 60%, color-mix(in oklab, var(--hl) 45%, transparent) 60%, color-mix(in oklab, var(--hl) 45%, transparent) 93%, transparent 93%); -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:0 .05em; margin:0 -.05em; }
+.dark .hl { background:linear-gradient(to bottom, transparent 60%, color-mix(in oklab, var(--hl) 75%, transparent) 60%, color-mix(in oklab, var(--hl) 75%, transparent) 93%, transparent 93%); }
+
+.cta { display:inline-flex; align-items:center; gap:16px; background:var(--ink-950); color:#fff; border-radius:999px; padding:26px 42px; font:600 31px/1 var(--font-body); white-space:nowrap; }
+.cta::after { content:''; width:26px; height:26px; background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14M13 6l6 6-6 6'/%3E%3C/svg%3E") center/contain no-repeat; }
+.dark .cta, .cta.inv { background:#fff; color:var(--ink-950); }
+.dark .cta::after, .cta.inv::after { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23101214' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14M13 6l6 6-6 6'/%3E%3C/svg%3E"); }
+
+.chips { display:flex; gap:14px; flex-wrap:wrap; }
+.chip { display:inline-flex; align-items:center; gap:12px; padding:16px 26px 16px 20px; border-radius:999px; background:#fff; border:2px solid var(--ink-150); font:600 26px/1 var(--font-body); color:var(--ink-800); white-space:nowrap; }
+.chip::before, .ok::before { content:''; flex:none; width:30px; height:30px; border-radius:50%; background:var(--gruen) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 12.5l4 4 8-9'/%3E%3C/svg%3E") center/62% no-repeat; }
+.dark .chip { background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.16); color:#fff; }
+.no::before { content:''; flex:none; width:30px; height:30px; border-radius:50%; background:var(--ink-200) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23516676' stroke-width='3.2' stroke-linecap='round'%3E%3Cpath d='M7 7l10 10M17 7L7 17'/%3E%3C/svg%3E") center/58% no-repeat; }
+.todo::before { content:''; flex:none; width:30px; height:30px; border-radius:50%; border:3px solid var(--ink-300); }
+
+.card { background:#fff; border:2px solid var(--ink-150); border-radius:34px; box-shadow:0 44px 90px -40px rgba(16,18,20,.35); color:var(--ink-950); }
+
+/* Ampel-Pills (wie in der App: stark / wackelig / schwach) */
+.pill { display:inline-flex; align-items:center; gap:10px; padding:11px 20px; border-radius:999px; font:600 24px/1 var(--font-body); white-space:nowrap; }
+.pill::before { content:''; width:13px; height:13px; border-radius:50%; background:currentColor; }
+.p-stark { background:var(--gruen-bg); color:var(--gruen-ink); }
+.p-wack { background:var(--gelb-bg); color:var(--gelb-ink); }
+.p-wack::before { background:var(--gelb); }
+.p-schwach { background:var(--rot-bg); color:var(--rot); }
+.p-ghost { opacity:.45; }
+
+.rows .row-i { display:flex; align-items:center; justify-content:space-between; gap:20px; padding:22px 40px; border-top:2px solid var(--ink-100); font-size:31px; font-weight:500; }
+.card-h { display:flex; align-items:center; justify-content:space-between; padding:30px 40px 26px; }
+.card-h b { font:600 32px/1.1 var(--font-display); letter-spacing:-.02em; }
+.card-h small { font:500 20px/1 var(--font-mono); letter-spacing:.1em; text-transform:uppercase; color:var(--ink-500); }
+.card-f { padding:22px 40px 28px; border-top:2px solid var(--ink-100); font-size:27px; color:var(--ink-600); display:flex; align-items:center; gap:14px; }
+.card-f b { color:var(--ink-950); font-weight:600; }
+.arrow-r { width:30px; height:30px; flex:none; background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23101214' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14M13 6l6 6-6 6'/%3E%3C/svg%3E") center/contain no-repeat; }
+
+/* Chat-Bubbles */
+.chat { display:flex; flex-direction:column; gap:20px; }
+.bub { max-width:680px; padding:24px 32px; font-size:32px; line-height:1.36; border-radius:36px; }
+.bub.me { align-self:flex-end; background:var(--ink-800); color:#fff; border-bottom-right-radius:10px; }
+.bub.ai { align-self:flex-start; background:#fff; color:var(--ink-950); border-bottom-left-radius:10px; position:relative; margin-left:76px; }
+.bub.ai::before { content:''; position:absolute; left:-76px; bottom:0; width:58px; height:58px; border-radius:50%; background:#fff url('../../marketing/assets/img/logo-mark.svg') center/56% no-repeat; }
+.paper .bub.me { background:var(--ink-950); }
+.paper .bub.ai { background:#fff; border:2px solid var(--ink-150); }
+.paper .bub.ai::before { background-color:var(--ink-50); }
+
+/* Device-Mockups (transparente 2000er-PNGs) */
+.dev { position:absolute; filter:drop-shadow(0 40px 60px rgba(16,18,20,.18)); }
+
+/* Fotos */
+.photo { position:absolute; object-fit:cover; }
+
+/* Karussell-Fortschrittsleiste (läuft über alle Karten durch) */
+.rail { position:absolute; left:0; right:0; top:982px; height:4px; background:var(--ink-200); }
+.rail .fill { position:absolute; left:0; right:0; top:0; bottom:0; background:var(--ink-950); }
+/* größere Karten für die Lernplan-Karussellkarten */
+.rows.lg .row-i, .lg .rows .row-i { font-size:36px; padding:30px 44px; }
+.lg .card-h { padding:36px 44px 30px; }
+.lg .card-h b { font-size:38px; }
+.lg .pill { font-size:28px; padding:13px 24px; }
+.lg .card-f { font-size:30px; padding:26px 44px 32px; }
+.rail .d { position:absolute; top:-26px; width:56px; height:56px; margin-left:-28px; border-radius:50%; background:var(--paper); border:4px solid var(--ink-950); display:grid; place-items:center; font:700 24px/1 var(--font-display); }
+.rail .d.on { background:var(--hl); border-color:var(--hl); color:#fff; }
+.rail .d.tk::after { content:attr(data-l); position:absolute; top:70px; left:50%; transform:translateX(-50%); font:500 18px/1 var(--font-mono); letter-spacing:.1em; text-transform:uppercase; color:var(--ink-500); white-space:nowrap; }
+.rail .flag { position:absolute; top:-30px; height:64px; padding:0 26px; margin-left:-4px; border-radius:999px; background:var(--ink-950); color:#fff; display:flex; align-items:center; font:600 26px/1 var(--font-display); }
+
+.num { font:600 150px/1 var(--font-display); letter-spacing:-.05em; color:var(--hl); }
+
+/* Lernzettel-Dokument */
+.doc { background:#fff; border-radius:28px; border:2px solid var(--ink-150); box-shadow:0 44px 90px -40px rgba(16,18,20,.35); padding:44px 48px; color:var(--ink-950); }
+.doc .tag { display:inline-flex; gap:10px; align-items:center; font:600 21px/1 var(--font-body); color:color-mix(in oklab, var(--fach-blue) 78%, black); background:color-mix(in oklab, var(--fach-blue) 10%, white); padding:10px 16px; border-radius:999px; }
+.doc h4 { font:600 42px/1.1 var(--font-display); letter-spacing:-.025em; margin:20px 0 26px; }
+.doc h5 { font:500 19px/1 var(--font-mono); letter-spacing:.12em; text-transform:uppercase; color:var(--ink-500); margin:26px 0 12px; }
+.doc .f { font:500 30px/1.35 var(--font-body); background:var(--ink-50); border-radius:14px; padding:14px 20px; margin-bottom:10px; }
+.doc .f i { font-style:normal; color:var(--ink-500); font-size:24px; display:block; margin-bottom:2px; }
+.doc p { font-size:27px; line-height:1.45; color:var(--ink-700); }
+.doc .new { margin-top:22px; border-radius:18px; background:var(--gruen-bg); border:2px dashed color-mix(in oklab, var(--gruen) 45%, white); padding:20px 24px; }
+.doc .new h5 { margin-top:0; color:var(--gruen-ink); }
+
+/* Papierstapel „vorher" */
+.sheet { position:absolute; width:340px; background:#fff; border-radius:18px; border:2px solid var(--ink-150); box-shadow:0 30px 60px -30px rgba(16,18,20,.35); padding:26px 28px 30px; }
+.sheet b { display:block; font:600 27px/1.2 var(--font-display); letter-spacing:-.01em; margin-bottom:18px; }
+.sheet b::before { content:''; display:block; width:56px; height:10px; border-radius:6px; background:var(--c); margin-bottom:16px; }
+.sheet u { display:block; height:12px; border-radius:6px; background:var(--ink-100); margin-top:12px; text-decoration:none; }
+.sheet u:nth-child(3n) { width:72%; } .sheet u:nth-child(4n) { width:86%; }
+</style>
+</head>
+<body>
+
+<header class="page-head">
+  <h1>Lesify — Meta-Anzeigen, Entwurf</h1>
+  <p>10 Creatives im Format 1:1 (1080 × 1080 px): 5 Einzelbilder (E1–E5) und 5 Karussells (K1–K5). Texte über und unter den Motiven sind die Vorschläge für Primärtext, Überschrift und Button im Werbeanzeigenmanager.</p>
+  <div class="toolbar" role="toolbar">
+    <button data-view="feed" aria-pressed="true">Feed-Vorschau</button>
+    <button data-view="motive" aria-pressed="false">Alle Motive</button>
+    <span class="sep"></span>
+    <button data-filter="all" aria-pressed="true">Alle 10</button>
+    <button data-filter="single" aria-pressed="false">Einzelbilder</button>
+    <button data-filter="carousel" aria-pressed="false">Karussells</button>
+  </div>
+</header>
+<main class="feed" id="feed"></main>
+<main class="grid" id="grid" hidden></main>
+<div id="exportRoot"></div>
+
+<!-- ==================================================================
+     QUELLE DER MOTIVE — data-c = Creative-ID, Reihenfolge = Karten
+     ================================================================== -->
+<div id="src">
+
+<!-- ========== E1 · Preisvergleich ========== -->
+<div class="ad" data-c="E1" style="--hl:var(--fach-rose)">
+  <div class="brand" style="left:72px;top:72px"><i><img src="../../marketing/assets/img/logo-mark.svg" alt=""></i>Lesify</div>
+  <div class="eyebrow abs" style="right:72px;top:96px">Der Vergleich</div>
+  <h2 class="h abs" style="left:72px;top:190px;width:940px;font-size:86px">Eine Stunde Nachhilfe<br>oder <span class="hl">30 Tage Lesify</span>?</h2>
+  <div class="abs" style="left:72px;right:72px;top:432px;height:440px;display:grid;grid-template-columns:1fr 1fr;gap:24px">
+    <div style="border:2px solid var(--ink-150);border-radius:34px;padding:40px 40px;background:#fff">
+      <div class="eyebrow">Nachhilfe</div>
+      <div class="h" style="font-size:96px;margin:22px 0 30px;color:var(--ink-400)">1 Std.</div>
+      <div style="display:flex;flex-direction:column;gap:20px;font-size:28px;color:var(--ink-600)">
+        <span class="no" style="display:flex;gap:14px;align-items:center">einmal pro Woche</span>
+        <span class="no" style="display:flex;gap:14px;align-items:center">fester Termin + Fahrt</span>
+        <span class="no" style="display:flex;gap:14px;align-items:center">Fragen müssen warten</span>
+      </div>
+    </div>
+    <div style="border-radius:34px;padding:40px 40px;background:var(--ink-950);color:#fff;box-shadow:0 44px 90px -40px rgba(16,18,20,.5)">
+      <div class="eyebrow" style="color:var(--ink-300)">Lesify Premium</div>
+      <div class="h" style="font-size:96px;margin:22px 0 30px">30 Tage</div>
+      <div style="display:flex;flex-direction:column;gap:20px;font-size:28px">
+        <span class="ok" style="display:flex;gap:14px;align-items:center">KI-Hilfe rund um die Uhr</span>
+        <span class="ok" style="display:flex;gap:14px;align-items:center">Lernplan vor jeder Klausur</span>
+        <span class="ok" style="display:flex;gap:14px;align-items:center">Lernzettel + Testklausuren</span>
+      </div>
+    </div>
+  </div>
+  <div class="abs" style="left:72px;right:72px;bottom:72px;display:flex;align-items:center;justify-content:space-between">
+    <div style="font:600 36px/1.15 var(--font-display);letter-spacing:-.02em">Gleicher Preis.<br><span style="color:var(--ink-500);font-weight:500">Ganz anderer Alltag.</span></div>
+    <span class="cta">14 Tage kostenlos</span>
+  </div>
+</div>
+
+<!-- ========== E2 · Hero / Kernversprechen ========== -->
+<div class="ad" data-c="E2" style="--hl:var(--fach-teal)">
+  <div class="brand" style="left:72px;top:72px"><i><img src="../../marketing/assets/img/logo-mark.svg" alt=""></i>Lesify</div>
+  <div class="eyebrow abs" style="right:72px;top:96px">Ab Klasse 5</div>
+  <h2 class="h abs" style="left:72px;top:188px;font-size:104px">Weniger<br>Prüfungsstress.<br><span class="hl">Bessere Noten.</span></h2>
+  <p class="sub abs" style="left:72px;top:540px;width:460px">Ohne teure Nachhilfe – mit festem Lernplan und einer KI, die rund um die Uhr erklärt.</p>
+  <img class="dev" src="../../marketing/assets/img/images-fin/hero-1-kv.png" alt="" style="width:1400px;left:346px;top:232px">
+  <div class="chips abs" style="left:72px;bottom:72px;flex-direction:column;align-items:flex-start">
+    <span class="chip">14 Tage kostenlos testen</span>
+    <span class="chip">Monatlich kündbar</span>
+  </div>
+</div>
+
+<!-- ========== E3 · Erklärt statt vorsagt (Chat) ========== -->
+<div class="ad dark" data-c="E3" style="--hl:var(--fach-violet)">
+  <div class="brand" style="left:72px;top:72px"><i><img src="../../marketing/assets/img/logo-mark.svg" alt=""></i>Lesify</div>
+  <div class="eyebrow abs" style="right:72px;top:96px">Hausaufgaben-Modus</div>
+  <div class="chat abs" style="left:72px;right:72px;top:190px">
+    <div class="bub me">Kannst du mir einfach die Lösung sagen?</div>
+    <div class="bub ai">Lass sie uns lieber zusammen finden – dann sitzt sie auch in der Klausur. Was weißt du über rechtwinklige Dreiecke?</div>
+    <div class="bub me">a² + b² = c²</div>
+    <div class="bub ai">Genau! Setz jetzt a = 3 und b = 4 ein. Was kommt für c raus?</div>
+  </div>
+  <h2 class="h abs" style="left:72px;bottom:72px;font-size:96px">Eine KI, die <span class="hl">erklärt</span><br>statt vorsagt.</h2>
+</div>
+
+<!-- ========== E4 · Lücken finden (Ampel) ========== -->
+<div class="ad" data-c="E4" style="--hl:var(--fach-amber)">
+  <div class="brand" style="left:72px;top:72px"><i><img src="../../marketing/assets/img/logo-mark.svg" alt=""></i>Lesify</div>
+  <div class="eyebrow abs" style="right:72px;top:96px">Mathe · in 7 Tagen</div>
+  <h2 class="h abs" style="left:72px;top:190px;width:940px;font-size:78px">Lesify findet die Lücken, <span class="hl">bevor</span> die Klausur es tut.</h2>
+  <div class="card abs rows" style="left:72px;right:72px;top:420px">
+    <div class="card-h"><b>Testklausur 1 · Auswertung</b><small>Tag 1 von 7</small></div>
+    <div class="row-i">Satz des Pythagoras <span class="pill p-stark">stark</span></div>
+    <div class="row-i">Terme vereinfachen <span class="pill p-wack">wackelig</span></div>
+    <div class="row-i">Zinsrechnung <span class="pill p-schwach">schwach</span></div>
+    <div class="card-f"><span class="arrow-r"></span>Ab morgen gezielt: <b>Zinsrechnung &amp; Terme</b></div>
+  </div>
+  <div class="abs" style="left:72px;bottom:96px;font-size:28px;color:var(--ink-500)">Für Schüler ab Klasse 5</div>
+  <span class="cta abs" style="right:72px;bottom:72px">14 Tage kostenlos</span>
+</div>
+
+<!-- ========== E5 · Eltern: selbstständig + im Bild (Foto) ========== -->
+<div class="ad" data-c="E5" style="--hl:var(--fach-blue)">
+  <div class="brand" style="left:72px;top:72px"><i><img src="../../marketing/assets/img/logo-mark.svg" alt=""></i>Lesify</div>
+  <div class="eyebrow abs" style="right:72px;top:96px">Für Eltern</div>
+  <h2 class="h abs" style="left:72px;top:186px;font-size:86px">Selbstständig lernen.<br><span class="hl">Trotzdem im Bild.</span></h2>
+  <div class="abs" style="left:72px;right:72px;top:420px;bottom:72px;border-radius:40px;overflow:hidden">
+    <img class="photo" src="../../marketing/assets/img/lesi-mgs-nw-hero/72.jpg" alt="" style="inset:0;width:100%;height:100%;object-position:50% 48%">
+  </div>
+  <div class="card abs" style="left:116px;bottom:116px;width:520px;padding:28px 32px;border-radius:28px;display:flex;gap:22px;align-items:center">
+    <div style="width:72px;height:72px;border-radius:50%;background:color-mix(in oklab,var(--fach-violet) 14%,white);color:var(--fach-violet);display:grid;place-items:center;font:700 32px/1 var(--font-display);flex:none">L</div>
+    <div>
+      <div style="font:500 18px/1 var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-500)">Eltern-Zugang</div>
+      <div style="font:600 30px/1.25 var(--font-display);letter-spacing:-.015em;margin-top:8px">Lena hat Tag 3 von 7 erledigt</div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== K1 · 7-Tage-Lernplan (durchgehende Zeitleiste) ========== -->
+<div class="ad" data-c="K1" style="--hl:var(--fach-blue)">
+  <div class="brand" style="left:72px;top:72px"><i><img src="../../marketing/assets/img/logo-mark.svg" alt=""></i>Lesify</div>
+  <h2 class="h abs" style="left:72px;top:250px;font-size:128px">Klausur in<br>7 Tagen?<br><span class="hl">Hier ist der Plan.</span></h2>
+  <div class="abs" style="left:72px;top:720px;display:flex;align-items:center;gap:16px;font:500 26px/1 var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-500)">Wisch dich durch <span class="arrow-r" style="opacity:.6"></span></div>
+  <div class="rail"><div class="fill" style="left:72px;right:0"></div><div class="d on" style="left:72px;width:24px;height:24px;margin-left:-12px;top:-10px;border-width:0;background:var(--ink-950)"></div></div>
+</div>
+<div class="ad" data-c="K1" style="--hl:var(--fach-blue)">
+  <div class="eyebrow abs" style="left:72px;top:84px">Tag 1 · Testklausur 1</div>
+  <h2 class="h abs" style="left:72px;top:138px;width:940px;font-size:80px">Zeigt, was sitzt –<br><span class="hl">und was nicht.</span></h2>
+  <div class="card abs rows lg" style="left:72px;right:72px;top:350px">
+    <div class="card-h"><b>Auswertung · alle Themen</b><small>Mathe</small></div>
+    <div class="row-i">Satz des Pythagoras <span class="pill p-stark">stark</span></div>
+    <div class="row-i">Terme vereinfachen <span class="pill p-wack">wackelig</span></div>
+    <div class="row-i">Zinsrechnung <span class="pill p-schwach">schwach</span></div>
+    <div class="card-f"><span class="arrow-r"></span>Daraus entsteht der Plan für Tag 2–7</div>
+  </div>
+  <div class="rail"><div class="fill"></div><div class="d on tk" data-l="Testklausur" style="left:220px">1</div></div>
+</div>
+<div class="ad" data-c="K1" style="--hl:var(--fach-blue)">
+  <div class="eyebrow abs" style="left:72px;top:84px">Tag 2 – 4 · Lerntage</div>
+  <h2 class="h abs" style="left:72px;top:138px;width:940px;font-size:80px">Genau die Themen üben,<br><span class="hl">die noch wackeln.</span></h2>
+  <div class="card abs lg" style="left:72px;right:72px;top:350px">
+    <div class="card-h"><b>Heute · Tag 3</b><small>2 von 4 erledigt</small></div>
+    <div style="height:10px;margin:0 44px 26px;border-radius:6px;background:var(--ink-100)"><div style="width:50%;height:100%;border-radius:6px;background:var(--fach-blue)"></div></div>
+    <div class="rows">
+      <div class="row-i ok" style="justify-content:flex-start;color:var(--ink-500)">Fehler klären: Zinsrechnung</div>
+      <div class="row-i ok" style="justify-content:flex-start;color:var(--ink-500)">Beispiel dazu durchgehen</div>
+      <div class="row-i todo" style="justify-content:flex-start">5 Übungsaufgaben</div>
+      <div class="row-i todo" style="justify-content:flex-start">Lernzettel ergänzen</div>
+    </div>
+  </div>
+  <div class="rail"><div class="fill"></div><div class="d" style="left:220px">2</div><div class="d on" style="left:460px">3</div><div class="d" style="left:700px">4</div></div>
+</div>
+<div class="ad" data-c="K1" style="--hl:var(--fach-blue)">
+  <div class="eyebrow abs" style="left:72px;top:84px">Tag 5 · Testklausur 2</div>
+  <h2 class="h abs" style="left:72px;top:138px;width:940px;font-size:80px">Nochmal testen –<br><span class="hl">nur, was gewackelt hat.</span></h2>
+  <div class="card abs rows lg" style="left:72px;right:72px;top:350px">
+    <div class="card-h"><b>Vorher → nachher</b><small>Tag 1 vs. Tag 5</small></div>
+    <div class="row-i">Terme vereinfachen <span style="display:flex;gap:12px;align-items:center"><span class="pill p-wack p-ghost">wackelig</span><span class="arrow-r" style="opacity:.5"></span><span class="pill p-stark">stark</span></span></div>
+    <div class="row-i">Zinsrechnung <span style="display:flex;gap:12px;align-items:center"><span class="pill p-schwach p-ghost">schwach</span><span class="arrow-r" style="opacity:.5"></span><span class="pill p-stark">stark</span></span></div>
+    <div class="card-f">Pythagoras saß schon an Tag 1 – <b>wird nicht nochmal getestet.</b></div>
+  </div>
+  <div class="rail"><div class="fill"></div><div class="d on tk" data-l="Testklausur" style="left:220px">5</div></div>
+</div>
+<div class="ad" data-c="K1" style="--hl:var(--fach-blue)">
+  <div class="eyebrow abs" style="left:72px;top:84px">Tag 6 – 7 · Feinschliff</div>
+  <h2 class="h abs" style="left:72px;top:190px;width:940px;font-size:118px">Dann kann die<br><span class="hl">Klausur kommen.</span></h2>
+  <p class="sub abs" style="left:72px;top:470px;width:900px">Lernzettel durchgehen, Selbsttest machen – und mit Sicherheit in die Klausur.</p>
+  <div class="abs" style="left:72px;top:690px;display:flex;gap:24px;align-items:center">
+    <span class="cta">14 Tage kostenlos testen</span>
+  </div>
+  <div class="brand" style="right:72px;top:68px"><i><img src="../../marketing/assets/img/logo-mark.svg" alt=""></i>Lesify</div>
+  <div class="rail"><div class="fill" style="right:auto;width:760px"></div><div class="d" style="left:220px">6</div><div class="d" style="left:460px">7</div><div class="flag" style="left:740px">Klausur</div></div>
+</div>
+
+<!-- ========== K2 · Nachhilfe vs. Lesify ========== -->
+<div class="ad dark" data-c="K2" style="--hl:var(--fach-rose)">
+  <div class="brand" style="left:72px;top:72px"><i><img src="../../marketing/assets/img/logo-mark.svg" alt=""></i>Lesify</div>
+  <div class="eyebrow abs" style="right:72px;top:96px">Nachhilfe vs. Lesify</div>
+  <h2 class="h abs" style="left:72px;top:300px;font-size:150px;line-height:.98">Was Nach&shy;hilfe<br><span class="hl">nicht kann.</span></h2>
+  <p class="sub abs" style="left:72px;top:660px;width:720px">Vier Punkte, an denen dein Kind den Unterschied im Alltag merkt.</p>
+  <div class="abs" style="right:72px;bottom:72px;width:120px;height:120px;border-radius:50%;background:#fff;display:grid;place-items:center"><span class="arrow-r" style="width:52px;height:52px"></span></div>
+</div>
+<div class="ad" data-c="K2" style="--hl:var(--fach-rose)">
+  <div class="num abs" style="left:66px;top:60px">01</div>
+  <h2 class="h abs" style="left:72px;top:250px;width:940px;font-size:80px">Fragen kommen nicht<br><span class="hl">dienstags um 16 Uhr.</span></h2>
+  <div class="paper abs" style="left:72px;right:72px;top:500px">
+    <div style="text-align:center;font:500 22px/1 var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-500);margin-bottom:22px">Sonntag, 21:47</div>
+    <div class="chat">
+      <div class="bub me">Ich check Brüche immer noch nicht – morgen ist die Arbeit.</div>
+      <div class="bub ai">Kein Problem. Stell dir eine Pizza in 8 Stücken vor: Du isst 3. Welcher Bruch ist das?</div>
+    </div>
+  </div>
+</div>
+<div class="ad" data-c="K2" style="--hl:var(--fach-rose)">
+  <div class="num abs" style="left:66px;top:60px">02</div>
+  <h2 class="h abs" style="left:72px;top:250px;font-size:80px">Kein Chauffieren.</h2>
+  <p class="sub abs" style="left:72px;top:350px;width:880px">Gelernt wird zu Hause – keine Fahrten, kein Termin-Tetris.</p>
+  <div class="abs" style="left:72px;right:72px;top:500px;bottom:72px;border-radius:40px;overflow:hidden">
+    <img class="photo" src="../../marketing/assets/img/lesi-mgs-nw-hero/69.jpg" alt="" style="inset:0;width:100%;height:100%;object-position:50% 62%">
+  </div>
+</div>
+<div class="ad" data-c="K2" style="--hl:var(--fach-rose)">
+  <div class="num abs" style="left:66px;top:60px">03</div>
+  <h2 class="h abs" style="left:72px;top:250px;font-size:80px">Kein <span class="hl">Stundensatz.</span></h2>
+  <div class="abs" style="left:72px;right:72px;top:420px;display:grid;grid-template-columns:1fr auto 1fr;align-items:stretch;gap:24px">
+    <div class="card" style="padding:56px 20px;text-align:center;box-shadow:none">
+      <div class="h" style="font-size:104px;white-space:nowrap;color:var(--ink-500)">1 Std.</div>
+      <div style="font-size:30px;color:var(--ink-600);margin-top:18px">Nachhilfe</div>
+    </div>
+    <div class="h" style="font-size:96px;color:var(--ink-400);align-self:center">=</div>
+    <div style="padding:56px 20px;text-align:center;border-radius:34px;background:var(--ink-950);color:#fff">
+      <div class="h" style="font-size:104px;white-space:nowrap">30 Tage</div>
+      <div style="font-size:30px;color:var(--ink-300);margin-top:18px">Lesify Premium</div>
+    </div>
+  </div>
+  <p class="sub abs" style="left:72px;top:790px;width:900px">Ein Monat Premium kostet so viel wie eine einzige Nachhilfestunde.</p>
+</div>
+<div class="ad" data-c="K2" style="--hl:var(--fach-rose)">
+  <div class="num abs" style="left:66px;top:60px">04</div>
+  <h2 class="h abs" style="left:72px;top:250px;width:940px;font-size:80px">Kein Streit ums Lernen.</h2>
+  <p class="sub abs" style="left:72px;top:350px;width:900px">Der Lernplan sagt, was heute dran ist – nicht du.</p>
+  <div class="card abs lg" style="left:72px;width:680px;top:470px">
+    <div class="card-h"><b>Heute dran</b><small>Tag 3 / 7</small></div>
+    <div class="rows">
+      <div class="row-i ok" style="justify-content:flex-start;color:var(--ink-500)">Fehler klären</div>
+      <div class="row-i todo" style="justify-content:flex-start">Übungsaufgaben</div>
+      <div class="row-i todo" style="justify-content:flex-start">Lernzettel ergänzen</div>
+    </div>
+  </div>
+  <span class="cta abs" style="right:72px;bottom:72px">14 Tage kostenlos</span>
+</div>
+
+<!-- ========== K3 · Feature-Tour (Device-Mockups) ========== -->
+<div class="ad" data-c="K3" style="--hl:var(--fach-teal)">
+  <div class="brand" style="left:72px;top:72px"><i><img src="../../marketing/assets/img/logo-mark.svg" alt=""></i>Lesify</div>
+  <h2 class="h abs" style="left:72px;top:190px;font-size:96px">Alles fürs Lernen.<br><span class="hl">An einem Ort.</span></h2>
+  <p class="sub abs" style="left:72px;top:410px;width:860px">Chats, Lernzettel, Dateien und Klausuren – sortiert nach Fach und Thema.</p>
+  <img class="dev" src="../../marketing/assets/img/images-fin/hero-3-orga.png" alt="" style="width:1300px;left:-110px;top:254px">
+</div>
+<div class="ad" data-c="K3" style="--hl:var(--fach-blue)">
+  <div class="eyebrow abs" style="left:72px;top:84px">01 · Lernplan</div>
+  <h2 class="h abs" style="left:72px;top:140px;width:940px;font-size:76px">7 Tage, 2 Testklausuren,<br><span class="hl">ein klarer Plan.</span></h2>
+  <img class="dev" src="../../marketing/assets/img/images-fin/section-kv-2.png" alt="" style="width:1400px;left:-160px;top:60px">
+</div>
+<div class="ad" data-c="K3" style="--hl:var(--fach-violet)">
+  <div class="eyebrow abs" style="left:72px;top:84px">02 · KI-Chat</div>
+  <h2 class="h abs" style="left:72px;top:140px;width:940px;font-size:76px">Erklärt Schritt für Schritt –<br><span class="hl">passend zur Klasse.</span></h2>
+  <img class="dev" src="../../marketing/assets/img/images-fin/section-chat.png" alt="" style="width:1300px;left:-110px;top:120px">
+</div>
+<div class="ad" data-c="K3" style="--hl:var(--fach-amber)">
+  <div class="eyebrow abs" style="left:72px;top:84px">03 · Lernzettel</div>
+  <h2 class="h abs" style="left:72px;top:140px;width:940px;font-size:76px">Der ganze Klausurstoff –<br><span class="hl">kompakt auf einem Zettel.</span></h2>
+  <img class="dev" src="../../marketing/assets/img/images-fin/section-lernzettel.png" alt="" style="width:1400px;left:-160px;top:60px">
+</div>
+<div class="ad" data-c="K3" style="--hl:var(--fach-rose)">
+  <div class="eyebrow abs" style="left:72px;top:84px">04 · Eltern-Zugang</div>
+  <h2 class="h abs" style="left:72px;top:140px;width:940px;font-size:76px">Immer im Bild – ohne über<br><span class="hl">die Schulter zu schauen.</span></h2>
+  <img class="dev" src="../../marketing/assets/img/images-fin/section-eltern-zugang.png" alt="" style="width:1300px;left:-110px;top:120px">
+  <span class="cta abs" style="right:72px;bottom:72px">14 Tage kostenlos</span>
+</div>
+
+<!-- ========== K4 · Fragen von Eltern ========== -->
+<div class="ad" data-c="K4" style="--hl:var(--fach-violet)">
+  <div class="brand" style="left:72px;top:72px"><i><img src="../../marketing/assets/img/logo-mark.svg" alt=""></i>Lesify</div>
+  <div class="abs" style="right:56px;top:20px;font:700 760px/1 var(--font-display);color:var(--ink-100);letter-spacing:-.06em">?</div>
+  <h2 class="h abs" style="left:72px;top:420px;width:820px;font-size:100px">4 Fragen, die sich Eltern <span class="hl">vor dem Start</span> stellen.</h2>
+  <div class="abs" style="left:72px;bottom:80px;display:flex;align-items:center;gap:16px;font:500 26px/1 var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-500)">Unsere ehrlichen Antworten <span class="arrow-r" style="opacity:.6"></span></div>
+</div>
+<div class="ad dark" data-c="K4" style="--hl:var(--fach-violet)">
+  <div class="eyebrow abs" style="left:72px;top:84px">Frage 1 / 4</div>
+  <h2 class="h abs" style="left:72px;top:170px;width:940px;font-size:84px">„Macht die KI dann einfach die Hausaufgaben?“</h2>
+  <div class="abs" style="left:72px;right:72px;top:560px;height:2px;background:var(--ink-800)"></div>
+  <div class="h abs" style="left:72px;top:620px;font-size:110px"><span class="hl">Nein.</span></div>
+  <p class="sub abs" style="left:72px;top:770px;width:900px;color:var(--ink-200)">Sie erklärt den Lösungsweg und stellt Rückfragen – statt nur das Ergebnis auszuspucken.</p>
+  <div class="brand" style="left:72px;bottom:72px;font-size:34px"><i style="width:56px;height:56px;border-radius:16px"><img src="../../marketing/assets/img/logo-mark.svg" alt="" style="width:34px;height:34px"></i>Lesify</div>
+</div>
+<div class="ad" data-c="K4" style="--hl:var(--fach-violet)">
+  <div class="eyebrow abs" style="left:72px;top:84px">Frage 2 / 4</div>
+  <h2 class="h abs" style="left:72px;top:170px;width:940px;font-size:84px">„Ab welcher Klasse lohnt sich das?“</h2>
+  <div class="abs" style="left:72px;right:72px;top:470px;height:2px;background:var(--ink-150)"></div>
+  <div class="h abs" style="left:72px;top:530px;font-size:110px"><span class="hl">Ab Klasse 5.</span></div>
+  <p class="sub abs" style="left:72px;top:680px;width:900px">Die KI passt ihre Erklärungen automatisch an die Klassenstufe an – von Bruchrechnung bis Abi-Stoff.</p>
+  <div class="brand" style="left:72px;bottom:72px;font-size:34px"><i style="width:56px;height:56px;border-radius:16px"><img src="../../marketing/assets/img/logo-mark.svg" alt="" style="width:34px;height:34px"></i>Lesify</div>
+</div>
+<div class="ad dark" data-c="K4" style="--hl:var(--fach-violet)">
+  <div class="eyebrow abs" style="left:72px;top:84px">Frage 3 / 4</div>
+  <h2 class="h abs" style="left:72px;top:170px;width:940px;font-size:84px">„Wo landen die Daten meines Kindes?“</h2>
+  <div class="abs" style="left:72px;right:72px;top:470px;height:2px;background:var(--ink-800)"></div>
+  <div class="h abs" style="left:72px;top:530px;font-size:110px"><span class="hl">In der EU.</span></div>
+  <p class="sub abs" style="left:72px;top:680px;width:900px;color:var(--ink-200)">Konto- und Lerndaten liegen auf Servern in der EU. Jede Familie sieht nur ihre eigenen Inhalte.</p>
+  <div class="brand" style="left:72px;bottom:72px;font-size:34px"><i style="width:56px;height:56px;border-radius:16px"><img src="../../marketing/assets/img/logo-mark.svg" alt="" style="width:34px;height:34px"></i>Lesify</div>
+</div>
+<div class="ad" data-c="K4" style="--hl:var(--fach-violet)">
+  <div class="eyebrow abs" style="left:72px;top:84px">Frage 4 / 4</div>
+  <h2 class="h abs" style="left:72px;top:170px;width:940px;font-size:84px">„Und wenn es nicht passt?“</h2>
+  <div class="abs" style="left:72px;right:72px;top:380px;height:2px;background:var(--ink-150)"></div>
+  <div class="h abs" style="left:72px;top:440px;font-size:96px"><span class="hl">Monatlich kündbar.</span></div>
+  <p class="sub abs" style="left:72px;top:590px;width:900px">Erst 14 Tage kostenlos testen. Danach entscheidest du – jeden Monat neu.</p>
+  <div class="brand" style="left:72px;bottom:72px"><i><img src="../../marketing/assets/img/logo-mark.svg" alt=""></i>Lesify</div>
+  <span class="cta abs" style="right:72px;bottom:72px">Jetzt testen</span>
+</div>
+
+<!-- ========== K5 · Vom Hefter-Chaos zum Lernzettel ========== -->
+<div class="ad" data-c="K5" style="--hl:var(--fach-amber)">
+  <div class="sheet" style="--c:var(--fach-blue);left:96px;top:120px;transform:rotate(-8deg)"><b>Heft S. 12–19</b><u></u><u></u><u></u><u></u><u></u></div>
+  <div class="sheet" style="--c:var(--fach-amber);left:420px;top:70px;transform:rotate(5deg)"><b>Arbeitsblatt 4</b><u></u><u></u><u></u><u></u></div>
+  <div class="sheet" style="--c:var(--fach-teal);left:690px;top:200px;transform:rotate(-4deg)"><b>Tafelbild.jpg</b><u></u><u></u><u></u></div>
+  <div class="sheet" style="--c:var(--fach-rose);left:250px;top:330px;transform:rotate(3deg)"><b>Hausaufgabe 3b</b><u></u><u></u><u></u><u></u></div>
+  <div class="sheet" style="--c:var(--fach-violet);left:580px;top:440px;transform:rotate(-10deg)"><b>Skript_Zinsen.pdf</b><u></u><u></u><u></u><u></u></div>
+  <div class="eyebrow abs" style="left:72px;top:770px">Vorher</div>
+  <h2 class="h abs" style="left:72px;top:820px;font-size:92px">Klausurstoff <span class="hl">überall</span> verteilt?</h2>
+</div>
+<div class="ad" data-c="K5" style="--hl:var(--fach-amber)">
+  <div class="eyebrow abs" style="left:72px;top:84px">Nachher</div>
+  <h2 class="h abs" style="left:72px;top:138px;font-size:92px">Ein Lernzettel. <span class="hl">Alles drin.</span></h2>
+  <div class="doc abs" style="left:150px;right:150px;top:310px;height:860px">
+    <span class="tag">Mathematik · Zinsrechnung</span>
+    <h4>Lernzettel: Zinsen &amp; Zinseszins</h4>
+    <h5>Formeln</h5>
+    <div class="f"><i>Jahreszinsen</i>Z = K · p / 100</div>
+    <div class="f"><i>Zinseszins nach n Jahren</i>Kₙ = K₀ · (1 + p/100)ⁿ</div>
+    <h5>Beispiel</h5>
+    <div class="f">500 € zu 2 % → Z = 500 · 2 / 100 = <b>10 €</b></div>
+    <h5>Typischer Fehler</h5>
+    <p>p ist der Zinssatz in Prozent – erst durch 100 teilen.</p>
+  </div>
+</div>
+<div class="ad" data-c="K5" style="--hl:var(--fach-amber)">
+  <div class="eyebrow abs" style="left:72px;top:84px">Wächst mit</div>
+  <h2 class="h abs" style="left:72px;top:138px;width:940px;font-size:80px">Jeder Lerntag ergänzt, <span class="hl">was noch wackelt.</span></h2>
+  <div class="doc abs" style="left:150px;right:150px;top:360px;height:800px">
+    <h5 style="margin-top:0">Formeln</h5>
+    <div class="f"><i>Jahreszinsen</i>Z = K · p / 100</div>
+    <div class="new">
+      <h5>+ Neu aus Tag 4</h5>
+      <div class="f" style="background:#fff"><i>Tageszinsen</i>Z = K · p · t / (100 · 360)</div>
+      <p>t = Anzahl der Tage. Ein Bankjahr hat 360 Tage.</p>
+    </div>
+  </div>
+</div>
+<div class="ad" data-c="K5" style="--hl:var(--fach-amber)">
+  <div class="eyebrow abs" style="left:72px;top:84px">Per Chat anpassbar</div>
+  <h2 class="h abs" style="left:72px;top:138px;width:940px;font-size:80px">Fehlt was? <span class="hl">Einfach sagen.</span></h2>
+  <img class="dev" src="../../marketing/assets/img/images-fin/hero-4-lernzettel.png" alt="" style="width:1240px;left:-80px;top:220px">
+  <div class="paper abs" style="right:72px;top:330px;width:560px"><div class="chat"><div class="bub me" style="font-size:29px;max-width:560px;box-shadow:0 30px 60px -30px rgba(16,18,20,.5)">Pack noch ein Beispiel zum Zinseszins dazu.</div></div></div>
+  <span class="cta abs" style="right:72px;bottom:72px">14 Tage kostenlos</span>
+</div>
+
+</div><!-- /#src -->
+
+<script>
+/* Anzeigentexte je Creative (für den Werbeanzeigenmanager) */
+var CREATIVES = [
+  { id:'E1', type:'single', name:'Preisvergleich', idee:'Rationaler Preisanker: 1 Std. Nachhilfe = 30 Tage Lesify.',
+    text:'Eine Stunde Nachhilfe kostet so viel wie ein ganzer Monat Lesify Premium.\n\nDer Unterschied: Lesify ist nicht nur dienstags um 16 Uhr da, sondern immer dann, wenn dein Kind eine Frage hat – mit Lernplan, Lernzetteln und Testklausuren vor jeder Klausur.\n\n14 Tage kostenlos testen, danach monatlich kündbar.',
+    cards:[{ hd:'30 Tage Lesify statt 1 Stunde Nachhilfe', ds:'14 Tage kostenlos testen', btn:'Registrieren' }] },
+  { id:'E2', type:'single', name:'Kernversprechen', idee:'Website-Hero als Anzeige – sicherer Start für Kaltpublikum.',
+    text:'Weniger Prüfungsstress und bessere Noten – ohne teure Nachhilfe. 📚\n\nDein Kind lernt selbstständig zu Hause: mit festem Lernplan vor jeder Klausur und einer KI, die rund um die Uhr erklärt. Für Schüler ab Klasse 5.',
+    cards:[{ hd:'Lesify – KI-Lernapp ab Klasse 5', ds:'14 Tage kostenlos · monatlich kündbar', btn:'Mehr dazu' }] },
+  { id:'E3', type:'single', name:'Erklärt statt vorsagt', idee:'Einwand „KI = Schummeln“ direkt im Motiv entkräften. Dunkel = fällt im Feed auf.',
+    text:'„Sag mir einfach die Lösung.“ – kennst du? 😅\n\nLesify macht keine Hausaufgaben fertig. Die KI erklärt den Lösungsweg, stellt Rückfragen und bleibt dran, bis es wirklich sitzt.',
+    cards:[{ hd:'Die KI, die erklärt statt vorsagt', ds:'Für Schüler ab Klasse 5', btn:'Mehr dazu' }] },
+  { id:'E4', type:'single', name:'Lücken finden', idee:'Produkt-Mechanik (Testklausur + Ampel) als Nutzenversprechen.',
+    text:'Eine Woche vor der Klausur zeigt Testklausur 1, welche Themen sitzen – und welche nicht.\n\nDanach übt dein Kind gezielt genau das, was noch wackelt. Strukturiert statt planlos büffeln.',
+    cards:[{ hd:'Lücken finden, bevor die Klausur es tut', ds:'14 Tage kostenlos testen', btn:'Registrieren' }] },
+  { id:'E5', type:'single', name:'Eltern im Bild', idee:'Emotional, Foto-basiert, adressiert Eltern: Selbstständigkeit + Kontrolle ohne Kontrollieren.',
+    text:'Kein Daneben-Sitzen, kein Streit ums Lernen: Dein Kind bereitet sich selbstständig mit Lesify auf die Klausur vor.\n\nÜber den Eltern-Zugang siehst du trotzdem jederzeit, wie es läuft.',
+    cards:[{ hd:'Selbstständig lernen – du bleibst im Bild', ds:'14 Tage kostenlos testen', btn:'Mehr dazu' }] },
+
+  { id:'K1', type:'carousel', name:'7-Tage-Lernplan', idee:'Durchgehende Zeitleiste über alle Karten – wischen = Tage vorspulen.',
+    text:'Klausur in 7 Tagen? So bereitet Lesify dein Kind Schritt für Schritt vor: zwei Testklausuren, gezielte Lerntage und ein Lernzettel, der mitwächst. 👉',
+    cards:[
+      { hd:'Der 7-Tage-Lernplan', ds:'Vor jeder Klausur', btn:'Mehr dazu' },
+      { hd:'Tag 1: Testklausur 1', ds:'Zeigt, was sitzt', btn:'Mehr dazu' },
+      { hd:'Tag 2–4: Lücken schließen', ds:'Üben, was wackelt', btn:'Mehr dazu' },
+      { hd:'Tag 5: Testklausur 2', ds:'Fortschritt sichtbar', btn:'Mehr dazu' },
+      { hd:'14 Tage kostenlos testen', ds:'Monatlich kündbar', btn:'Registrieren' } ] },
+  { id:'K2', type:'carousel', name:'Nachhilfe vs. Lesify', idee:'Problem-Agitation: vier Alltags-Schmerzpunkte der Nachhilfe.',
+    text:'Nachhilfe ist teuer, an feste Termine gebunden – und nicht da, wenn die Frage kommt. Lesify schon. Punkt für Punkt: 👉',
+    cards:[
+      { hd:'Was Nachhilfe nicht kann', ds:'4 Punkte im Vergleich', btn:'Mehr dazu' },
+      { hd:'Hilfe rund um die Uhr', ds:'Auch Sonntagabend', btn:'Mehr dazu' },
+      { hd:'Lernen zu Hause', ds:'Keine Fahrten', btn:'Mehr dazu' },
+      { hd:'30 Tage = 1 Nachhilfestunde', ds:'Lesify Premium', btn:'Mehr dazu' },
+      { hd:'Jetzt 14 Tage kostenlos', ds:'Monatlich kündbar', btn:'Registrieren' } ] },
+  { id:'K3', type:'carousel', name:'Feature-Tour', idee:'Echte App-Screens als Produktbeweis – für Retargeting / warmes Publikum.',
+    text:'Lernplan, KI-Chat, Lernzettel und Eltern-Zugang: Lesify bündelt alles, was dein Kind für die nächste Klausur braucht – an einem Ort.',
+    cards:[
+      { hd:'Alles an einem Ort', ds:'Sortiert nach Fach & Thema', btn:'Mehr dazu' },
+      { hd:'Lernplan', ds:'7 Tage, 2 Testklausuren', btn:'Mehr dazu' },
+      { hd:'KI-Chat', ds:'Erklärt Schritt für Schritt', btn:'Mehr dazu' },
+      { hd:'Lernzettel', ds:'Automatisch zusammengefasst', btn:'Mehr dazu' },
+      { hd:'Eltern-Zugang', ds:'14 Tage kostenlos testen', btn:'Registrieren' } ] },
+  { id:'K4', type:'carousel', name:'Fragen von Eltern', idee:'Einwandbehandlung (FAQ) als Karussell – Hausaufgaben, Alter, Datenschutz, Kündigung.',
+    text:'Bevor Eltern mit Lesify starten, haben sie meist dieselben Fragen. Hier sind unsere ehrlichen Antworten. 👇',
+    cards:[
+      { hd:'4 Fragen vor dem Start', ds:'Ehrlich beantwortet', btn:'Mehr dazu' },
+      { hd:'Macht die KI die Hausaufgaben?', ds:'Nein – sie erklärt', btn:'Mehr dazu' },
+      { hd:'Ab welcher Klasse?', ds:'Ab Klasse 5', btn:'Mehr dazu' },
+      { hd:'Wo liegen die Daten?', ds:'Auf Servern in der EU', btn:'Mehr dazu' },
+      { hd:'14 Tage kostenlos testen', ds:'Monatlich kündbar', btn:'Registrieren' } ] },
+  { id:'K5', type:'carousel', name:'Chaos → Lernzettel', idee:'Vorher/Nachher – visuell einfach, zeigt den Lernzettel als greifbares Ergebnis.',
+    text:'Hefteinträge, Arbeitsblätter, Fotos vom Tafelbild … Lesify macht daraus einen einzigen Lernzettel – kompakt, verständlich und per Chat anpassbar.',
+    cards:[
+      { hd:'Klausurstoff überall verteilt?', ds:'Kennt jede Familie', btn:'Mehr dazu' },
+      { hd:'Ein Lernzettel. Alles drin.', ds:'Automatisch erstellt', btn:'Mehr dazu' },
+      { hd:'Wächst mit jedem Lerntag', ds:'Ergänzt, was wackelt', btn:'Mehr dazu' },
+      { hd:'Per Chat anpassbar', ds:'14 Tage kostenlos testen', btn:'Registrieren' } ] }
+];
+
+(function () {
+  var src = document.getElementById('src');
+  var slidesOf = function (id) { return [].slice.call(src.querySelectorAll('.ad[data-c="' + id + '"]')); };
+  var qs = new URLSearchParams(location.search);
+
+  // Dateinamen für den Export
+  CREATIVES.forEach(function (c) {
+    slidesOf(c.id).forEach(function (el, i, all) {
+      el.dataset.file = 'lesify-' + c.id + (all.length > 1 ? '-' + (i + 1) : '') + '.png';
+    });
+  });
+
+  // ---- Export-Ansicht: unskaliert, ein .ad pro Datei ----
+  if (qs.has('export')) {
+    document.body.classList.add('export');
+    var only = qs.get('export'), n = qs.get('n');
+    var root = document.getElementById('exportRoot');
+    if (n) document.body.classList.add('single');
+    CREATIVES.forEach(function (c) {
+      if (only && only !== c.id) return;
+      slidesOf(c.id).forEach(function (el, i) {
+        if (n && +n !== i + 1) return;
+        if (!n) { var lbl = document.createElement('div'); lbl.className = 'lbl'; lbl.textContent = el.dataset.file; root.appendChild(lbl); }
+        root.appendChild(el.cloneNode(true));
+      });
+    });
+    return;
+  }
+
+  var wraps = [];
+  function wrap(el) {
+    var w = document.createElement('div'); w.className = 'ad-wrap';
+    w.appendChild(el.cloneNode(true)); wraps.push(w); return w;
+  }
+  function esc(s) { return s.replace(/[&<>]/g, function (m) { return { '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m]; }); }
+  var logo = '../../marketing/assets/img/logo-mark.svg';
+
+  // ---- Feed-Vorschau ----
+  var feed = document.getElementById('feed');
+  CREATIVES.forEach(function (c) {
+    var slides = slidesOf(c.id);
+    var pw = document.createElement('div'); pw.className = 'post-wrap'; pw.dataset.type = c.type;
+    pw.innerHTML = '<div class="tag"><span>' + c.id + ' · ' + (c.type === 'single' ? 'Einzelbild' : 'Karussell, ' + slides.length + ' Karten') + '</span><span>' + esc(c.name) + '</span></div>' +
+      '<article class="post"><div class="post-h"><span class="av"><img src="' + logo + '" alt=""></span><div><b>Lesify</b><small>Gesponsert · 🌐</small></div><span class="dots">···</span></div>' +
+      '<div class="post-t">' + esc(c.text) + '</div><div class="media"></div>' +
+      '<div class="post-r"><span>👍 Gefällt mir</span><span>💬 Kommentieren</span><span>↗ Teilen</span></div></article>';
+    var media = pw.querySelector('.media');
+    if (c.type === 'single') {
+      media.appendChild(wrap(slides[0]));
+      var f = document.createElement('div'); f.className = 'post-f';
+      f.innerHTML = '<div class="meta"><div class="dom">lesify.de</div><div class="hd">' + esc(c.cards[0].hd) + '</div><div class="ds">' + esc(c.cards[0].ds) + '</div></div><button class="fb-btn">' + c.cards[0].btn + '</button>';
+      media.appendChild(f);
+    } else {
+      var car = document.createElement('div'); car.className = 'car';
+      var track = document.createElement('div'); track.className = 'car-track';
+      slides.forEach(function (s, i) {
+        var cd = c.cards[i] || c.cards[c.cards.length - 1];
+        var card = document.createElement('div'); card.className = 'car-card';
+        card.appendChild(wrap(s));
+        var f = document.createElement('div'); f.className = 'post-f';
+        f.innerHTML = '<div class="meta"><div class="hd">' + esc(cd.hd) + '</div><div class="ds">' + esc(cd.ds) + '</div></div><button class="fb-btn">' + cd.btn + '</button>';
+        card.appendChild(f); track.appendChild(card);
+      });
+      var prev = document.createElement('button'); prev.className = 'car-nav prev'; prev.textContent = '‹'; prev.setAttribute('aria-label', 'Zurück');
+      var next = document.createElement('button'); next.className = 'car-nav next'; next.textContent = '›'; next.setAttribute('aria-label', 'Weiter');
+      var step = function (d) { track.scrollBy({ left: d * (track.firstChild.offsetWidth + 10), behavior: 'smooth' }); };
+      prev.onclick = function () { step(-1); }; next.onclick = function () { step(1); };
+      car.appendChild(prev); car.appendChild(track); car.appendChild(next);
+      media.appendChild(car);
+    }
+    feed.appendChild(pw);
+  });
+
+  // ---- Motiv-Ansicht ----
+  var grid = document.getElementById('grid');
+  CREATIVES.forEach(function (c) {
+    var sec = document.createElement('section'); sec.dataset.type = c.type;
+    sec.innerHTML = '<h2>' + c.id + ' · ' + esc(c.name) + '</h2><p>' + esc(c.idee) + '</p><div class="row"></div>';
+    var row = sec.querySelector('.row');
+    slidesOf(c.id).forEach(function (s) {
+      var cell = document.createElement('div'); cell.className = 'cell';
+      cell.appendChild(wrap(s));
+      var sm = document.createElement('small'); sm.textContent = s.dataset.file; cell.appendChild(sm);
+      row.appendChild(cell);
+    });
+    grid.appendChild(sec);
+  });
+
+  // ---- Skalierung ----
+  var ro = new ResizeObserver(function (entries) {
+    entries.forEach(function (e) { e.target.style.setProperty('--k', e.contentRect.width / 1080); });
+  });
+  wraps.forEach(function (w) { ro.observe(w); });
+
+  // ---- Toolbar ----
+  var view = qs.get('view') === 'motive' ? 'motive' : 'feed', filter = 'all';
+  function apply() {
+    feed.hidden = view !== 'feed'; grid.hidden = view !== 'motive';
+    [].forEach.call(document.querySelectorAll('[data-type]'), function (n) {
+      n.style.display = (filter === 'all' || n.dataset.type === filter) ? '' : 'none';
+    });
+    [].forEach.call(document.querySelectorAll('[data-view]'), function (b) { b.setAttribute('aria-pressed', b.dataset.view === view); });
+    [].forEach.call(document.querySelectorAll('[data-filter]'), function (b) { b.setAttribute('aria-pressed', b.dataset.filter === filter); });
+  }
+  document.querySelector('.toolbar').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.view) view = b.dataset.view;
+    if (b.dataset.filter) filter = b.dataset.filter;
+    apply();
+  });
+  apply();
+})();
+</script>
+</body>
+</html>

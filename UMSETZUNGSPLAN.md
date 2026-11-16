@@ -5002,12 +5002,13 @@ Kritisch, weil Zielgruppe minderjährig ist.
       Startbudget, Pflege).
   - [ ] **Jannik:** Liste im Keyword-Planer auf Suchvolumen/CPC prüfen, Kampagnen
         im Google Ads Editor importieren, Ausschlussliste zuweisen, Anzeigen texten.
-- [~] **Meta-Anzeigen (Facebook/Instagram)** (2026-11-16): 10 Karussells 1:1 in
-      `Konzept-texts/meta-ads/` — K1–K10 mit je 4–5 Karten (Entscheidung Jannik
-      2026-11-16: nur Karussells, um möglichst viel zu erklären; Einzelbilder
-      verworfen),
-      als HTML-Vorschau (`creatives.html`, Feed-Ansicht mit Primärtext/
-      Überschrift/Button) und per `export.sh` als 1080×1080-PNGs exportierbar.
+- [~] **Meta-Anzeigen (Facebook/Instagram)** (2026-11-16): 9 Karussells 1:1 in
+      `Konzept-texts/meta-ads/` — 3 Verkaufs-Angles × 3 Karussells: Lesify vs.
+      Nachhilfe (N1–N3), Lernplan & Klausurvorbereitung (L1–L3), Features
+      (F1–F3) (Entscheidung Jannik 2026-11-16: nur Karussells, nur diese 3
+      Angles; Einzelbilder, Eltern-Zugang- und Elternfragen-Karussell
+      gestrichen). HTML-Vorschau `creatives.html` (Feed-Ansicht mit
+      Primärtext/Überschrift/Button), PNG-Export per `export.sh`.
   - [ ] **Jannik:** Motive + Texte freigeben, PNGs exportieren, im
         Werbeanzeigenmanager Kampagne anlegen (Pixel-Event `Purchase`/`StartTrial`).
 

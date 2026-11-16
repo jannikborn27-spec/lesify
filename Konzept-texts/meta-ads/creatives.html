@@ -5,8 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lesify Meta-Creatives</title>
 <!--
-  Lesify — 10 Facebook-/Instagram-Karussellanzeigen (1:1), Entwurf 2026-11-16.
-  K1–K10, je 4–5 Karten (Einzelbilder am 2026-11-16 durch K6–K10 ersetzt).
+  Lesify — 9 Facebook-/Instagram-Karussellanzeigen (1:1), Entwurf 2026-11-16.
+  3 Angles × 3 Karussells: N1–N3 Nachhilfe-Vergleich, L1–L3 Lernplan/
+  Klausurvorbereitung, F1–F3 Features.
 
   Jedes Motiv ist ein natives 1080×1080-px-Element (.ad[data-id]) und wird für
   die Vorschau nur herunterskaliert. Ansichten:
@@ -15,8 +16,8 @@
     creatives.html?export       alle Motive unskaliert untereinander (für den
                                 späteren PNG-Export: jedes .ad = 1 Datei,
                                 Dateiname steht in data-file)
-    creatives.html?export=K1    nur ein Creative exportieren
-    creatives.html?export=K1&n=3  genau eine Karte, randlos bei 0/0 —
+    creatives.html?export=L1    nur ein Creative exportieren
+    creatives.html?export=L1&n=3  genau eine Karte, randlos bei 0/0 —
                                 Screenshot mit Fenster 1080×1080 = fertiges PNG
                                 (siehe export.sh)
   Bilder/Fonts kommen direkt aus marketing/assets — Datei im Repo lassen,
@@ -54,6 +55,9 @@ body { background:#e9edf0; color:var(--ink-950); font-family:var(--font-body); -
 .toolbar .sep { width:1px; background:var(--ink-200); margin:0 6px; }
 
 .feed { max-width:1180px; margin:0 auto; padding:24px 24px 80px; display:grid; grid-template-columns:repeat(auto-fill,minmax(440px,1fr)); gap:28px; align-items:start; }
+.angle { grid-column:1/-1; margin-top:28px; font:600 26px/1.15 var(--font-display); letter-spacing:-.02em; padding-bottom:10px; border-bottom:1px solid var(--ink-200); }
+.angle small { font:500 13px/1 var(--font-mono); letter-spacing:.08em; text-transform:uppercase; color:var(--ink-500); margin-left:10px; }
+.feed > .angle:first-child { margin-top:0; }
 .post-wrap .tag { font:500 12px/1 var(--font-mono); letter-spacing:.08em; text-transform:uppercase; color:var(--ink-500); margin:0 4px 10px; display:flex; justify-content:space-between; gap:12px; }
 .post { background:#fff; border-radius:12px; box-shadow:0 1px 2px rgba(0,0,0,.08), 0 8px 24px -12px rgba(0,0,0,.15); overflow:hidden; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif; color:#050505; }
 .post-h { display:flex; gap:10px; align-items:center; padding:12px 16px 8px; }
@@ -241,6 +245,21 @@ body.export #exportRoot .lbl { font:500 18px/1 var(--font-mono); color:#fff; mar
 .steps div:nth-child(1) span, .steps div:nth-child(5) span { background:var(--hl); color:#fff; }
 .num + .eyebrow { line-height:1; }
 
+/* Split-Vergleich (N3) */
+.vs2 { display:flex; flex-direction:column; gap:24px; }
+.side { border-radius:34px; padding:50px 52px 58px; }
+.side.a { background:var(--ink-950); color:#fff; box-shadow:0 44px 90px -40px rgba(16,18,20,.5); }
+.side.b { background:#fff; border:2px solid var(--ink-150); color:var(--ink-600); }
+.side .lab { display:flex; align-items:center; gap:14px; font:500 22px/1 var(--font-mono); letter-spacing:.12em; text-transform:uppercase; color:var(--ink-500); margin-bottom:30px; }
+.side.a .lab { color:var(--ink-300); }
+.side .lab i { width:40px; height:40px; border-radius:12px; background:#fff; display:grid; place-items:center; }
+.side .lab i img { width:26px; height:26px; }
+.side p { display:flex; gap:22px; align-items:flex-start; font:600 48px/1.22 var(--font-display); letter-spacing:-.02em; }
+.side.b p { font-weight:500; font-size:40px; }
+.side p::before { width:44px !important; height:44px !important; margin-top:6px; }
+.chip.plain { padding:16px 26px; }
+.chip.plain::before { display:none; }
+
 /* Papierstapel „vorher" */
 .sheet { position:absolute; width:340px; background:#fff; border-radius:18px; border:2px solid var(--ink-150); box-shadow:0 30px 60px -30px rgba(16,18,20,.35); padding:26px 28px 30px; }
 .sheet b { display:block; font:600 27px/1.2 var(--font-display); letter-spacing:-.01em; margin-bottom:18px; }
@@ -253,7 +272,7 @@ body.export #exportRoot .lbl { font:500 18px/1 var(--font-mono); color:#fff; mar
 
 <header class="page-head">
   <h1>Lesify — Meta-Anzeigen, Entwurf</h1>
-  <p>10 Karussell-Anzeigen im Format 1:1 (1080 × 1080 px), K1–K10 mit je 4–5 Karten. Texte über und unter den Motiven sind die Vorschläge für Primärtext, Überschrift und Button im Werbeanzeigenmanager.</p>
+  <p>9 Karussell-Anzeigen im Format 1:1 (1080 × 1080 px), je 3 pro Verkaufs-Angle: Lesify vs. Nachhilfe (N1–N3), Lernplan &amp; Klausurvorbereitung (L1–L3), Features (F1–F3). Texte über und unter den Motiven sind die Vorschläge für Primärtext, Überschrift und Button im Werbeanzeigenmanager.</p>
   <div class="toolbar" role="toolbar">
     <button data-view="feed" aria-pressed="true">Feed-Vorschau</button>
     <button data-view="motive" aria-pressed="false">Alle Motive</button>
@@ -268,71 +287,15 @@ body.export #exportRoot .lbl { font:500 18px/1 var(--font-mono); color:#fff; mar
      ================================================================== -->
 <div id="src">
 
-<!-- ========== K1 · 7-Tage-Lernplan (durchgehende Zeitleiste) ========== -->
-<div class="ad" data-c="K1" style="--hl:var(--fach-blue)">
-  <div class="brand" style="left:72px;top:72px"><i><img src="../../marketing/assets/img/logo-mark.svg" alt=""></i>Lesify</div>
-  <h2 class="h abs" style="left:72px;top:250px;font-size:128px">Klausur in<br>7 Tagen?<br><span class="hl">Hier ist der Plan.</span></h2>
-  <div class="abs" style="left:72px;top:720px;display:flex;align-items:center;gap:16px;font:500 26px/1 var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-500)">Wisch dich durch <span class="arrow-r" style="opacity:.6"></span></div>
-  <div class="rail"><div class="fill" style="left:72px;right:0"></div><div class="d on" style="left:72px;width:24px;height:24px;margin-left:-12px;top:-10px;border-width:0;background:var(--ink-950)"></div></div>
-</div>
-<div class="ad" data-c="K1" style="--hl:var(--fach-blue)">
-  <div class="eyebrow abs" style="left:72px;top:84px">Tag 1 · Testklausur 1</div>
-  <h2 class="h abs" style="left:72px;top:138px;width:940px;font-size:80px">Zeigt, was sitzt –<br><span class="hl">und was nicht.</span></h2>
-  <div class="card abs rows lg" style="left:72px;right:72px;top:350px">
-    <div class="card-h"><b>Auswertung · alle Themen</b><small>Mathe</small></div>
-    <div class="row-i">Satz des Pythagoras <span class="pill p-stark">stark</span></div>
-    <div class="row-i">Terme vereinfachen <span class="pill p-wack">wackelig</span></div>
-    <div class="row-i">Zinsrechnung <span class="pill p-schwach">schwach</span></div>
-    <div class="card-f"><span class="arrow-r"></span>Daraus entsteht der Plan für Tag 2–7</div>
-  </div>
-  <div class="rail"><div class="fill"></div><div class="d on tk" data-l="Testklausur" style="left:220px">1</div></div>
-</div>
-<div class="ad" data-c="K1" style="--hl:var(--fach-blue)">
-  <div class="eyebrow abs" style="left:72px;top:84px">Tag 2 – 4 · Lerntage</div>
-  <h2 class="h abs" style="left:72px;top:138px;width:940px;font-size:80px">Genau die Themen üben,<br><span class="hl">die noch wackeln.</span></h2>
-  <div class="card abs lg" style="left:72px;right:72px;top:350px">
-    <div class="card-h"><b>Heute · Tag 3</b><small>2 von 4 erledigt</small></div>
-    <div style="height:10px;margin:0 44px 26px;border-radius:6px;background:var(--ink-100)"><div style="width:50%;height:100%;border-radius:6px;background:var(--fach-blue)"></div></div>
-    <div class="rows">
-      <div class="row-i ok" style="justify-content:flex-start;color:var(--ink-500)">Fehler klären: Zinsrechnung</div>
-      <div class="row-i ok" style="justify-content:flex-start;color:var(--ink-500)">Beispiel dazu durchgehen</div>
-      <div class="row-i todo" style="justify-content:flex-start">5 Übungsaufgaben</div>
-      <div class="row-i todo" style="justify-content:flex-start">Lernzettel ergänzen</div>
-    </div>
-  </div>
-  <div class="rail"><div class="fill"></div><div class="d" style="left:220px">2</div><div class="d on" style="left:460px">3</div><div class="d" style="left:700px">4</div></div>
-</div>
-<div class="ad" data-c="K1" style="--hl:var(--fach-blue)">
-  <div class="eyebrow abs" style="left:72px;top:84px">Tag 5 · Testklausur 2</div>
-  <h2 class="h abs" style="left:72px;top:138px;width:940px;font-size:80px">Nochmal testen –<br><span class="hl">nur, was gewackelt hat.</span></h2>
-  <div class="card abs rows lg" style="left:72px;right:72px;top:350px">
-    <div class="card-h"><b>Vorher → nachher</b><small>Tag 1 vs. Tag 5</small></div>
-    <div class="row-i">Terme vereinfachen <span style="display:flex;gap:12px;align-items:center"><span class="pill p-wack p-ghost">wackelig</span><span class="arrow-r" style="opacity:.5"></span><span class="pill p-stark">stark</span></span></div>
-    <div class="row-i">Zinsrechnung <span style="display:flex;gap:12px;align-items:center"><span class="pill p-schwach p-ghost">schwach</span><span class="arrow-r" style="opacity:.5"></span><span class="pill p-stark">stark</span></span></div>
-    <div class="card-f">Pythagoras saß schon an Tag 1 – <b>wird nicht nochmal getestet.</b></div>
-  </div>
-  <div class="rail"><div class="fill"></div><div class="d on tk" data-l="Testklausur" style="left:220px">5</div></div>
-</div>
-<div class="ad" data-c="K1" style="--hl:var(--fach-blue)">
-  <div class="eyebrow abs" style="left:72px;top:84px">Tag 6 – 7 · Feinschliff</div>
-  <h2 class="h abs" style="left:72px;top:190px;width:940px;font-size:118px">Dann kann die<br><span class="hl">Klausur kommen.</span></h2>
-  <p class="sub abs" style="left:72px;top:470px;width:900px">Lernzettel durchgehen, Selbsttest machen – und mit Sicherheit in die Klausur.</p>
-  <div class="abs" style="left:72px;top:690px;display:flex;gap:24px;align-items:center">
-    <span class="cta">14 Tage kostenlos testen</span>
-  </div>
-  <div class="brand" style="right:72px;top:68px"><i><img src="../../marketing/assets/img/logo-mark.svg" alt=""></i>Lesify</div>
-  <div class="rail"><div class="fill" style="right:auto;width:760px"></div><div class="d" style="left:220px">6</div><div class="d" style="left:460px">7</div><div class="flag" style="left:740px">Klausur</div></div>
-</div>
-
-<!-- ========== K2 · Nachhilfe vs. Lesify ========== -->
-<div class="ad dark" data-c="K2" style="--hl:var(--fach-rose)">
+<!-- ========== N1 · Nachhilfe vs. Lesify ========== -->
+<div class="ad dark" data-c="N1" style="--hl:var(--fach-rose)">
   <div class="brand" style="left:72px;top:72px"><i><img src="../../marketing/assets/img/logo-mark.svg" alt=""></i>Lesify</div>
   <div class="eyebrow abs" style="right:72px;top:96px">Nachhilfe vs. Lesify</div>
   <h2 class="h abs" style="left:72px;top:300px;font-size:150px;line-height:.98">Was Nach&shy;hilfe<br><span class="hl">nicht kann.</span></h2>
   <p class="sub abs" style="left:72px;top:660px;width:720px">Vier Punkte, an denen dein Kind den Unterschied im Alltag merkt.</p>
   <div class="abs" style="right:72px;bottom:72px;width:120px;height:120px;border-radius:50%;background:#fff;display:grid;place-items:center"><span class="arrow-r" style="width:52px;height:52px"></span></div>
 </div>
-<div class="ad" data-c="K2" style="--hl:var(--fach-rose)">
+<div class="ad" data-c="N1" style="--hl:var(--fach-rose)">
   <div class="num abs" style="left:66px;top:60px">01</div>
   <h2 class="h abs" style="left:72px;top:250px;width:940px;font-size:80px">Fragen kommen nicht<br><span class="hl">dienstags um 16 Uhr.</span></h2>
   <div class="paper abs" style="left:72px;right:72px;top:500px">
@@ -343,7 +306,7 @@ body.export #exportRoot .lbl { font:500 18px/1 var(--font-mono); color:#fff; mar
     </div>
   </div>
 </div>
-<div class="ad" data-c="K2" style="--hl:var(--fach-rose)">
+<div class="ad" data-c="N1" style="--hl:var(--fach-rose)">
   <div class="num abs" style="left:66px;top:60px">02</div>
   <h2 class="h abs" style="left:72px;top:250px;font-size:80px">Kein Chauffieren.</h2>
   <p class="sub abs" style="left:72px;top:350px;width:880px">Gelernt wird zu Hause – keine Fahrten, kein Termin-Tetris.</p>
@@ -351,7 +314,7 @@ body.export #exportRoot .lbl { font:500 18px/1 var(--font-mono); color:#fff; mar
     <img class="photo" src="../../marketing/assets/img/lesi-mgs-nw-hero/69.jpg" alt="" style="inset:0;width:100%;height:100%;object-position:50% 62%">
   </div>
 </div>
-<div class="ad" data-c="K2" style="--hl:var(--fach-rose)">
+<div class="ad" data-c="N1" style="--hl:var(--fach-rose)">
   <div class="num abs" style="left:66px;top:60px">03</div>
   <h2 class="h abs" style="left:72px;top:250px;font-size:80px">Kein <span class="hl">Stundensatz.</span></h2>
   <div class="abs" style="left:72px;right:72px;top:420px;display:grid;grid-template-columns:1fr auto 1fr;align-items:stretch;gap:24px">
@@ -367,7 +330,7 @@ body.export #exportRoot .lbl { font:500 18px/1 var(--font-mono); color:#fff; mar
   </div>
   <p class="sub abs" style="left:72px;top:790px;width:900px">Ein Monat Premium kostet so viel wie eine einzige Nachhilfestunde.</p>
 </div>
-<div class="ad" data-c="K2" style="--hl:var(--fach-rose)">
+<div class="ad" data-c="N1" style="--hl:var(--fach-rose)">
   <div class="num abs" style="left:66px;top:60px">04</div>
   <h2 class="h abs" style="left:72px;top:250px;width:940px;font-size:80px">Kein Streit ums Lernen.</h2>
   <p class="sub abs" style="left:72px;top:350px;width:900px">Der Lernplan sagt, was heute dran ist – nicht du.</p>
@@ -382,243 +345,8 @@ body.export #exportRoot .lbl { font:500 18px/1 var(--font-mono); color:#fff; mar
   <span class="cta abs" style="right:72px;bottom:72px">14 Tage kostenlos</span>
 </div>
 
-<!-- ========== K3 · Feature-Tour (Device-Mockups) ========== -->
-<div class="ad" data-c="K3" style="--hl:var(--fach-teal)">
-  <div class="brand" style="left:72px;top:72px"><i><img src="../../marketing/assets/img/logo-mark.svg" alt=""></i>Lesify</div>
-  <h2 class="h abs" style="left:72px;top:190px;font-size:96px">Alles fürs Lernen.<br><span class="hl">An einem Ort.</span></h2>
-  <p class="sub abs" style="left:72px;top:410px;width:860px">Chats, Lernzettel, Dateien und Klausuren – sortiert nach Fach und Thema.</p>
-  <img class="dev" src="../../marketing/assets/img/images-fin/hero-3-orga.png" alt="" style="width:1300px;left:-110px;top:254px">
-</div>
-<div class="ad" data-c="K3" style="--hl:var(--fach-blue)">
-  <div class="eyebrow abs" style="left:72px;top:84px">01 · Lernplan</div>
-  <h2 class="h abs" style="left:72px;top:140px;width:940px;font-size:76px">7 Tage, 2 Testklausuren,<br><span class="hl">ein klarer Plan.</span></h2>
-  <img class="dev" src="../../marketing/assets/img/images-fin/section-kv-2.png" alt="" style="width:1400px;left:-160px;top:60px">
-</div>
-<div class="ad" data-c="K3" style="--hl:var(--fach-violet)">
-  <div class="eyebrow abs" style="left:72px;top:84px">02 · KI-Chat</div>
-  <h2 class="h abs" style="left:72px;top:140px;width:940px;font-size:76px">Erklärt Schritt für Schritt –<br><span class="hl">passend zur Klasse.</span></h2>
-  <img class="dev" src="../../marketing/assets/img/images-fin/section-chat.png" alt="" style="width:1300px;left:-110px;top:120px">
-</div>
-<div class="ad" data-c="K3" style="--hl:var(--fach-amber)">
-  <div class="eyebrow abs" style="left:72px;top:84px">03 · Lernzettel</div>
-  <h2 class="h abs" style="left:72px;top:140px;width:940px;font-size:76px">Der ganze Klausurstoff –<br><span class="hl">kompakt auf einem Zettel.</span></h2>
-  <img class="dev" src="../../marketing/assets/img/images-fin/section-lernzettel.png" alt="" style="width:1400px;left:-160px;top:60px">
-</div>
-<div class="ad" data-c="K3" style="--hl:var(--fach-rose)">
-  <div class="eyebrow abs" style="left:72px;top:84px">04 · Eltern-Zugang</div>
-  <h2 class="h abs" style="left:72px;top:140px;width:940px;font-size:76px">Immer im Bild – ohne über<br><span class="hl">die Schulter zu schauen.</span></h2>
-  <img class="dev" src="../../marketing/assets/img/images-fin/section-eltern-zugang.png" alt="" style="width:1300px;left:-110px;top:120px">
-  <span class="cta abs" style="right:72px;bottom:72px">14 Tage kostenlos</span>
-</div>
-
-<!-- ========== K4 · Fragen von Eltern ========== -->
-<div class="ad" data-c="K4" style="--hl:var(--fach-violet)">
-  <div class="brand" style="left:72px;top:72px"><i><img src="../../marketing/assets/img/logo-mark.svg" alt=""></i>Lesify</div>
-  <div class="abs" style="right:56px;top:20px;font:700 760px/1 var(--font-display);color:var(--ink-100);letter-spacing:-.06em">?</div>
-  <h2 class="h abs" style="left:72px;top:420px;width:820px;font-size:100px">4 Fragen, die sich Eltern <span class="hl">vor dem Start</span> stellen.</h2>
-  <div class="abs" style="left:72px;bottom:80px;display:flex;align-items:center;gap:16px;font:500 26px/1 var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-500)">Unsere ehrlichen Antworten <span class="arrow-r" style="opacity:.6"></span></div>
-</div>
-<div class="ad dark" data-c="K4" style="--hl:var(--fach-violet)">
-  <div class="eyebrow abs" style="left:72px;top:84px">Frage 1 / 4</div>
-  <h2 class="h abs" style="left:72px;top:170px;width:940px;font-size:84px">„Macht die KI dann einfach die Hausaufgaben?“</h2>
-  <div class="abs" style="left:72px;right:72px;top:560px;height:2px;background:var(--ink-800)"></div>
-  <div class="h abs" style="left:72px;top:620px;font-size:110px"><span class="hl">Nein.</span></div>
-  <p class="sub abs" style="left:72px;top:770px;width:900px;color:var(--ink-200)">Sie erklärt den Lösungsweg und stellt Rückfragen – statt nur das Ergebnis auszuspucken.</p>
-  <div class="brand" style="left:72px;bottom:72px;font-size:34px"><i style="width:56px;height:56px;border-radius:16px"><img src="../../marketing/assets/img/logo-mark.svg" alt="" style="width:34px;height:34px"></i>Lesify</div>
-</div>
-<div class="ad" data-c="K4" style="--hl:var(--fach-violet)">
-  <div class="eyebrow abs" style="left:72px;top:84px">Frage 2 / 4</div>
-  <h2 class="h abs" style="left:72px;top:170px;width:940px;font-size:84px">„Ab welcher Klasse lohnt sich das?“</h2>
-  <div class="abs" style="left:72px;right:72px;top:470px;height:2px;background:var(--ink-150)"></div>
-  <div class="h abs" style="left:72px;top:530px;font-size:110px"><span class="hl">Ab Klasse 5.</span></div>
-  <p class="sub abs" style="left:72px;top:680px;width:900px">Die KI passt ihre Erklärungen automatisch an die Klassenstufe an – von Bruchrechnung bis Abi-Stoff.</p>
-  <div class="brand" style="left:72px;bottom:72px;font-size:34px"><i style="width:56px;height:56px;border-radius:16px"><img src="../../marketing/assets/img/logo-mark.svg" alt="" style="width:34px;height:34px"></i>Lesify</div>
-</div>
-<div class="ad dark" data-c="K4" style="--hl:var(--fach-violet)">
-  <div class="eyebrow abs" style="left:72px;top:84px">Frage 3 / 4</div>
-  <h2 class="h abs" style="left:72px;top:170px;width:940px;font-size:84px">„Wo landen die Daten meines Kindes?“</h2>
-  <div class="abs" style="left:72px;right:72px;top:470px;height:2px;background:var(--ink-800)"></div>
-  <div class="h abs" style="left:72px;top:530px;font-size:110px"><span class="hl">In der EU.</span></div>
-  <p class="sub abs" style="left:72px;top:680px;width:900px;color:var(--ink-200)">Konto- und Lerndaten liegen auf Servern in der EU. Jede Familie sieht nur ihre eigenen Inhalte.</p>
-  <div class="brand" style="left:72px;bottom:72px;font-size:34px"><i style="width:56px;height:56px;border-radius:16px"><img src="../../marketing/assets/img/logo-mark.svg" alt="" style="width:34px;height:34px"></i>Lesify</div>
-</div>
-<div class="ad" data-c="K4" style="--hl:var(--fach-violet)">
-  <div class="eyebrow abs" style="left:72px;top:84px">Frage 4 / 4</div>
-  <h2 class="h abs" style="left:72px;top:170px;width:940px;font-size:84px">„Und wenn es nicht passt?“</h2>
-  <div class="abs" style="left:72px;right:72px;top:380px;height:2px;background:var(--ink-150)"></div>
-  <div class="h abs" style="left:72px;top:440px;font-size:96px"><span class="hl">Monatlich kündbar.</span></div>
-  <p class="sub abs" style="left:72px;top:590px;width:900px">Erst 14 Tage kostenlos testen. Danach entscheidest du – jeden Monat neu.</p>
-  <div class="brand" style="left:72px;bottom:72px"><i><img src="../../marketing/assets/img/logo-mark.svg" alt=""></i>Lesify</div>
-  <span class="cta abs" style="right:72px;bottom:72px">Jetzt testen</span>
-</div>
-
-<!-- ========== K5 · Vom Hefter-Chaos zum Lernzettel ========== -->
-<div class="ad" data-c="K5" style="--hl:var(--fach-amber)">
-  <div class="sheet" style="--c:var(--fach-blue);left:96px;top:120px;transform:rotate(-8deg)"><b>Heft S. 12–19</b><u></u><u></u><u></u><u></u><u></u></div>
-  <div class="sheet" style="--c:var(--fach-amber);left:420px;top:70px;transform:rotate(5deg)"><b>Arbeitsblatt 4</b><u></u><u></u><u></u><u></u></div>
-  <div class="sheet" style="--c:var(--fach-teal);left:690px;top:200px;transform:rotate(-4deg)"><b>Tafelbild.jpg</b><u></u><u></u><u></u></div>
-  <div class="sheet" style="--c:var(--fach-rose);left:250px;top:330px;transform:rotate(3deg)"><b>Hausaufgabe 3b</b><u></u><u></u><u></u><u></u></div>
-  <div class="sheet" style="--c:var(--fach-violet);left:580px;top:440px;transform:rotate(-10deg)"><b>Skript_Zinsen.pdf</b><u></u><u></u><u></u><u></u></div>
-  <div class="eyebrow abs" style="left:72px;top:770px">Vorher</div>
-  <h2 class="h abs" style="left:72px;top:820px;font-size:92px">Klausurstoff <span class="hl">überall</span> verteilt?</h2>
-</div>
-<div class="ad" data-c="K5" style="--hl:var(--fach-amber)">
-  <div class="eyebrow abs" style="left:72px;top:84px">Nachher</div>
-  <h2 class="h abs" style="left:72px;top:138px;font-size:92px">Ein Lernzettel. <span class="hl">Alles drin.</span></h2>
-  <div class="doc abs" style="left:150px;right:150px;top:310px;height:860px">
-    <span class="tag">Mathematik · Zinsrechnung</span>
-    <div class="dh4">Lernzettel: Zinsen &amp; Zinseszins</div>
-    <div class="dh5">Formeln</div>
-    <div class="f"><i>Jahreszinsen</i>Z = K · p / 100</div>
-    <div class="f"><i>Zinseszins nach n Jahren</i>Kₙ = K₀ · (1 + p/100)ⁿ</div>
-    <div class="dh5">Beispiel</div>
-    <div class="f">500 € zu 2 % → Z = 500 · 2 / 100 = <b>10 €</b></div>
-    <div class="dh5">Typischer Fehler</div>
-    <p>p ist der Zinssatz in Prozent – erst durch 100 teilen.</p>
-  </div>
-</div>
-<div class="ad" data-c="K5" style="--hl:var(--fach-amber)">
-  <div class="eyebrow abs" style="left:72px;top:84px">Wächst mit</div>
-  <h2 class="h abs" style="left:72px;top:138px;width:940px;font-size:80px">Jeder Lerntag ergänzt, <span class="hl">was noch wackelt.</span></h2>
-  <div class="doc abs" style="left:150px;right:150px;top:360px;height:800px">
-    <div class="dh5" style="margin-top:0">Formeln</div>
-    <div class="f"><i>Jahreszinsen</i>Z = K · p / 100</div>
-    <div class="new">
-      <div class="dh5">+ Neu aus Tag 4</div>
-      <div class="f" style="background:#fff"><i>Tageszinsen</i>Z = K · p · t / (100 · 360)</div>
-      <p>t = Anzahl der Tage. Ein Bankjahr hat 360 Tage.</p>
-    </div>
-  </div>
-</div>
-<div class="ad" data-c="K5" style="--hl:var(--fach-amber)">
-  <div class="eyebrow abs" style="left:72px;top:84px">Per Chat anpassbar</div>
-  <h2 class="h abs" style="left:72px;top:138px;width:940px;font-size:80px">Fehlt was? <span class="hl">Einfach sagen.</span></h2>
-  <img class="dev" src="../../marketing/assets/img/images-fin/hero-4-lernzettel.png" alt="" style="width:1240px;left:-80px;top:220px">
-  <div class="paper abs" style="right:72px;top:330px;width:560px"><div class="chat"><div class="bub me" style="font-size:29px;max-width:560px;box-shadow:0 30px 60px -30px rgba(16,18,20,.5)">Pack noch ein Beispiel zum Zinseszins dazu.</div></div></div>
-  <span class="cta abs" style="right:72px;bottom:72px">14 Tage kostenlos</span>
-</div>
-
-<!-- ========== K6 · KI-Chat: erklärt statt vorsagt ========== -->
-<div class="ad dark" data-c="K6" style="--hl:var(--fach-violet)">
-  <div class="brand" style="left:72px;top:72px"><i><img src="../../marketing/assets/img/logo-mark.svg" alt=""></i>Lesify</div>
-  <div class="eyebrow abs" style="right:72px;top:96px">Der KI-Chat</div>
-  <div class="chat abs" style="left:72px;right:72px;top:190px">
-    <div class="bub me">Kannst du mir einfach die Lösung sagen?</div>
-    <div class="bub ai">Lass sie uns lieber zusammen finden – dann sitzt sie auch in der Klausur. Was weißt du über rechtwinklige Dreiecke?</div>
-    <div class="bub me">a² + b² = c²</div>
-    <div class="bub ai">Genau! Setz jetzt a = 3 und b = 4 ein. Was kommt für c raus?</div>
-  </div>
-  <h2 class="h abs" style="left:72px;bottom:72px;font-size:96px">Eine KI, die <span class="hl">erklärt</span><br>statt vorsagt.</h2>
-</div>
-<div class="ad" data-c="K6" style="--hl:var(--fach-violet)">
-  <div class="eyebrow abs" style="left:72px;top:84px">4 Modi</div>
-  <h2 class="h abs" style="left:72px;top:138px;width:940px;font-size:80px">Für jede Lernsituation<br><span class="hl">der passende Modus.</span></h2>
-  <div class="abs modes" style="left:72px;right:72px;top:380px">
-    <div class="mode"><span>01</span><b>Thema erklären</b><small>Konzepte verstehen</small></div>
-    <div class="mode"><span>02</span><b>Hausaufgabenhilfe</b><small>Konkrete Aufgabe lösen</small></div>
-    <div class="mode"><span>03</span><b>Üben / Abfragen</b><small>Wissen aktiv testen</small></div>
-    <div class="mode"><span>04</span><b>Zusammenfassen</b><small>Inhalte kompakt bündeln</small></div>
-  </div>
-</div>
-<div class="ad" data-c="K6" style="--hl:var(--fach-violet)">
-  <div class="eyebrow abs" style="left:72px;top:84px">Hausaufgabenhilfe</div>
-  <h2 class="h abs" style="left:72px;top:138px;width:940px;font-size:80px">Tipps statt<br><span class="hl">fertiger Lösung.</span></h2>
-  <div class="paper chat abs" style="left:72px;right:72px;top:390px">
-    <div class="bub me">3/4 + 1/2 = 4/6 – stimmt das?</div>
-    <div class="bub ai">Fast! Du hast Zähler und Nenner einzeln addiert. Was brauchen beide Brüche, bevor du addierst?</div>
-    <div class="bub me">Den gleichen Nenner?</div>
-    <div class="bub ai">Genau. Rechne mal weiter – ich schau’s mir an.</div>
-  </div>
-</div>
-<div class="ad" data-c="K6" style="--hl:var(--fach-violet)">
-  <div class="eyebrow abs" style="left:72px;top:84px">Üben / Abfragen</div>
-  <h2 class="h abs" style="left:72px;top:138px;width:940px;font-size:80px">Die KI fragt ab –<br><span class="hl">und korrigiert sofort.</span></h2>
-  <div class="paper chat abs" style="left:72px;right:72px;top:390px">
-    <div class="bub ai">Frage 3 von 5: Was ist der Unterschied zwischen Wetter und Klima?</div>
-    <div class="bub me">Wetter ist kurzfristig, Klima ist über viele Jahre.</div>
-    <div class="bub ai"><span class="ok" style="display:inline-flex;gap:12px;align-items:center;font-weight:600;color:var(--gruen-ink)">Richtig!</span> Klima ist der Durchschnitt über mindestens 30 Jahre. Weiter mit Frage 4?</div>
-  </div>
-</div>
-<div class="ad" data-c="K6" style="--hl:var(--fach-violet)">
-  <div class="eyebrow abs" style="left:72px;top:84px">Passend zur Klassenstufe</div>
-  <h2 class="h abs" style="left:72px;top:138px;width:940px;font-size:80px">Erklärt für die 5. Klasse –<br><span class="hl">und fürs Abi.</span></h2>
-  <img class="dev" src="../../marketing/assets/img/images-fin/hero-2-chat.png" alt="" style="width:1300px;left:-110px;top:160px">
-  <span class="cta abs" style="right:72px;bottom:72px">14 Tage kostenlos</span>
-</div>
-
-<!-- ========== K7 · Eltern: Vertrauen statt Kontrolle ========== -->
-<div class="ad" data-c="K7" style="--hl:var(--fach-blue)">
-  <div class="brand" style="left:72px;top:72px"><i><img src="../../marketing/assets/img/logo-mark.svg" alt=""></i>Lesify</div>
-  <div class="eyebrow abs" style="right:72px;top:96px">Für Eltern</div>
-  <h2 class="h abs" style="left:72px;top:186px;font-size:86px">Selbstständig lernen.<br><span class="hl">Trotzdem im Bild.</span></h2>
-  <div class="abs" style="left:72px;right:72px;top:420px;bottom:72px;border-radius:40px;overflow:hidden">
-    <img class="photo" src="../../marketing/assets/img/lesi-mgs-nw-hero/72.jpg" alt="" style="inset:0;width:100%;height:100%;object-position:50% 48%">
-  </div>
-  <div class="card abs" style="left:116px;bottom:116px;padding:28px 34px;border-radius:28px;display:flex;gap:22px;align-items:center">
-    <div class="kid-av" style="--c:var(--fach-violet)">L</div>
-    <div>
-      <div style="font:500 18px/1 var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-500)">Eltern-Zugang · Lena</div>
-      <div style="font:600 30px/1.25 var(--font-display);letter-spacing:-.015em;margin-top:8px">Diese Woche: 18 Chats, 2 Testklausuren</div>
-    </div>
-  </div>
-</div>
-<div class="ad" data-c="K7" style="--hl:var(--fach-blue)">
-  <div class="eyebrow abs" style="left:72px;top:84px">Ein Konto für die Familie</div>
-  <h2 class="h abs" style="left:72px;top:138px;width:940px;font-size:80px">Alle Kinder in<br><span class="hl">einem Eltern-Konto.</span></h2>
-  <div class="card abs" style="left:72px;right:72px;top:380px">
-    <div class="card-h"><b>Meine Kinder</b><small>Nächste Klausur</small></div>
-    <div class="rows">
-      <div class="row-i"><span style="display:flex;gap:20px;align-items:center"><span class="kid-av" style="--c:var(--fach-violet)">L</span><span>Lena <small class="kl">8. Klasse</small></span></span><span class="when">Mathe · in 6 Tagen</span></div>
-      <div class="row-i"><span style="display:flex;gap:20px;align-items:center"><span class="kid-av" style="--c:var(--fach-teal)">J</span><span>Jonas <small class="kl">5. Klasse</small></span></span><span class="when">Englisch · in 12 Tagen</span></div>
-      <div class="row-i"><span style="display:flex;gap:20px;align-items:center"><span class="kid-av" style="--c:var(--fach-amber)">M</span><span>Mia <small class="kl">10. Klasse</small></span></span><span class="when">Bio · in 3 Tagen</span></div>
-    </div>
-  </div>
-  <p class="sub abs" style="left:72px;top:860px;width:900px">Familien-Pakete für 2 bis 4 Kinder.</p>
-</div>
-<div class="ad" data-c="K7" style="--hl:var(--fach-blue)">
-  <div class="eyebrow abs" style="left:72px;top:84px">Was du siehst</div>
-  <h2 class="h abs" style="left:72px;top:138px;width:940px;font-size:80px">Ob gelernt wird –<br><span class="hl">auf einen Blick.</span></h2>
-  <div class="abs tiles" style="left:72px;right:72px;top:390px">
-    <div class="tile"><b>18</b><small>Chats diese Woche</small></div>
-    <div class="tile"><b>2</b><small>Testklausuren diese Woche</small></div>
-    <div class="tile"><b>7</b><small>Lernzettel gesamt</small></div>
-    <div class="tile"><b>5</b><small>Fächer</small></div>
-    <div class="tile"><b>15</b><small>Themen</small></div>
-    <div class="tile"><b>2</b><small>anstehende Klausuren</small></div>
-  </div>
-</div>
-<div class="ad dark" data-c="K7" style="--hl:var(--fach-blue)">
-  <div class="eyebrow abs" style="left:72px;top:84px">Was privat bleibt</div>
-  <h2 class="h abs" style="left:72px;top:138px;width:940px;font-size:80px">Vertrauen statt<br><span class="hl">Kontrolle.</span></h2>
-  <div class="abs" style="left:72px;right:72px;top:380px;display:grid;grid-template-columns:1fr 1fr;gap:24px">
-    <div class="pcol">
-      <div class="eyebrow">Du siehst</div>
-      <span class="ok">Wie aktiv gelernt wird</span>
-      <span class="ok">Fächer und Themen</span>
-      <span class="ok">Anstehende Klausuren</span>
-    </div>
-    <div class="pcol">
-      <div class="eyebrow">Bleibt privat</div>
-      <span class="no">Chat-Inhalte</span>
-      <span class="no">Lernzettel</span>
-      <span class="no">Ergebnisse</span>
-    </div>
-  </div>
-  <p class="sub abs" style="left:72px;top:800px;width:920px">So bleibt Lesify ein Ort, an dem dein Kind auch „dumme“ Fragen stellen darf.</p>
-</div>
-<div class="ad" data-c="K7" style="--hl:var(--fach-blue)">
-  <div class="brand" style="left:72px;top:72px"><i><img src="../../marketing/assets/img/logo-mark.svg" alt=""></i>Lesify</div>
-  <h2 class="h abs" style="left:72px;top:250px;width:940px;font-size:110px">Weniger Streit.<br><span class="hl">Mehr Vertrauen.</span></h2>
-  <div class="chips abs" style="left:72px;top:600px">
-    <span class="chip">14 Tage kostenlos</span>
-    <span class="chip">Monatlich kündbar</span>
-    <span class="chip">Familien-Pakete</span>
-  </div>
-  <span class="cta abs" style="left:72px;bottom:72px">Jetzt kostenlos testen</span>
-</div>
-
-<!-- ========== K8 · Preis & Gegenwert ========== -->
-<div class="ad" data-c="K8" style="--hl:var(--fach-rose)">
+<!-- ========== N2 · Preis & Gegenwert ========== -->
+<div class="ad" data-c="N2" style="--hl:var(--fach-rose)">
   <div class="brand" style="left:72px;top:72px"><i><img src="../../marketing/assets/img/logo-mark.svg" alt=""></i>Lesify</div>
   <div class="eyebrow abs" style="right:72px;top:96px">Der Vergleich</div>
   <h2 class="h abs" style="left:72px;top:190px;width:940px;font-size:86px">Eine Stunde Nachhilfe<br>oder <span class="hl">30 Tage Lesify</span>?</h2>
@@ -647,7 +375,7 @@ body.export #exportRoot .lbl { font:500 18px/1 var(--font-mono); color:#fff; mar
     <div style="display:flex;align-items:center;gap:16px;font:500 24px/1 var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-500)">Wisch dich durch <span class="arrow-r" style="opacity:.6"></span></div>
   </div>
 </div>
-<div class="ad" data-c="K8" style="--hl:var(--fach-rose)">
+<div class="ad" data-c="N2" style="--hl:var(--fach-rose)">
   <div class="eyebrow abs" style="left:72px;top:84px">1 Stunde Nachhilfe</div>
   <h2 class="h abs" style="left:72px;top:138px;width:940px;font-size:80px">60 Minuten.<br><span class="hl">Einmal pro Woche.</span></h2>
   <div class="week abs" style="left:72px;right:72px;top:400px">
@@ -661,7 +389,7 @@ body.export #exportRoot .lbl { font:500 18px/1 var(--font-mono); color:#fff; mar
   </div>
   <p class="sub abs" style="left:72px;top:800px;width:900px">Und wenn die Frage am Donnerstag kommt – oder am Sonntag vor der Klausur?</p>
 </div>
-<div class="ad" data-c="K8" style="--hl:var(--fach-rose)">
+<div class="ad" data-c="N2" style="--hl:var(--fach-rose)">
   <div class="eyebrow abs" style="left:72px;top:84px">30 Tage Lesify</div>
   <h2 class="h abs" style="left:72px;top:138px;width:940px;font-size:80px">Jeden Tag da.<br><span class="hl">Und mit Plan.</span></h2>
   <div class="week abs" style="left:72px;right:72px;top:400px">
@@ -675,7 +403,7 @@ body.export #exportRoot .lbl { font:500 18px/1 var(--font-mono); color:#fff; mar
   </div>
   <p class="sub abs" style="left:72px;top:800px;width:900px">Dazu der KI-Chat für jede Frage – morgens, abends, am Wochenende.</p>
 </div>
-<div class="ad" data-c="K8" style="--hl:var(--fach-rose)">
+<div class="ad" data-c="N2" style="--hl:var(--fach-rose)">
   <div class="eyebrow abs" style="left:72px;top:84px">Was drinsteckt</div>
   <h2 class="h abs" style="left:72px;top:138px;width:940px;font-size:80px">Alles für die Klausur.<br><span class="hl">In einer App.</span></h2>
   <div class="card abs lg" style="left:72px;right:72px;top:380px">
@@ -684,11 +412,11 @@ body.export #exportRoot .lbl { font:500 18px/1 var(--font-mono); color:#fff; mar
       <div class="row-i ok" style="justify-content:flex-start">7-Tage-Lernplan vor jeder Klausur</div>
       <div class="row-i ok" style="justify-content:flex-start">2 Testklausuren mit Auswertung</div>
       <div class="row-i ok" style="justify-content:flex-start">Lernzettel, der mitwächst</div>
-      <div class="row-i ok" style="justify-content:flex-start">Eltern-Zugang</div>
+      <div class="row-i ok" style="justify-content:flex-start">Alles sortiert nach Fach &amp; Thema</div>
     </div>
   </div>
 </div>
-<div class="ad" data-c="K8" style="--hl:var(--fach-rose)">
+<div class="ad" data-c="N2" style="--hl:var(--fach-rose)">
   <div class="eyebrow abs" style="left:72px;top:84px">Drei Tarife</div>
   <h2 class="h abs" style="left:72px;top:138px;width:940px;font-size:80px">Erst testen.<br><span class="hl">Dann entscheiden.</span></h2>
   <div class="card abs lg" style="left:72px;right:72px;top:380px">
@@ -703,8 +431,110 @@ body.export #exportRoot .lbl { font:500 18px/1 var(--font-mono); color:#fff; mar
   <span class="cta abs" style="right:72px;bottom:72px">Jetzt testen</span>
 </div>
 
-<!-- ========== K9 · So funktioniert eine Testklausur ========== -->
-<div class="ad" data-c="K9" style="--hl:var(--fach-amber)">
+<!-- ========== N3 · Lesify vs. Nachhilfe, Punkt für Punkt ========== -->
+<div class="ad dark" data-c="N3" style="--hl:var(--fach-rose)">
+  <div class="brand" style="left:72px;top:72px"><i><img src="../../marketing/assets/img/logo-mark.svg" alt=""></i>Lesify</div>
+  <div class="eyebrow abs" style="right:72px;top:96px">Der Vergleich</div>
+  <h2 class="h abs" style="left:72px;top:290px;width:940px;font-size:130px;line-height:.98">Lesify oder<br>Nachhilfe?<br><span class="hl">Punkt für Punkt.</span></h2>
+  <div class="chips abs" style="left:72px;top:740px;width:900px">
+    <span class="chip plain">Fächer</span>
+    <span class="chip plain">Klausurvorbereitung</span>
+    <span class="chip plain">Selbstständigkeit</span>
+    <span class="chip plain">Ordnung</span>
+  </div>
+</div>
+<div class="ad" data-c="N3" style="--hl:var(--fach-rose)">
+  <div class="eyebrow abs" style="left:72px;top:84px">Punkt 1 / 4 · Fächer</div>
+  <h2 class="h abs" style="left:72px;top:138px;width:940px;font-size:80px">Alle Fächer.<br><span class="hl">Nicht nur eins.</span></h2>
+  <div class="vs2 abs" style="left:72px;right:72px;top:390px">
+    <div class="side a"><div class="lab"><i><img src="../../marketing/assets/img/logo-mark.svg" alt=""></i>Lesify</div><p class="ok">18 Fächer vorinstalliert – weitere jederzeit kostenlos ergänzbar.</p></div>
+    <div class="side b"><div class="lab">Nachhilfe</div><p class="no">Meist nur ein Fach pro Nachhilfelehrer.</p></div>
+  </div>
+</div>
+<div class="ad" data-c="N3" style="--hl:var(--fach-rose)">
+  <div class="eyebrow abs" style="left:72px;top:84px">Punkt 2 / 4 · Klausurvorbereitung</div>
+  <h2 class="h abs" style="left:72px;top:138px;width:940px;font-size:80px">Messbar statt<br><span class="hl">nach Gefühl.</span></h2>
+  <div class="vs2 abs" style="left:72px;right:72px;top:390px">
+    <div class="side a"><div class="lab"><i><img src="../../marketing/assets/img/logo-mark.svg" alt=""></i>Lesify</div><p class="ok">Testklausur mit Note und Ampel pro Thema – vor jeder Klausur.</p></div>
+    <div class="side b"><div class="lab">Nachhilfe</div><p class="no">Eine mündliche Einschätzung der Lehrkraft.</p></div>
+  </div>
+</div>
+<div class="ad" data-c="N3" style="--hl:var(--fach-rose)">
+  <div class="eyebrow abs" style="left:72px;top:84px">Punkt 3 / 4 · Selbstständigkeit</div>
+  <h2 class="h abs" style="left:72px;top:138px;width:940px;font-size:80px">Lernen lernen –<br><span class="hl">statt abhängig bleiben.</span></h2>
+  <div class="vs2 abs" style="left:72px;right:72px;top:390px">
+    <div class="side a"><div class="lab"><i><img src="../../marketing/assets/img/logo-mark.svg" alt=""></i>Lesify</div><p class="ok">Dein Kind lernt, sich Inhalte selbst zu erarbeiten.</p></div>
+    <div class="side b"><div class="lab">Nachhilfe</div><p class="no">Dein Kind bleibt auf den Nachhilfelehrer angewiesen.</p></div>
+  </div>
+</div>
+<div class="ad" data-c="N3" style="--hl:var(--fach-rose)">
+  <div class="eyebrow abs" style="left:72px;top:84px">Punkt 4 / 4 · Ordnung</div>
+  <h2 class="h abs" style="left:72px;top:138px;width:940px;font-size:80px">Ordnung statt<br><span class="hl">Zettelwirtschaft.</span></h2>
+  <div class="vs2 abs" style="left:72px;right:72px;top:360px">
+    <div class="side a"><div class="lab"><i><img src="../../marketing/assets/img/logo-mark.svg" alt=""></i>Lesify</div><p class="ok">Chats, Lernzettel, Dateien – sortiert nach Fach und Thema.</p></div>
+    <div class="side b"><div class="lab">Nachhilfe</div><p class="no">Noch mehr Blätter im Hefter.</p></div>
+  </div>
+  <span class="cta abs" style="right:72px;bottom:72px">14 Tage kostenlos</span>
+</div>
+
+<!-- ========== L1 · 7-Tage-Lernplan (durchgehende Zeitleiste) ========== -->
+<div class="ad" data-c="L1" style="--hl:var(--fach-blue)">
+  <div class="brand" style="left:72px;top:72px"><i><img src="../../marketing/assets/img/logo-mark.svg" alt=""></i>Lesify</div>
+  <h2 class="h abs" style="left:72px;top:250px;font-size:128px">Klausur in<br>7 Tagen?<br><span class="hl">Hier ist der Plan.</span></h2>
+  <div class="abs" style="left:72px;top:720px;display:flex;align-items:center;gap:16px;font:500 26px/1 var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-500)">Wisch dich durch <span class="arrow-r" style="opacity:.6"></span></div>
+  <div class="rail"><div class="fill" style="left:72px;right:0"></div><div class="d on" style="left:72px;width:24px;height:24px;margin-left:-12px;top:-10px;border-width:0;background:var(--ink-950)"></div></div>
+</div>
+<div class="ad" data-c="L1" style="--hl:var(--fach-blue)">
+  <div class="eyebrow abs" style="left:72px;top:84px">Tag 1 · Testklausur 1</div>
+  <h2 class="h abs" style="left:72px;top:138px;width:940px;font-size:80px">Zeigt, was sitzt –<br><span class="hl">und was nicht.</span></h2>
+  <div class="card abs rows lg" style="left:72px;right:72px;top:350px">
+    <div class="card-h"><b>Auswertung · alle Themen</b><small>Mathe</small></div>
+    <div class="row-i">Satz des Pythagoras <span class="pill p-stark">stark</span></div>
+    <div class="row-i">Terme vereinfachen <span class="pill p-wack">wackelig</span></div>
+    <div class="row-i">Zinsrechnung <span class="pill p-schwach">schwach</span></div>
+    <div class="card-f"><span class="arrow-r"></span>Daraus entsteht der Plan für Tag 2–7</div>
+  </div>
+  <div class="rail"><div class="fill"></div><div class="d on tk" data-l="Testklausur" style="left:220px">1</div></div>
+</div>
+<div class="ad" data-c="L1" style="--hl:var(--fach-blue)">
+  <div class="eyebrow abs" style="left:72px;top:84px">Tag 2 – 4 · Lerntage</div>
+  <h2 class="h abs" style="left:72px;top:138px;width:940px;font-size:80px">Genau die Themen üben,<br><span class="hl">die noch wackeln.</span></h2>
+  <div class="card abs lg" style="left:72px;right:72px;top:350px">
+    <div class="card-h"><b>Heute · Tag 3</b><small>2 von 4 erledigt</small></div>
+    <div style="height:10px;margin:0 44px 26px;border-radius:6px;background:var(--ink-100)"><div style="width:50%;height:100%;border-radius:6px;background:var(--fach-blue)"></div></div>
+    <div class="rows">
+      <div class="row-i ok" style="justify-content:flex-start;color:var(--ink-500)">Fehler klären: Zinsrechnung</div>
+      <div class="row-i ok" style="justify-content:flex-start;color:var(--ink-500)">Beispiel dazu durchgehen</div>
+      <div class="row-i todo" style="justify-content:flex-start">5 Übungsaufgaben</div>
+      <div class="row-i todo" style="justify-content:flex-start">Lernzettel ergänzen</div>
+    </div>
+  </div>
+  <div class="rail"><div class="fill"></div><div class="d" style="left:220px">2</div><div class="d on" style="left:460px">3</div><div class="d" style="left:700px">4</div></div>
+</div>
+<div class="ad" data-c="L1" style="--hl:var(--fach-blue)">
+  <div class="eyebrow abs" style="left:72px;top:84px">Tag 5 · Testklausur 2</div>
+  <h2 class="h abs" style="left:72px;top:138px;width:940px;font-size:80px">Nochmal testen –<br><span class="hl">nur, was gewackelt hat.</span></h2>
+  <div class="card abs rows lg" style="left:72px;right:72px;top:350px">
+    <div class="card-h"><b>Vorher → nachher</b><small>Tag 1 vs. Tag 5</small></div>
+    <div class="row-i">Terme vereinfachen <span style="display:flex;gap:12px;align-items:center"><span class="pill p-wack p-ghost">wackelig</span><span class="arrow-r" style="opacity:.5"></span><span class="pill p-stark">stark</span></span></div>
+    <div class="row-i">Zinsrechnung <span style="display:flex;gap:12px;align-items:center"><span class="pill p-schwach p-ghost">schwach</span><span class="arrow-r" style="opacity:.5"></span><span class="pill p-stark">stark</span></span></div>
+    <div class="card-f">Pythagoras saß schon an Tag 1 – <b>wird nicht nochmal getestet.</b></div>
+  </div>
+  <div class="rail"><div class="fill"></div><div class="d on tk" data-l="Testklausur" style="left:220px">5</div></div>
+</div>
+<div class="ad" data-c="L1" style="--hl:var(--fach-blue)">
+  <div class="eyebrow abs" style="left:72px;top:84px">Tag 6 – 7 · Feinschliff</div>
+  <h2 class="h abs" style="left:72px;top:190px;width:940px;font-size:118px">Dann kann die<br><span class="hl">Klausur kommen.</span></h2>
+  <p class="sub abs" style="left:72px;top:470px;width:900px">Lernzettel durchgehen, Selbsttest machen – und mit Sicherheit in die Klausur.</p>
+  <div class="abs" style="left:72px;top:690px;display:flex;gap:24px;align-items:center">
+    <span class="cta">14 Tage kostenlos testen</span>
+  </div>
+  <div class="brand" style="right:72px;top:68px"><i><img src="../../marketing/assets/img/logo-mark.svg" alt=""></i>Lesify</div>
+  <div class="rail"><div class="fill" style="right:auto;width:760px"></div><div class="d" style="left:220px">6</div><div class="d" style="left:460px">7</div><div class="flag" style="left:740px">Klausur</div></div>
+</div>
+
+<!-- ========== L2 · So funktioniert eine Testklausur ========== -->
+<div class="ad" data-c="L2" style="--hl:var(--fach-amber)">
   <div class="brand" style="left:72px;top:72px"><i><img src="../../marketing/assets/img/logo-mark.svg" alt=""></i>Lesify</div>
   <div class="eyebrow abs" style="right:72px;top:96px">Mathe · in 7 Tagen</div>
   <h2 class="h abs" style="left:72px;top:190px;width:940px;font-size:78px">Lesify findet die Lücken, <span class="hl">bevor</span> die Klausur es tut.</h2>
@@ -717,7 +547,7 @@ body.export #exportRoot .lbl { font:500 18px/1 var(--font-mono); color:#fff; mar
   </div>
   <div class="abs" style="left:72px;bottom:96px;display:flex;align-items:center;gap:16px;font:500 24px/1 var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-500)">So funktioniert’s <span class="arrow-r" style="opacity:.6"></span></div>
 </div>
-<div class="ad" data-c="K9" style="--hl:var(--fach-amber)">
+<div class="ad" data-c="L2" style="--hl:var(--fach-amber)">
   <div class="abs" style="left:66px;top:60px;display:flex;align-items:baseline;gap:26px"><span class="num">1</span><span class="eyebrow">Erstellen</span></div>
   <h2 class="h abs" style="left:72px;top:250px;width:940px;font-size:80px">Eine Testklausur<br><span class="hl">zu genau deinen Themen.</span></h2>
   <div class="doc abs" style="left:72px;right:72px;top:500px;height:640px;padding:40px 44px">
@@ -727,7 +557,7 @@ body.export #exportRoot .lbl { font:500 18px/1 var(--font-mono); color:#fff; mar
     <div class="task"><i>Aufgabe 3 · Terme</i>Vereinfache: 3x + 2(x − 4)</div>
   </div>
 </div>
-<div class="ad" data-c="K9" style="--hl:var(--fach-amber)">
+<div class="ad" data-c="L2" style="--hl:var(--fach-amber)">
   <div class="abs" style="left:66px;top:60px;display:flex;align-items:baseline;gap:26px"><span class="num">2</span><span class="eyebrow">Lösen</span></div>
   <h2 class="h abs" style="left:72px;top:250px;width:940px;font-size:80px">Wie in der echten Klausur:<br><span class="hl">auf Papier.</span></h2>
   <p class="sub abs" style="left:72px;top:450px;width:900px">Ohne Hilfe lösen, danach die Lösung einfach hochladen.</p>
@@ -740,7 +570,7 @@ body.export #exportRoot .lbl { font:500 18px/1 var(--font-mono); color:#fff; mar
     <span class="ok" style="display:flex;gap:12px;align-items:center;font:600 28px/1 var(--font-body);color:var(--gruen-ink)">Hochgeladen</span>
   </div>
 </div>
-<div class="ad" data-c="K9" style="--hl:var(--fach-amber)">
+<div class="ad" data-c="L2" style="--hl:var(--fach-amber)">
   <div class="abs" style="left:66px;top:60px;display:flex;align-items:baseline;gap:26px"><span class="num">3</span><span class="eyebrow">Auswerten</span></div>
   <h2 class="h abs" style="left:72px;top:250px;width:940px;font-size:80px">Jede Aufgabe bewertet –<br><span class="hl">mit Note.</span></h2>
   <div class="card abs rows" style="left:72px;right:72px;top:470px">
@@ -750,15 +580,15 @@ body.export #exportRoot .lbl { font:500 18px/1 var(--font-mono); color:#fff; mar
     <div class="row-i">Zinsrechnung <span style="display:flex;gap:18px;align-items:center"><small class="pts">1 / 4</small><span class="pill p-schwach">schwach</span></span></div>
   </div>
 </div>
-<div class="ad" data-c="K9" style="--hl:var(--fach-amber)">
+<div class="ad" data-c="L2" style="--hl:var(--fach-amber)">
   <div class="abs" style="left:66px;top:60px;display:flex;align-items:baseline;gap:26px"><span class="num">4</span><span class="eyebrow">Üben</span></div>
   <h2 class="h abs" style="left:72px;top:250px;width:940px;font-size:80px">Daraus wird der Plan<br><span class="hl">bis zur Klausur.</span></h2>
   <img class="dev" src="../../marketing/assets/img/images-fin/section-kv-4.png" alt="" style="width:1300px;left:-110px;top:180px">
   <span class="cta abs" style="right:72px;bottom:72px">14 Tage kostenlos</span>
 </div>
 
-<!-- ========== K10 · So funktioniert Lesify ========== -->
-<div class="ad" data-c="K10" style="--hl:var(--fach-teal)">
+<!-- ========== L3 · So funktioniert Lesify ========== -->
+<div class="ad" data-c="L3" style="--hl:var(--fach-teal)">
   <div class="brand" style="left:72px;top:72px"><i><img src="../../marketing/assets/img/logo-mark.svg" alt=""></i>Lesify</div>
   <div class="eyebrow abs" style="right:72px;top:96px">Ab Klasse 5</div>
   <h2 class="h abs" style="left:72px;top:188px;font-size:104px">Weniger<br>Prüfungsstress.<br><span class="hl">Bessere Noten.</span></h2>
@@ -766,7 +596,7 @@ body.export #exportRoot .lbl { font:500 18px/1 var(--font-mono); color:#fff; mar
   <img class="dev" src="../../marketing/assets/img/images-fin/hero-1-kv.png" alt="" style="width:1400px;left:346px;top:232px">
   <div class="abs" style="left:72px;bottom:96px;display:flex;align-items:center;gap:16px;font:500 24px/1 var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-500)">So funktioniert’s <span class="arrow-r" style="opacity:.6"></span></div>
 </div>
-<div class="ad" data-c="K10" style="--hl:var(--fach-teal)">
+<div class="ad" data-c="L3" style="--hl:var(--fach-teal)">
   <div class="abs" style="left:66px;top:60px;display:flex;align-items:baseline;gap:26px"><span class="num">1</span><span class="eyebrow">Eintragen</span></div>
   <h2 class="h abs" style="left:72px;top:250px;width:940px;font-size:80px">Klausur eintragen.<br><span class="hl">Fertig.</span></h2>
   <div class="card abs form" style="left:72px;right:72px;top:470px">
@@ -776,7 +606,7 @@ body.export #exportRoot .lbl { font:500 18px/1 var(--font-mono); color:#fff; mar
     <div style="padding:26px 44px 32px"><span class="cta" style="font-size:28px;padding:22px 36px">Klausur anlegen</span></div>
   </div>
 </div>
-<div class="ad" data-c="K10" style="--hl:var(--fach-teal)">
+<div class="ad" data-c="L3" style="--hl:var(--fach-teal)">
   <div class="abs" style="left:66px;top:60px;display:flex;align-items:baseline;gap:26px"><span class="num">2</span><span class="eyebrow">Planen</span></div>
   <h2 class="h abs" style="left:72px;top:250px;width:940px;font-size:80px">Der Lernplan<br><span class="hl">entsteht automatisch.</span></h2>
   <div class="card abs steps" style="left:72px;right:72px;top:470px">
@@ -789,7 +619,7 @@ body.export #exportRoot .lbl { font:500 18px/1 var(--font-mono); color:#fff; mar
     <div><span>7</span>Selbsttest mit dem Lernzettel</div>
   </div>
 </div>
-<div class="ad" data-c="K10" style="--hl:var(--fach-teal)">
+<div class="ad" data-c="L3" style="--hl:var(--fach-teal)">
   <div class="abs" style="left:66px;top:60px;display:flex;align-items:baseline;gap:26px"><span class="num">3</span><span class="eyebrow">Lernen</span></div>
   <h2 class="h abs" style="left:72px;top:250px;width:940px;font-size:80px">Jeden Tag wissen,<br><span class="hl">was dran ist.</span></h2>
   <p class="sub abs" style="left:72px;top:450px;width:900px">Zu Hause, im eigenen Tempo – der KI-Chat hilft bei jeder Frage.</p>
@@ -797,7 +627,7 @@ body.export #exportRoot .lbl { font:500 18px/1 var(--font-mono); color:#fff; mar
     <img class="photo" src="../../marketing/assets/img/lesi-mgs-nw-hero/70.jpg" alt="" style="inset:0;width:100%;height:100%;object-position:50% 45%">
   </div>
 </div>
-<div class="ad" data-c="K10" style="--hl:var(--fach-teal)">
+<div class="ad" data-c="L3" style="--hl:var(--fach-teal)">
   <div class="brand" style="left:72px;top:72px"><i><img src="../../marketing/assets/img/logo-mark.svg" alt=""></i>Lesify</div>
   <div class="eyebrow abs" style="right:72px;top:96px">Das Ergebnis</div>
   <h2 class="h abs" style="left:72px;top:210px;width:940px;font-size:110px">Sicher in<br>die Klausur.<br><span class="hl">Ohne Nachhilfe.</span></h2>
@@ -809,20 +639,136 @@ body.export #exportRoot .lbl { font:500 18px/1 var(--font-mono); color:#fff; mar
   <span class="cta abs" style="left:72px;bottom:72px">Jetzt kostenlos testen</span>
 </div>
 
+<!-- ========== F1 · Feature-Tour (Device-Mockups) ========== -->
+<div class="ad" data-c="F1" style="--hl:var(--fach-teal)">
+  <div class="brand" style="left:72px;top:72px"><i><img src="../../marketing/assets/img/logo-mark.svg" alt=""></i>Lesify</div>
+  <h2 class="h abs" style="left:72px;top:190px;font-size:96px">Alles fürs Lernen.<br><span class="hl">An einem Ort.</span></h2>
+  <p class="sub abs" style="left:72px;top:410px;width:860px">Chats, Lernzettel, Dateien und Klausuren – sortiert nach Fach und Thema.</p>
+  <img class="dev" src="../../marketing/assets/img/images-fin/hero-3-orga.png" alt="" style="width:1300px;left:-110px;top:254px">
+</div>
+<div class="ad" data-c="F1" style="--hl:var(--fach-blue)">
+  <div class="eyebrow abs" style="left:72px;top:84px">01 · Lernplan</div>
+  <h2 class="h abs" style="left:72px;top:140px;width:940px;font-size:76px">7 Tage, 2 Testklausuren,<br><span class="hl">ein klarer Plan.</span></h2>
+  <img class="dev" src="../../marketing/assets/img/images-fin/section-kv-2.png" alt="" style="width:1400px;left:-160px;top:60px">
+</div>
+<div class="ad" data-c="F1" style="--hl:var(--fach-violet)">
+  <div class="eyebrow abs" style="left:72px;top:84px">02 · KI-Chat</div>
+  <h2 class="h abs" style="left:72px;top:140px;width:940px;font-size:76px">Erklärt Schritt für Schritt –<br><span class="hl">passend zur Klasse.</span></h2>
+  <img class="dev" src="../../marketing/assets/img/images-fin/section-chat.png" alt="" style="width:1300px;left:-110px;top:120px">
+</div>
+<div class="ad" data-c="F1" style="--hl:var(--fach-amber)">
+  <div class="eyebrow abs" style="left:72px;top:84px">03 · Lernzettel</div>
+  <h2 class="h abs" style="left:72px;top:140px;width:940px;font-size:76px">Der ganze Klausurstoff –<br><span class="hl">kompakt auf einem Zettel.</span></h2>
+  <img class="dev" src="../../marketing/assets/img/images-fin/section-lernzettel.png" alt="" style="width:1400px;left:-160px;top:60px">
+</div>
+<div class="ad" data-c="F1" style="--hl:var(--fach-rose)">
+  <div class="eyebrow abs" style="left:72px;top:84px">04 · Testklausuren</div>
+  <h2 class="h abs" style="left:72px;top:140px;width:940px;font-size:76px">Vor der Klausur wissen,<br><span class="hl">wo man steht.</span></h2>
+  <img class="dev" src="../../marketing/assets/img/images-fin/section-kv-6.png" alt="" style="width:1400px;left:-160px;top:60px">
+  <span class="cta abs" style="right:72px;bottom:72px">14 Tage kostenlos</span>
+</div>
+
+<!-- ========== F2 · KI-Chat: erklärt statt vorsagt ========== -->
+<div class="ad dark" data-c="F2" style="--hl:var(--fach-violet)">
+  <div class="brand" style="left:72px;top:72px"><i><img src="../../marketing/assets/img/logo-mark.svg" alt=""></i>Lesify</div>
+  <div class="eyebrow abs" style="right:72px;top:96px">Der KI-Chat</div>
+  <div class="chat abs" style="left:72px;right:72px;top:190px">
+    <div class="bub me">Kannst du mir einfach die Lösung sagen?</div>
+    <div class="bub ai">Lass sie uns lieber zusammen finden – dann sitzt sie auch in der Klausur. Was weißt du über rechtwinklige Dreiecke?</div>
+    <div class="bub me">a² + b² = c²</div>
+    <div class="bub ai">Genau! Setz jetzt a = 3 und b = 4 ein. Was kommt für c raus?</div>
+  </div>
+  <h2 class="h abs" style="left:72px;bottom:72px;font-size:96px">Eine KI, die <span class="hl">erklärt</span><br>statt vorsagt.</h2>
+</div>
+<div class="ad" data-c="F2" style="--hl:var(--fach-violet)">
+  <div class="eyebrow abs" style="left:72px;top:84px">4 Modi</div>
+  <h2 class="h abs" style="left:72px;top:138px;width:940px;font-size:80px">Für jede Lernsituation<br><span class="hl">der passende Modus.</span></h2>
+  <div class="abs modes" style="left:72px;right:72px;top:380px">
+    <div class="mode"><span>01</span><b>Thema erklären</b><small>Konzepte verstehen</small></div>
+    <div class="mode"><span>02</span><b>Hausaufgabenhilfe</b><small>Konkrete Aufgabe lösen</small></div>
+    <div class="mode"><span>03</span><b>Üben / Abfragen</b><small>Wissen aktiv testen</small></div>
+    <div class="mode"><span>04</span><b>Zusammenfassen</b><small>Inhalte kompakt bündeln</small></div>
+  </div>
+</div>
+<div class="ad" data-c="F2" style="--hl:var(--fach-violet)">
+  <div class="eyebrow abs" style="left:72px;top:84px">Hausaufgabenhilfe</div>
+  <h2 class="h abs" style="left:72px;top:138px;width:940px;font-size:80px">Tipps statt<br><span class="hl">fertiger Lösung.</span></h2>
+  <div class="paper chat abs" style="left:72px;right:72px;top:390px">
+    <div class="bub me">3/4 + 1/2 = 4/6 – stimmt das?</div>
+    <div class="bub ai">Fast! Du hast Zähler und Nenner einzeln addiert. Was brauchen beide Brüche, bevor du addierst?</div>
+    <div class="bub me">Den gleichen Nenner?</div>
+    <div class="bub ai">Genau. Rechne mal weiter – ich schau’s mir an.</div>
+  </div>
+</div>
+<div class="ad" data-c="F2" style="--hl:var(--fach-violet)">
+  <div class="eyebrow abs" style="left:72px;top:84px">Üben / Abfragen</div>
+  <h2 class="h abs" style="left:72px;top:138px;width:940px;font-size:80px">Die KI fragt ab –<br><span class="hl">und korrigiert sofort.</span></h2>
+  <div class="paper chat abs" style="left:72px;right:72px;top:390px">
+    <div class="bub ai">Frage 3 von 5: Was ist der Unterschied zwischen Wetter und Klima?</div>
+    <div class="bub me">Wetter ist kurzfristig, Klima ist über viele Jahre.</div>
+    <div class="bub ai"><span class="ok" style="display:inline-flex;gap:12px;align-items:center;font-weight:600;color:var(--gruen-ink)">Richtig!</span> Klima ist der Durchschnitt über mindestens 30 Jahre. Weiter mit Frage 4?</div>
+  </div>
+</div>
+<div class="ad" data-c="F2" style="--hl:var(--fach-violet)">
+  <div class="eyebrow abs" style="left:72px;top:84px">Passend zur Klassenstufe</div>
+  <h2 class="h abs" style="left:72px;top:138px;width:940px;font-size:80px">Erklärt für die 5. Klasse –<br><span class="hl">und fürs Abi.</span></h2>
+  <img class="dev" src="../../marketing/assets/img/images-fin/hero-2-chat.png" alt="" style="width:1300px;left:-110px;top:160px">
+  <span class="cta abs" style="right:72px;bottom:72px">14 Tage kostenlos</span>
+</div>
+
+<!-- ========== F3 · Vom Hefter-Chaos zum Lernzettel ========== -->
+<div class="ad" data-c="F3" style="--hl:var(--fach-amber)">
+  <div class="sheet" style="--c:var(--fach-blue);left:96px;top:120px;transform:rotate(-8deg)"><b>Heft S. 12–19</b><u></u><u></u><u></u><u></u><u></u></div>
+  <div class="sheet" style="--c:var(--fach-amber);left:420px;top:70px;transform:rotate(5deg)"><b>Arbeitsblatt 4</b><u></u><u></u><u></u><u></u></div>
+  <div class="sheet" style="--c:var(--fach-teal);left:690px;top:200px;transform:rotate(-4deg)"><b>Tafelbild.jpg</b><u></u><u></u><u></u></div>
+  <div class="sheet" style="--c:var(--fach-rose);left:250px;top:330px;transform:rotate(3deg)"><b>Hausaufgabe 3b</b><u></u><u></u><u></u><u></u></div>
+  <div class="sheet" style="--c:var(--fach-violet);left:580px;top:440px;transform:rotate(-10deg)"><b>Skript_Zinsen.pdf</b><u></u><u></u><u></u><u></u></div>
+  <div class="eyebrow abs" style="left:72px;top:770px">Vorher</div>
+  <h2 class="h abs" style="left:72px;top:820px;font-size:92px">Klausurstoff <span class="hl">überall</span> verteilt?</h2>
+</div>
+<div class="ad" data-c="F3" style="--hl:var(--fach-amber)">
+  <div class="eyebrow abs" style="left:72px;top:84px">Nachher</div>
+  <h2 class="h abs" style="left:72px;top:138px;font-size:92px">Ein Lernzettel. <span class="hl">Alles drin.</span></h2>
+  <div class="doc abs" style="left:150px;right:150px;top:310px;height:860px">
+    <span class="tag">Mathematik · Zinsrechnung</span>
+    <div class="dh4">Lernzettel: Zinsen &amp; Zinseszins</div>
+    <div class="dh5">Formeln</div>
+    <div class="f"><i>Jahreszinsen</i>Z = K · p / 100</div>
+    <div class="f"><i>Zinseszins nach n Jahren</i>Kₙ = K₀ · (1 + p/100)ⁿ</div>
+    <div class="dh5">Beispiel</div>
+    <div class="f">500 € zu 2 % → Z = 500 · 2 / 100 = <b>10 €</b></div>
+    <div class="dh5">Typischer Fehler</div>
+    <p>p ist der Zinssatz in Prozent – erst durch 100 teilen.</p>
+  </div>
+</div>
+<div class="ad" data-c="F3" style="--hl:var(--fach-amber)">
+  <div class="eyebrow abs" style="left:72px;top:84px">Wächst mit</div>
+  <h2 class="h abs" style="left:72px;top:138px;width:940px;font-size:80px">Jeder Lerntag ergänzt, <span class="hl">was noch wackelt.</span></h2>
+  <div class="doc abs" style="left:150px;right:150px;top:360px;height:800px">
+    <div class="dh5" style="margin-top:0">Formeln</div>
+    <div class="f"><i>Jahreszinsen</i>Z = K · p / 100</div>
+    <div class="new">
+      <div class="dh5">+ Neu aus Tag 4</div>
+      <div class="f" style="background:#fff"><i>Tageszinsen</i>Z = K · p · t / (100 · 360)</div>
+      <p>t = Anzahl der Tage. Ein Bankjahr hat 360 Tage.</p>
+    </div>
+  </div>
+</div>
+<div class="ad" data-c="F3" style="--hl:var(--fach-amber)">
+  <div class="eyebrow abs" style="left:72px;top:84px">Per Chat anpassbar</div>
+  <h2 class="h abs" style="left:72px;top:138px;width:940px;font-size:80px">Fehlt was? <span class="hl">Einfach sagen.</span></h2>
+  <img class="dev" src="../../marketing/assets/img/images-fin/hero-4-lernzettel.png" alt="" style="width:1240px;left:-80px;top:220px">
+  <div class="paper abs" style="right:72px;top:330px;width:560px"><div class="chat"><div class="bub me" style="font-size:29px;max-width:560px;box-shadow:0 30px 60px -30px rgba(16,18,20,.5)">Pack noch ein Beispiel zum Zinseszins dazu.</div></div></div>
+  <span class="cta abs" style="right:72px;bottom:72px">14 Tage kostenlos</span>
+</div>
+
 </div><!-- /#src -->
 
 <script>
 /* Anzeigentexte je Creative (für den Werbeanzeigenmanager) */
+var ANGLES = { nachhilfe:'Lesify vs. Nachhilfe', lernplan:'Lernplan & Klausurvorbereitung', features:'Features' };
 var CREATIVES = [
-  { id:'K1', type:'carousel', name:'7-Tage-Lernplan', idee:'Durchgehende Zeitleiste über alle Karten – wischen = Tage vorspulen.',
-    text:'Klausur in 7 Tagen? So bereitet Lesify dein Kind Schritt für Schritt vor: zwei Testklausuren, gezielte Lerntage und ein Lernzettel, der mitwächst. 👉',
-    cards:[
-      { hd:'Der 7-Tage-Lernplan', ds:'Vor jeder Klausur', btn:'Mehr dazu' },
-      { hd:'Tag 1: Testklausur 1', ds:'Zeigt, was sitzt', btn:'Mehr dazu' },
-      { hd:'Tag 2–4: Lücken schließen', ds:'Üben, was wackelt', btn:'Mehr dazu' },
-      { hd:'Tag 5: Testklausur 2', ds:'Fortschritt sichtbar', btn:'Mehr dazu' },
-      { hd:'14 Tage kostenlos testen', ds:'Monatlich kündbar', btn:'Registrieren' } ] },
-  { id:'K2', type:'carousel', name:'Nachhilfe vs. Lesify', idee:'Problem-Agitation: vier Alltags-Schmerzpunkte der Nachhilfe.',
+  { id:'N1', angle:'nachhilfe', type:'carousel', name:'Nachhilfe vs. Lesify', idee:'Problem-Agitation: vier Alltags-Schmerzpunkte der Nachhilfe.',
     text:'Nachhilfe ist teuer, an feste Termine gebunden – und nicht da, wenn die Frage kommt. Lesify schon. Punkt für Punkt: 👉',
     cards:[
       { hd:'Was Nachhilfe nicht kann', ds:'4 Punkte im Vergleich', btn:'Mehr dazu' },
@@ -830,46 +776,7 @@ var CREATIVES = [
       { hd:'Lernen zu Hause', ds:'Keine Fahrten', btn:'Mehr dazu' },
       { hd:'30 Tage = 1 Nachhilfestunde', ds:'Lesify Premium', btn:'Mehr dazu' },
       { hd:'Jetzt 14 Tage kostenlos', ds:'Monatlich kündbar', btn:'Registrieren' } ] },
-  { id:'K3', type:'carousel', name:'Feature-Tour', idee:'Echte App-Screens als Produktbeweis – für Retargeting / warmes Publikum.',
-    text:'Lernplan, KI-Chat, Lernzettel und Eltern-Zugang: Lesify bündelt alles, was dein Kind für die nächste Klausur braucht – an einem Ort.',
-    cards:[
-      { hd:'Alles an einem Ort', ds:'Sortiert nach Fach & Thema', btn:'Mehr dazu' },
-      { hd:'Lernplan', ds:'7 Tage, 2 Testklausuren', btn:'Mehr dazu' },
-      { hd:'KI-Chat', ds:'Erklärt Schritt für Schritt', btn:'Mehr dazu' },
-      { hd:'Lernzettel', ds:'Automatisch zusammengefasst', btn:'Mehr dazu' },
-      { hd:'Eltern-Zugang', ds:'14 Tage kostenlos testen', btn:'Registrieren' } ] },
-  { id:'K4', type:'carousel', name:'Fragen von Eltern', idee:'Einwandbehandlung (FAQ) als Karussell – Hausaufgaben, Alter, Datenschutz, Kündigung.',
-    text:'Bevor Eltern mit Lesify starten, haben sie meist dieselben Fragen. Hier sind unsere ehrlichen Antworten. 👇',
-    cards:[
-      { hd:'4 Fragen vor dem Start', ds:'Ehrlich beantwortet', btn:'Mehr dazu' },
-      { hd:'Macht die KI die Hausaufgaben?', ds:'Nein – sie erklärt', btn:'Mehr dazu' },
-      { hd:'Ab welcher Klasse?', ds:'Ab Klasse 5', btn:'Mehr dazu' },
-      { hd:'Wo liegen die Daten?', ds:'Auf Servern in der EU', btn:'Mehr dazu' },
-      { hd:'14 Tage kostenlos testen', ds:'Monatlich kündbar', btn:'Registrieren' } ] },
-  { id:'K5', type:'carousel', name:'Chaos → Lernzettel', idee:'Vorher/Nachher – visuell einfach, zeigt den Lernzettel als greifbares Ergebnis.',
-    text:'Hefteinträge, Arbeitsblätter, Fotos vom Tafelbild … Lesify macht daraus einen einzigen Lernzettel – kompakt, verständlich und per Chat anpassbar.',
-    cards:[
-      { hd:'Klausurstoff überall verteilt?', ds:'Kennt jede Familie', btn:'Mehr dazu' },
-      { hd:'Ein Lernzettel. Alles drin.', ds:'Automatisch erstellt', btn:'Mehr dazu' },
-      { hd:'Wächst mit jedem Lerntag', ds:'Ergänzt, was wackelt', btn:'Mehr dazu' },
-      { hd:'Per Chat anpassbar', ds:'14 Tage kostenlos testen', btn:'Registrieren' } ] },
-  { id:'K6', type:'carousel', name:'KI-Chat', idee:'Einwand „KI = Schummeln“ entkräften, dann die 4 Chat-Modi zeigen.',
-    text:'„Sag mir einfach die Lösung.“ – kennst du? 😅\n\nLesify macht keine Hausaufgaben fertig. Die KI erklärt den Lösungsweg, stellt Rückfragen, fragt ab und korrigiert – angepasst an die Klassenstufe. 👉',
-    cards:[
-      { hd:'Die KI, die erklärt statt vorsagt', ds:'Für Schüler ab Klasse 5', btn:'Mehr dazu' },
-      { hd:'4 Lern-Modi', ds:'Erklären, Hausaufgaben, Üben, Zusammenfassen', btn:'Mehr dazu' },
-      { hd:'Hausaufgabenhilfe', ds:'Tipps statt Lösung', btn:'Mehr dazu' },
-      { hd:'Üben & Abfragen', ds:'Mit sofortiger Korrektur', btn:'Mehr dazu' },
-      { hd:'14 Tage kostenlos testen', ds:'Monatlich kündbar', btn:'Registrieren' } ] },
-  { id:'K7', type:'carousel', name:'Eltern: Vertrauen statt Kontrolle', idee:'Eltern-Zugang ehrlich erklärt: Aktivität sichtbar, Inhalte privat (Vertrauens-USP).',
-    text:'Kein Daneben-Sitzen, kein Streit ums Lernen: Dein Kind bereitet sich selbstständig mit Lesify auf Klausuren vor.\n\nÜber den Eltern-Zugang siehst du, ob gelernt wird und welche Klausuren anstehen – Chats und Ergebnisse bleiben privat. 👉',
-    cards:[
-      { hd:'Selbstständig lernen – du bleibst im Bild', ds:'Der Eltern-Zugang', btn:'Mehr dazu' },
-      { hd:'Ein Konto für alle Kinder', ds:'Familien-Pakete für 2–4 Kinder', btn:'Mehr dazu' },
-      { hd:'Aktivität auf einen Blick', ds:'Ohne über die Schulter zu schauen', btn:'Mehr dazu' },
-      { hd:'Inhalte bleiben privat', ds:'Vertrauen statt Kontrolle', btn:'Mehr dazu' },
-      { hd:'14 Tage kostenlos testen', ds:'Monatlich kündbar', btn:'Registrieren' } ] },
-  { id:'K8', type:'carousel', name:'Preis & Gegenwert', idee:'Preisanker (1 Std. = 30 Tage), dann Wochen-Vergleich, Inhalt und Tarife.',
+  { id:'N2', angle:'nachhilfe', type:'carousel', name:'Preis & Gegenwert', idee:'Preisanker (1 Std. = 30 Tage), dann Wochen-Vergleich, Inhalt und Tarife.',
     text:'Eine Stunde Nachhilfe kostet so viel wie ein ganzer Monat Lesify Premium.\n\nWas dein Kind dafür jeweils bekommt – Punkt für Punkt 👉',
     cards:[
       { hd:'30 Tage Lesify statt 1 Stunde Nachhilfe', ds:'Der Vergleich', btn:'Mehr dazu' },
@@ -877,7 +784,23 @@ var CREATIVES = [
       { hd:'Lesify: jeden Tag', ds:'Mit 7-Tage-Lernplan', btn:'Mehr dazu' },
       { hd:'Alles in einer App', ds:'Chat, Lernplan, Testklausuren', btn:'Mehr dazu' },
       { hd:'14 Tage kostenlos testen', ds:'Starter, Premium, Infinite', btn:'Registrieren' } ] },
-  { id:'K9', type:'carousel', name:'Testklausur erklärt', idee:'Kernmechanik in 4 Schritten: erstellen, auf Papier lösen, auswerten, üben.',
+  { id:'N3', angle:'nachhilfe', type:'carousel', name:'Punkt für Punkt', idee:'Vergleichstabelle der Website als Karussell: Fächer, Klausurvorbereitung, Selbstständigkeit, Ordnung.',
+    text:'Lesify oder klassische Nachhilfe? Wir haben verglichen – Punkt für Punkt. 👉\n\nWisch dich durch und entscheide selbst.',
+    cards:[
+      { hd:'Lesify oder Nachhilfe?', ds:'Der Vergleich', btn:'Mehr dazu' },
+      { hd:'Alle Fächer, nicht nur eins', ds:'18 Fächer vorinstalliert', btn:'Mehr dazu' },
+      { hd:'Messbare Klausurvorbereitung', ds:'Testklausur mit Note', btn:'Mehr dazu' },
+      { hd:'Selbstständig lernen', ds:'Statt abhängig bleiben', btn:'Mehr dazu' },
+      { hd:'14 Tage kostenlos testen', ds:'Monatlich kündbar', btn:'Registrieren' } ] },
+  { id:'L1', angle:'lernplan', type:'carousel', name:'7-Tage-Lernplan', idee:'Durchgehende Zeitleiste über alle Karten – wischen = Tage vorspulen.',
+    text:'Klausur in 7 Tagen? So bereitet Lesify dein Kind Schritt für Schritt vor: zwei Testklausuren, gezielte Lerntage und ein Lernzettel, der mitwächst. 👉',
+    cards:[
+      { hd:'Der 7-Tage-Lernplan', ds:'Vor jeder Klausur', btn:'Mehr dazu' },
+      { hd:'Tag 1: Testklausur 1', ds:'Zeigt, was sitzt', btn:'Mehr dazu' },
+      { hd:'Tag 2–4: Lücken schließen', ds:'Üben, was wackelt', btn:'Mehr dazu' },
+      { hd:'Tag 5: Testklausur 2', ds:'Fortschritt sichtbar', btn:'Mehr dazu' },
+      { hd:'14 Tage kostenlos testen', ds:'Monatlich kündbar', btn:'Registrieren' } ] },
+  { id:'L2', angle:'lernplan', type:'carousel', name:'Testklausur erklärt', idee:'Kernmechanik in 4 Schritten: erstellen, auf Papier lösen, auswerten, üben.',
     text:'Eine Woche vor der Klausur schreibt dein Kind eine Testklausur – wie die echte, auf Papier. Lesify wertet sie aus, zeigt, welche Themen noch wackeln, und baut daraus den Lernplan bis zum Klausurtag. 👉',
     cards:[
       { hd:'Lücken finden, bevor die Klausur es tut', ds:'So funktioniert’s', btn:'Mehr dazu' },
@@ -885,14 +808,37 @@ var CREATIVES = [
       { hd:'2. Auf Papier lösen', ds:'Lösung hochladen', btn:'Mehr dazu' },
       { hd:'3. Auswertung mit Note', ds:'Stark, wackelig, schwach', btn:'Mehr dazu' },
       { hd:'4. Gezielt üben', ds:'14 Tage kostenlos testen', btn:'Registrieren' } ] },
-  { id:'K10', type:'carousel', name:'So funktioniert Lesify', idee:'Website-Hero als Einstieg, dann der Ablauf in 3 Schritten – für Kaltpublikum.',
+  { id:'L3', angle:'lernplan', type:'carousel', name:'So funktioniert Lesify', idee:'Website-Hero als Einstieg, dann der Ablauf in 3 Schritten – für Kaltpublikum.',
     text:'Weniger Prüfungsstress und bessere Noten – ohne teure Nachhilfe. 📚\n\nSo einfach geht’s: Klausur eintragen, Lernplan bekommen, mit KI-Hilfe zu Hause lernen. Für Schüler ab Klasse 5. 👉',
     cards:[
       { hd:'Lesify – KI-Lernapp ab Klasse 5', ds:'So funktioniert’s', btn:'Mehr dazu' },
       { hd:'1. Klausur eintragen', ds:'Fach, Themen, Datum', btn:'Mehr dazu' },
       { hd:'2. Lernplan bekommen', ds:'7 Tage, automatisch', btn:'Mehr dazu' },
       { hd:'3. Zu Hause lernen', ds:'Mit KI-Hilfe rund um die Uhr', btn:'Mehr dazu' },
-      { hd:'Sicher in die Klausur', ds:'14 Tage kostenlos testen', btn:'Registrieren' } ] }
+      { hd:'Sicher in die Klausur', ds:'14 Tage kostenlos testen', btn:'Registrieren' } ] },
+  { id:'F1', angle:'features', type:'carousel', name:'Feature-Tour', idee:'Echte App-Screens als Produktbeweis – für Retargeting / warmes Publikum.',
+    text:'Lernplan, KI-Chat, Lernzettel und Testklausuren: Lesify bündelt alles, was dein Kind für die nächste Klausur braucht – an einem Ort.',
+    cards:[
+      { hd:'Alles an einem Ort', ds:'Sortiert nach Fach & Thema', btn:'Mehr dazu' },
+      { hd:'Lernplan', ds:'7 Tage, 2 Testklausuren', btn:'Mehr dazu' },
+      { hd:'KI-Chat', ds:'Erklärt Schritt für Schritt', btn:'Mehr dazu' },
+      { hd:'Lernzettel', ds:'Automatisch zusammengefasst', btn:'Mehr dazu' },
+      { hd:'Testklausuren', ds:'14 Tage kostenlos testen', btn:'Registrieren' } ] },
+  { id:'F2', angle:'features', type:'carousel', name:'KI-Chat', idee:'Einwand „KI = Schummeln“ entkräften, dann die 4 Chat-Modi zeigen.',
+    text:'„Sag mir einfach die Lösung.“ – kennst du? 😅\n\nLesify macht keine Hausaufgaben fertig. Die KI erklärt den Lösungsweg, stellt Rückfragen, fragt ab und korrigiert – angepasst an die Klassenstufe. 👉',
+    cards:[
+      { hd:'Die KI, die erklärt statt vorsagt', ds:'Für Schüler ab Klasse 5', btn:'Mehr dazu' },
+      { hd:'4 Lern-Modi', ds:'Erklären, Hausaufgaben, Üben, Zusammenfassen', btn:'Mehr dazu' },
+      { hd:'Hausaufgabenhilfe', ds:'Tipps statt Lösung', btn:'Mehr dazu' },
+      { hd:'Üben & Abfragen', ds:'Mit sofortiger Korrektur', btn:'Mehr dazu' },
+      { hd:'14 Tage kostenlos testen', ds:'Monatlich kündbar', btn:'Registrieren' } ] },
+  { id:'F3', angle:'features', type:'carousel', name:'Chaos → Lernzettel', idee:'Vorher/Nachher – visuell einfach, zeigt den Lernzettel als greifbares Ergebnis.',
+    text:'Hefteinträge, Arbeitsblätter, Fotos vom Tafelbild … Lesify macht daraus einen einzigen Lernzettel – kompakt, verständlich und per Chat anpassbar.',
+    cards:[
+      { hd:'Klausurstoff überall verteilt?', ds:'Kennt jede Familie', btn:'Mehr dazu' },
+      { hd:'Ein Lernzettel. Alles drin.', ds:'Automatisch erstellt', btn:'Mehr dazu' },
+      { hd:'Wächst mit jedem Lerntag', ds:'Ergänzt, was wackelt', btn:'Mehr dazu' },
+      { hd:'Per Chat anpassbar', ds:'14 Tage kostenlos testen', btn:'Registrieren' } ] }
 ];
 
 (function () {
@@ -934,10 +880,17 @@ var CREATIVES = [
 
   // ---- Feed-Vorschau ----
   var feed = document.getElementById('feed');
-  CREATIVES.forEach(function (c) {
+  function angleHead(c, i, into) {
+    if (i > 0 && CREATIVES[i - 1].angle === c.angle) return;
+    var h = document.createElement('h2'); h.className = 'angle';
+    h.innerHTML = esc(ANGLES[c.angle]) + '<small>3 Karussells</small>';
+    into.appendChild(h);
+  }
+  CREATIVES.forEach(function (c, ci) {
+    angleHead(c, ci, feed);
     var slides = slidesOf(c.id);
     var pw = document.createElement('div'); pw.className = 'post-wrap'; pw.dataset.type = c.type;
-    pw.innerHTML = '<div class="tag"><span>' + c.id + ' · ' + (c.type === 'single' ? 'Einzelbild' : 'Karussell, ' + slides.length + ' Karten') + '</span><span>' + esc(c.name) + '</span></div>' +
+    pw.innerHTML = '<div class="tag"><span>' + c.id + ' · ' + 'Karussell, ' + slides.length + ' Karten' + '</span><span>' + esc(c.name) + '</span></div>' +
       '<article class="post"><div class="post-h"><span class="av"><img src="' + logo + '" alt=""></span><div><b>Lesify</b><small>Gesponsert · 🌐</small></div><span class="dots">···</span></div>' +
       '<div class="post-t">' + esc(c.text) + '</div><div class="media"></div>' +
       '<div class="post-r"><span>👍 Gefällt mir</span><span>💬 Kommentieren</span><span>↗ Teilen</span></div></article>';
@@ -970,7 +923,8 @@ var CREATIVES = [
 
   // ---- Motiv-Ansicht ----
   var grid = document.getElementById('grid');
-  CREATIVES.forEach(function (c) {
+  CREATIVES.forEach(function (c, ci) {
+    angleHead(c, ci, grid);
     var sec = document.createElement('section'); sec.dataset.type = c.type;
     sec.innerHTML = '<h2>' + c.id + ' · ' + esc(c.name) + '</h2><p>' + esc(c.idee) + '</p><div class="row"></div>';
     var row = sec.querySelector('.row');

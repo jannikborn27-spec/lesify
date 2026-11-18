@@ -1760,6 +1760,17 @@ fehlgeschlagene Logins/Upload-Flooding weiterhin offen (§8).
 - [x] **Familien-Paket-Mechanik (produktiv)**: Sitz nachträglich hinzufügen/entfernen mit echter Proration/Downgrade zum Zeitraumende. `PATCH /abo` + `geplanteSitze` + Job `abo-geplante-aenderungen`, echtes Stripe-Adapter steht — der Job senkt seit 2026-09-18 auch wirklich den Stripe-Preis (vorher nur lokale DB, siehe Bug-Notiz bei `PATCH /abo` oben). **Weiterhin offen, keine Code-Aufgabe:** kein Bestätigungsschritt in der UI vor einer Sitz-/Tarif-Erhöhung — die greift sofort und erzeugt bei einem bereits aktiv abrechnenden (nicht mehr in der Testphase befindlichen) Abo eine echte, sofort fällige Proration-Buchung bei Stripe, ohne dass die Eltern vorher einen Betrag sehen oder bestätigen (live verifiziert: Tarifwechsel auf einem aktiven Test-Abo erzeugte sofort zwei `invoiceItems`, „Unused time" + „Remaining time", die in die nächste Rechnung einfließen). Während der 14-Tage-Testphase löst dieselbe Aktion dagegen nachweislich **keine** Belastung aus — Stripe verschiebt nur den künftigen Rechnungsbetrag, ohne eine Proration-Buchung anzulegen.
 - [x] **Kontaktformular — Zielsystem** (2026-09-23): Resend → `kontakt@lesify.de` (`KONTAKT_EMPFAENGER`), Reply-To = Absender:in. Spam-Schutz = IP-Rate-Limit + Honeypot-Feld (kein Captcha). Offen: ob `marketing/kontakt/` (am 2026-09-22 entfernt) zurückkommt oder es bei `mailto:` bleibt.
 - [x] **Klausur-Erinnerung + Wöchentliche Zusammenfassung** — **entfernt (Entscheidung 2026-09-23):** Toggles aus `einstellungen.html`, Felder aus `Einstellungen` (Migration `20260923120000_einstellungen_ohne_benachrichtigungen`, DROP COLUMN), `PATCH /user/einstellungen` nimmt nur noch `kiTonfall`.
+- [ ] **Abos aus App Store / Google Play (geplant 2026-11-18, Launch-Plan
+      `Konzept-texts/launch-plan-2027.md`):** die native App (Capacitor) muss
+      digitale Abos per In-App-Kauf verkaufen. Vorschlag: RevenueCat als
+      Abstraktion über Apple + Google, Webhook `POST /abo/revenuecat-webhook`,
+      neues Feld `Abo.quelle` (`stripe` | `apple` | `google`) + Store-
+      Abo-Kennung; Tarife/Kontingente unverändert aus `shared/src/abo.ts`.
+      Offen: Familien-Sitze über Store-Abos (Store-Produkte je Sitzzahl vs. nur
+      Einzelplatz in der App), Wechsel/Kündigung nur im jeweiligen Store,
+      Registrierung des Elternkontos in der App (heute nur
+      `marketing/registrieren/`). Store-Preise enthalten 19 % MwSt. + 15 %
+      Provision → Deckungsbeitrag ~28 % unter Web.
 - [ ] **Auth-Fehlversuche**: temporärer Account-Lockout nach X Fehlversuchen vs. nur IP-Drosselung (Default aktuell: Drosselung + exponentieller Backoff, kein harter Lockout).
 
 ---

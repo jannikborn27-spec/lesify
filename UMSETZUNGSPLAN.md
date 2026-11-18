@@ -3202,6 +3202,14 @@ Blockiert alles Weitere. Erst die offenen Produktfragen klären, dann bauen.
 - [x] **Entscheidung 2026-09-30 — Usage je Platz:** Kontingente gehören zum
       Platz im Eltern-Abo, nicht zum Kind-Konto; ein neues Kind übernimmt den
       Monatsverbrauch des Platzes. Tarif ändern nur im Eltern-Bereich.
+- [x] **Entscheidung 2026-11-18 — Native App + Januar-Launch:** Budget
+      **3.000 €** bis zur Profitabilität. Native App (iOS + Android) per
+      **Capacitor** auf Basis von `app/`, Phones zuerst. Öffentlicher Launch +
+      Werbestart **Mo 11.01.2027**; Vortest mit ~300 € ab KW 48. Bezahlte
+      Werbung zielt auf Eltern → Website (Stripe), nicht auf App-Installs;
+      Werbung startet auch, falls die App noch nicht durch die Review ist.
+      Plan, Budget, Szenarien und Abbruchregeln: `Konzept-texts/launch-plan-2027.md`,
+      Checkliste: Phase 16a.
 
 ---
 
@@ -5193,6 +5201,53 @@ Kritisch, weil Zielgruppe minderjährig ist.
       Rollback-Weg dokumentiert.
 - [ ] **Soft-Launch** mit kleiner Nutzergruppe, Fehler + KI-Kosten beobachten.
 - [ ] **Öffentlicher Launch.**
+
+---
+
+## Phase 16a — Native App & Januar-Launch 2027
+
+Plan, Budget-Aufteilung und Checkpoints: `Konzept-texts/launch-plan-2027.md`
+(Entscheidung 2026-11-18, Phase 0). Ersetzt bei „Soft-Launch"/„Öffentlicher
+Launch" in Phase 16 den Zeitpunkt (Soft-Launch KW 1, Launch 11.01.2027).
+
+**Konten & Vortest (KW 47–48)**
+
+- [ ] Apple Developer Program + Google Play Console registrieren; Entscheidung
+      privat vs. Organisation (D-U-N-S); Apple Small Business Program beantragen.
+- [ ] EU-Händlerstatus (DSA) bei Apple angeben, Zahlungsprofil bei Google.
+- [ ] Conversion-Tracking auf „Testphase gestartet" prüfen (Plausible, Meta
+      Pixel, Google Ads).
+- [ ] Vortest Phase A live (~12 €/Tag, 23.11.–18.12., ~300 €).
+
+**App-Bau (KW 48–51)**
+
+- [ ] Mobiles Layout `app/` (Tab-Leiste unten, Tap-Ziele) + PWA (Manifest,
+      Service Worker).
+- [ ] Capacitor-Hülle iOS + Android, `app/` lokal gebündelt.
+- [ ] Native Funktionen: Push (Lernplan-Erinnerung), Kamera/Dokumentenscan
+      für Uploads, Offline-Seite.
+- [ ] In-App-Kauf über RevenueCat (Apple + Google) + Backend-Anbindung
+      (`backend-planning.md` §8 „Weiterhin offen").
+- [ ] Registrierung (Elternkonto) direkt in der App.
+- [ ] Kein Meta Pixel/GTM in der App.
+
+**Stores (KW 51–53)**
+
+- [ ] Google Closed Test spätestens 14.12. starten (12 Tester × 14 Tage bei
+      privatem Konto); TestFlight.
+- [ ] Store-Einträge: Texte, beschriftete Screenshots, Altersfreigabe,
+      Datenschutz-Angaben (App Privacy / Data Safety), Demo-Konto für Review.
+- [ ] Datenschutzerklärung um App (Push, Kamera, In-App-Kauf) ergänzen.
+- [ ] iOS + Android zur Review einreichen.
+
+**Launch & Wachstum**
+
+- [ ] Soft-Launch KW 1 (4.–10.01.) mit 5–10 Testfamilien.
+- [ ] Öffentlicher Launch + Werbephase B ab 11.01. (~30 €/Tag).
+- [ ] Halbjahreszeugnis-Anzeigen (25.01.–07.02.).
+- [ ] Aktivierungs-Mails in der Testphase (Tag 1/3/10/13).
+- [ ] Empfehlungsprogramm „1 Monat gratis für beide".
+- [ ] Checkpoint 1 (07.02.), 2 (31.03.), 3 (30.06.) — Regeln im Launch-Plan §5.
 
 ---
 
